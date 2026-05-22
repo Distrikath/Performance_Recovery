@@ -316,7 +316,19 @@ nav{
   position:absolute;inset:0;
   width:100%;height:100%;
   display:block;
+  cursor:grab;
 }
+#globe-canvas:active{cursor:grabbing}
+.globe-hint{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%, 170px);
+  font-family:var(--mono);font-size:9px;letter-spacing:.35em;
+  color:rgba(242,242,240,0.22);text-transform:lowercase;
+  pointer-events:none;white-space:nowrap;z-index:3;
+  opacity:0;transition:opacity .9s ease;
+}
+.globe-hint.show{opacity:1}
 .globe-overlay{
   position:absolute;
   bottom:56px;left:0;right:0;
@@ -1053,6 +1065,7 @@ footer.contact-strip{
 <!-- ═══ GLOBE ═══ -->
 <section class="globe-section" id="globe-section">
   <canvas id="globe-canvas"></canvas>
+  <div class="globe-hint" id="globe-hint">drag to rotate &nbsp;·&nbsp; scroll to zoom</div>
   <div class="globe-overlay">
     <div class="globe-eyebrow">[ canggu, bali — indonesia ]</div>
     <div class="globe-coords">8°37'55"S &nbsp;&nbsp; 115°08'57"E</div>
@@ -1334,35 +1347,41 @@ document.addEventListener('keydown', e => {
   const TARGET_ROT = [-115.1493111, 8.6320667, 0];
   const section = document.getElementById('globe-section');
   const canvas = document.getElementById('globe-canvas');
-  if(!section || !canvas || typeof d3 === 'undefined' || typeof topojson === 'undefined') return;
+  const hint = document.getElementById('globe-hint');
+  if(!section || !canvas || typeof d3==='undefined' || typeof topojson==='undefined') return;
 
-  let w = section.offsetWidth;
-  let h = section.offsetHeight || window.innerHeight;
-  canvas.width = w * devicePixelRatio;
-  canvas.height = h * devicePixelRatio;
-  canvas.style.width = w + 'px';
-  canvas.style.height = h + 'px';
-
+  const dpr = window.devicePixelRatio || 1;
+  let w, h, baseRadius, zoomFactor = 1;
   const ctx = canvas.getContext('2d');
-  ctx.scale(devicePixelRatio, devicePixelRatio);
-
-  const radius = Math.min(w, h) * 0.4;
-  const proj = d3.geoOrthographic()
-    .scale(radius)
-    .translate([w / 2, h / 2])
-    .clipAngle(90)
-    .rotate([0, -20, 0]);
-
+  const proj = d3.geoOrthographic().clipAngle(90);
   const pathGen = d3.geoPath(proj, ctx);
   const graticule = d3.geoGraticule()();
 
-  let rot = [0, -20, 0];
-  let phase = 'spin';
-  let phaseStart = Date.now();
+  function setSize(){
+    w = section.offsetWidth;
+    h = section.offsetHeight || window.innerHeight;
+    canvas.width = w * dpr; canvas.height = h * dpr;
+    canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    baseRadius = Math.min(w, h) * 0.38;
+    proj.scale(baseRadius * zoomFactor).translate([w/2, h/2]);
+  }
+  setSize();
 
-  function lerp(a, b, t){ return a + (b - a) * t; }
-  function shortAngle(a, b){ const d = ((b - a) % 360 + 360) % 360; return d > 180 ? d - 360 : d; }
-  function easeInOut(t){ return t < .5 ? 2*t*t : -1+(4-2*t)*t; }
+  let rot = [0, -20, 0];
+  let phase = 'spin', phaseStart = Date.now();
+  let userInteracting = false, interactionTimer = null;
+  let landDots = [];
+
+  function shortAngle(a, b){ const d=((b-a)%360+360)%360; return d>180?d-360:d; }
+  function easeInOut(t){ return t<.5?2*t*t:-1+(4-2*t)*t; }
+
+  /* fast hemisphere check — dot product, no arccos */
+  function onFront(lng, lat){
+    const dLng = (lng + rot[0]) * Math.PI/180;
+    const φ = lat * Math.PI/180, φc = -rot[1] * Math.PI/180;
+    return Math.sin(φ)*Math.sin(φc) + Math.cos(φ)*Math.cos(φc)*Math.cos(dLng);
+  }
 
   function render(){
     ctx.clearRect(0, 0, w, h);
@@ -1374,75 +1393,150 @@ document.addEventListener('keydown', e => {
 
     /* graticule */
     ctx.beginPath(); pathGen(graticule);
-    ctx.strokeStyle = 'rgba(242,242,240,0.035)'; ctx.lineWidth = 0.5; ctx.stroke();
+    ctx.strokeStyle = 'rgba(242,242,240,0.04)'; ctx.lineWidth = 0.5; ctx.stroke();
 
-    /* land */
-    if(globeLand){ ctx.beginPath(); pathGen(globeLand); ctx.fillStyle = '#1a1a1a'; ctx.fill(); }
-
-    /* borders */
-    if(globeMesh){ ctx.beginPath(); pathGen(globeMesh); ctx.strokeStyle = 'rgba(255,45,45,0.09)'; ctx.lineWidth = 0.5; ctx.stroke(); }
+    /* dotted land */
+    for(let i=0; i<landDots.length; i++){
+      const d = landDots[i];
+      const vis = onFront(d[0], d[1]);
+      if(vis <= 0.02) continue;
+      const p = proj(d);
+      if(!p) continue;
+      ctx.beginPath();
+      ctx.arc(p[0], p[1], 1.2, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(210,210,205,${(Math.pow(vis, 0.45)*0.62).toFixed(2)})`;
+      ctx.fill();
+    }
 
     /* sphere rim */
     ctx.beginPath(); pathGen({type:'Sphere'});
     ctx.strokeStyle = 'rgba(242,242,240,0.07)'; ctx.lineWidth = 1; ctx.stroke();
 
-    /* Bali dot — only if on visible hemisphere */
-    const dist = d3.geoDistance(BALI, [-rot[0], -rot[1]]);
-    if(dist < Math.PI / 2){
+    /* Bali dot */
+    const bVis = onFront(BALI[0], BALI[1]);
+    if(bVis > 0){
       const p = proj(BALI);
       if(p){
-        const pulse = 0.55 + 0.45 * Math.sin(Date.now() / 700);
-        const grd = ctx.createRadialGradient(p[0], p[1], 0, p[0], p[1], 28);
-        grd.addColorStop(0, `rgba(255,45,45,${(0.55 * pulse).toFixed(2)})`);
+        const pulse = 0.55 + 0.45*Math.sin(Date.now()/700);
+        const grd = ctx.createRadialGradient(p[0],p[1],0,p[0],p[1],28);
+        grd.addColorStop(0, `rgba(255,45,45,${(0.6*pulse).toFixed(2)})`);
         grd.addColorStop(1, 'rgba(255,45,45,0)');
-        ctx.beginPath(); ctx.arc(p[0], p[1], 28, 0, Math.PI * 2);
+        ctx.beginPath(); ctx.arc(p[0],p[1],28,0,Math.PI*2);
         ctx.fillStyle = grd; ctx.fill();
-        ctx.beginPath(); ctx.arc(p[0], p[1], 4, 0, Math.PI * 2);
+        ctx.beginPath(); ctx.arc(p[0],p[1],4,0,Math.PI*2);
         ctx.fillStyle = '#FF2D2D'; ctx.fill();
       }
     }
   }
 
   function animate(){
-    const now = Date.now();
-    const elapsed = (now - phaseStart) / 1000;
-
-    if(phase === 'spin'){
-      rot[0] -= 1.0;
-      if(elapsed > 2.8){ phase = 'settle'; phaseStart = now; }
-    } else if(phase === 'settle'){
-      const t = Math.min(1, elapsed / 2.4);
-      const e = easeInOut(t);
-      rot[0] += shortAngle(rot[0], TARGET_ROT[0]) * (e * 0.06 + 0.01);
-      rot[1] += shortAngle(rot[1], TARGET_ROT[1]) * (e * 0.06 + 0.01);
-      if(t >= 1){ phase = 'orbit'; phaseStart = now; }
-    } else {
-      const t = (now - phaseStart) / 1000;
-      rot[0] = TARGET_ROT[0] + Math.sin(t / 14) * 9;
-      rot[1] = TARGET_ROT[1] + Math.cos(t / 20) * 4;
+    if(!userInteracting){
+      const now = Date.now(), el = (now-phaseStart)/1000;
+      if(phase==='spin'){
+        rot[0] -= 1.0;
+        if(el > 2.8){ phase='settle'; phaseStart=now; }
+      } else if(phase==='settle'){
+        const dx = shortAngle(rot[0], TARGET_ROT[0]);
+        const dy = shortAngle(rot[1], TARGET_ROT[1]);
+        rot[0] += dx * (easeInOut(Math.min(1,el/2.4)) * 0.055 + 0.008);
+        rot[1] += dy * (easeInOut(Math.min(1,el/2.4)) * 0.055 + 0.008);
+        if(Math.abs(dx) < 0.3 && Math.abs(dy) < 0.3){
+          phase='orbit'; phaseStart=now;
+          if(hint) setTimeout(()=>hint.classList.add('show'), 600);
+        }
+      } else {
+        const t = (now-phaseStart)/1000;
+        rot[0] = TARGET_ROT[0] + Math.sin(t/14)*9;
+        rot[1] = TARGET_ROT[1] + Math.cos(t/20)*4;
+      }
     }
-
     render();
     requestAnimationFrame(animate);
   }
 
-  let globeLand, globeMesh;
-  d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(world => {
-    globeLand = topojson.feature(world, world.objects.land);
-    globeMesh = topojson.mesh(world, world.objects.countries, (a, b) => a !== b);
-    animate();
-  }).catch(() => { animate(); });
+  /* ── Interaction state ── */
+  let dragging=false, lastX, lastY;
+  const SENS = 0.35;
 
-  window.addEventListener('resize', () => {
-    w = section.offsetWidth;
-    h = section.offsetHeight || window.innerHeight;
-    canvas.width = w * devicePixelRatio;
-    canvas.height = h * devicePixelRatio;
-    canvas.style.width = w + 'px';
-    canvas.style.height = h + 'px';
-    ctx.scale(devicePixelRatio, devicePixelRatio);
-    proj.scale(Math.min(w, h) * 0.4).translate([w / 2, h / 2]);
+  function startInteract(){
+    userInteracting = true;
+    clearTimeout(interactionTimer);
+    if(hint) hint.classList.remove('show');
+  }
+  function endInteract(){
+    dragging = false;
+    canvas.style.cursor = 'grab';
+    interactionTimer = setTimeout(()=>{
+      TARGET_ROT[0] = rot[0]; TARGET_ROT[1] = rot[1];
+      userInteracting = false;
+      phase = 'orbit'; phaseStart = Date.now();
+    }, 1400);
+  }
+
+  /* ── Mouse ── */
+  canvas.addEventListener('mousedown', e=>{
+    dragging=true; lastX=e.clientX; lastY=e.clientY;
+    canvas.style.cursor='grabbing';
+    startInteract();
   });
+  window.addEventListener('mousemove', e=>{
+    if(!dragging) return;
+    rot[0] += (e.clientX-lastX)*SENS;
+    rot[1] -= (e.clientY-lastY)*SENS;
+    rot[1] = Math.max(-90, Math.min(90, rot[1]));
+    lastX=e.clientX; lastY=e.clientY;
+  });
+  window.addEventListener('mouseup', ()=>{ if(dragging) endInteract(); });
+
+  /* ── Touch ── */
+  let lastTouchDist = 0;
+  canvas.addEventListener('touchstart', e=>{
+    if(e.touches.length===1){
+      dragging=true; lastX=e.touches[0].clientX; lastY=e.touches[0].clientY;
+    } else if(e.touches.length===2){
+      lastTouchDist = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+    }
+    startInteract(); e.preventDefault();
+  },{passive:false});
+  canvas.addEventListener('touchmove', e=>{
+    if(e.touches.length===1 && dragging){
+      rot[0] += (e.touches[0].clientX-lastX)*SENS;
+      rot[1] -= (e.touches[0].clientY-lastY)*SENS;
+      rot[1] = Math.max(-90, Math.min(90, rot[1]));
+      lastX=e.touches[0].clientX; lastY=e.touches[0].clientY;
+    } else if(e.touches.length===2){
+      const d = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+      zoomFactor = Math.max(0.5, Math.min(5, zoomFactor * d/lastTouchDist));
+      proj.scale(baseRadius*zoomFactor);
+      lastTouchDist = d;
+    }
+    e.preventDefault();
+  },{passive:false});
+  canvas.addEventListener('touchend', endInteract);
+
+  /* ── Scroll zoom ── */
+  canvas.addEventListener('wheel', e=>{
+    e.preventDefault();
+    zoomFactor = Math.max(0.5, Math.min(5, zoomFactor * (e.deltaY>0 ? 0.92 : 1.08)));
+    proj.scale(baseRadius * zoomFactor);
+    startInteract();
+    clearTimeout(interactionTimer);
+    interactionTimer = setTimeout(()=>{ userInteracting=false; }, 1000);
+  },{passive:false});
+
+  /* ── Load world & generate land dots ── */
+  d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(world=>{
+    const land = topojson.feature(world, world.objects.land);
+    const STEP = 1.5;
+    for(let lat=-90; lat<=90; lat+=STEP){
+      for(let lng=-180; lng<=180; lng+=STEP){
+        if(d3.geoContains(land, [lng, lat])) landDots.push([lng, lat]);
+      }
+    }
+    animate();
+  }).catch(()=>animate());
+
+  window.addEventListener('resize', setSize);
 })();
 
 /* ─── LIVE TIME (WITA = UTC+8) + COUNTDOWN TO 01.08.2026 ─── */
