@@ -193,7 +193,7 @@ nav{
    HERO TYPOGRAPHY
 ═══════════════════════════════════════ */
 .hero{
-  position:relative;height:100vh;min-height:720px;
+  position:relative;height:100vh;min-height:500px;
   z-index:5;
   display:flex;flex-direction:column;justify-content:flex-end;
   padding:0 32px 80px;
@@ -571,6 +571,10 @@ footer{
   .hero-tag{font-size:11px;letter-spacing:.32em;margin-top:18px}
   .hero-tag{font-size:9px;letter-spacing:.4em}
   .hero-sub{font-size:11px;flex-direction:column;align-items:flex-start;gap:8px}
+  .globe-section{height:90vh;min-height:360px}
+  .globe-overlay{bottom:32px;gap:8px}
+  .globe-eyebrow{font-size:9px;letter-spacing:.32em}
+  .globe-coords{font-size:10px}
   .manifesto{padding:80px 18px}
   .manifesto-text{font-size:clamp(40px,12vw,72px)}
   .manifesto-eyebrow{margin-bottom:48px}
@@ -580,6 +584,16 @@ footer{
   .menu-list{padding:48px 24px}
   .menu-item{font-size:clamp(32px,9vw,56px)}
   .ft-row{flex-direction:column;align-items:flex-start;gap:8px;font-size:10px}
+}
+@media (max-width:600px){
+  nav{padding:14px 16px}
+  .menu-btn span{width:16px}
+  .hero{padding:0 16px 48px;min-height:420px}
+  .hero-mark{font-size:clamp(60px,20vw,120px)}
+  .hero-sub{display:none}
+  .hero-signature{gap:20px;padding:14px 16px;font-size:8px;letter-spacing:.32em}
+  .globe-section{height:85vh;min-height:300px}
+  .scroll-cue{display:none}
 }
 
 
@@ -785,11 +799,12 @@ section.livedata-section{
   z-index:100 !important;
   background:#0a0a0a !important;
   border-top:1px solid rgba(242,242,240,.06);
-  min-height:100vh;
-  padding:100px 32px 48px;
+  height:100vh;
+  min-height:600px;
+  padding:64px 32px;
   display:flex !important;
   flex-direction:column;
-  justify-content:flex-end;
+  justify-content:center;
   width:100%;
   box-sizing:border-box;
 }
@@ -802,7 +817,7 @@ section.livedata-section .ld-eyebrow{
   font-size:10px;
   letter-spacing:.45em;
   color:#FF2D2D !important;
-  margin:0 0 80px 0;
+  margin:0 0 48px 0;
   text-transform:lowercase;
   text-align:left;
   display:block;
@@ -887,7 +902,7 @@ section.livedata-section #countdown{
   font-weight:700;
 }
 @media (max-width:900px){
-  section.livedata-section{padding:80px 24px 32px;min-height:auto}
+  section.livedata-section{padding:48px 24px;height:auto;min-height:auto}
   section.livedata-section .ld-grid{grid-template-columns:1fr;gap:40px}
   section.livedata-section .ld-eyebrow{margin-bottom:40px}
 }
