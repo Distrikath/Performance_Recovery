@@ -1065,7 +1065,7 @@ footer.contact-strip{
 <!-- ═══ GLOBE ═══ -->
 <section class="globe-section" id="globe-section">
   <canvas id="globe-canvas"></canvas>
-  <div class="globe-hint" id="globe-hint">drag to rotate &nbsp;·&nbsp; scroll to zoom</div>
+  <div class="globe-hint" id="globe-hint">drag to rotate</div>
   <div class="globe-overlay">
     <div class="globe-eyebrow">[ canggu, bali — indonesia ]</div>
     <div class="globe-coords">8°37'55"S &nbsp;&nbsp; 115°08'57"E</div>
@@ -1513,16 +1513,6 @@ document.addEventListener('keydown', e => {
     e.preventDefault();
   },{passive:false});
   canvas.addEventListener('touchend', endInteract);
-
-  /* ── Scroll zoom ── */
-  canvas.addEventListener('wheel', e=>{
-    e.preventDefault();
-    zoomFactor = Math.max(0.5, Math.min(5, zoomFactor * (e.deltaY>0 ? 0.92 : 1.08)));
-    proj.scale(baseRadius * zoomFactor);
-    startInteract();
-    clearTimeout(interactionTimer);
-    interactionTimer = setTimeout(()=>{ userInteracting=false; }, 1000);
-  },{passive:false});
 
   /* ── Load world & generate land dots ── */
   d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(world=>{
