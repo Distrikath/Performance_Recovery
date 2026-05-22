@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Distrik.Dashboard</title>
+<meta name="robots" content="noindex,nofollow">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0a0a0a; --s1:#111; --s2:#161616; --bd:#1e1e1e;
+  --tx:#e0e0e0; --mu:#555;
+  --c-fuel:#e8621a; --c-recep:#3b82f6; --c-sup:#10b981; --c-ther:#8b5cf6;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;padding:22px 14px 60px;-webkit-tap-highlight-color:transparent;}
+
+.hdr{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px;border-bottom:1px solid var(--bd);padding-bottom:10px;}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:46px;line-height:1;letter-spacing:5px;color:#fff;}
+
+.hdr-r{text-align:right;}
+.hdr-r h2{font-family:'DM Mono',monospace;font-size:8px;color:#888;letter-spacing:3px;text-transform:uppercase;margin-bottom:2px;}
+.hdr-r p{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;color:#888;}
+
+/* Staff palette */
+.palette{background:var(--s2);border:1px solid var(--bd);border-radius:3px;padding:10px 12px;margin-bottom:12px;}
+.palette h3{font-family:'DM Mono',monospace;font-size:7.5px;letter-spacing:2px;text-transform:uppercase;color:#888;margin-bottom:8px;}
+.palette-grid{display:flex;gap:6px;flex-wrap:wrap;}
+.staff-chip{display:flex;align-items:center;gap:5px;padding:5px 9px;border-radius:3px;cursor:grab;font-family:'DM Mono',monospace;font-size:9px;font-weight:500;border:1px solid;user-select:none;touch-action:none;transition:filter .1s,transform .1s;}
+.staff-chip:hover{filter:brightness(1.1);}
+.staff-chip.dragging{transform:scale(1.05);filter:brightness(1.2);opacity:0.85;}
+.chip-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.chip-role{font-size:7px;opacity:0.8;margin-left:2px;}
+
+/* Day tabs */
+.day-tabs{display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap;}
+.day-tab{font-family:'DM Mono',monospace;font-size:8.5px;letter-spacing:1.5px;text-transform:uppercase;padding:4px 10px;border-radius:2px;border:1px solid var(--bd);background:transparent;color:#888;cursor:pointer;}
+.day-tab:hover{background:var(--s2);color:#888;}
+.day-tab.active{background:var(--c-fuel);color:#fff;border-color:var(--c-fuel);}
+
+/* Grid container */
+.grid-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.roster-grid{min-width:900px;border:1px solid var(--bd);border-radius:3px;overflow:hidden;}
+
+/* Time axis */
+.axis-row{display:flex;background:#080808;border-bottom:1px solid var(--bd);}
+.axis-label{width:90px;flex-shrink:0;border-right:1px solid var(--bd);padding:4px 8px;font-family:'DM Mono',monospace;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#888;}
+.axis-cells{flex:1;display:flex;position:relative;}
+.axis-tick{flex:1;text-align:center;font-family:'DM Mono',monospace;font-size:7px;color:#505050;padding:4px 0;border-left:1px solid #131313;}
+.axis-tick.hour{color:#707070;border-left-color:#555;}
+
+/* Zone section */
+.zone-section{}
+.zone-header{display:flex;align-items:center;background:#0d0d0d;border-bottom:1px solid #171717;border-top:1px solid var(--bd);}
+.zone-header:first-child{border-top:none;}
+.zone-label{width:90px;flex-shrink:0;padding:6px 8px;border-right:1px solid var(--bd);border-left:3px solid;}
+.zone-label h4{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:2px;color:#fff;}
+.zone-label p{font-family:'DM Mono',monospace;font-size:6px;letter-spacing:1px;text-transform:uppercase;color:#888;margin-top:1px;}
+.zone-hours{flex:1;display:flex;align-items:center;padding:0 8px;font-family:'DM Mono',monospace;font-size:7px;color:#666;letter-spacing:1px;}
+
+/* Slot row */
+.slot-row{display:flex;border-bottom:1px solid #0f0f0f;}
+.slot-row:last-child{border-bottom:none;}
+.row-label{width:90px;flex-shrink:0;border-right:1px solid var(--bd);display:flex;align-items:center;padding:0 8px;font-family:'DM Mono',monospace;font-size:7px;color:#666;letter-spacing:1px;background:var(--s1);}
+.slots{flex:1;display:flex;position:relative;}
+
+/* Individual slot cell */
+.slot{flex:1;height:32px;border-left:1px solid #111;position:relative;cursor:pointer;transition:background .1s;}
+.slot.hour-start{border-left-color:#1c1c1c;}
+.slot.inactive{background:#070707;cursor:default;pointer-events:none;}
+.slot.empty{background:var(--bg);}
+.slot.empty:hover{background:#161616;}
+.slot.drag-over{background:#1e1e1e;outline:1px dashed #444;}
+.slot.drag-over-invalid{background:rgba(224,85,96,0.08);}
+
+/* Filled slot block — spans multiple cells */
+.slot-block{position:absolute;top:2px;height:28px;border-radius:2px;display:flex;align-items:center;padding:0 5px;font-family:'DM Mono',monospace;font-size:8px;font-weight:500;white-space:nowrap;overflow:hidden;cursor:grab;z-index:2;border:1px solid transparent;user-select:none;touch-action:none;}
+.slot-block:hover{filter:brightness(1.1);}
+.slot-block.is-break{background:#151515 !important;color:#555;border:1px dashed #252525;cursor:grab;font-size:7.5px;}
+.slot-block .blbl{overflow:hidden;text-overflow:ellipsis;}
+.slot-block .btime{opacity:0.55;font-size:6.5px;margin-left:3px;flex-shrink:0;}
+.slot-block .resize-handle{position:absolute;right:0;top:0;width:5px;height:100%;cursor:ew-resize;z-index:3;}
+
+/* Ghost drag indicator */
+#drag-ghost{position:fixed;pointer-events:none;z-index:1000;display:none;border-radius:3px;padding:4px 10px;font-family:'DM Mono',monospace;font-size:9px;font-weight:500;opacity:0.9;box-shadow:0 4px 20px rgba(0,0,0,0.5);}
+
+/* Timesheet */
+.ts-wrap{margin-top:14px;display:none;}
+.ts-wrap.show{display:block;}
+.ts-title{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:3px;color:#666;margin-bottom:7px;border-bottom:1px solid var(--bd);padding-bottom:5px;}
+.ts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:7px;}
+.ts-card{background:var(--s1);border:1px solid var(--bd);border-radius:2px;overflow:hidden;}
+.ts-head{display:flex;align-items:center;gap:7px;padding:7px 10px;background:var(--s2);border-bottom:1px solid var(--bd);}
+.ts-name{font-size:10px;font-weight:600;}
+.ts-total{font-family:'DM Mono',monospace;font-size:8px;color:#888;margin-left:auto;}
+.ts-body{font-family:'DM Mono',monospace;font-size:7.5px;}
+.ts-row{display:grid;grid-template-columns:44px 1fr auto;gap:6px;align-items:center;padding:4px 10px;border-bottom:1px solid #111;}
+.ts-row:last-child{border-bottom:none;}
+.ts-day{color:#888;letter-spacing:1px;}
+.ts-pills{display:flex;gap:3px;flex-wrap:wrap;}
+.ts-pill{padding:1px 5px;border-radius:2px;font-size:7px;border:1px solid;}
+.ts-hrs{color:#888;text-align:right;}
+
+/* Budget */
+.bud-wrap{margin-top:14px;}
+.bud-title{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:3px;color:#666;margin-bottom:7px;border-bottom:1px solid var(--bd);padding-bottom:5px;}
+.tbl{width:100%;border-collapse:collapse;font-family:'DM Mono',monospace;font-size:8px;}
+.tbl th{padding:4px 7px;text-align:left;border-bottom:2px solid var(--bd);letter-spacing:1.5px;text-transform:uppercase;color:#666;font-weight:500;}
+.tbl td{padding:4px 7px;border-bottom:1px solid var(--bd);color:#888;vertical-align:middle;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl .bg-r td{padding:5px 7px 2px;font-size:6.5px;letter-spacing:2px;text-transform:uppercase;color:#444;border-bottom:1px solid #1e1e1e;}
+.tbl .bt td{border-top:2px solid var(--bd);color:var(--tx);font-weight:600;font-size:8.5px;background:#0d0d0d;}
+.dn-c{display:flex;align-items:center;gap:5px;}
+.sw{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.bw{width:70px;background:#161616;border-radius:1px;height:4px;}
+.bf{height:4px;border-radius:1px;opacity:0.7;}
+.cg{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:5px;margin-top:10px;}
+.cc{background:var(--s1);border:1px solid var(--bd);border-radius:2px;padding:8px 11px;}
+.cc-t{font-family:'DM Mono',monospace;font-size:6.5px;letter-spacing:2px;text-transform:uppercase;color:#222;margin-bottom:3px;}
+.cc-v{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:#999;}
+.cc-s{font-family:'DM Mono',monospace;font-size:7px;color:#666;margin-top:1px;}
+
+.hbtn{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;padding:5px 11px;border-radius:2px;border:1px solid #333;background:transparent;color:#555;cursor:pointer;margin-top:5px;margin-left:4px;}
+.hbtn:hover{background:var(--s2);color:#ccc;border-color:#666;}
+.hbtn.on{background:var(--c-fuel);color:#fff;border-color:var(--c-fuel);}
+
+/* ── Login overlay ──────────────────────────────────────────────────── */
+#login-overlay{
+  position:fixed;inset:0;z-index:9999;
+  background:#060606;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:24px;
+}
+.login-box{
+  width:100%;max-width:320px;
+  border:1px solid var(--bd);border-radius:4px;
+  background:var(--s1);overflow:hidden;
+}
+.login-head{
+  padding:18px 20px 14px;border-bottom:1px solid var(--bd);
+  background:var(--s2);
+}
+.login-logo{font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:5px;color:#fff;line-height:1;}
+.login-sub{font-family:'DM Mono',monospace;font-size:7.5px;letter-spacing:2.5px;color:#444;text-transform:uppercase;margin-top:3px;}
+.login-body{padding:20px;}
+.login-label{font-family:'DM Mono',monospace;font-size:7px;letter-spacing:2px;text-transform:uppercase;color:#444;margin-bottom:6px;}
+.login-input{
+  width:100%;background:#0a0a0a;border:1px solid var(--bd);border-radius:2px;
+  padding:9px 11px;color:var(--tx);font-family:'DM Mono',monospace;font-size:12px;
+  outline:none;transition:border-color .15s;
+}
+.login-input:focus{border-color:#333;}
+.login-input.err{border-color:#e05560 !important;}
+.login-btn{
+  width:100%;margin-top:10px;padding:10px;border-radius:2px;
+  background:var(--c-fuel);border:none;color:#fff;cursor:pointer;
+  font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;
+  transition:filter .1s;
+}
+.login-btn:hover{filter:brightness(1.1);}
+.login-btn:disabled{filter:brightness(0.5);cursor:default;}
+.login-err{
+  font-family:'DM Mono',monospace;font-size:7.5px;color:#e05560;
+  margin-top:8px;min-height:14px;letter-spacing:1px;
+}
+.login-footer{font-family:'DM Mono',monospace;font-size:6.5px;letter-spacing:1px;color:#222;text-align:center;margin-top:16px;}
+
+/* Logout btn */
+.logout-btn{font-family:'DM Mono',monospace;font-size:7px;letter-spacing:1.5px;text-transform:uppercase;padding:4px 9px;border-radius:2px;border:1px solid #1e1e1e;background:transparent;color:#2a2a2a;cursor:pointer;margin-top:5px;margin-left:4px;}
+.logout-btn:hover{border-color:#333;color:#555;}
+</style>
+</head>
+<body>
+
+<!-- Login overlay -->
+<div id="login-overlay">
+  <div class="login-box">
+    <div class="login-head">
+      <div class="login-logo">DISTRIK</div>
+      <div class="login-sub">Staff Dashboard · Private Access</div>
+    </div>
+    <div class="login-body">
+      <div class="login-label">Password</div>
+      <input class="login-input" id="pwd-input" type="password" placeholder="Enter password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+      <button class="login-btn" id="login-btn" onclick="doLogin()">Unlock Dashboard</button>
+      <div class="login-err" id="login-err"></div>
+    </div>
+  </div>
+  <div class="login-footer">Access restricted to authorised staff only.</div>
+</div>
+
+<div class="hdr">
+  <div class="logo">DISTRIK</div>
+  <div class="hdr-r">
+    <h2>Weekly Staff Roster</h2>
+    <p>06:00 — 22:00</p>
+    <button class="hbtn" id="tsbtn" onclick="toggleTS()">⊞ Timesheets</button>
+    <button class="hbtn" onclick="clearDay()" style="border-color:#e05560;color:#e05560;">✕ Clear Day</button>
+    <button class="logout-btn" onclick="doLogout()">Lock</button>
+  </div>
+</div>
+
+<!-- Staff palette -->
+<div class="palette">
+  <h3>Staff — drag onto the grid or click a slot</h3>
+  <div class="palette-grid" id="palette"></div>
+</div>
+
+<!-- Day selector -->
+<div class="day-tabs" id="dayTabs"></div>
+
+<!-- Roster grid -->
+<div class="grid-wrap">
+  <div class="roster-grid" id="rosterGrid"></div>
+</div>
+
+<!-- Timesheets -->
+<div class="ts-wrap" id="tsWrap">
+  <div class="ts-title">TIMESHEETS — <span id="tsDay"></span></div>
+  <div class="ts-grid" id="tsGrid"></div>
+</div>
+
+<!-- Budget -->
+<div class="bud-wrap">
+  <div class="bud-title">MONTHLY SALARY BUDGET · IDR</div>
+  <div id="budGrid"></div>
+</div>
+
+<!-- Drag ghost -->
+<div id="drag-ghost"></div>
+
+<script>
+// ── AUTH ─────────────────────────────────────────────────────────────────────
+// To change password: run  echo -n "NewPassword" | sha256sum  and update PWD_HASH.
+const PWD_HASH='40b0622e706a431e09edc296156eed3d6c6a9ee463b42ec8b4166a86cbfd3cb3'; // Distrik2025
+const AUTH_KEY='distrik_dash_auth';
+const SESSION_HOURS=12;
+
+// Pure-JS SHA-256 — works on file://, http://, https:// alike
+function sha256(str){
+  var K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+         0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+         0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+         0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+         0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+         0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+         0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+         0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+  var h=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+  var rr=function(v,n){return(v>>>n)|(v<<(32-n));};
+  var bytes=[];
+  for(var i=0;i<str.length;i++){
+    var c=str.charCodeAt(i);
+    if(c<128)bytes.push(c);
+    else if(c<2048)bytes.push((c>>6)|192,(c&63)|128);
+    else bytes.push((c>>12)|224,((c>>6)&63)|128,(c&63)|128);
+  }
+  var L=bytes.length*8;
+  bytes.push(0x80);
+  while(bytes.length%64!==56)bytes.push(0);
+  bytes.push(0,0,0,0,(L>>>24)&0xff,(L>>>16)&0xff,(L>>>8)&0xff,L&0xff);
+  for(var bi=0;bi<bytes.length;bi+=64){
+    var w=[];
+    for(var wi=0;wi<16;wi++)w[wi]=(bytes[bi+wi*4]<<24)|(bytes[bi+wi*4+1]<<16)|(bytes[bi+wi*4+2]<<8)|bytes[bi+wi*4+3];
+    for(var wi2=16;wi2<64;wi2++){
+      var ww=w[wi2-2],wx=w[wi2-15];
+      w[wi2]=((rr(ww,17)^rr(ww,19)^(ww>>>10))+w[wi2-7]+(rr(wx,7)^rr(wx,18)^(wx>>>3))+w[wi2-16])|0;
+    }
+    var a=h[0],b=h[1],c2=h[2],d=h[3],e=h[4],f=h[5],g=h[6],hh=h[7];
+    for(var j=0;j<64;j++){
+      var t1=(hh+(rr(e,6)^rr(e,11)^rr(e,25))+((e&f)^(~e&g))+K[j]+w[j])|0;
+      var t2=((rr(a,2)^rr(a,13)^rr(a,22))+((a&b)^(a&c2)^(b&c2)))|0;
+      hh=g;g=f;f=e;e=(d+t1)|0;d=c2;c2=b;b=a;a=(t1+t2)|0;
+    }
+    h[0]=(h[0]+a)|0;h[1]=(h[1]+b)|0;h[2]=(h[2]+c2)|0;h[3]=(h[3]+d)|0;
+    h[4]=(h[4]+e)|0;h[5]=(h[5]+f)|0;h[6]=(h[6]+g)|0;h[7]=(h[7]+hh)|0;
+  }
+  return h.map(function(v){return (v>>>0).toString(16).padStart(8,'0');}).join('');
+}
+
+function isAuthed(){
+  try{
+    var v=localStorage.getItem(AUTH_KEY);
+    if(!v)return false;
+    var d=JSON.parse(v);
+    if(Date.now()>d.expires){localStorage.removeItem(AUTH_KEY);return false;}
+    return d.hash===PWD_HASH;
+  }catch(e){return false;}
+}
+
+function doLogin(){
+  var input=document.getElementById('pwd-input');
+  var errEl=document.getElementById('login-err');
+  var pwd=input.value;
+  if(!pwd)return;
+  errEl.textContent='';
+  input.classList.remove('err');
+  try{
+    var h=sha256(pwd);
+    if(h===PWD_HASH){
+      try{localStorage.setItem(AUTH_KEY,JSON.stringify({hash:h,expires:Date.now()+SESSION_HOURS*3600000}));}catch(e){}
+      document.getElementById('login-overlay').style.display='none';
+      document.body.style.overflow='';
+    } else {
+      input.classList.add('err');
+      errEl.textContent='Incorrect password.';
+      input.value='';
+      input.focus();
+    }
+  }catch(e){
+    errEl.textContent='Error — open this file in Safari.';
+  }
+}
+
+function doLogout(){
+  try{localStorage.removeItem(AUTH_KEY);}catch(e){}
+  document.getElementById('login-overlay').style.display='flex';
+  document.body.style.overflow='hidden';
+  document.getElementById('pwd-input').value='';
+  document.getElementById('pwd-input').focus();
+}
+
+(function initAuth(){
+  if(!isAuthed()){
+    document.getElementById('login-overlay').style.display='flex';
+    document.body.style.overflow='hidden';
+    setTimeout(function(){document.getElementById('pwd-input').focus();},50);
+  } else {
+    document.getElementById('login-overlay').style.display='none';
+  }
+})();
+
+// ── CONFIG ───────────────────────────────────────────────────────────────────
+const DAYS=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const DS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const TOTAL_SLOTS=32; // 6am–10pm, 30min each
+const SLOT_START=6;   // 6am
+
+const ZONES=[
+  {id:'Fuel',      rows:2, start:6,  end:20, col:'#e8621a', label:'6am – 8pm',  min:'1 staff'},
+  {id:'Reception', rows:4, start:10, end:22, col:'#3b82f6', label:'10am – 10pm',min:'2 staff'},
+  {id:'Supply',    rows:2, start:8,  end:20, col:'#10b981', label:'8am – 8pm',  min:'1 staff'},
+  {id:'Therapy',   rows:4, start:10, end:22, col:'#8b5cf6', label:'10am – 10pm',min:'3 rooms'},
+];
+
+const STAFF=[
+  {id:'Amri',     col:'#f5c842',name:'Amri',     abbr:'AM',role:'Manager',   salary:6500000},
+  {id:'HS',       col:'#3b82f6',name:'Head Staff',abbr:'HS',role:'2IC',       salary:4500000},
+  {id:'SA',       col:'#e8621a',name:'Staff A',   abbr:'SA',role:'Fuel Open', salary:3900000},
+  {id:'SB',       col:'#14b8a6',name:'Staff B',   abbr:'SB',role:'Fuel Close',salary:3900000},
+  {id:'SC',       col:'#c084fc',name:'Staff C',   abbr:'SC',role:'Recep Close',salary:3900000},
+  {id:'SD',       col:'#f43f5e',name:'Staff D',   abbr:'SD',role:'Supply',    salary:3900000},
+  {id:'SE',       col:'#fb923c',name:'Staff E',   abbr:'SE',role:'Part-time', salary:2000000},
+  {id:'TA',       col:'#06b6d4',name:'Therapy A', abbr:'TA',role:'Head Ther', salary:4100000},
+  {id:'TB',       col:'#84cc16',name:'Therapy B', abbr:'TB',role:'Therapist', salary:3900000},
+  {id:'TC',       col:'#8b5cf6',name:'Therapy C', abbr:'TC',role:'Therapist', salary:3900000},
+  {id:'TD',       col:'#f59e0b',name:'Therapy D', abbr:'TD',role:'Therapist', salary:3900000},
+];
+const STAFF_MAP=Object.fromEntries(STAFF.map(s=>[s.id,s]));
+
+// ── GRID DATA ─────────────────────────────────────────────────────────────────
+// grid[day][zone][row][slot] = staffId | 'Break' | null
+function emptyGrid(){
+  return Object.fromEntries(DAYS.map(day=>[day,
+    Object.fromEntries(ZONES.map(z=>[z.id,
+      Array.from({length:z.rows},()=>Array(TOTAL_SLOTS).fill(null))
+    ]))
+  ]));
+}
+
+let grid=emptyGrid();
+let activeDay=0;
+
+// Populate default schedule
+function populateDefaults(){
+  function fillStaff(day,zone,row,staffId,startH,endH,isBreak=false){
+    const s=Math.round((startH-SLOT_START)*2);
+    const e=Math.round((endH-SLOT_START)*2);
+    for(let i=s;i<e&&i<TOTAL_SLOTS;i++){
+      if(i>=0) grid[day][zone][row][i]=isBreak?'Break:'+staffId:staffId;
+    }
+  }
+  // Monday: HS Reception, SA Fuel, SB Fuel, SD Supply
+  fillStaff('Monday','Reception',0,'HS',14,18);fillStaff('Monday','Reception',0,'HS',19,22);fillStaff('Monday','Reception',0,'Break:HS',18,19,true);
+  fillStaff('Monday','Fuel',0,'SA',6,10);fillStaff('Monday','Fuel',0,'SA',11,14);fillStaff('Monday','Fuel',0,'Break:SA',10,11,true);
+  fillStaff('Monday','Fuel',1,'SB',12,16);fillStaff('Monday','Fuel',1,'SB',17,20);fillStaff('Monday','Fuel',1,'Break:SB',16,17,true);
+  fillStaff('Monday','Supply',0,'SD',8,12);fillStaff('Monday','Supply',0,'SD',13,16);fillStaff('Monday','Supply',0,'Break:SD',12,13,true);
+  // Tuesday: Amri+HS Reception, SA+SB Fuel, SC Reception close, SD Supply
+  fillStaff('Tuesday','Fuel',0,'SA',6,10);fillStaff('Tuesday','Fuel',0,'SA',11,14);fillStaff('Tuesday','Fuel',0,'Break:SA',10,11,true);
+  fillStaff('Tuesday','Fuel',1,'SB',12,16);fillStaff('Tuesday','Fuel',1,'SB',17,20);fillStaff('Tuesday','Fuel',1,'Break:SB',16,17,true);
+  fillStaff('Tuesday','Reception',0,'Amri',10,14);fillStaff('Tuesday','Reception',0,'Amri',15,18);fillStaff('Tuesday','Reception',0,'Break:Amri',14,15,true);
+  fillStaff('Tuesday','Reception',1,'HS',10,14);fillStaff('Tuesday','Reception',1,'HS',15,18);fillStaff('Tuesday','Reception',1,'Break:HS',14,15,true);
+  fillStaff('Tuesday','Reception',2,'SC',14,18);fillStaff('Tuesday','Reception',2,'SC',19,22);fillStaff('Tuesday','Reception',2,'Break:SC',18,19,true);
+  fillStaff('Tuesday','Supply',0,'SD',8,12);fillStaff('Tuesday','Supply',0,'SD',13,16);fillStaff('Tuesday','Supply',0,'Break:SD',12,13,true);
+  // Fill remaining days with basic pattern
+  ['Wednesday','Thursday','Friday','Saturday','Sunday'].forEach(day=>{
+    if(day!=='Wednesday'){fillStaff(day,'Fuel',0,'SA',6,10);fillStaff(day,'Fuel',0,'SA',11,14);fillStaff(day,'Fuel',0,'Break:SA',10,11,true);}
+    if(day!=='Thursday'){fillStaff(day,'Fuel',1,'SB',12,16);fillStaff(day,'Fuel',1,'SB',17,20);fillStaff(day,'Fuel',1,'Break:SB',16,17,true);}
+    fillStaff(day,'Reception',0,'HS',10,14);fillStaff(day,'Reception',0,'HS',15,18);fillStaff(day,'Reception',0,'Break:HS',14,15,true);
+    if(day!=='Friday'){fillStaff(day,'Supply',0,'SD',8,12);fillStaff(day,'Supply',0,'SD',13,16);fillStaff(day,'Supply',0,'Break:SD',12,13,true);}
+    if(day!=='Saturday'){fillStaff(day,'Reception',1,'Amri',10,14);fillStaff(day,'Reception',1,'Amri',15,18);fillStaff(day,'Reception',1,'Break:Amri',14,15,true);}
+    fillStaff(day,'Reception',2,'SC',14,18);fillStaff(day,'Reception',2,'SC',19,22);fillStaff(day,'Reception',2,'Break:SC',18,19,true);
+    // Therapy
+    if(day!=='Monday'){fillStaff(day,'Therapy',0,'TA',10,14);fillStaff(day,'Therapy',0,'TA',15,18);fillStaff(day,'Therapy',0,'Break:TA',14,15,true);}
+    if(day!=='Wednesday'){fillStaff(day,'Therapy',1,'TB',10,14);fillStaff(day,'Therapy',1,'TB',15,18);fillStaff(day,'Therapy',1,'Break:TB',14,15,true);}
+    if(day!=='Friday'){fillStaff(day,'Therapy',2,'TC',14,18);fillStaff(day,'Therapy',2,'TC',19,22);fillStaff(day,'Therapy',2,'Break:TC',18,19,true);}
+    if(day!=='Sunday'){fillStaff(day,'Therapy',3,'TD',14,18);fillStaff(day,'Therapy',3,'TD',19,22);fillStaff(day,'Therapy',3,'Break:TD',18,19,true);}
+  });
+  // Monday therapy
+  fillStaff('Monday','Therapy',0,'TB',10,14);fillStaff('Monday','Therapy',0,'TB',15,18);fillStaff('Monday','Therapy',0,'Break:TB',14,15,true);
+  fillStaff('Monday','Therapy',1,'TC',14,18);fillStaff('Monday','Therapy',1,'TC',19,22);fillStaff('Monday','Therapy',1,'Break:TC',18,19,true);
+  fillStaff('Monday','Therapy',2,'TD',14,18);fillStaff('Monday','Therapy',2,'TD',19,22);fillStaff('Monday','Therapy',2,'Break:TD',18,19,true);
+}
+populateDefaults();
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function slotToH(s){return SLOT_START+s*0.5;}
+function hToSlot(h){return Math.round((h-SLOT_START)*2);}
+function tl(h){
+  const hh=Math.floor(h),mm=Math.round((h%1)*60);
+  if(hh===12&&mm===0)return'12pm';
+  const s=hh<12?'am':'pm',d=hh<=12?hh:hh-12;
+  return mm===0?`${d}${s}`:`${d}:${String(mm).padStart(2,'0')}${s}`;
+}
+function staffId(cell){return cell?cell.replace('Break:',''):null;}
+function isBreakCell(cell){return cell&&cell.startsWith('Break:');}
+function getStaff(id){return STAFF_MAP[id];}
+
+// ── DRAG STATE ────────────────────────────────────────────────────────────────
+let dragging={active:false};
+let selectedStaff=null; // staff clicked from palette
+
+const ghost=document.getElementById('drag-ghost');
+
+function startDragFromPalette(e,staffId){
+  e.preventDefault();
+  const s=getStaff(staffId);
+  if(!s) return;
+  dragging={active:true,staffId,fromGrid:false,slots:1};
+  selectedStaff=staffId;
+  showGhost(e,s.name,s.col);
+}
+function startDragFromGrid(e,zone,row,slotStart,slotEnd,sId){
+  e.preventDefault();
+  dragging={active:true,staffId:sId,fromGrid:true,zone,row,slotStart,slotEnd,
+    day:DAYS[activeDay],length:slotEnd-slotStart};
+  const s=getStaff(sId);
+  showGhost(e,s?s.name:sId,s?s.col:'#888');
+}
+function showGhost(e,name,col){
+  const dark=['#f5c842','#84cc16','#f59e0b'].includes(col);
+  ghost.style.cssText=`display:block;background:${col};color:${dark?'#060606':'#fff'};`;
+  ghost.textContent=name;
+  moveGhost(e);
+}
+function moveGhost(e){
+  const cx=e.touches?e.touches[0].clientX:e.clientX;
+  const cy=e.touches?e.touches[0].clientY:e.clientY;
+  ghost.style.left=(cx+12)+'px'; ghost.style.top=(cy+12)+'px';
+}
+
+document.addEventListener('mousemove',e=>{if(dragging.active)moveGhost(e);});
+document.addEventListener('touchmove',e=>{if(dragging.active){e.preventDefault();moveGhost(e);}},{passive:false});
+document.addEventListener('mouseup',endDrag);
+document.addEventListener('touchend',endDrag);
+function endDrag(){
+  if(!dragging.active)return;
+  dragging.active=false; ghost.style.display='none';
+  document.querySelectorAll('.drag-over,.drag-over-invalid').forEach(el=>{el.classList.remove('drag-over','drag-over-invalid');});
+}
+
+// Drop on a slot
+function dropOnSlot(zone,row,slotIdx){
+  if(!dragging.active)return;
+  const day=DAYS[activeDay];
+  const z=ZONES.find(z=>z.id===zone);
+  if(!z)return;
+  // Check if slot is in zone's active hours
+  const slotH=slotToH(slotIdx);
+  if(slotH<z.start||slotH>=z.end)return;
+
+  const sid=dragging.staffId;
+
+  if(dragging.fromGrid){
+    // Move block: clear old slots, fill new
+    const len=dragging.length||1;
+    // Clear old
+    const oldRow=grid[day][dragging.zone][dragging.row];
+    for(let i=dragging.slotStart;i<dragging.slotStart+len;i++){if(i>=0&&i<TOTAL_SLOTS)oldRow[i]=null;}
+    // Fill new (same length)
+    const newRow=grid[day][zone][row];
+    for(let i=0;i<len;i++){
+      const si=slotIdx+i;
+      if(si>=0&&si<TOTAL_SLOTS&&slotToH(si)<z.end) newRow[si]=sid;
+    }
+  } else {
+    // From palette — fill single slot
+    grid[day][zone][row][slotIdx]=sid;
+  }
+
+  dragging.active=false; ghost.style.display='none';
+  buildGrid(); buildTS(); buildBudget();
+}
+
+// Right-click / double-click to clear slot
+function clearSlot(zone,row,slotIdx){
+  const day=DAYS[activeDay];
+  const cell=grid[day][zone][row][slotIdx];
+  if(!cell)return;
+  const sid=staffId(cell);
+  // Clear all connected slots with same staffId
+  grid[day][zone][row]=grid[day][zone][row].map((c,i)=>{
+    const cid=staffId(c);
+    return cid===sid&&Math.abs(i-slotIdx)<=16?null:c;
+  });
+  buildGrid(); buildTS(); buildBudget();
+}
+
+// Click slot when staff selected from palette
+function clickSlot(zone,row,slotIdx){
+  if(selectedStaff){
+    const day=DAYS[activeDay];
+    const z=ZONES.find(z=>z.id===zone);
+    const slotH=slotToH(slotIdx);
+    if(slotH<z.start||slotH>=z.end)return;
+    grid[day][zone][row][slotIdx]=selectedStaff;
+    buildGrid(); buildTS(); buildBudget();
+  }
+}
+function clickBreakSlot(zone,row,slotIdx){
+  const day=DAYS[activeDay];
+  const z=ZONES.find(z=>z.id===zone);
+  const slotH=slotToH(slotIdx);
+  if(slotH<z.start||slotH>=z.end)return;
+  // Mark as break for the last placed staff — find nearest staff in same row
+  const rowSlots=grid[day][zone][row];
+  // find adjacent staff
+  let nearSid=null;
+  for(let d=1;d<5;d++){
+    if(slotIdx-d>=0&&rowSlots[slotIdx-d]&&!isBreakCell(rowSlots[slotIdx-d])){nearSid=rowSlots[slotIdx-d];break;}
+    if(slotIdx+d<TOTAL_SLOTS&&rowSlots[slotIdx+d]&&!isBreakCell(rowSlots[slotIdx+d])){nearSid=rowSlots[slotIdx+d];break;}
+  }
+  if(!nearSid)return;
+  grid[day][zone][row][slotIdx]='Break:'+staffId(nearSid);
+  buildGrid();
+}
+
+// ── BUILD PALETTE ─────────────────────────────────────────────────────────────
+function buildPalette(){
+  const el=document.getElementById('palette');
+  el.innerHTML='';
+  STAFF.forEach(s=>{
+    const dark=['#f5c842','#84cc16','#f59e0b'].includes(s.col);
+    const chip=document.createElement('div');
+    chip.className='staff-chip';
+    chip.style.cssText=`background:${s.col}18;border-color:${s.col}44;color:${dark?'#c8a030':s.col};`;
+    chip.innerHTML=`<div class="chip-dot" style="background:${s.col}"></div>${s.name}<span class="chip-role">${s.role}</span>`;
+    chip.draggable=true;
+    chip.addEventListener('mousedown',e=>startDragFromPalette(e,s.id));
+    chip.addEventListener('touchstart',e=>startDragFromPalette(e,s.id),{passive:false});
+    // Also click to select
+    chip.addEventListener('click',()=>{
+      selectedStaff=selectedStaff===s.id?null:s.id;
+      document.querySelectorAll('.staff-chip').forEach(c=>c.style.outline='');
+      if(selectedStaff) chip.style.outline=`2px solid ${s.col}`;
+    });
+    el.appendChild(chip);
+  });
+  // Break chip
+  const bchip=document.createElement('div');
+  bchip.className='staff-chip';
+  bchip.style.cssText=`background:#131313;border-color:#222;color:#444;`;
+  bchip.innerHTML=`<div class="chip-dot" style="background:#2a2a2a"></div>Break`;
+  bchip.addEventListener('click',()=>{
+    selectedStaff=selectedStaff==='__break__'?null:'__break__';
+    document.querySelectorAll('.staff-chip').forEach(c=>c.style.outline='');
+    if(selectedStaff==='__break__') bchip.style.outline=`2px solid #444`;
+  });
+  el.appendChild(bchip);
+}
+
+// ── BUILD DAY TABS ─────────────────────────────────────────────────────────────
+function buildTabs(){
+  const el=document.getElementById('dayTabs');
+  el.innerHTML='';
+  DAYS.forEach((day,i)=>{
+    const btn=document.createElement('button');
+    btn.className='day-tab'+(i===activeDay?' active':'');
+    btn.textContent=DS[i];
+    btn.onclick=()=>{activeDay=i;buildTabs();buildGrid();buildTS();};
+    el.appendChild(btn);
+  });
+}
+
+// ── BUILD GRID ────────────────────────────────────────────────────────────────
+function buildGrid(){
+  const el=document.getElementById('rosterGrid');
+  const day=DAYS[activeDay];
+  let html='';
+
+  // Time axis
+  html+=`<div class="axis-row"><div class="axis-label">Time →</div><div class="axis-cells">`;
+  for(let i=0;i<TOTAL_SLOTS;i++){
+    const h=slotToH(i);
+    const isHour=h===Math.floor(h);
+    const lbl=isHour?(h===12?'12pm':h<12?`${h}am`:`${h-12}pm`):'';
+    html+=`<div class="axis-tick${isHour?' hour':''}">${lbl}</div>`;
+  }
+  html+=`</div></div>`;
+
+  ZONES.forEach(zone=>{
+    // Zone header
+    html+=`<div class="zone-header">
+      <div class="zone-label" style="border-color:${zone.col}">
+        <h4>${zone.id}</h4><p>${zone.label} · ${zone.min}</p>
+      </div>
+      <div class="zone-hours">${zone.start===6?'6am':zone.start===8?'8am':'10am'} — ${zone.end===20?'8pm':'10pm'}</div>
+    </div>`;
+
+    // Rows
+    for(let row=0;row<zone.rows;row++){
+      const rowSlots=grid[day][zone.id][row];
+      html+=`<div class="slot-row">
+        <div class="row-label">Row ${row+1}</div>
+        <div class="slots" id="slots-${zone.id}-${row}" style="position:relative">`;
+
+      // Background cells
+      for(let si=0;si<TOTAL_SLOTS;si++){
+        const h=slotToH(si);
+        const active=h>=zone.start&&h<zone.end;
+        const isHour=h===Math.floor(h);
+        html+=`<div class="slot ${active?'empty':'inactive'}${isHour?' hour-start':''}"
+          data-zone="${zone.id}" data-row="${row}" data-slot="${si}"
+          ondragover="e=>e.preventDefault()"
+          onmouseenter="if(dragging.active)this.classList.add('drag-over')"
+          onmouseleave="this.classList.remove('drag-over')"
+          onmouseup="dropOnSlot('${zone.id}',${row},${si})"
+          onclick="clickSlot('${zone.id}',${row},${si})"
+          ondblclick="clearSlot('${zone.id}',${row},${si})"
+          ontouchend="dropOnSlot('${zone.id}',${row},${si})"></div>`;
+      }
+
+      // Overlay blocks for filled slots
+      html+=renderBlocks(zone.id,row,rowSlots,zone);
+      html+=`</div></div>`;
+    }
+  });
+
+  el.innerHTML=html;
+}
+
+function renderBlocks(zoneId,row,slots,zone){
+  // Find contiguous runs of same staff
+  const blocks=[];
+  let i=0;
+  while(i<TOTAL_SLOTS){
+    const cell=slots[i];
+    if(!cell){i++;continue;}
+    const sid=staffId(cell);
+    const isBrk=isBreakCell(cell);
+    let j=i;
+    while(j<TOTAL_SLOTS&&slots[j]&&staffId(slots[j])===sid&&isBreakCell(slots[j])===isBrk) j++;
+    blocks.push({start:i,end:j,sid,isBrk});
+    i=j;
+  }
+  const slotW=`calc(${100/TOTAL_SLOTS}%)`;
+  let html='';
+  blocks.forEach(b=>{
+    const s=getStaff(b.sid);
+    if(!s)return;
+    const dark=['#f5c842','#84cc16','#f59e0b'].includes(s.col);
+    const tc=dark?'#060606':'#fff';
+    const left=`${(b.start/TOTAL_SLOTS)*100}%`;
+    const width=`${((b.end-b.start)/TOTAL_SLOTS)*100}%`;
+    const sh=slotToH(b.start), eh=slotToH(b.end);
+    const durationH=eh-sh;
+    if(b.isBrk){
+      html+=`<div class="slot-block is-break" style="left:${left};width:${width};border-color:${s.col}55"
+        onmousedown="startDragFromGrid(event,'${zoneId}',${row},${b.start},${b.end},'${b.sid}')"
+        ontouchstart="startDragFromGrid(event,'${zoneId}',${row},${b.start},${b.end},'${b.sid}')"
+        ondblclick="clearSlot('${zoneId}',${row},${b.start})"
+        title="${s.name} break ${tl(sh)}–${tl(eh)}">
+        BRK<span class="btime">${tl(sh)}</span>
+        <div class="resize-handle" onmousedown="startResizeBlock(event,'${zoneId}',${row},${b.start},${b.end},'${b.sid}',true)"></div>
+      </div>`;
+    } else {
+      html+=`<div class="slot-block" style="left:${left};width:${width};background:${s.col};color:${tc}"
+        onmousedown="startDragFromGrid(event,'${zoneId}',${row},${b.start},${b.end},'${b.sid}')"
+        ontouchstart="startDragFromGrid(event,'${zoneId}',${row},${b.start},${b.end},'${b.sid}')"
+        ondblclick="clearSlot('${zoneId}',${row},${b.start})"
+        title="${s.name} ${tl(sh)}–${tl(eh)} (${durationH}h)">
+        <span class="blbl">${s.abbr}</span><span class="btime">${tl(sh)}–${tl(eh)}</span>
+        <div class="resize-handle" onmousedown="startResizeBlock(event,'${zoneId}',${row},${b.start},${b.end},'${b.sid}',false)"></div>
+      </div>`;
+    }
+  });
+  return html;
+}
+
+// Resize block
+let resizing=null;
+function startResizeBlock(e,zoneId,row,blockStart,blockEnd,sid,isBrk){
+  e.stopPropagation(); e.preventDefault();
+  const slotsEl=document.getElementById(`slots-${zoneId}-${row}`);
+  const rect=slotsEl.getBoundingClientRect();
+  resizing={zoneId,row,blockStart,sid,isBrk,rectLeft:rect.left,rectWidth:rect.width};
+  document.body.style.cursor='ew-resize';
+}
+document.addEventListener('mousemove',e=>{
+  if(!resizing)return;
+  const {zoneId,row,blockStart,sid,isBrk,rectLeft,rectWidth}=resizing;
+  const pct=(e.clientX-rectLeft)/rectWidth;
+  const newEnd=Math.round(pct*TOTAL_SLOTS);
+  if(newEnd<=blockStart||newEnd>TOTAL_SLOTS) return;
+  const day=DAYS[activeDay];
+  const rowSlots=grid[day][zoneId][row];
+  // Clear old block
+  for(let i=blockStart;i<TOTAL_SLOTS;i++){if(staffId(rowSlots[i])===sid&&isBreakCell(rowSlots[i])===isBrk)rowSlots[i]=null; else if(i>blockStart)break;}
+  // Fill to new end
+  for(let i=blockStart;i<newEnd;i++) rowSlots[i]=isBrk?'Break:'+sid:sid;
+  buildGrid();
+});
+document.addEventListener('mouseup',()=>{
+  if(resizing){resizing=null;document.body.style.cursor='';buildTS();}
+});
+
+// Clear day
+function clearDay(){
+  if(!confirm(`Clear all ${DAYS[activeDay]} slots?`)) return;
+  const day=DAYS[activeDay];
+  ZONES.forEach(zone=>{
+    grid[day][zone.id]=Array.from({length:zone.rows},()=>Array(TOTAL_SLOTS).fill(null));
+  });
+  buildGrid(); buildTS();
+}
+
+// ── TIMESHEETS ────────────────────────────────────────────────────────────────
+function toggleTS(){
+  const el=document.getElementById('tsWrap');
+  const btn=document.getElementById('tsbtn');
+  const show=!el.classList.contains('show');
+  el.classList.toggle('show',show);
+  btn.classList.toggle('on',show);
+  if(show) buildTS();
+}
+
+function buildTS(){
+  if(!document.getElementById('tsWrap').classList.contains('show')) return;
+  document.getElementById('tsDay').textContent=DAYS[activeDay];
+  const day=DAYS[activeDay];
+  const el=document.getElementById('tsGrid');
+  let html='';
+
+  STAFF.forEach(s=>{
+    // Scan all zones/rows for this staff on this day
+    const hours={Fuel:0,Reception:0,Supply:0,Therapy:0,Break:0};
+    ZONES.forEach(zone=>{
+      grid[day][zone.id].forEach(rowSlots=>{
+        rowSlots.forEach(cell=>{
+          if(!cell)return;
+          const cid=staffId(cell);
+          if(cid!==s.id)return;
+          if(isBreakCell(cell)) hours.Break+=0.5;
+          else hours[zone.id]+=0.5;
+        });
+      });
+    });
+    const totalWork=hours.Fuel+hours.Reception+hours.Supply+hours.Therapy;
+    if(totalWork===0&&hours.Break===0)return;
+    const dark=['#f5c842','#84cc16','#f59e0b'].includes(s.col);
+    const tc=dark?'#c8a030':s.col;
+    const pills=Object.entries(hours).filter(([,h])=>h>0).map(([loc,h])=>{
+      const lc={Fuel:'#e8621a',Reception:'#3b82f6',Supply:'#10b981',Therapy:'#8b5cf6',Break:'#2a2a2a'}[loc];
+      const isBrk=loc==='Break';
+      return `<span class="ts-pill" style="background:${isBrk?'#141414':lc+'18'};border-color:${isBrk?'#222':lc+'44'};color:${isBrk?'#333':lc}">${loc} ${h}h</span>`;
+    }).join('');
+    html+=`<div class="ts-card"><div class="ts-head"><div class="chip-dot" style="background:${s.col}"></div><div class="ts-name" style="color:${tc}">${s.name}</div><div class="ts-total">${totalWork}h worked · ${hours.Break}h break</div></div>
+      <div class="ts-body"><div class="ts-row"><div class="ts-day">${DS[activeDay]}</div><div class="ts-pills">${pills}</div><div class="ts-hrs">${(totalWork+hours.Break).toFixed(1)}h total</div></div></div>
+    </div>`;
+  });
+  el.innerHTML=html||'<div style="font-family:\'DM Mono\',monospace;font-size:8px;color:#2a2a2a;padding:10px">No staff scheduled for this day.</div>';
+}
+
+// ── BUDGET ────────────────────────────────────────────────────────────────────
+function buildBudget(){
+  const el=document.getElementById('budGrid');
+  // Weekly hours: scan all days
+  const weekHrs=Object.fromEntries(STAFF.map(s=>[s.id,0]));
+  DAYS.forEach(day=>{
+    STAFF.forEach(s=>{
+      ZONES.forEach(zone=>{
+        grid[day][zone.id].forEach(rowSlots=>{
+          rowSlots.forEach(cell=>{
+            if(cell&&staffId(cell)===s.id&&!isBreakCell(cell)) weekHrs[s.id]+=0.5;
+          });
+        });
+      });
+    });
+  });
+
+  const tot=STAFF.reduce((s,p)=>s+p.salary,0);
+  const fmt=n=>n.toLocaleString('id-ID');
+  const grps=[{l:'Management',m:['Amri','HS']},{l:'Operations',m:['SA','SB','SC','SD','SE']},{l:'Therapy',m:['TA','TB','TC','TD']}];
+  let h=`<table class="tbl"><thead><tr><th>Staff</th><th>Role</th><th style="text-align:right">Hrs/wk</th><th style="text-align:right">Monthly IDR</th><th style="width:75px"></th></tr></thead><tbody>`;
+  grps.forEach(g=>{
+    h+=`<tr class="bg-r"><td colspan="5">${g.l}</td></tr>`;
+    g.m.forEach(id=>{
+      const s=STAFF_MAP[id];if(!s)return;
+      const wk=weekHrs[id];
+      const bw=Math.round((s.salary/6500000)*100);
+      const dark=['#f5c842','#84cc16','#f59e0b'].includes(s.col);
+      h+=`<tr><td><div class="dn-c"><div class="sw" style="background:${s.col}"></div><strong style="color:var(--tx);font-size:8.5px">${s.name}</strong></div></td><td>${s.role}</td><td style="text-align:right;color:${wk>50?'#e05560':'#555'}">${wk}h</td><td style="text-align:right;font-weight:600;color:var(--tx);font-size:8.5px">${fmt(s.salary)}</td><td><div class="bw"><div class="bf" style="width:${bw}%;background:${s.col}"></div></div></td></tr>`;
+    });
+  });
+  const gT=grps.map(g=>({l:g.l,t:g.m.reduce((s,id)=>s+(STAFF_MAP[id]?.salary||0),0)}));
+  h+=`</tbody><tfoot><tr class="bt"><td colspan="3" style="letter-spacing:2px;text-transform:uppercase;font-size:7.5px;">Total Monthly Payroll</td><td style="text-align:right;font-size:10px">${fmt(tot)}</td><td style="font-family:'DM Mono',monospace;font-size:7px;color:var(--mu)">${(tot/1e6).toFixed(1)}M IDR</td></tr></tfoot></table><div class="cg">`;
+  gT.forEach(g=>h+=`<div class="cc"><div class="cc-t">${g.l}</div><div class="cc-v" style="color:#666">${(g.t/1e6).toFixed(2)}M</div><div class="cc-s">${Math.round(g.t/tot*100)}%</div></div>`);
+  h+=`<div class="cc"><div class="cc-t">Total</div><div class="cc-v" style="color:var(--tx)">${(tot/1e6).toFixed(2)}M</div><div class="cc-s">IDR/mo · ≈USD ${Math.round(tot/15600).toLocaleString()}</div></div></div>`;
+  el.innerHTML=h;
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+buildPalette();
+buildTabs();
+buildGrid();
+buildBudget();
+</script>
+</body>
+</html>
