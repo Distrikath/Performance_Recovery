@@ -758,6 +758,26 @@ footer{
 }
 .field input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(.4);cursor:none}
 
+.protocol-desc{
+  display:none;
+  margin-top:20px;
+  padding:20px 0;
+  border-top:1px solid var(--line);
+}
+.protocol-desc.visible{display:block}
+.protocol-desc .pd-name{
+  font-family:var(--mono);font-size:10px;letter-spacing:.42em;
+  color:var(--r);text-transform:uppercase;margin-bottom:12px;
+}
+.protocol-desc .pd-body{
+  font-family:var(--mono);font-size:11px;letter-spacing:.04em;
+  color:var(--ink-d);line-height:1.8;margin-bottom:16px;
+}
+.protocol-desc .pd-price{
+  font-family:var(--mono);font-size:13px;letter-spacing:.1em;
+  color:var(--ink);
+}
+
 .submit-btn{
   margin-top:32px;
   background:transparent;color:var(--ink);
@@ -1164,13 +1184,20 @@ footer.contact-strip{
       </div>
       <div class="field">
         <label>protocol</label>
-        <select required>
+        <select id="protocolSelect" required>
           <option value="" disabled selected>—</option>
-          <option>targeted · 30 min · 400k</option>
-          <option>reset · 45 min · 550k</option>
-          <option>performance · 60 min · 650k</option>
-          <option>full system · 90 min · 950k</option>
+          <option value="targeted">targeted · 30 min · IDR 400k</option>
+          <option value="reset">reset · 45 min · IDR 550k</option>
+          <option value="performance">performance · 60 min · IDR 650k</option>
+          <option value="full-system">full system · 90 min · IDR 950k</option>
+          <option value="signature">signature · 90 min · IDR 950k</option>
+          <option value="compression">compression recovery · 30 min · IDR 400k</option>
         </select>
+        <div class="protocol-desc" id="protocolDesc">
+          <div class="pd-name" id="pdName"></div>
+          <div class="pd-body" id="pdBody"></div>
+          <div class="pd-price" id="pdPrice"></div>
+        </div>
       </div>
       <div class="field">
         <label>preferred date</label>
@@ -1652,7 +1679,59 @@ document.querySelectorAll('.menu-item').forEach(item => {
   }
 });
 
+/* ─── PROTOCOL DESCRIPTIONS ─── */
+const protocolData = {
+  'targeted': {
+    name: '30 min — targeted',
+    body: 'Focused recovery treatment for specific areas of tension, soreness or fatigue.',
+    price: 'IDR 400,000'
+  },
+  'reset': {
+    name: '45 min — reset',
+    body: 'A full-body recovery session designed to reduce fatigue, release tension and restore movement.\n\nCombining assisted mobility, stretching and targeted recovery techniques to improve range of motion, recovery and overall performance.',
+    price: 'IDR 550,000'
+  },
+  'performance': {
+    name: '60 min — performance',
+    body: 'A deeper recovery treatment focused on training fatigue, body maintenance and performance recovery.\n\nMay include assisted mobility, electronic recovery stimulation and targeted muscle release techniques.',
+    price: 'IDR 650,000'
+  },
+  'full-system': {
+    name: '90 min — full system',
+    body: 'An extended full-body recovery session combining recovery treatment, mobility work and nervous system reset.\n\nMay include electronic recovery stimulation, assisted mobility and recovery gun therapy.',
+    price: 'IDR 950,000'
+  },
+  'signature': {
+    name: '90 min — signature',
+    body: '60 min performance session\n+ 30 min compression recovery',
+    price: 'IDR 950,000'
+  },
+  'compression': {
+    name: '30 min — compression recovery',
+    body: 'Guided compression recovery session designed to improve circulation, reduce soreness and accelerate recovery.',
+    price: 'IDR 400,000'
+  }
+};
 
+const protocolSelect = document.getElementById('protocolSelect');
+const protocolDesc = document.getElementById('protocolDesc');
+const pdName = document.getElementById('pdName');
+const pdBody = document.getElementById('pdBody');
+const pdPrice = document.getElementById('pdPrice');
+
+if(protocolSelect){
+  protocolSelect.addEventListener('change', function(){
+    const data = protocolData[this.value];
+    if(data){
+      pdName.textContent = data.name;
+      pdBody.innerHTML = data.body.replace(/\n/g, '<br>');
+      pdPrice.textContent = data.price;
+      protocolDesc.classList.add('visible');
+    } else {
+      protocolDesc.classList.remove('visible');
+    }
+  });
+}
 
 </script>
 
