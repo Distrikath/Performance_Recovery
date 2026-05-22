@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Distrik.Dashboard</title>
+<meta name="robots" content="noindex,nofollow">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;600&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -122,9 +123,71 @@ body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;paddi
 .hbtn{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;padding:5px 11px;border-radius:2px;border:1px solid #333;background:transparent;color:#555;cursor:pointer;margin-top:5px;margin-left:4px;}
 .hbtn:hover{background:var(--s2);color:#ccc;border-color:#666;}
 .hbtn.on{background:var(--c-fuel);color:#fff;border-color:var(--c-fuel);}
+
+/* ── Login overlay ──────────────────────────────────────────────────── */
+#login-overlay{
+  position:fixed;inset:0;z-index:9999;
+  background:#060606;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:24px;
+}
+.login-box{
+  width:100%;max-width:320px;
+  border:1px solid var(--bd);border-radius:4px;
+  background:var(--s1);overflow:hidden;
+}
+.login-head{
+  padding:18px 20px 14px;border-bottom:1px solid var(--bd);
+  background:var(--s2);
+}
+.login-logo{font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:5px;color:#fff;line-height:1;}
+.login-sub{font-family:'DM Mono',monospace;font-size:7.5px;letter-spacing:2.5px;color:#444;text-transform:uppercase;margin-top:3px;}
+.login-body{padding:20px;}
+.login-label{font-family:'DM Mono',monospace;font-size:7px;letter-spacing:2px;text-transform:uppercase;color:#444;margin-bottom:6px;}
+.login-input{
+  width:100%;background:#0a0a0a;border:1px solid var(--bd);border-radius:2px;
+  padding:9px 11px;color:var(--tx);font-family:'DM Mono',monospace;font-size:12px;
+  outline:none;transition:border-color .15s;
+}
+.login-input:focus{border-color:#333;}
+.login-input.err{border-color:#e05560 !important;}
+.login-btn{
+  width:100%;margin-top:10px;padding:10px;border-radius:2px;
+  background:var(--c-fuel);border:none;color:#fff;cursor:pointer;
+  font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;
+  transition:filter .1s;
+}
+.login-btn:hover{filter:brightness(1.1);}
+.login-btn:disabled{filter:brightness(0.5);cursor:default;}
+.login-err{
+  font-family:'DM Mono',monospace;font-size:7.5px;color:#e05560;
+  margin-top:8px;min-height:14px;letter-spacing:1px;
+}
+.login-footer{font-family:'DM Mono',monospace;font-size:6.5px;letter-spacing:1px;color:#222;text-align:center;margin-top:16px;}
+
+/* Logout btn */
+.logout-btn{font-family:'DM Mono',monospace;font-size:7px;letter-spacing:1.5px;text-transform:uppercase;padding:4px 9px;border-radius:2px;border:1px solid #1e1e1e;background:transparent;color:#2a2a2a;cursor:pointer;margin-top:5px;margin-left:4px;}
+.logout-btn:hover{border-color:#333;color:#555;}
 </style>
 </head>
 <body>
+
+<!-- Login overlay -->
+<div id="login-overlay">
+  <div class="login-box">
+    <div class="login-head">
+      <div class="login-logo">DISTRIK</div>
+      <div class="login-sub">Staff Dashboard · Private Access</div>
+    </div>
+    <div class="login-body">
+      <div class="login-label">Password</div>
+      <input class="login-input" id="pwd-input" type="password" placeholder="Enter password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+      <button class="login-btn" id="login-btn" onclick="doLogin()">Unlock Dashboard</button>
+      <div class="login-err" id="login-err"></div>
+    </div>
+  </div>
+  <div class="login-footer">Access restricted to authorised staff only.</div>
+</div>
 
 <div class="hdr">
   <div class="logo">DISTRIK</div>
@@ -133,6 +196,7 @@ body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;paddi
     <p>06:00 — 22:00</p>
     <button class="hbtn" id="tsbtn" onclick="toggleTS()">⊞ Timesheets</button>
     <button class="hbtn" onclick="clearDay()" style="border-color:#e05560;color:#e05560;">✕ Clear Day</button>
+    <button class="logout-btn" onclick="doLogout()">Lock</button>
   </div>
 </div>
 
@@ -166,6 +230,67 @@ body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;paddi
 <div id="drag-ghost"></div>
 
 <script>
+// ── AUTH ─────────────────────────────────────────────────────────────────────
+// To change the password: compute sha256 of your new password and update PWD_HASH.
+// e.g. in terminal:  echo -n "YourNewPassword" | sha256sum
+const PWD_HASH='40b0622e706a431e09edc296156eed3d6c6a9ee463b42ec8b4166a86cbfd3cb3'; // Distrik2025
+const AUTH_KEY='distrik_dash_auth';
+const SESSION_HOURS=12;
+
+async function sha256(str){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+function isAuthed(){
+  try{
+    const v=localStorage.getItem(AUTH_KEY);
+    if(!v)return false;
+    const {hash,expires}=JSON.parse(v);
+    if(Date.now()>expires){localStorage.removeItem(AUTH_KEY);return false;}
+    return hash===PWD_HASH;
+  }catch{return false;}
+}
+
+async function doLogin(){
+  const input=document.getElementById('pwd-input');
+  const btn=document.getElementById('login-btn');
+  const errEl=document.getElementById('login-err');
+  const pwd=input.value;
+  if(!pwd)return;
+  btn.disabled=true;
+  errEl.textContent='';
+  input.classList.remove('err');
+  const h=await sha256(pwd);
+  if(h===PWD_HASH){
+    localStorage.setItem(AUTH_KEY,JSON.stringify({hash:h,expires:Date.now()+SESSION_HOURS*3600000}));
+    document.getElementById('login-overlay').style.display='none';
+    document.body.style.overflow='';
+  } else {
+    input.classList.add('err');
+    errEl.textContent='Incorrect password.';
+    input.value='';
+    input.focus();
+  }
+  btn.disabled=false;
+}
+
+function doLogout(){
+  localStorage.removeItem(AUTH_KEY);
+  location.reload();
+}
+
+// Gate: show overlay or let through
+(function initAuth(){
+  if(!isAuthed()){
+    document.getElementById('login-overlay').style.display='flex';
+    document.body.style.overflow='hidden';
+    setTimeout(()=>document.getElementById('pwd-input').focus(),50);
+  } else {
+    document.getElementById('login-overlay').style.display='none';
+  }
+})();
+
 // ── CONFIG ───────────────────────────────────────────────────────────────────
 const DAYS=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
 const DS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
