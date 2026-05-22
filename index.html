@@ -94,6 +94,7 @@ nav{
   text-decoration:none;letter-spacing:.28em;
   padding:9px 18px;border:1px solid rgba(242,242,240,.2);
   border-radius:100px;
+  white-space:nowrap;
   transition:all .35s;
 }
 .notify-btn::before{
@@ -195,9 +196,18 @@ nav{
 .hero{
   position:relative;height:100vh;min-height:500px;
   z-index:5;
-  display:flex;flex-direction:column;justify-content:flex-end;
-  padding:0 32px 80px;
+  display:flex;flex-direction:column;justify-content:space-between;
+  padding:clamp(80px,11vh,130px) clamp(20px,3vw,40px) clamp(40px,6vh,80px);
 }
+.hero-top{
+  display:flex;justify-content:space-between;align-items:flex-start;
+  font-family:var(--mono);font-weight:400;
+  font-size:10px;letter-spacing:.42em;color:rgba(242,242,240,.45);
+  text-transform:lowercase;
+  opacity:0;
+  animation:tagIn .9s ease .4s forwards;
+}
+.hero-bottom{display:flex;flex-direction:column}
 .hero-tag{
   margin-top:24px;
   font-family:var(--mono);font-weight:400;
@@ -308,7 +318,7 @@ nav{
 ═══════════════════════════════════════ */
 .globe-section{
   position:relative;z-index:10;
-  width:100%;height:100vh;
+  width:100%;height:80vh;min-height:560px;
   background:var(--b);
   overflow:hidden;
 }
@@ -577,12 +587,12 @@ footer{
 @media (max-width:900px){
   nav{padding:16px 18px}
   .menu-btn{font-size:12px}
-  .notify-btn{font-size:11px;padding:8px 14px}
-  .hero{padding:0 18px 60px}
+  .notify-btn{font-size:10px;padding:7px 14px;letter-spacing:.18em}
+  .hero{padding:clamp(72px,10vh,100px) 20px clamp(32px,5vh,60px)}
+  .hero-top{font-size:9px;letter-spacing:.28em}
   .hero-mark{font-size:clamp(72px,22vw,180px)}
-  .hero-tag{font-size:11px;letter-spacing:.32em;margin-top:18px}
-  .hero-tag{font-size:9px;letter-spacing:.4em}
-  .hero-sub{font-size:11px;flex-direction:column;align-items:flex-start;gap:8px}
+  .hero-tag{font-size:9px;letter-spacing:.4em;margin-top:14px}
+  .hero-sub{font-size:10px;flex-direction:column;align-items:flex-start;gap:6px;margin-top:16px}
   .globe-section{height:90vh;min-height:360px}
   .globe-overlay{bottom:32px;gap:8px}
   .globe-eyebrow{font-size:9px;letter-spacing:.32em}
@@ -596,11 +606,15 @@ footer{
   .menu-list{padding:48px 24px}
   .menu-item{font-size:clamp(32px,9vw,56px)}
   .ft-row{flex-direction:column;align-items:flex-start;gap:8px;font-size:10px}
+  section.livedata-section .ld-grid{grid-template-columns:1fr;gap:36px}
+  section.livedata-section .ld-eyebrow{margin-bottom:32px}
 }
 @media (max-width:600px){
   nav{padding:14px 16px}
   .menu-btn span{width:16px}
-  .hero{padding:0 16px 48px;min-height:420px}
+  .notify-btn{font-size:9px;padding:6px 12px;letter-spacing:.14em}
+  .hero{padding:clamp(68px,9vh,90px) 18px clamp(28px,4vh,48px);min-height:420px}
+  .hero-top{font-size:8px;letter-spacing:.22em}
   .hero-mark{font-size:clamp(60px,20vw,120px)}
   .hero-sub{display:none}
   .hero-signature{gap:20px;padding:14px 16px;font-size:8px;letter-spacing:.32em}
@@ -811,12 +825,9 @@ section.livedata-section{
   z-index:100 !important;
   background:#0a0a0a !important;
   border-top:1px solid rgba(242,242,240,.06);
-  height:100vh;
-  min-height:600px;
-  padding:64px 32px;
+  padding:clamp(56px,9vh,96px) clamp(20px,4vw,64px) clamp(56px,9vh,96px) !important;
   display:flex !important;
   flex-direction:column;
-  justify-content:center;
   width:100%;
   box-sizing:border-box;
 }
@@ -829,7 +840,7 @@ section.livedata-section .ld-eyebrow{
   font-size:10px;
   letter-spacing:.45em;
   color:#FF2D2D !important;
-  margin:0 0 48px 0;
+  margin:0 0 40px 0;
   text-transform:lowercase;
   text-align:left;
   display:block;
@@ -928,7 +939,7 @@ footer.contact-strip{
   z-index:100;
   background:#0a0a0a;
   border-top:1px solid rgba(242,242,240,.06);
-  padding:48px 32px 28px;
+  padding:clamp(40px,6vh,64px) clamp(20px,4vw,64px) clamp(24px,4vh,40px);
 }
 .cs-grid{
   max-width:1200px;
@@ -1042,23 +1053,29 @@ footer.contact-strip{
     </span>
     Menu
   </button>
-  <a href="#notify" class="notify-btn">initiate session</a>
+  <a href="#notify" class="notify-btn">book</a>
 </nav>
 
 <!-- ═══ HERO ═══ -->
 <section class="hero">
-  <div class="hero-mark" id="heroMark">Distrik<span class="dot">.</span></div>
-  <div class="hero-tag" id="heroTag">performance recovery <span class="sep">—</span> bali</div>
-  <div class="hero-sub" id="heroSub">
-    <span><strong>canggu, bali</strong> &nbsp;— &nbsp;8.63°s / 115.15°e</span>
-    <span>est. 2026</span>
+  <div class="hero-top">
+    <span>performance recovery</span>
+    <span>bali, indonesia</span>
   </div>
-  <div class="hero-signature">
-    <a href="recovery.html" style="color:inherit;text-decoration:none;">recovery</a>
-    <span class="dot"></span>
-    <a href="fuel.html" style="color:inherit;text-decoration:none;">fuel</a>
-    <span class="dot"></span>
-    <a href="supply.html" style="color:inherit;text-decoration:none;">supply</a>
+  <div class="hero-bottom">
+    <div class="hero-mark" id="heroMark">Distrik<span class="dot">.</span></div>
+    <div class="hero-tag" id="heroTag">performance recovery <span class="sep">—</span> bali</div>
+    <div class="hero-sub" id="heroSub">
+      <span><strong>canggu, bali</strong> &nbsp;— &nbsp;8.63°s / 115.15°e</span>
+      <span>est. 2026</span>
+    </div>
+    <div class="hero-signature">
+      <a href="recovery.html" style="color:inherit;text-decoration:none;">recovery</a>
+      <span class="dot"></span>
+      <a href="fuel.html" style="color:inherit;text-decoration:none;">fuel</a>
+      <span class="dot"></span>
+      <a href="supply.html" style="color:inherit;text-decoration:none;">supply</a>
+    </div>
   </div>
 </section>
 
@@ -1195,7 +1212,7 @@ footer.contact-strip{
       close
       <span class="menu-close-icon"></span>
     </button>
-    <a href="#notify" class="notify-btn">initiate session</a>
+    <a href="#notify" class="notify-btn">book</a>
   </div>
   <div class="menu-body">
     <div class="menu-list">
@@ -1488,31 +1505,46 @@ document.addEventListener('keydown', e => {
   });
   window.addEventListener('mouseup', ()=>{ if(dragging) endInteract(); });
 
-  /* ── Touch ── */
+  /* ── Touch — directional lock so page still scrolls vertically ── */
   let lastTouchDist = 0;
+  let touchDir = null; // 'h' = rotate globe | 'v' = let page scroll
+
   canvas.addEventListener('touchstart', e=>{
+    touchDir = null;
     if(e.touches.length===1){
       dragging=true; lastX=e.touches[0].clientX; lastY=e.touches[0].clientY;
+      startInteract();
     } else if(e.touches.length===2){
       lastTouchDist = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+      startInteract(); e.preventDefault();
     }
-    startInteract(); e.preventDefault();
   },{passive:false});
+
   canvas.addEventListener('touchmove', e=>{
     if(e.touches.length===1 && dragging){
-      rot[0] += (e.touches[0].clientX-lastX)*SENS;
-      rot[1] -= (e.touches[0].clientY-lastY)*SENS;
-      rot[1] = Math.max(-90, Math.min(90, rot[1]));
+      const dx = e.touches[0].clientX - lastX;
+      const dy = e.touches[0].clientY - lastY;
+      /* Determine direction on first significant movement */
+      if(!touchDir && (Math.abs(dx) > 4 || Math.abs(dy) > 4)){
+        touchDir = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
+      }
+      if(touchDir === 'h'){
+        e.preventDefault();
+        rot[0] += dx * SENS;
+        rot[1] -= dy * SENS;
+        rot[1] = Math.max(-90, Math.min(90, rot[1]));
+      }
       lastX=e.touches[0].clientX; lastY=e.touches[0].clientY;
     } else if(e.touches.length===2){
       const d = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
       zoomFactor = Math.max(0.5, Math.min(5, zoomFactor * d/lastTouchDist));
       proj.scale(baseRadius*zoomFactor);
       lastTouchDist = d;
+      e.preventDefault();
     }
-    e.preventDefault();
   },{passive:false});
-  canvas.addEventListener('touchend', endInteract);
+
+  canvas.addEventListener('touchend', ()=>{ touchDir=null; endInteract(); });
 
   /* ── Load world & generate land dots ── */
   d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(world=>{
