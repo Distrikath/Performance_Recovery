@@ -304,6 +304,43 @@ nav{
 .manifesto-foot strong{color:var(--ink);font-weight:500}
 
 /* ═══════════════════════════════════════
+   GLOBE SECTION
+═══════════════════════════════════════ */
+.globe-section{
+  position:relative;z-index:10;
+  width:100%;height:100vh;
+  background:var(--b);
+  overflow:hidden;
+}
+#globe-canvas{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  display:block;
+}
+.globe-overlay{
+  position:absolute;
+  bottom:56px;left:0;right:0;
+  display:flex;flex-direction:column;align-items:center;
+  gap:12px;
+  pointer-events:none;
+  z-index:2;
+}
+.globe-eyebrow{
+  font-family:var(--mono);font-size:10px;letter-spacing:.45em;color:var(--r);
+  text-transform:lowercase;
+  opacity:0;animation:gFadeUp .9s ease 1.2s forwards;
+}
+.globe-coords{
+  font-family:var(--mono);font-size:11px;letter-spacing:.2em;
+  color:rgba(242,242,240,0.35);
+  opacity:0;animation:gFadeUp .9s ease 1.5s forwards;
+}
+@keyframes gFadeUp{
+  from{opacity:0;transform:translateY(10px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* ═══════════════════════════════════════
    MENU DRAWER — fullscreen overlay
 ═══════════════════════════════════════ */
 .menu-drawer{
@@ -998,13 +1035,13 @@ footer.contact-strip{
   </div>
 </section>
 
-<!-- ═══ MANIFESTO ═══ -->
-<section class="manifesto" id="manifesto">
-  <h2 class="manifesto-text">
-    <span class="ln"><span>MOVE HARD.</span></span>
-    <span class="ln"><span>RECOVER WELL.</span></span>
-    <span class="ln"><span>PERFORM BETTER.</span></span>
-  </h2>
+<!-- ═══ GLOBE ═══ -->
+<section class="globe-section" id="globe-section">
+  <canvas id="globe-canvas"></canvas>
+  <div class="globe-overlay">
+    <div class="globe-eyebrow">[ canggu, bali — indonesia ]</div>
+    <div class="globe-coords">8°37'55"S &nbsp;&nbsp; 115°08'57"E</div>
+  </div>
 </section>
 
 
@@ -1017,7 +1054,7 @@ footer.contact-strip{
     <div class="ld-block">
       <div class="ld-label">[ coordinates ]</div>
       <div class="ld-value">8°37'55.4"s<br>115°08'57.5"e</div>
-      <div class="ld-meta">berawa, bali<br>indonesia</div>
+      <div class="ld-meta">canggu, bali<br>indonesia</div>
     </div>
 
     <div class="ld-block">
@@ -1105,7 +1142,7 @@ footer.contact-strip{
       <div class="ld-block">
         <div class="ld-label">[ coordinates ]</div>
         <div class="ld-value">8°37'55.4"s<br>115°08'57.5"e</div>
-        <div class="ld-meta">berawa, bali<br>indonesia</div>
+        <div class="ld-meta">canggu, bali<br>indonesia</div>
       </div>
       <div class="ld-block">
         <div class="ld-label">[ local time ]</div>
@@ -1189,6 +1226,8 @@ footer.contact-strip{
 
 
 
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://unpkg.com/topojson-client@3/dist/topojson-client.min.js"></script>
 <script>
 /* ─── CURSOR ─── */
 const cur=document.querySelector('.cur'),ring=document.querySelector('.cur-ring');
@@ -1274,13 +1313,122 @@ document.addEventListener('keydown', e => {
   if(e.key === 'Escape') drawer.classList.remove('open');
 });
 
-/* ─── MANIFESTO scroll reveal ─── */
-const io=new IntersectionObserver(es=>{
-  es.forEach(e=>{
-    if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}
+/* ─── GLOBE ─── */
+(function initGlobe(){
+  const BALI = [115.1493111, -8.6320667];
+  const TARGET_ROT = [-115.1493111, 8.6320667, 0];
+  const section = document.getElementById('globe-section');
+  const canvas = document.getElementById('globe-canvas');
+  if(!section || !canvas || typeof d3 === 'undefined' || typeof topojson === 'undefined') return;
+
+  let w = section.offsetWidth;
+  let h = section.offsetHeight || window.innerHeight;
+  canvas.width = w * devicePixelRatio;
+  canvas.height = h * devicePixelRatio;
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.scale(devicePixelRatio, devicePixelRatio);
+
+  const radius = Math.min(w, h) * 0.4;
+  const proj = d3.geoOrthographic()
+    .scale(radius)
+    .translate([w / 2, h / 2])
+    .clipAngle(90)
+    .rotate([0, -20, 0]);
+
+  const pathGen = d3.geoPath(proj, ctx);
+  const graticule = d3.geoGraticule()();
+
+  let rot = [0, -20, 0];
+  let phase = 'spin';
+  let phaseStart = Date.now();
+
+  function lerp(a, b, t){ return a + (b - a) * t; }
+  function shortAngle(a, b){ const d = ((b - a) % 360 + 360) % 360; return d > 180 ? d - 360 : d; }
+  function easeInOut(t){ return t < .5 ? 2*t*t : -1+(4-2*t)*t; }
+
+  function render(){
+    ctx.clearRect(0, 0, w, h);
+    proj.rotate(rot);
+
+    /* ocean */
+    ctx.beginPath(); pathGen({type:'Sphere'});
+    ctx.fillStyle = '#050505'; ctx.fill();
+
+    /* graticule */
+    ctx.beginPath(); pathGen(graticule);
+    ctx.strokeStyle = 'rgba(242,242,240,0.035)'; ctx.lineWidth = 0.5; ctx.stroke();
+
+    /* land */
+    if(globeLand){ ctx.beginPath(); pathGen(globeLand); ctx.fillStyle = '#1a1a1a'; ctx.fill(); }
+
+    /* borders */
+    if(globeMesh){ ctx.beginPath(); pathGen(globeMesh); ctx.strokeStyle = 'rgba(255,45,45,0.09)'; ctx.lineWidth = 0.5; ctx.stroke(); }
+
+    /* sphere rim */
+    ctx.beginPath(); pathGen({type:'Sphere'});
+    ctx.strokeStyle = 'rgba(242,242,240,0.07)'; ctx.lineWidth = 1; ctx.stroke();
+
+    /* Bali dot — only if on visible hemisphere */
+    const dist = d3.geoDistance(BALI, [-rot[0], -rot[1]]);
+    if(dist < Math.PI / 2){
+      const p = proj(BALI);
+      if(p){
+        const pulse = 0.55 + 0.45 * Math.sin(Date.now() / 700);
+        const grd = ctx.createRadialGradient(p[0], p[1], 0, p[0], p[1], 28);
+        grd.addColorStop(0, `rgba(255,45,45,${(0.55 * pulse).toFixed(2)})`);
+        grd.addColorStop(1, 'rgba(255,45,45,0)');
+        ctx.beginPath(); ctx.arc(p[0], p[1], 28, 0, Math.PI * 2);
+        ctx.fillStyle = grd; ctx.fill();
+        ctx.beginPath(); ctx.arc(p[0], p[1], 4, 0, Math.PI * 2);
+        ctx.fillStyle = '#FF2D2D'; ctx.fill();
+      }
+    }
+  }
+
+  function animate(){
+    const now = Date.now();
+    const elapsed = (now - phaseStart) / 1000;
+
+    if(phase === 'spin'){
+      rot[0] -= 1.0;
+      if(elapsed > 2.8){ phase = 'settle'; phaseStart = now; }
+    } else if(phase === 'settle'){
+      const t = Math.min(1, elapsed / 2.4);
+      const e = easeInOut(t);
+      rot[0] += shortAngle(rot[0], TARGET_ROT[0]) * (e * 0.06 + 0.01);
+      rot[1] += shortAngle(rot[1], TARGET_ROT[1]) * (e * 0.06 + 0.01);
+      if(t >= 1){ phase = 'orbit'; phaseStart = now; }
+    } else {
+      const t = (now - phaseStart) / 1000;
+      rot[0] = TARGET_ROT[0] + Math.sin(t / 14) * 9;
+      rot[1] = TARGET_ROT[1] + Math.cos(t / 20) * 4;
+    }
+
+    render();
+    requestAnimationFrame(animate);
+  }
+
+  let globeLand, globeMesh;
+  d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(world => {
+    globeLand = topojson.feature(world, world.objects.land);
+    globeMesh = topojson.mesh(world, world.objects.countries, (a, b) => a !== b);
+    animate();
+  }).catch(() => { animate(); });
+
+  window.addEventListener('resize', () => {
+    w = section.offsetWidth;
+    h = section.offsetHeight || window.innerHeight;
+    canvas.width = w * devicePixelRatio;
+    canvas.height = h * devicePixelRatio;
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
+    ctx.scale(devicePixelRatio, devicePixelRatio);
+    proj.scale(Math.min(w, h) * 0.4).translate([w / 2, h / 2]);
   });
-},{threshold:.2,rootMargin:'0px 0px -10% 0px'});
-io.observe(document.getElementById('manifesto'));
+})();
 
 /* ─── LIVE TIME (WITA = UTC+8) + COUNTDOWN TO 01.08.2026 ─── */
 function updateLiveTime(){
