@@ -290,28 +290,34 @@ function isAuthed(){
 
 function doLogin(){
   var input=document.getElementById('pwd-input');
-  var btn=document.getElementById('login-btn');
   var errEl=document.getElementById('login-err');
   var pwd=input.value;
   if(!pwd)return;
   errEl.textContent='';
   input.classList.remove('err');
-  var h=sha256(pwd);
-  if(h===PWD_HASH){
-    localStorage.setItem(AUTH_KEY,JSON.stringify({hash:h,expires:Date.now()+SESSION_HOURS*3600000}));
-    document.getElementById('login-overlay').style.display='none';
-    document.body.style.overflow='';
-  } else {
-    input.classList.add('err');
-    errEl.textContent='Incorrect password.';
-    input.value='';
-    input.focus();
+  try{
+    var h=sha256(pwd);
+    if(h===PWD_HASH){
+      try{localStorage.setItem(AUTH_KEY,JSON.stringify({hash:h,expires:Date.now()+SESSION_HOURS*3600000}));}catch(e){}
+      document.getElementById('login-overlay').style.display='none';
+      document.body.style.overflow='';
+    } else {
+      input.classList.add('err');
+      errEl.textContent='Incorrect password.';
+      input.value='';
+      input.focus();
+    }
+  }catch(e){
+    errEl.textContent='Error — open this file in Safari.';
   }
 }
 
 function doLogout(){
-  localStorage.removeItem(AUTH_KEY);
-  location.reload();
+  try{localStorage.removeItem(AUTH_KEY);}catch(e){}
+  document.getElementById('login-overlay').style.display='flex';
+  document.body.style.overflow='hidden';
+  document.getElementById('pwd-input').value='';
+  document.getElementById('pwd-input').focus();
 }
 
 (function initAuth(){
