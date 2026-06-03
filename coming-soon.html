@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Distrik. — Opening 01.08.2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --b:#0A0A0A;
+  --ink:#F2F2F0;
+  --ink-d:#787878;
+  --r:#FF2D2D;
+  --mono:'Space Mono',ui-monospace,monospace;
+}
+
+html,body{height:100%}
+body{
+  background:var(--b);color:var(--ink);
+  font-family:'Inter',-apple-system,system-ui,sans-serif;
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ── FILM FLICKER ── */
+.film{
+  position:fixed;inset:0;z-index:1;background:#0a0000;overflow:hidden;
+}
+.film-frame{
+  position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;opacity:0;will-change:opacity,transform;
+}
+.film-frame.active{opacity:1}
+.film-frame.settle{animation:kenBurns 8s ease-out forwards}
+@keyframes kenBurns{0%{transform:scale(1.04)}100%{transform:scale(1.12)}}
+
+/* ── OVERLAY ── */
+.overlay{
+  position:fixed;inset:0;z-index:2;pointer-events:none;
+  background:linear-gradient(
+    180deg,
+    rgba(10,10,10,.55) 0%,
+    rgba(10,10,10,.25) 35%,
+    rgba(10,10,10,.55) 70%,
+    rgba(10,10,10,.85) 100%
+  );
+}
+
+/* ── GRAIN ── */
+.grain{
+  position:fixed;inset:-50%;width:200%;height:200%;z-index:3;pointer-events:none;opacity:.05;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:220px;mix-blend-mode:overlay;
+  animation:grainShift 8s steps(8) infinite;
+}
+@keyframes grainShift{
+  0%{transform:translate(0,0)}10%{transform:translate(-2%,-1%)}
+  20%{transform:translate(1%,2%)}30%{transform:translate(-1%,1%)}
+  40%{transform:translate(2%,-2%)}50%{transform:translate(-2%,2%)}
+  60%{transform:translate(1%,-1%)}70%{transform:translate(-1%,2%)}
+  80%{transform:translate(2%,1%)}100%{transform:translate(0,0)}
+}
+
+/* ── MAIN LAYOUT ── */
+main{
+  position:relative;z-index:10;
+  height:100vh;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:40px 24px;
+  text-align:center;
+}
+
+/* ── LOGO ── */
+.cs-logo{
+  font-family:'Inter',sans-serif;
+  font-size:clamp(52px,9vw,110px);
+  font-weight:900;
+  letter-spacing:-.04em;
+  line-height:1;
+  color:var(--ink);
+  margin-bottom:16px;
+}
+.cs-logo span{color:var(--r)}
+
+/* ── TAGLINE ── */
+.cs-tag{
+  font-family:var(--mono);
+  font-size:clamp(8px,1.1vw,11px);
+  letter-spacing:.42em;
+  color:var(--ink-d);
+  text-transform:uppercase;
+  margin-bottom:48px;
+}
+
+/* ── OPENING DATE ── */
+.cs-opening{
+  font-family:var(--mono);
+  font-size:clamp(9px,1vw,11px);
+  letter-spacing:.38em;
+  color:var(--r);
+  text-transform:uppercase;
+  margin-bottom:24px;
+}
+
+/* ── COUNTDOWN ── */
+.countdown{
+  display:flex;align-items:flex-start;gap:clamp(16px,4vw,40px);
+  margin-bottom:64px;
+}
+.cd-unit{
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+}
+.cd-num{
+  font-family:'Inter',sans-serif;
+  font-size:clamp(36px,6vw,80px);
+  font-weight:900;
+  letter-spacing:-.04em;
+  line-height:1;
+  color:var(--ink);
+  min-width:2ch;
+  text-align:center;
+}
+.cd-label{
+  font-family:var(--mono);
+  font-size:clamp(7px,.8vw,9px);
+  letter-spacing:.38em;
+  color:var(--ink-d);
+  text-transform:uppercase;
+}
+.cd-sep{
+  font-family:'Inter',sans-serif;
+  font-size:clamp(28px,5vw,64px);
+  font-weight:900;
+  color:var(--r);
+  line-height:1;
+  padding-top:4px;
+  opacity:.6;
+}
+
+/* ── FORM ── */
+.cs-form-wrap{width:100%;max-width:480px}
+
+.cs-form-label{
+  font-family:var(--mono);
+  font-size:clamp(8px,.9vw,10px);
+  letter-spacing:.38em;
+  color:var(--ink-d);
+  text-transform:uppercase;
+  margin-bottom:20px;
+}
+
+.cs-form{display:flex;flex-direction:column;gap:0}
+
+.cs-form input{
+  width:100%;
+  background:transparent;
+  border:none;
+  border-bottom:1px solid rgba(242,242,240,.15);
+  padding:12px 0;
+  color:var(--ink);
+  font-family:var(--mono);
+  font-size:13px;
+  letter-spacing:.06em;
+  outline:none;
+  transition:border-color .3s;
+  -webkit-appearance:none;
+  border-radius:0;
+}
+.cs-form input::placeholder{color:rgba(242,242,240,.25)}
+.cs-form input:focus{border-bottom-color:rgba(242,242,240,.5)}
+
+.cs-form input + input{margin-top:4px}
+
+.cs-submit{
+  margin-top:28px;
+  background:transparent;
+  border:1px solid rgba(242,242,240,.2);
+  color:var(--ink);
+  font-family:var(--mono);
+  font-size:10px;
+  letter-spacing:.38em;
+  text-transform:uppercase;
+  padding:14px 32px;
+  cursor:pointer;
+  transition:border-color .3s, color .3s, background .3s;
+  width:100%;
+}
+.cs-submit:hover{
+  border-color:var(--r);
+  color:var(--r);
+}
+
+/* ── SUCCESS STATE ── */
+.cs-success{
+  display:none;
+  font-family:var(--mono);
+  font-size:10px;
+  letter-spacing:.38em;
+  color:var(--r);
+  text-transform:uppercase;
+  margin-top:28px;
+  padding:14px 0;
+}
+.cs-success.visible{display:block}
+
+/* ── FOOTER ── */
+footer{
+  position:fixed;bottom:0;left:0;right:0;z-index:10;
+  padding:20px 32px;
+  display:flex;justify-content:space-between;align-items:center;
+  font-family:var(--mono);font-size:9px;letter-spacing:.3em;
+  color:rgba(242,242,240,.25);text-transform:uppercase;
+}
+
+/* ── RESPONSIVE ── */
+@media(max-width:600px){
+  .cs-tag{letter-spacing:.22em}
+  .cs-opening{letter-spacing:.2em}
+  .cd-label{letter-spacing:.2em}
+  footer{padding:16px 20px;font-size:8px}
+}
+</style>
+</head>
+<body>
+
+<div class="grain"></div>
+
+<!-- FILM FLICKER -->
+<div class="film" id="film">
+  <img class="film-frame" data-frame="0"  src="Film 1.PNG"  loading="eager">
+  <img class="film-frame" data-frame="1"  src="Film 2.PNG"  loading="eager">
+  <img class="film-frame" data-frame="2"  src="Film 3.PNG"  loading="eager">
+  <img class="film-frame" data-frame="3"  src="Film 4.PNG"  loading="eager">
+  <img class="film-frame" data-frame="4"  src="Film 5.PNG"  loading="eager">
+  <img class="film-frame" data-frame="5"  src="Film 6.PNG"  loading="eager">
+  <img class="film-frame" data-frame="6"  src="Film 7.PNG"  loading="eager">
+  <img class="film-frame" data-frame="7"  src="Film 8.PNG"  loading="eager">
+  <img class="film-frame" data-frame="8"  src="Film 9.PNG"  loading="eager">
+  <img class="film-frame" data-frame="9"  src="Film 10.PNG" loading="eager">
+  <img class="film-frame" data-frame="10" src="Film 11.PNG" loading="eager">
+  <img class="film-frame" data-frame="11" src="Film 12.PNG" loading="eager">
+</div>
+
+<div class="overlay"></div>
+
+<!-- MAIN CONTENT -->
+<main>
+  <div class="cs-logo">Distrik<span>.</span></div>
+  <div class="cs-tag">Performance Recovery &nbsp;·&nbsp; Canggu, Bali</div>
+
+  <div class="cs-opening">[ Opening &nbsp; 01 . 08 . 2026 ]</div>
+
+  <div class="countdown">
+    <div class="cd-unit"><span class="cd-num" id="cd-days">000</span><span class="cd-label">days</span></div>
+    <div class="cd-sep">:</div>
+    <div class="cd-unit"><span class="cd-num" id="cd-hrs">00</span><span class="cd-label">hours</span></div>
+    <div class="cd-sep">:</div>
+    <div class="cd-unit"><span class="cd-num" id="cd-min">00</span><span class="cd-label">min</span></div>
+    <div class="cd-sep">:</div>
+    <div class="cd-unit"><span class="cd-num" id="cd-sec">00</span><span class="cd-label">sec</span></div>
+  </div>
+
+  <div class="cs-form-wrap">
+    <div class="cs-form-label">Register for the opening event</div>
+
+    <!-- TO CONNECT EMAIL: replace YOUR_FORM_ID with your Formspree form ID -->
+    <!-- Sign up free at formspree.io → New Form → copy the ID -->
+    <form class="cs-form" id="regForm"
+          action="https://formspree.io/f/YOUR_FORM_ID"
+          method="POST">
+      <input type="text"  name="name"  placeholder="name"  required autocomplete="name">
+      <input type="email" name="email" placeholder="email" required autocomplete="email">
+      <input type="hidden" name="_subject" value="Opening Event Registration — Distrik.">
+      <input type="hidden" name="_replyto" value="hello@distrikath.com">
+      <button type="submit" class="cs-submit">Register for opening event →</button>
+    </form>
+
+    <div class="cs-success" id="regSuccess">— registration received. see you on 01.08 —</div>
+  </div>
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <span>distrik.</span>
+  <span>canggu, bali</span>
+</footer>
+
+<script>
+/* ── FILM FLICKER ── */
+const frames = document.querySelectorAll('.film-frame');
+const FAST_INTERVAL = 150;
+const FAST_FRAMES   = 12;
+const slowFrames    = [0, 3, 8, 10, 5, 6];
+let fastIdx = 0, slowIdx = 0, currentFrame = 0;
+
+function showFrame(idx, settle = false){
+  frames.forEach(f => f.classList.remove('active','settle'));
+  frames[idx].classList.add('active');
+  if(settle) frames[idx].classList.add('settle');
+}
+
+function fastFlicker(){
+  if(fastIdx >= FAST_FRAMES){
+    currentFrame = 0;
+    showFrame(currentFrame, true);
+    setTimeout(slowRotate, 8000);
+    return;
+  }
+  showFrame(fastIdx);
+  fastIdx++;
+  setTimeout(fastFlicker, FAST_INTERVAL);
+}
+
+function slowRotate(){
+  slowIdx = (slowIdx + 1) % slowFrames.length;
+  const next = slowFrames[slowIdx];
+  frames.forEach(f => {
+    if(f.classList.contains('active') && f.dataset.frame != next)
+      f.style.transition = 'opacity 1.8s ease';
+  });
+  showFrame(next, true);
+  setTimeout(slowRotate, 8000);
+}
+
+setTimeout(fastFlicker, 300);
+
+/* ── COUNTDOWN ── */
+const TARGET = new Date('2026-08-01T00:00:00+08:00');
+
+function updateCountdown(){
+  const now  = new Date();
+  const diff = TARGET - now;
+  if(diff <= 0){
+    document.getElementById('cd-days').textContent = '000';
+    document.getElementById('cd-hrs').textContent  = '00';
+    document.getElementById('cd-min').textContent  = '00';
+    document.getElementById('cd-sec').textContent  = '00';
+    return;
+  }
+  const days = Math.floor(diff / 86400000);
+  const hrs  = Math.floor((diff % 86400000) / 3600000);
+  const min  = Math.floor((diff % 3600000)  / 60000);
+  const sec  = Math.floor((diff % 60000)    / 1000);
+  document.getElementById('cd-days').textContent = String(days).padStart(3,'0');
+  document.getElementById('cd-hrs').textContent  = String(hrs).padStart(2,'0');
+  document.getElementById('cd-min').textContent  = String(min).padStart(2,'0');
+  document.getElementById('cd-sec').textContent  = String(sec).padStart(2,'0');
+}
+updateCountdown();
+setInterval(updateCountdown, 1000);
+
+/* ── FORM SUBMIT ── */
+const form    = document.getElementById('regForm');
+const success = document.getElementById('regSuccess');
+
+form.addEventListener('submit', async function(e){
+  e.preventDefault();
+  const btn = form.querySelector('.cs-submit');
+  btn.textContent = 'sending —';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(form.action, {
+      method:'POST',
+      body: new FormData(form),
+      headers:{ 'Accept':'application/json' }
+    });
+    if(res.ok){
+      form.style.display = 'none';
+      success.classList.add('visible');
+    } else {
+      btn.textContent = 'try again →';
+      btn.disabled = false;
+    }
+  } catch(err){
+    btn.textContent = 'try again →';
+    btn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>
