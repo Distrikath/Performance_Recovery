@@ -311,50 +311,74 @@ body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;paddi
 .csv-drop p{font-family:'DM Mono',monospace;font-size:8px;color:#333;letter-spacing:1px;}
 .csv-drop input{display:none;}
 
-/* ── Login overlay ── */
-#login-overlay{position:fixed;inset:0;z-index:99999;background:#060606;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
-.login-box{width:100%;max-width:320px;border:1px solid var(--bd);border-radius:4px;background:var(--s1);overflow:hidden;}
-.login-head{padding:18px 20px 14px;border-bottom:1px solid var(--bd);background:var(--s2);}
-.login-logo{font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:5px;color:#fff;line-height:1;}
-.login-sub{font-family:'DM Mono',monospace;font-size:7.5px;letter-spacing:2.5px;color:#444;text-transform:uppercase;margin-top:3px;}
-.login-body{padding:20px;}
-.login-label{font-family:'DM Mono',monospace;font-size:7px;letter-spacing:2px;text-transform:uppercase;color:#444;margin-bottom:6px;}
-.login-input{width:100%;background:#0a0a0a;border:1px solid var(--bd);border-radius:2px;padding:9px 11px;color:var(--tx);font-family:'DM Mono',monospace;font-size:12px;outline:none;transition:border-color .15s;}
-.login-input:focus{border-color:#333;}
-.login-input.err{border-color:#e05560!important;}
-.login-btn{width:100%;margin-top:10px;padding:10px;border-radius:2px;background:var(--c-fuel);border:none;color:#fff;cursor:pointer;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;}
-.login-btn:hover{filter:brightness(1.1);}
-.login-err{font-family:'DM Mono',monospace;font-size:7.5px;color:#e05560;margin-top:8px;min-height:14px;letter-spacing:1px;}
-.login-footer{font-family:'DM Mono',monospace;font-size:6.5px;letter-spacing:1px;color:#222;text-align:center;margin-top:16px;}
-.logout-btn{font-family:'DM Mono',monospace;font-size:7px;letter-spacing:1.5px;text-transform:uppercase;padding:4px 9px;border-radius:2px;border:1px solid #1e1e1e;background:transparent;color:#2a2a2a;cursor:pointer;margin-left:6px;}
-.logout-btn:hover{border-color:#333;color:#555;}
+/* ── SETTINGS ── */
+.cfg-btn{position:fixed;bottom:22px;right:22px;background:#1a1a1a;border:1px solid #333;border-radius:50%;width:42px;height:42px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:80;font-size:17px;transition:all .15s;box-shadow:0 2px 12px rgba(0,0,0,0.5);}
+.cfg-btn:hover{background:#2a2a2a;border-color:#666;}
+.cfg-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:200;overflow-y:auto;padding:20px 12px;}
+.cfg-modal.on{display:flex;align-items:flex-start;justify-content:center;}
+.cfg-inner{background:#0f0f0f;border:1px solid #333;border-radius:3px;width:100%;max-width:620px;padding:22px;}
+.cfg-inner h2{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;color:#fff;margin-bottom:3px;}
+.cfg-sub{font-family:'DM Mono',monospace;font-size:7.5px;color:#333;margin-bottom:14px;}
+.cfg-tabs{display:flex;gap:0;border-bottom:1px solid var(--bd);margin-bottom:16px;}
+.cfg-tab{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;padding:7px 14px;background:transparent;border:none;color:#444;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;}
+.cfg-tab:hover{color:#888;}
+.cfg-tab.on{color:#fff;border-bottom-color:var(--c-fuel);}
+.cfg-panel{display:none;} .cfg-panel.on{display:block;}
+.cfg-sec{font-family:'DM Mono',monospace;font-size:7px;letter-spacing:2px;text-transform:uppercase;color:#303030;margin:12px 0 7px;padding-bottom:4px;border-bottom:1px solid var(--bd);}
+.cfg-row{display:grid;gap:6px;align-items:center;margin-bottom:6px;}
+.cfg-row.staff-row{grid-template-columns:26px 1fr 1fr 88px auto;}
+.cfg-row.zone-row{grid-template-columns:1fr 70px 70px 70px 70px;}
+.cfg-lbl{font-family:'DM Mono',monospace;font-size:7.5px;color:#555;white-space:nowrap;}
+.cfg-input{background:#080808;border:1px solid #242424;border-radius:2px;color:#aaa;font-family:'DM Mono',monospace;font-size:8.5px;padding:4px 7px;width:100%;}
+.cfg-input:focus{outline:none;border-color:#555;}
+.cfg-color{width:24px;height:24px;border-radius:50%;border:2px solid #333;cursor:pointer;padding:0;flex-shrink:0;}
+.cfg-del{background:transparent;border:1px solid #1c1c1c;border-radius:2px;color:#2a2a2a;font-family:'DM Mono',monospace;font-size:8px;padding:3px 7px;cursor:pointer;}
+.cfg-del:hover{border-color:#e05560;color:#e05560;}
+.cfg-add{width:100%;margin-top:7px;padding:7px;background:transparent;border:1px dashed #252525;border-radius:2px;font-family:'DM Mono',monospace;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:#383838;cursor:pointer;}
+.cfg-add:hover{border-color:#555;color:#888;background:#111;}
+.cfg-save{background:var(--c-fuel);color:#fff;border:none;border-radius:2px;font-family:'DM Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;padding:8px 18px;cursor:pointer;margin-top:14px;}
+.cfg-save:hover{filter:brightness(1.1);}
+.cfg-cancel{background:transparent;color:#333;border:1px solid #242424;border-radius:2px;font-family:'DM Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;padding:8px 13px;cursor:pointer;margin-top:14px;margin-left:7px;}
+.cfg-cancel:hover{color:#666;}
+.col-hdrs{display:grid;gap:6px;margin-bottom:4px;}
+.col-hdrs.staff-row{grid-template-columns:26px 1fr 1fr 88px auto;}
+.col-hdrs.zone-row{grid-template-columns:1fr 70px 70px 70px 70px;}
+.col-hdr{font-family:'DM Mono',monospace;font-size:7px;color:#2e2e2e;letter-spacing:1px;text-transform:uppercase;}
+
+/* ── PASSWORD GATE ── */
+.gate{position:fixed;inset:0;background:#0a0a0a;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:0;}
+.gate-inner{display:flex;flex-direction:column;align-items:center;gap:16px;padding:40px;max-width:320px;width:100%;}
+.gate-logo{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:6px;color:#fff;margin-bottom:8px;}
+.gate-sub{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:#333;margin-bottom:16px;}
+.gate-input{width:100%;background:#111;border:1px solid #2a2a2a;border-radius:2px;color:#aaa;font-family:'DM Mono',monospace;font-size:14px;padding:12px 16px;text-align:center;letter-spacing:4px;outline:none;}
+.gate-input:focus{border-color:#555;}
+.gate-btn{width:100%;background:var(--fuel,#e8621a);color:#fff;border:none;border-radius:2px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;padding:12px;cursor:pointer;}
+.gate-btn:hover{filter:brightness(1.1);}
+.gate-err{font-family:'DM Mono',monospace;font-size:8px;color:#e05560;letter-spacing:1px;display:none;}
+.gate-err.on{display:block;}
 </style>
 </head>
 <body>
 
-<!-- Login overlay -->
-<div id="login-overlay">
-  <div class="login-box">
-    <div class="login-head">
-      <div class="login-logo">DISTRIK</div>
-      <div class="login-sub">Staff Dashboard · Private Access</div>
-    </div>
-    <div class="login-body">
-      <div class="login-label">Password</div>
-      <input class="login-input" id="pwd-input" type="password" placeholder="Enter password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
-      <button class="login-btn" onclick="doLogin()">Unlock Dashboard</button>
-      <div class="login-err" id="login-err"></div>
-    </div>
+<!-- Password Gate -->
+<div class="gate" id="gate">
+  <div class="gate-inner">
+    <div class="gate-logo">DISTRIK</div>
+    <div class="gate-sub">Staff Dashboard</div>
+    <input class="gate-input" type="password" id="gate-pw" placeholder="••••••••" 
+      onkeydown="if(event.key==='Enter')checkPassword()">
+    <button class="gate-btn" onclick="checkPassword()">Enter</button>
+    <div class="gate-err" id="gate-err">Incorrect password</div>
   </div>
-  <div class="login-footer">Access restricted to authorised staff only.</div>
 </div>
+
 
 <div class="tab-bar">
   <div class="tab-logo">DISTRIK</div>
   <button class="tab-btn" id="tab-sales" onclick="switchTab('sales')">Sales</button>
   <button class="tab-btn" id="tab-pl" onclick="switchTab('pl')">P&amp;L</button>
+  <button class="tab-btn" id="tab-settings" onclick="switchTab('settings')">⚙ Settings</button>
   <button class="tab-btn on"  id="tab-roster" onclick="switchTab('roster')">Weekly Roster</button>
-  <button class="logout-btn" onclick="doLogout()">Lock</button>
 </div>
 <div class="notif" id="notif"></div>
 <!-- ── SALES PANEL ─────────────────────────────────────── -->
@@ -693,66 +717,6 @@ body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;paddi
 <div id="drag-ghost"></div>
 
 <script>
-// ── AUTH ─────────────────────────────────────────────────────────────────────
-// To change password: echo -n "NewPassword" | sha256sum → update PWD_HASH
-const PWD_HASH='ceb62a48b1460cc387bd0d76774ff19ee96de1f20d0e8ec4e282e3f991545f85'; // D1strik2026!
-const AUTH_KEY='distrik_dash_auth';
-const SESSION_HOURS=12;
-
-function sha256(str){
-  var K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
-  var h=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
-  var rr=function(v,n){return(v>>>n)|(v<<(32-n));};
-  var bytes=[];
-  for(var i=0;i<str.length;i++){var c=str.charCodeAt(i);if(c<128)bytes.push(c);else if(c<2048)bytes.push((c>>6)|192,(c&63)|128);else bytes.push((c>>12)|224,((c>>6)&63)|128,(c&63)|128);}
-  var L=bytes.length*8;bytes.push(0x80);
-  while(bytes.length%64!==56)bytes.push(0);
-  bytes.push(0,0,0,0,(L>>>24)&0xff,(L>>>16)&0xff,(L>>>8)&0xff,L&0xff);
-  for(var bi=0;bi<bytes.length;bi+=64){
-    var w=[];
-    for(var wi=0;wi<16;wi++)w[wi]=(bytes[bi+wi*4]<<24)|(bytes[bi+wi*4+1]<<16)|(bytes[bi+wi*4+2]<<8)|bytes[bi+wi*4+3];
-    for(var wi2=16;wi2<64;wi2++){var ww=w[wi2-2],wx=w[wi2-15];w[wi2]=((rr(ww,17)^rr(ww,19)^(ww>>>10))+w[wi2-7]+(rr(wx,7)^rr(wx,18)^(wx>>>3))+w[wi2-16])|0;}
-    var a=h[0],b=h[1],c2=h[2],d=h[3],e=h[4],f=h[5],g=h[6],hh=h[7];
-    for(var j=0;j<64;j++){var t1=(hh+(rr(e,6)^rr(e,11)^rr(e,25))+((e&f)^(~e&g))+K[j]+w[j])|0;var t2=((rr(a,2)^rr(a,13)^rr(a,22))+((a&b)^(a&c2)^(b&c2)))|0;hh=g;g=f;f=e;e=(d+t1)|0;d=c2;c2=b;b=a;a=(t1+t2)|0;}
-    h[0]=(h[0]+a)|0;h[1]=(h[1]+b)|0;h[2]=(h[2]+c2)|0;h[3]=(h[3]+d)|0;h[4]=(h[4]+e)|0;h[5]=(h[5]+f)|0;h[6]=(h[6]+g)|0;h[7]=(h[7]+hh)|0;
-  }
-  return h.map(function(v){return(v>>>0).toString(16).padStart(8,'0');}).join('');
-}
-
-function isAuthed(){try{var v=localStorage.getItem(AUTH_KEY);if(!v)return false;var d=JSON.parse(v);if(Date.now()>d.expires){localStorage.removeItem(AUTH_KEY);return false;}return d.hash===PWD_HASH;}catch(e){return false;}}
-
-function doLogin(){
-  var input=document.getElementById('pwd-input'),errEl=document.getElementById('login-err'),pwd=input.value;
-  if(!pwd)return;
-  errEl.textContent='';input.classList.remove('err');
-  try{
-    var h=sha256(pwd);
-    if(h===PWD_HASH){
-      try{localStorage.setItem(AUTH_KEY,JSON.stringify({hash:h,expires:Date.now()+SESSION_HOURS*3600000}));}catch(e){}
-      document.getElementById('login-overlay').style.display='none';
-      document.body.style.overflow='';
-    }else{input.classList.add('err');errEl.textContent='Incorrect password.';input.value='';input.focus();}
-  }catch(e){errEl.textContent='Error — try opening in Safari.';}
-}
-
-function doLogout(){
-  try{localStorage.removeItem(AUTH_KEY);}catch(e){}
-  document.getElementById('login-overlay').style.display='flex';
-  document.body.style.overflow='hidden';
-  document.getElementById('pwd-input').value='';
-  document.getElementById('pwd-input').focus();
-}
-
-(function initAuth(){
-  if(!isAuthed()){
-    document.getElementById('login-overlay').style.display='flex';
-    document.body.style.overflow='hidden';
-    setTimeout(function(){document.getElementById('pwd-input').focus();},50);
-  }else{
-    document.getElementById('login-overlay').style.display='none';
-  }
-})();
-
 // ── CONFIG ───────────────────────────────────────────────────────────────────
 const DAYS=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
 const DS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
@@ -767,17 +731,17 @@ const ZONES=[
 ];
 
 const STAFF=[
-  {id:'Amri',     col:'#f5c842',name:'Amri',     abbr:'AM',role:'Manager',   salary:6500000},
-  {id:'HS',       col:'#3b82f6',name:'Head Staff',abbr:'HS',role:'2IC',       salary:4500000},
-  {id:'SA',       col:'#e8621a',name:'Staff A',   abbr:'SA',role:'Fuel Open', salary:3900000},
-  {id:'SB',       col:'#14b8a6',name:'Staff B',   abbr:'SB',role:'Fuel Close',salary:3900000},
-  {id:'SC',       col:'#c084fc',name:'Staff C',   abbr:'SC',role:'Recep Close',salary:3900000},
-  {id:'SD',       col:'#f43f5e',name:'Staff D',   abbr:'SD',role:'Supply',    salary:3900000},
-  {id:'SE',       col:'#fb923c',name:'Staff E',   abbr:'SE',role:'Part-time', salary:2000000},
-  {id:'TA',       col:'#06b6d4',name:'Therapy A', abbr:'TA',role:'Head Ther', salary:4100000},
-  {id:'TB',       col:'#84cc16',name:'Therapy B', abbr:'TB',role:'Therapist', salary:3900000},
-  {id:'TC',       col:'#8b5cf6',name:'Therapy C', abbr:'TC',role:'Therapist', salary:3900000},
-  {id:'TD',       col:'#f59e0b',name:'Therapy D', abbr:'TD',role:'Therapist', salary:3900000},
+  {id:'Amri',     col:'#f5c842',name:'Amri',              abbr:'AM',role:'Manager',      salary:6500000},
+  {id:'HS',       col:'#3b82f6',name:'Second In Charge',  abbr:'SI',role:'2IC',          salary:4500000},
+  {id:'SA',       col:'#e8621a',name:'Fuel Staff 1',       abbr:'F1',role:'Fuel Open',    salary:3900000},
+  {id:'SB',       col:'#14b8a6',name:'Fuel Staff 2',       abbr:'F2',role:'Fuel Close',   salary:3900000},
+  {id:'SC',       col:'#c084fc',name:'Reception Staff 1',  abbr:'R1',role:'Recep Close',  salary:3900000},
+  {id:'SD',       col:'#f43f5e',name:'Supply Staff 1',     abbr:'S1',role:'Supply',       salary:3900000},
+  {id:'SE',       col:'#fb923c',name:'Flex Staff',         abbr:'FL',role:'Part-time',    salary:2000000},
+  {id:'TA',       col:'#06b6d4',name:'Head Therapist',     abbr:'HT',role:'Head Ther',    salary:4100000},
+  {id:'TB',       col:'#84cc16',name:'Therapist 1',        abbr:'T1',role:'Therapist',    salary:3900000},
+  {id:'TC',       col:'#8b5cf6',name:'Therapist 2',        abbr:'T2',role:'Therapist',    salary:3900000},
+  {id:'TD',       col:'#f59e0b',name:'Therapist 3',        abbr:'T3',role:'Therapist',    salary:3900000},
 ];
 const STAFF_MAP=Object.fromEntries(STAFF.map(s=>[s.id,s]));
 
@@ -796,45 +760,67 @@ let activeDay=0;
 
 // Populate default schedule
 function populateDefaults(){
-  function fillStaff(day,zone,row,staffId,startH,endH,isBreak=false){
+  function fill(day,zone,row,sid,startH,endH){
     const s=Math.round((startH-SLOT_START)*2);
     const e=Math.round((endH-SLOT_START)*2);
-    for(let i=s;i<e&&i<TOTAL_SLOTS;i++){
-      if(i>=0) grid[day][zone][row][i]=isBreak?'Break:'+staffId:staffId;
-    }
+    for(let i=s;i<e&&i<TOTAL_SLOTS;i++) if(i>=0) grid[day][zone][row][i]=sid;
   }
-  // Monday: HS Reception, SA Fuel, SB Fuel, SD Supply
-  fillStaff('Monday','Reception',0,'HS',14,18);fillStaff('Monday','Reception',0,'HS',19,22);fillStaff('Monday','Reception',0,'Break:HS',18,19,true);
-  fillStaff('Monday','Fuel',0,'SA',6,10);fillStaff('Monday','Fuel',0,'SA',11,14);fillStaff('Monday','Fuel',0,'Break:SA',10,11,true);
-  fillStaff('Monday','Fuel',1,'SB',12,16);fillStaff('Monday','Fuel',1,'SB',17,20);fillStaff('Monday','Fuel',1,'Break:SB',16,17,true);
-  fillStaff('Monday','Supply',0,'SD',8,12);fillStaff('Monday','Supply',0,'SD',13,16);fillStaff('Monday','Supply',0,'Break:SD',12,13,true);
-  // Tuesday: Amri+HS Reception, SA+SB Fuel, SC Reception close, SD Supply
-  fillStaff('Tuesday','Fuel',0,'SA',6,10);fillStaff('Tuesday','Fuel',0,'SA',11,14);fillStaff('Tuesday','Fuel',0,'Break:SA',10,11,true);
-  fillStaff('Tuesday','Fuel',1,'SB',12,16);fillStaff('Tuesday','Fuel',1,'SB',17,20);fillStaff('Tuesday','Fuel',1,'Break:SB',16,17,true);
-  fillStaff('Tuesday','Reception',0,'Amri',10,14);fillStaff('Tuesday','Reception',0,'Amri',15,18);fillStaff('Tuesday','Reception',0,'Break:Amri',14,15,true);
-  fillStaff('Tuesday','Reception',1,'HS',10,14);fillStaff('Tuesday','Reception',1,'HS',15,18);fillStaff('Tuesday','Reception',1,'Break:HS',14,15,true);
-  fillStaff('Tuesday','Reception',2,'SC',14,18);fillStaff('Tuesday','Reception',2,'SC',19,22);fillStaff('Tuesday','Reception',2,'Break:SC',18,19,true);
-  fillStaff('Tuesday','Supply',0,'SD',8,12);fillStaff('Tuesday','Supply',0,'SD',13,16);fillStaff('Tuesday','Supply',0,'Break:SD',12,13,true);
-  // Fill remaining days with basic pattern
-  ['Wednesday','Thursday','Friday','Saturday','Sunday'].forEach(day=>{
-    if(day!=='Wednesday'){fillStaff(day,'Fuel',0,'SA',6,10);fillStaff(day,'Fuel',0,'SA',11,14);fillStaff(day,'Fuel',0,'Break:SA',10,11,true);}
-    if(day!=='Thursday'){fillStaff(day,'Fuel',1,'SB',12,16);fillStaff(day,'Fuel',1,'SB',17,20);fillStaff(day,'Fuel',1,'Break:SB',16,17,true);}
-    fillStaff(day,'Reception',0,'HS',10,14);fillStaff(day,'Reception',0,'HS',15,18);fillStaff(day,'Reception',0,'Break:HS',14,15,true);
-    if(day!=='Friday'){fillStaff(day,'Supply',0,'SD',8,12);fillStaff(day,'Supply',0,'SD',13,16);fillStaff(day,'Supply',0,'Break:SD',12,13,true);}
-    if(day!=='Saturday'){fillStaff(day,'Reception',1,'Amri',10,14);fillStaff(day,'Reception',1,'Amri',15,18);fillStaff(day,'Reception',1,'Break:Amri',14,15,true);}
-    fillStaff(day,'Reception',2,'SC',14,18);fillStaff(day,'Reception',2,'SC',19,22);fillStaff(day,'Reception',2,'Break:SC',18,19,true);
-    // Therapy
-    if(day!=='Monday'){fillStaff(day,'Therapy',0,'TA',10,14);fillStaff(day,'Therapy',0,'TA',15,18);fillStaff(day,'Therapy',0,'Break:TA',14,15,true);}
-    if(day!=='Wednesday'){fillStaff(day,'Therapy',1,'TB',10,14);fillStaff(day,'Therapy',1,'TB',15,18);fillStaff(day,'Therapy',1,'Break:TB',14,15,true);}
-    if(day!=='Friday'){fillStaff(day,'Therapy',2,'TC',14,18);fillStaff(day,'Therapy',2,'TC',19,22);fillStaff(day,'Therapy',2,'Break:TC',18,19,true);}
-    if(day!=='Sunday'){fillStaff(day,'Therapy',3,'TD',14,18);fillStaff(day,'Therapy',3,'TD',19,22);fillStaff(day,'Therapy',3,'Break:TD',18,19,true);}
+  function shift(day,zone,row,sid,startH,endH,breakH){
+    // Fill shift with 1hr break at breakH
+    fill(day,zone,row,sid,startH,breakH);
+    fill(day,zone,row,'Break:'+sid,breakH,breakH+1);
+    fill(day,zone,row,sid,breakH+1,endH);
+  }
+
+  // MONDAY — CLOSED. No staff scheduled.
+
+  // TUESDAY–FRIDAY
+  ['Tuesday','Wednesday','Thursday','Friday'].forEach(day=>{
+    // FUEL
+    if(day!=='Wednesday') shift(day,'Fuel',0,'SA',6,14,10);      // SA fuel open 6-2pm break@10
+    shift(day,'Fuel',1,'SB',12,20,16);                            // SB fuel close 12-8pm break@4
+
+    // RECEPTION
+    shift(day,'Reception',0,'Amri',10,18,14);                     // Amri 10-6pm break@2
+    shift(day,'Reception',1,'HS',10,18,14);                       // HS 10-6pm break@2
+    shift(day,'Reception',2,'SC',14,22,18);                       // SC close 2-10pm break@6
+
+
+    // SUPPLY
+    shift(day,'Supply',0,'SD',10,18,14);                          // SD supply 10-6pm
+    if(day==='Thursday'||day==='Friday') shift(day,'Supply',1,'SE',12,16,14); // SE part-time supply cover
+
+    // THERAPY (10am-10pm, 3 rooms needed)
+    if(day!=='Tuesday') shift(day,'Therapy',0,'TA',10,18,14);     // TA early
+    else shift(day,'Therapy',0,'TA',10,18,14);
+    shift(day,'Therapy',1,'TB',10,18,14);                         // TB early
+    shift(day,'Therapy',2,'TC',14,22,18);                         // TC late
+    shift(day,'Therapy',3,'TD',14,22,18);                         // TD late
   });
-  // Monday therapy
-  fillStaff('Monday','Therapy',0,'TB',10,14);fillStaff('Monday','Therapy',0,'TB',15,18);fillStaff('Monday','Therapy',0,'Break:TB',14,15,true);
-  fillStaff('Monday','Therapy',1,'TC',14,18);fillStaff('Monday','Therapy',1,'TC',19,22);fillStaff('Monday','Therapy',1,'Break:TC',18,19,true);
-  fillStaff('Monday','Therapy',2,'TD',14,18);fillStaff('Monday','Therapy',2,'TD',19,22);fillStaff('Monday','Therapy',2,'Break:TD',18,19,true);
+
+  // SATURDAY–SUNDAY (shorter hours, 8am start)
+  ['Saturday','Sunday'].forEach(day=>{
+    // FUEL 6am-8pm
+    shift(day,'Fuel',0,'SA',6,14,10);
+    shift(day,'Fuel',1,'SB',12,20,16);
+
+    // RECEPTION 8am-8pm (weekend)
+    shift(day,'Reception',0,'HS',8,16,12);
+    shift(day,'Reception',1,'Amri',8,16,12);
+    shift(day,'Reception',2,'SC',12,20,16);
+
+    // SUPPLY 8am-6pm (weekend)
+    shift(day,'Supply',0,'SD',8,16,12);
+
+    // THERAPY 10am-10pm
+    shift(day,'Therapy',0,'TA',10,18,14);
+    shift(day,'Therapy',1,'TB',10,18,14);
+    shift(day,'Therapy',2,'TC',14,22,18);
+    if(day==='Saturday') shift(day,'Therapy',3,'TD',14,22,18);
+  });
 }
 populateDefaults();
+
 
 // ── HELPERS ───────────────────────────────────────────────────────────────────
 function slotToH(s){return SLOT_START+s*0.5;}
@@ -1337,6 +1323,7 @@ function switchTab(t){
   document.getElementById('tab-'+t).classList.add('on');
   if(t==='sales'){initSales();}
   if(t==='pl'){renderPL();}
+  if(t==='settings'){buildSettingsPanel();}
 }
 
 // ── SALES DATA ────────────────────────────────────────────────────
@@ -2088,7 +2075,439 @@ function resetSaved(){
   setTimeout(()=>n.classList.remove('on'),2000);
 }
 
+
+
+// ── SETTINGS ──────────────────────────────────────────────────────
+
+// Zone hours config — weekday (Tue-Fri) and weekend (Sat-Sun)
+// Each zone: {label, col, wdOpen, wdClose, weOpen, weClose}
+let ZONE_HOURS = [
+  {id:'Fuel',      label:'Cafe / Fuel',  col:'#e8621a', wdOpen:6,  wdClose:20, weOpen:6,  weClose:20},
+  {id:'Reception', label:'Reception',    col:'#3b82f6', wdOpen:10, wdClose:22, weOpen:8,  weClose:20},
+  {id:'Supply',    label:'Supply',       col:'#10b981', wdOpen:10, wdClose:20, weOpen:8,  weClose:18},
+  {id:'Therapy',   label:'Therapy',      col:'#8b5cf6', wdOpen:10, wdClose:22, weOpen:10, weClose:22},
+  {id:'Recovery',  label:'Recovery',     col:'#f59e0b', wdOpen:10, wdClose:22, weOpen:8,  weClose:20},
+];
+
+// Sync ZONE_HOURS into the ZONES array used by the roster
+function syncZoneHours(){
+  ZONE_HOURS.forEach(zh => {
+    const z = ZONES.find(z => z.id === zh.id);
+    if(z){
+      // Use weekday hours as default (grid shows one day at a time)
+      const d = activeDay; // 0=Mon..6=Sun
+      const isWe = (d === 5 || d === 6); // Sat or Sun
+      z.start = isWe ? zh.weOpen  : zh.wdOpen;
+      z.end   = isWe ? zh.weClose : zh.wdClose;
+      z.label = zh.label;
+      z.col   = zh.col;
+    }
+  });
+}
+
+function openCfg(){
+  buildCfgStaff();
+  buildCfgZones();
+  document.getElementById('cfgModal').classList.add('on');
+}
+function closeCfg(){
+  document.getElementById('cfgModal').classList.remove('on');
+}
+function cfgTab(id, btn){
+  document.querySelectorAll('.cfg-tab').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('.cfg-panel').forEach(p=>p.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('cfg-'+id).classList.add('on');
+}
+
+function buildCfgStaff(){
+  // Split STAFF into ops and therapists by id prefix
+  const ops   = STAFF.filter(s => !s.id.startsWith('T') || s.id==='HS');
+  const thers = STAFF.filter(s => s.id.startsWith('T') && s.id!=='HS');
+  function rows(arr, prefix, el){
+    el.innerHTML = arr.map((s) => {
+      const i = STAFF.indexOf(s);
+      return `<div class="cfg-row staff-row">
+        <input type="color" class="cfg-color" id="${prefix}c${i}" value="${s.col}" oninput="this.style.background=this.value" style="background:${s.col}">
+        <input type="text"   class="cfg-input" id="${prefix}n${i}" value="${s.name}"   placeholder="Name">
+        <input type="text"   class="cfg-input" id="${prefix}r${i}" value="${s.role}"   placeholder="Role">
+        <input type="number" class="cfg-input" id="${prefix}s${i}" value="${s.salary}" placeholder="Salary">
+        <button class="cfg-del" onclick="cfgDelStaffIdx(${i})">✕</button>
+      </div>`;
+    }).join('');
+  }
+  rows(ops,   'sf', document.getElementById('cfg-staff-rows'));
+  rows(thers, 'sf', document.getElementById('cfg-therapy-rows'));
+}
+
+function buildCfgZones(){
+  const el = document.getElementById('cfg-zone-rows');
+  el.innerHTML = ZONE_HOURS.map((z,i) => `
+    <div class="cfg-row zone-row" style="margin-bottom:7px;">
+      <div style="display:flex;align-items:center;gap:7px;">
+        <input type="color" class="cfg-color" id="zc${i}" value="${z.col}" oninput="this.style.background=this.value" style="background:${z.col};width:20px;height:20px;">
+        <input type="text" class="cfg-input" id="zl${i}" value="${z.label}" placeholder="Zone name" style="flex:1;">
+      </div>
+      <input type="number" class="cfg-input" id="zwo${i}" value="${z.wdOpen}"  min="0" max="23" step="0.5" title="Weekday open">
+      <input type="number" class="cfg-input" id="zwc${i}" value="${z.wdClose}" min="1" max="24" step="0.5" title="Weekday close">
+      <input type="number" class="cfg-input" id="zeo${i}" value="${z.weOpen}"  min="0" max="23" step="0.5" title="Weekend open">
+      <input type="number" class="cfg-input" id="zec${i}" value="${z.weClose}" min="1" max="24" step="0.5" title="Weekend close">
+    </div>`).join('');
+}
+
+function cfgDelStaffIdx(idx){
+  if(!confirm('Remove this person? Their roster slots will be cleared.')) return;
+  const sid = STAFF[idx].id;
+  DAYS.forEach(day => {
+    ZONES.forEach(zone => {
+      grid[day][zone.id].forEach(row => {
+        row.forEach((cell,ci) => {
+          if(cell && cell.replace('Break:','')===sid) row[ci]=null;
+        });
+      });
+    });
+  });
+  STAFF.splice(idx,1);
+  buildCfgStaff();
+}
+function cfgDelStaff(prefix, idx){ cfgDelStaffIdx(idx); }
+
+function cfgAddStaff(type){
+  const col = ['#e879f9','#fb923c','#a3e635','#38bdf8','#f472b6','#34d399'][Math.floor(Math.random()*6)];
+  const isT = type==='th';
+  STAFF.push({
+    id: (isT?'T':'S')+'new'+Date.now(),
+    col, abbr: isT?'NT':'NS',
+    name: isT?'New Therapist':'New Staff',
+    role: isT?'Therapist':'Staff',
+    salary: 3900000
+  });
+  buildCfgStaff();
+}
+
+function saveCfg(){
+  // Save staff — all in STAFF array, indexed by position
+  STAFF.forEach((s,i)=>{
+    const name   = document.getElementById(`sfn${i}`)?.value.trim();
+    const role   = document.getElementById(`sfr${i}`)?.value.trim();
+    const salary = parseInt(document.getElementById(`sfs${i}`)?.value);
+    const col    = document.getElementById(`sfc${i}`)?.value;
+    if(name){ s.name=name; s.abbr=name.slice(0,2).toUpperCase(); }
+    if(role)  s.role=role;
+    if(!isNaN(salary)&&salary>0) s.salary=salary;
+    if(col)   s.col=col;
+  });
+
+  // Save zone hours
+  ZONE_HOURS.forEach((z,i)=>{
+    const lbl = document.getElementById(`zl${i}`)?.value.trim();
+    const col = document.getElementById(`zc${i}`)?.value;
+    const wdo = parseFloat(document.getElementById(`zwo${i}`)?.value);
+    const wdc = parseFloat(document.getElementById(`zwc${i}`)?.value);
+    const weo = parseFloat(document.getElementById(`zeo${i}`)?.value);
+    const wec = parseFloat(document.getElementById(`zec${i}`)?.value);
+    if(lbl)       z.label=lbl;
+    if(col)       z.col=col;
+    if(!isNaN(wdo)) z.wdOpen=wdo;
+    if(!isNaN(wdc)) z.wdClose=wdc;
+    if(!isNaN(weo)) z.weOpen=weo;
+    if(!isNaN(wec)) z.weClose=wec;
+    // Sync into ZONES array
+    const zone = ZONES.find(zn=>zn.id===z.id);
+    if(zone){
+      zone.label=z.label; zone.col=z.col;
+      const isWe=(activeDay===5||activeDay===6);
+      zone.start=isWe?z.weOpen:z.wdOpen;
+      zone.end  =isWe?z.weClose:z.wdClose;
+    }
+  });
+
+  closeCfg();
+  buildPalette();
+  buildGrid();
+  buildBudget();
+  saveAll();
+
+  const n=document.getElementById('notif');
+  n.textContent='Settings saved \u2713'; n.classList.add('on');
+  setTimeout(()=>n.classList.remove('on'),2200);
+}
+
+// Apply correct zone hours whenever day changes
+const _origBuildTabs = buildTabs;
+buildTabs = function(){
+  _origBuildTabs();
+  syncZoneHours();
+};
+
+
+// ── SETTINGS PANEL ────────────────────────────────────────────────
+
+// Zone hours — pre-set to Distrik spec
+let ZONE_CFG = [
+  {id:'Fuel',      label:'Cafe / Fuel',      col:'#e8621a', wdOpen:6,  wdClose:20, weOpen:6,  weClose:20, monClosed:true},
+  {id:'Reception', label:'Reception',         col:'#3b82f6', wdOpen:10, wdClose:22, weOpen:8,  weClose:20, monClosed:true},
+  {id:'Supply',    label:'Supply',            col:'#10b981', wdOpen:10, wdClose:20, weOpen:8,  weClose:18, monClosed:true},
+  {id:'Therapy',   label:'Therapy',           col:'#8b5cf6', wdOpen:10, wdClose:22, weOpen:10, weClose:22, monClosed:true},
+  {id:'Recovery',  label:'Recovery',          col:'#f59e0b', wdOpen:10, wdClose:22, weOpen:8,  weClose:20, monClosed:true},
+];
+
+function buildSettingsPanel(){
+  buildSettingsStaff();
+  buildSettingsZones();
+}
+
+function buildSettingsStaff(){
+  const el = document.getElementById('settings-staff-list');
+  if(!el) return;
+  el.innerHTML = STAFF.map((s,i) => {
+    const dark = ['#f5c842','#84cc16','#f59e0b'].includes(s.col);
+    return `<div style="display:grid;grid-template-columns:32px 1fr 1fr 110px 80px;gap:8px;align-items:center;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #111;">
+      <input type="color" value="${s.col}" id="stf_col_${i}"
+        style="width:28px;height:28px;border-radius:50%;border:2px solid #333;cursor:pointer;padding:0;background:${s.col}"
+        oninput="this.style.background=this.value">
+      <input type="text" value="${s.name}" id="stf_name_${i}" placeholder="Name"
+        style="background:#080808;border:1px solid #242424;border-radius:2px;color:#ccc;font-family:'DM Mono',monospace;font-size:9px;padding:5px 8px;width:100%;">
+      <input type="text" value="${s.role}" id="stf_role_${i}" placeholder="Role"
+        style="background:#080808;border:1px solid #242424;border-radius:2px;color:#ccc;font-family:'DM Mono',monospace;font-size:9px;padding:5px 8px;width:100%;">
+      <input type="number" value="${s.salary}" id="stf_sal_${i}" placeholder="Salary"
+        style="background:#080808;border:1px solid #242424;border-radius:2px;color:#ccc;font-family:'DM Mono',monospace;font-size:9px;padding:5px 8px;width:100%;">
+      <button onclick="settingsRemoveStaff(${i})"
+        style="background:transparent;border:1px solid #222;border-radius:2px;color:#333;font-family:'DM Mono',monospace;font-size:8px;padding:4px 8px;cursor:pointer;width:100%;"
+        onmouseover="this.style.borderColor='#e05560';this.style.color='#e05560'"
+        onmouseout="this.style.borderColor='#222';this.style.color='#333'">Remove</button>
+    </div>`;
+  }).join('');
+}
+
+function buildSettingsZones(){
+  const el = document.getElementById('settings-zone-list');
+  if(!el) return;
+  el.innerHTML = ZONE_CFG.map((z,i) => {
+    return `<div style="display:grid;grid-template-columns:150px 80px 80px 80px 80px;gap:8px;align-items:center;margin-bottom:8px;">
+      <div style="display:flex;align-items:center;gap:7px;">
+        <input type="color" value="${z.col}" id="zn_col_${i}"
+          style="width:22px;height:22px;border-radius:50%;border:2px solid #333;cursor:pointer;padding:0;background:${z.col}"
+          oninput="this.style.background=this.value">
+        <input type="text" value="${z.label}" id="zn_lbl_${i}" placeholder="Zone name"
+          style="background:#080808;border:1px solid #242424;border-radius:2px;color:#ccc;font-family:'DM Mono',monospace;font-size:9px;padding:5px 8px;flex:1;">
+      </div>
+      <input type="number" value="${z.wdOpen}"  id="zn_wdo_${i}" min="0" max="23" step="0.5"
+        style="background:#080808;border:1px solid #242424;border-radius:2px;color:#ccc;font-family:'DM Mono',monospace;font-size:9px;padding:5px 8px;text-align:center;"
+        title="Tue–Fri opening time">
+      <input type="number" value="${z.wdClose}" id="zn_wdc_${i}" min="1" max="24" step="0.5"
+        style="background:#080808;border:1px solid #242424;border-radius:2px;color:#ccc;font-family:'DM Mono',monospace;font-size:9px;padding:5px 8px;text-align:center;"
+        title="Tue–Fri closing time">
+      <input type="number" value="${z.weOpen}"  id="zn_weo_${i}" min="0" max="23" step="0.5"
+        style="background:#080808;border:1px solid #242424;border-radius:2px;color:#ccc;font-family:'DM Mono',monospace;font-size:9px;padding:5px 8px;text-align:center;"
+        title="Sat–Sun opening time">
+      <input type="number" value="${z.weClose}" id="zn_wec_${i}" min="1" max="24" step="0.5"
+        style="background:#080808;border:1px solid #242424;border-radius:2px;color:#ccc;font-family:'DM Mono',monospace;font-size:9px;padding:5px 8px;text-align:center;"
+        title="Sat–Sun closing time">
+    </div>`;
+  }).join('');
+}
+
+function settingsAddStaff(){
+  const colors = ['#e879f9','#fb923c','#a3e635','#38bdf8','#f472b6','#34d399'];
+  const col = colors[STAFF.length % colors.length];
+  STAFF.push({id:'new'+Date.now(), col, name:'New Staff', abbr:'NS', role:'Staff', salary:3900000});
+  buildSettingsStaff();
+}
+
+function settingsRemoveStaff(idx){
+  if(!confirm('Remove ' + STAFF[idx].name + '? Their roster slots will be cleared.')) return;
+  const sid = STAFF[idx].id;
+  DAYS.forEach(day => {
+    ZONES.forEach(zone => {
+      grid[day][zone.id].forEach(row => {
+        row.forEach((cell,ci) => {
+          if(cell && cell.replace('Break:','')===sid) row[ci]=null;
+        });
+      });
+    });
+  });
+  STAFF.splice(idx,1);
+  buildSettingsStaff();
+}
+
+function saveSettings(){
+  // Save staff
+  STAFF.forEach((s,i) => {
+    const name = document.getElementById('stf_name_'+i)?.value.trim();
+    const role = document.getElementById('stf_role_'+i)?.value.trim();
+    const sal  = parseInt(document.getElementById('stf_sal_'+i)?.value);
+    const col  = document.getElementById('stf_col_'+i)?.value;
+    if(name){ s.name=name; s.abbr=name.slice(0,2).toUpperCase(); }
+    if(role)  s.role=role;
+    if(!isNaN(sal)&&sal>0) s.salary=sal;
+    if(col)   s.col=col;
+  });
+  // Save zones
+  ZONE_CFG.forEach((z,i) => {
+    const lbl = document.getElementById('zn_lbl_'+i)?.value.trim();
+    const col = document.getElementById('zn_col_'+i)?.value;
+    const wdo = parseFloat(document.getElementById('zn_wdo_'+i)?.value);
+    const wdc = parseFloat(document.getElementById('zn_wdc_'+i)?.value);
+    const weo = parseFloat(document.getElementById('zn_weo_'+i)?.value);
+    const wec = parseFloat(document.getElementById('zn_wec_'+i)?.value);
+    if(lbl) z.label=lbl;
+    if(col) z.col=col;
+    if(!isNaN(wdo)) z.wdOpen=wdo;
+    if(!isNaN(wdc)) z.wdClose=wdc;
+    if(!isNaN(weo)) z.weOpen=weo;
+    if(!isNaN(wec)) z.weClose=wec;
+    // Push into ZONES used by roster
+    const zone = ZONES.find(zn=>zn.id===z.id);
+    if(zone){
+      zone.label=z.label; zone.col=z.col;
+      const isWe=(activeDay===5||activeDay===6);
+      zone.start=isWe?z.weOpen:z.wdOpen;
+      zone.end  =isWe?z.weClose:z.wdClose;
+    }
+  });
+
+  buildPalette();
+  buildGrid();
+  buildBudget();
+  saveAll();
+
+  const n=document.getElementById('notif');
+  n.textContent='Saved \u2713'; n.classList.add('on');
+  setTimeout(()=>n.classList.remove('on'),2000);
+}
+
+
+// ── PASSWORD GATE ─────────────────────────────────────────────────
+const STAFF_PASSWORD = 'D1strik2026!'; // ← change this password here
+
+function checkPassword(){
+  const pw = document.getElementById('gate-pw').value;
+  if(pw === STAFF_PASSWORD){
+    localStorage.setItem('distrik_auth', btoa(STAFF_PASSWORD));
+    document.getElementById('gate').style.display = 'none';
+  } else {
+    document.getElementById('gate-err').classList.add('on');
+    document.getElementById('gate-pw').value = '';
+    document.getElementById('gate-pw').focus();
+  }
+}
+
+// Check auth on load — if already logged in, skip gate
+(function(){
+  const auth = localStorage.getItem('distrik_auth');
+  if(auth === btoa(STAFF_PASSWORD)){
+    document.getElementById('gate').style.display = 'none';
+  }
+})();
+
 </script>
 </div><!-- end roster panel -->
+
+
+<button class="cfg-btn" onclick="openCfg()" title="Settings">⚙</button>
+
+<div class="cfg-modal" id="cfgModal">
+  <div class="cfg-inner">
+    <h2>Settings</h2>
+    <div class="cfg-sub">Edit staff names, colours, salaries and zone operating hours.</div>
+    <div class="cfg-tabs">
+      <button class="cfg-tab on" onclick="cfgTab('staff',this)">Staff</button>
+      <button class="cfg-tab"    onclick="cfgTab('zones',this)">Zone Hours</button>
+    </div>
+    <!-- Staff panel -->
+    <div class="cfg-panel on" id="cfg-staff">
+      <div class="cfg-sec">Operational Staff</div>
+      <div class="col-hdrs staff-row">
+        <div></div>
+        <div class="col-hdr">Name</div>
+        <div class="col-hdr">Role</div>
+        <div class="col-hdr">Salary IDR</div>
+        <div></div>
+      </div>
+      <div id="cfg-staff-rows"></div>
+      <button class="cfg-add" onclick="cfgAddStaff('op')">+ Add Staff Member</button>
+      <div class="cfg-sec" style="margin-top:16px">Therapists</div>
+      <div class="col-hdrs staff-row">
+        <div></div>
+        <div class="col-hdr">Name</div>
+        <div class="col-hdr">Role</div>
+        <div class="col-hdr">Salary IDR</div>
+        <div></div>
+      </div>
+      <div id="cfg-therapy-rows"></div>
+      <button class="cfg-add" onclick="cfgAddStaff('th')">+ Add Therapist</button>
+    </div>
+    <!-- Zone hours panel -->
+    <div class="cfg-panel" id="cfg-zones">
+      <div class="cfg-sec">Zone Operating Hours</div>
+      <div class="col-hdrs zone-row" style="margin-bottom:6px;">
+        <div class="col-hdr">Zone</div>
+        <div class="col-hdr">Tue-Fri Open</div>
+        <div class="col-hdr">Tue-Fri Close</div>
+        <div class="col-hdr">Sat-Sun Open</div>
+        <div class="col-hdr">Sat-Sun Close</div>
+      </div>
+      <div id="cfg-zone-rows"></div>
+      <div style="font-family:'DM Mono',monospace;font-size:7.5px;color:#2a2a2a;margin-top:10px;line-height:1.8;">
+        Times in 24hr format (e.g. 6 = 6am, 22 = 10pm).<br>
+        Monday is closed by default — toggle per zone if needed.
+      </div>
+    </div>
+    <button class="cfg-save"   onclick="saveCfg()">Save Changes</button>
+    <button class="cfg-cancel" onclick="closeCfg()">Cancel</button>
+  </div>
+</div>
+<!-- ── SETTINGS PANEL ─────────────────────────────────────── -->
+<div class="panel" id="panel-settings">
+  <div style="padding:24px 20px 60px;font-family:'DM Sans',sans-serif;">
+    <div style="margin-bottom:20px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:4px;color:#fff;">Settings</div>
+      <div style="font-family:'DM Mono',monospace;font-size:8px;color:#555;letter-spacing:2px;text-transform:uppercase;margin-top:2px;">Edit staff names, colours, salaries and zone hours</div>
+    </div>
+
+    <!-- STAFF SECTION -->
+    <div style="background:var(--s1);border:1px solid var(--bd);border-radius:3px;overflow:hidden;margin-bottom:14px;">
+      <div style="background:var(--s2);border-bottom:1px solid var(--bd);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-family:'DM Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:#888;">Staff &amp; Therapists</div>
+        <button onclick="settingsAddStaff()" style="font-family:'DM Mono',monospace;font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:4px 12px;background:transparent;border:1px solid var(--bd);border-radius:2px;color:#555;cursor:pointer;">+ Add</button>
+      </div>
+      <div style="padding:12px 14px;">
+        <!-- Column headers -->
+        <div style="display:grid;grid-template-columns:32px 1fr 1fr 110px 80px;gap:8px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--bd);">
+          <div style="font-family:'DM Mono',monospace;font-size:7px;color:#2a2a2a;letter-spacing:1px;">COLOUR</div>
+          <div style="font-family:'DM Mono',monospace;font-size:7px;color:#2a2a2a;letter-spacing:1px;">NAME</div>
+          <div style="font-family:'DM Mono',monospace;font-size:7px;color:#2a2a2a;letter-spacing:1px;">ROLE</div>
+          <div style="font-family:'DM Mono',monospace;font-size:7px;color:#2a2a2a;letter-spacing:1px;">SALARY (IDR)</div>
+          <div></div>
+        </div>
+        <div id="settings-staff-list"></div>
+      </div>
+    </div>
+
+    <!-- ZONE HOURS SECTION -->
+    <div style="background:var(--s1);border:1px solid var(--bd);border-radius:3px;overflow:hidden;">
+      <div style="background:var(--s2);border-bottom:1px solid var(--bd);padding:10px 14px;">
+        <div style="font-family:'DM Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:#888;">Zone Operating Hours</div>
+        <div style="font-family:'DM Mono',monospace;font-size:7.5px;color:#333;margin-top:3px;">Times in 24hr format — the roster grid updates to match</div>
+      </div>
+      <div style="padding:12px 14px;">
+        <!-- Column headers -->
+        <div style="display:grid;grid-template-columns:150px 80px 80px 80px 80px;gap:8px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--bd);">
+          <div style="font-family:'DM Mono',monospace;font-size:7px;color:#2a2a2a;letter-spacing:1px;">ZONE</div>
+          <div style="font-family:'DM Mono',monospace;font-size:7px;color:#2a2a2a;letter-spacing:1px;text-align:center;">TUE-FRI<br>OPEN</div>
+          <div style="font-family:'DM Mono',monospace;font-size:7px;color:#2a2a2a;letter-spacing:1px;text-align:center;">TUE-FRI<br>CLOSE</div>
+          <div style="font-family:'DM Mono',monospace;font-size:7px;color:#2a2a2a;letter-spacing:1px;text-align:center;">SAT-SUN<br>OPEN</div>
+          <div style="font-family:'DM Mono',monospace;font-size:7px;color:#2a2a2a;letter-spacing:1px;text-align:center;">SAT-SUN<br>CLOSE</div>
+        </div>
+        <div id="settings-zone-list"></div>
+      </div>
+    </div>
+
+    <!-- Save button -->
+    <button onclick="saveSettings()" style="margin-top:16px;background:var(--c-fuel);color:#fff;border:none;border-radius:2px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:10px 24px;cursor:pointer;">Save All Changes</button>
+
+  </div>
+</div>
 </body>
 </html>
