@@ -415,6 +415,216 @@ body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;paddi
 .imp-code-err{font-family:'DM Mono',monospace;font-size:8px;color:#e05555;letter-spacing:1px;margin-top:8px;display:none;}
 .imp-code-err.on{display:block;}
 
+/* ── MOBILE RESPONSIVE ── */
+@media(max-width:900px){
+  .tab-btn{padding:10px 14px;font-size:8px;}
+  .tab-logo{font-size:18px;padding:0 14px;}
+  .sales-hdr{flex-direction:column;align-items:flex-start;}
+  .imp-btn{font-size:7px;padding:4px 10px;}
+  .kpi-row{grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:5px;}
+  .src-grid{grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:6px;}
+  .bottom-row{grid-template-columns:1fr;}
+  .room-schedule{margin-bottom:14px;}
+  .pl-summary{grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:5px;}
+  .pl-cols{grid-template-columns:1fr;}
+  .ts-grid{grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:6px;}
+  .app-hdr{flex-direction:column;align-items:flex-start;}
+  .app-hdr-btns{width:100%;gap:6px;}
+  .app-filters{flex-wrap:wrap;}
+  .af-btn{font-size:7px;padding:3px 8px;}
+}
+
+@media(max-width:768px){
+  body{padding:16px 12px 50px;}
+  .tab-bar{gap:0;}
+  .tab-btn{padding:8px 12px;font-size:7.5px;}
+  .tab-logo{font-size:16px;padding:0 12px;border-right:1px solid var(--bd);}
+  .hdr{flex-direction:column;gap:8px;}
+  .logo{font-size:34px;}
+  .hdr-r{width:100%;text-align:left;}
+  .hdr-r h2{font-size:7px;}
+  .hdr-r p{font-size:13px;}
+  .sales-wrap{padding:16px 14px 50px;}
+  .sales-hdr{margin-bottom:14px;}
+  .sales-hdr h1{font-size:24px;}
+  .imp-btn{font-size:7px;padding:4px 8px;}
+  .kpi-row{grid-template-columns:1fr;}
+  .kpi-box{padding:10px 12px;}
+  .kpi-lbl{font-size:6.5px;}
+  .kpi-num{font-size:22px;}
+  .src-grid{grid-template-columns:1fr;}
+  .src-box{padding:0;}
+  .src-top{padding:9px 11px;}
+  .src-inner{padding:9px 11px;}
+  .src-name{font-size:12px;}
+  .src-imp{font-size:7px;padding:5px;}
+  .bottom-row{gap:6px;}
+  .chart-box{padding:10px;}
+  .chart-lbl{font-size:7px;}
+  .chart-bars{height:80px;}
+  .chart-day{font-size:6px;}
+  .chart-col{gap:1px;}
+  .today-box{padding:0;}
+  .today-hd{padding:8px 11px;}
+  .today-hd h3{font-size:7px;}
+  .today-hd span{font-size:13px;}
+  .today-bd{max-height:250px;}
+  .room-schedule{margin-bottom:12px;}
+  .room-sched-hdr{margin-bottom:6px;}
+  .room-sched-hdr h3{font-size:7px;}
+  .room-grid{font-size:7px;}
+  .room-axis-lbl{padding:3px 8px;font-size:6.5px;}
+  .room-axis-tick{font-size:6px;}
+  .room-label span{font-size:7px;}
+  .room-label .room-num{font-size:10px;}
+  .room-booking{font-size:7px;padding:0 4px;}
+
+  /* P&L PANEL */
+  .pl-wrap{padding:16px 14px 50px;}
+  .pl-hdr{margin-bottom:14px;}
+  .pl-hdr h1{font-size:24px;}
+  .pl-period{flex-direction:column;align-items:flex-start;}
+  .pl-period label{font-size:7px;}
+  .pl-period select,.pl-period input{font-size:7.5px;padding:3px 6px;}
+  .pl-summary{grid-template-columns:1fr;}
+  .pl-kpi{padding:10px 12px;}
+  .pl-kpi-lbl{font-size:6.5px;}
+  .pl-kpi-num{font-size:22px;}
+  .pl-cols{gap:8px;}
+  .ledger{font-size:7.5px;}
+  .ledger-head{padding:8px 11px;}
+  .ledger-head h3{font-size:7.5px;}
+  .ledger-total{font-size:16px;}
+  .ledger-add{font-size:7px;padding:3px 8px;}
+  .ledger-rows{max-height:250px;}
+  .ledger-row{grid-template-columns:1fr auto;gap:6px;padding:5px 11px;font-size:7.5px;}
+  .ledger-row .lr-desc{font-size:7px;}
+  .ledger-row .lr-cat{font-size:6.5px;}
+  .ledger-row .lr-src{font-size:6px;}
+  .pl-chart-box{padding:10px;}
+  .pl-chart-lbl{font-size:7px;}
+  .pl-bars{gap:2px;height:70px;}
+
+  /* SETTINGS PANEL */
+  .cfg-btn{width:38px;height:38px;font-size:15px;bottom:16px;right:16px;}
+  .cfg-modal{padding:16px 10px;}
+  .cfg-inner{padding:16px;}
+  .cfg-inner h2{font-size:18px;margin-bottom:2px;}
+  .cfg-sub{font-size:7px;margin-bottom:10px;}
+  .cfg-tabs{margin-bottom:12px;}
+  .cfg-tab{font-size:7.5px;padding:6px 10px;}
+  .cfg-sec{font-size:6.5px;margin:10px 0 5px;}
+  .cfg-row{grid-template-columns:1fr !important;gap:5px;margin-bottom:5px;padding-bottom:0;border-bottom:none;}
+  .cfg-row input,.cfg-row select{font-size:8px;padding:4px 6px;}
+  .cfg-row input[type="color"]{width:24px;height:24px;}
+  .cfg-lbl{font-size:7px;}
+  .col-hdrs{grid-template-columns:1fr !important;gap:5px;margin-bottom:3px;}
+  .col-hdr{font-size:6.5px;}
+  .cfg-input{font-size:8px;padding:4px 6px;}
+  .cfg-del{font-size:7px;padding:3px 6px;width:auto;}
+  .cfg-add{font-size:7px;padding:5px;}
+  .cfg-save,.cfg-cancel{font-size:7px;padding:6px 12px;margin-top:10px;}
+
+  /* Settings panel staff grid */
+  div[style*="grid-template-columns:32px 1fr 1fr 110px 80px"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Settings panel zone grid */
+  div[style*="grid-template-columns:150px 80px 80px 80px 80px"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  .app-wrap{padding:16px 14px 50px;}
+  .app-hdr{margin-bottom:14px;}
+  .app-hdr h1{font-size:24px;}
+  .app-hdr-btns{width:100%;}
+  .imp-btn{font-size:7px;}
+  .app-filters{font-size:7px;margin-bottom:10px;padding-bottom:10px;}
+  .af-lbl{font-size:6.5px;}
+  .af-btn{font-size:6.5px;padding:3px 7px;}
+  .app-card{padding:10px 12px;gap:10px;grid-template-columns:1fr;}
+  .ac-name{font-size:12px;}
+  .ac-pos{font-size:7px;}
+  .ac-meta{gap:8px;}
+  .ac-date{font-size:6px;}
+  .sp-pill{font-size:6px;padding:2px 6px;}
+  .ami{max-width:100%;padding:16px;}
+  .ami-hdr{flex-direction:column;}
+  .ami-name{font-size:18px;}
+  .ami-q{margin-bottom:12px;padding-bottom:12px;}
+  .ami-qlbl{font-size:6.5px;}
+  .ami-qans{font-size:12px;}
+  .cmp-grid{grid-template-columns:1fr !important;}
+  .cmp-col{padding:10px;}
+  .cmp-nm{font-size:13px;}
+  .cmp-ps{font-size:6.5px;}
+  .cmp-qlbl{font-size:6.5px;margin:8px 0 3px;}
+  .cmp-qtxt{font-size:11px;}
+
+  /* ROSTER */
+  .grid-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .roster-grid{min-width:100%;font-size:7px;}
+  .axis-label,.axis-tick{font-size:6px;padding:2px 4px;}
+  .zone-label h4{font-size:11px;}
+  .zone-label p{font-size:5.5px;}
+  .slot-row{font-size:7px;}
+  .row-label{font-size:6.5px;padding:0 4px;width:70px;}
+  .slot-block{font-size:7px;padding:0 4px;}
+  .ts-wrap{margin-top:10px;}
+  .ts-title{font-size:14px;margin-bottom:5px;}
+  .ts-grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:5px;}
+  .ts-card{padding:0;}
+  .ts-head{padding:5px 8px;gap:5px;}
+  .ts-name{font-size:9px;}
+  .ts-total{font-size:7px;}
+  .ts-body{font-size:7.5px;}
+  .ts-row{grid-template-columns:40px 1fr auto;gap:4px;padding:3px 8px;}
+  .bud-title{font-size:14px;margin-bottom:5px;}
+  .tbl{font-size:7px;}
+  .tbl th{padding:3px 5px;}
+  .tbl td{padding:3px 5px;}
+}
+
+@media(max-width:600px){
+  body{padding:12px 10px 40px;}
+  .tab-btn{padding:7px 10px;font-size:6.5px;}
+  .tab-logo{font-size:14px;padding:0 10px;}
+  .logo{font-size:28px;letter-spacing:3px;}
+  .hdr{margin-bottom:10px;padding-bottom:8px;}
+  .hdr-r h2{font-size:6.5px;}
+  .sales-wrap,.pl-wrap,.app-wrap{padding:12px 10px 40px;}
+  .sales-hdr h1,.pl-hdr h1,.app-hdr h1{font-size:20px;}
+  .kpi-lbl{font-size:6px;}
+  .kpi-num{font-size:18px;}
+  .src-name{font-size:11px;padding:2px 6px;}
+  .src-type{font-size:6.5px;}
+  .src-badge{font-size:6px;}
+  .src-total{font-size:22px;margin-bottom:5px;}
+  .src-line{padding:2px 0;font-size:7px;}
+  .src-imp{font-size:6.5px;padding:4px;}
+  .chart-bars{height:60px;}
+  .bar-seg{width:100%;}
+  .today-hd span{font-size:12px;}
+  .room-label{width:60px;}
+  .pl-kpi-lbl{font-size:6px;}
+  .pl-kpi-num{font-size:20px;}
+  .pl-field label{font-size:7px;}
+  .pl-field input,.pl-field select,.pl-field textarea{font-size:8px;padding:4px 6px;}
+  .ledger-head{padding:7px 9px;}
+  .ledger-row{padding:4px 9px;}
+  .ledger-total{font-size:15px;}
+  .cfg-inner{padding:14px;}
+  .cfg-inner h2{font-size:16px;}
+  .cfg-sub{font-size:6.5px;}
+  .cfg-lbl{font-size:6.5px;}
+  .app-empty{padding:32px 14px;font-size:7px;}
+  .ac-name{font-size:11px;}
+  .ami{padding:14px;}
+  .ami-name{font-size:16px;}
+  .ami-notes-ta{font-size:12px;padding:6px 8px;height:60px;}
+}
+
 /* ── PASSWORD GATE ── */
 .gate{position:fixed;inset:0;background:#0a0a0a;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:0;}
 .gate-inner{display:flex;flex-direction:column;align-items:center;gap:16px;padding:40px;max-width:320px;width:100%;}
