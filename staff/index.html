@@ -1784,6 +1784,40 @@ h1,
 #panel-sales .sales-roster-name{font-family:'Space Mono',monospace !important;font-size:12px;color:#e3e3e6;letter-spacing:.02em;}
 #panel-sales .sales-roster-time{margin-left:auto;font-family:'Space Mono',monospace !important;font-size:11px;color:#6b6b72;letter-spacing:.04em;}
 #panel-pl #cat-breakdown{color:#a6a6ad !important;}
+/* ════════════════ MOBILE v2 — full responsive pass (overrides all above) ════════════════ */
+@media(max-width:768px){
+  /* kill stray sideways page scroll (roster keeps its own .grid-wrap scroll) */
+  html,body{overflow-x:hidden;max-width:100%;}
+  #panel-sales .sales-wrap,#panel-pl .pl-wrap{overflow-x:hidden;}
+  /* top nav: scroll instead of clipping, shrink the tabs */
+  .tab-bar{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .tab-btn{padding:11px 12px !important;font-size:9.5px !important;letter-spacing:1px !important;white-space:nowrap;}
+  /* SALES + P&L stat grids → fixed small column counts (override auto-fit) */
+  .kpi-row{grid-template-columns:repeat(2,1fr) !important;}
+  .src-grid,.pl-summary,.pl-cols{grid-template-columns:1fr !important;}
+  .pl-kpi-num{font-size:24px !important;}
+  /* FUEL café POS → stack the three columns vertically */
+  #panel-fuel .pos-layout-inner,.pos-layout-inner{grid-template-columns:1fr !important;height:auto !important;overflow:visible !important;}
+  .pos-layout{grid-template-columns:1fr !important;height:auto !important;}
+  .pos-cats{flex-wrap:wrap;}
+  /* RECOVERY → stack Service / Booking / Order */
+  #panel-recovery .rf-split,.rf-split{grid-template-columns:1fr !important;height:auto !important;overflow:visible !important;}
+  .rf-split-left,.rf-split-right{height:auto !important;overflow:visible !important;}
+  .rf-recovery-body{grid-template-columns:1fr !important;}
+  .rf-split-title{font-size:24px !important;letter-spacing:1px !important;height:auto !important;}
+  /* SUPPLY POS (already mostly fine) stays stacked */
+  .sup-split,.sup-pos-layout{grid-template-columns:1fr !important;height:auto !important;overflow:visible !important;}
+  /* generic */
+  .form-row-2{grid-template-columns:1fr !important;}
+}
+@media(max-width:600px){
+  .kpi-row{grid-template-columns:repeat(2,1fr) !important;}
+  /* settings config tables: stack each field, drop column headers */
+  #panel-settings .cfg-row.staff-row,
+  #panel-settings .cfg-row.zone-row,
+  .svc-row{grid-template-columns:1fr !important;gap:6px !important;padding:10px 12px !important;border-bottom:1px solid #eee;align-items:stretch !important;}
+  #panel-settings .col-hdrs{display:none !important;}
+}
 </style>
 </head>
 <body>
