@@ -2357,6 +2357,36 @@ function resetSaved(){
   setTimeout(()=>n.classList.remove('on'),2000);
 }
 
+function clearAllData(){
+  if(!confirm('Clear ALL data? This will:\n- Reset roster to defaults\n- Clear all P&L entries\n- Clear all sales imports\n- Clear all applications\n- Clear all room bookings\n\nThis cannot be undone.')) return;
+
+  // Clear localStorage
+  localStorage.removeItem(LS_KEY);
+  localStorage.removeItem('distrik_applications');
+  localStorage.removeItem('distrik_auth');
+
+  // Reset all data structures
+  grid = emptyGrid();
+  populateDefaults();
+  plEntries = [];
+  roomBookings = [];
+  sData = {
+    fresha: Array(7).fill(0), shopify:Array(7).fill(0), moka:Array(7).fill(0),
+    frD:{bk:0,svc:0,prod:0,can:0}, shD:{ord:0,itm:0,top:'—',ret:0}, mkD:{txn:0,itm:0,top:'—',cash:0,nc:0}
+  };
+
+  // Rebuild UI
+  buildGrid();
+  buildBudget();
+  buildPalette();
+  buildTabs();
+
+  // Show all panels reset
+  const n=document.getElementById('notif');
+  n.textContent='All data cleared ✓'; n.classList.add('on');
+  setTimeout(()=>n.classList.remove('on'),3000);
+}
+
 
 
 // ── SETTINGS ──────────────────────────────────────────────────────
@@ -2788,6 +2818,9 @@ function checkPassword(){
 
     <!-- Save button -->
     <button onclick="saveSettings()" style="margin-top:16px;background:var(--c-fuel);color:#fff;border:none;border-radius:2px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:10px 24px;cursor:pointer;">Save All Changes</button>
+
+    <!-- Clear All Data button -->
+    <button onclick="clearAllData()" style="margin-top:16px;margin-left:10px;background:transparent;color:#e05560;border:1px solid #e05560;border-radius:2px;font-family:'DM Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;padding:10px 16px;cursor:pointer;">Clear All Data</button>
 
   </div>
 </div>
