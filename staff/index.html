@@ -1547,23 +1547,22 @@ function loadAll(){
       console.log('Restored from localStorage:', data.savedAt);
     }
 
-    // Then load from Firestore and override with latest cloud data
+    // Then set up real-time listener from Firestore for multi-device sync
     if(typeof db !== 'undefined' && db) {
-      db.collection('dashboardData').doc('main').get()
-        .then(doc => {
-          if(doc.exists) {
-            const data = doc.data();
-            if(data.grid)         Object.assign(grid, data.grid);
-            if(data.plEntries)    plEntries    = data.plEntries;
-            if(data.sData)        Object.assign(sData, data.sData);
-            if(data.roomBookings) roomBookings = data.roomBookings;
-            console.log('Synced from Firestore:', data.savedAt);
-            buildGrid();
-            buildBudget();
-            renderSales();
-          }
-        })
-        .catch(err => console.warn('Firestore load failed:', err));
+      db.collection('dashboardData').doc('main').onSnapshot(doc => {
+        if(doc.exists) {
+          const data = doc.data();
+          if(data.grid)         Object.assign(grid, data.grid);
+          if(data.plEntries)    plEntries    = data.plEntries;
+          if(data.sData)        Object.assign(sData, data.sData);
+          if(data.roomBookings) roomBookings = data.roomBookings;
+          console.log('Synced from Firestore:', data.savedAt);
+          buildGrid();
+          buildBudget();
+          renderSales();
+        }
+      },
+      err => console.warn('Firestore listener error:', err));
     }
 
     return true;
