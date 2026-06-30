@@ -24,7 +24,7 @@ html{background:var(--b);scroll-behavior:smooth}
 body{
   background:var(--b);color:var(--ink);
   font-family:'Inter',-apple-system,system-ui,sans-serif;
-  font-weight:400;overflow-x:clip;cursor:none;
+  font-weight:400;overflow-x:hidden;cursor:none;
   -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
 }
 img{display:block;max-width:100%}
@@ -197,6 +197,8 @@ nav{
   position:relative;height:100vh;min-height:500px;
   z-index:5;
   display:flex;flex-direction:column;justify-content:space-between;
+  width:100%;max-width:100%;
+  box-sizing:border-box;
   padding:clamp(80px,11vh,130px) clamp(20px,3vw,40px) clamp(40px,6vh,80px);
 }
 .hero-top{
@@ -204,6 +206,7 @@ nav{
   font-family:var(--mono);font-weight:400;
   font-size:10px;letter-spacing:.42em;color:rgba(242,242,240,.45);
   text-transform:lowercase;
+  width:100%;max-width:100%;
   opacity:0;
   animation:tagIn .9s ease .4s forwards;
 }
