@@ -1524,6 +1524,31 @@ h1,
 #panel-settings .set-act.dark:hover{background:#FF2D2D !important;color:#fff !important;}
 #panel-settings .set-act.ghost{background:#fff !important;color:#0A0A0A !important;border:1px solid #0A0A0A !important;}
 #panel-settings .set-act.ghost:hover{border-color:#FF2D2D !important;color:#FF2D2D !important;}
+/* danger zone — pre-launch data reset */
+#panel-settings .set-danger-zone{margin-top:34px;padding:18px;border:1px solid #f0c9c9;background:#fff7f7;border-radius:4px;}
+#panel-settings .set-danger-label{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#b71c1c;margin-bottom:10px;}
+#panel-settings .set-act.danger{width:100%;background:#fff !important;color:#b71c1c !important;border:1.5px solid #b71c1c !important;}
+#panel-settings .set-act.danger:hover{background:#b71c1c !important;color:#fff !important;}
+#panel-settings .set-danger-note{font-family:'Space Mono',monospace;font-size:10px;line-height:1.5;color:#8a6d6d;margin-top:10px;}
+/* ════════ MOBILE / SMALL SCREENS ════════ */
+@media(max-width:768px){
+  /* tighten outer padding so content fits a phone */
+  .panel,.apps-wrap{padding-left:14px !important;padding-right:14px !important;}
+  /* full-screen POS / split layouts → stack vertically with natural height */
+  .rf-split,.sup-split{grid-template-columns:1fr !important;height:auto !important;overflow:visible !important;}
+  .pos-layout-inner,.sup-pos-layout{grid-template-columns:1fr !important;height:auto !important;overflow:visible !important;}
+  #panel-fuel .pos-layout-inner{grid-template-columns:1fr !important;}
+  .pos-layout{grid-template-columns:1fr !important;height:auto !important;}
+  /* two-up form rows → one column */
+  .form-row-2{grid-template-columns:1fr !important;}
+}
+@media(max-width:600px){
+  /* settings config tables: stack each field full-width, drop the column headers */
+  #panel-settings .cfg-row.staff-row,
+  #panel-settings .cfg-row.zone-row,
+  .svc-row{grid-template-columns:1fr !important;gap:6px !important;padding:10px 12px !important;border-bottom:1px solid #eee;align-items:stretch !important;}
+  #panel-settings .col-hdrs{display:none !important;}
+}
 /* ════════ APPLICATIONS (recruitment) ════════ */
 #panel-applications{background:#fff !important;}
 .apps-wrap{padding:28px 28px 70px;background:#fff;max-width:1080px;margin:0 auto;}
@@ -9047,6 +9072,38 @@ function injectTestSale(){
 }
 
 
+function clearAllData(){
+  if(!confirm('Clear ALL sales & booking data?\n\nThis resets to zero:\n• Sales totals (Recovery, Fuel, Supply)\n• Café & Supply transactions\n• P&L ledger entries\n• Recovery & room bookings\n\nIt KEEPS your roster, staff, services, menu, tax & API setup.\n\nThis cannot be undone.')) return;
+  if(!confirm('Are you sure? Last chance.\n\nTip: click Cancel and use "↓ Export Backup" first if you have not already.')) return;
+  try{
+    // P&L + weekly sales totals + per-day revenue stores (held in distrik_v1)
+    plEntries.length = 0;
+    roomBookings.length = 0;
+    sData.recovery = Array(7).fill(0);
+    sData.fuel     = Array(7).fill(0);
+    sData.supply   = Array(7).fill(0);
+    Object.keys(recoveryData).forEach(k=>delete recoveryData[k]);
+    Object.keys(fuelData).forEach(k=>delete fuelData[k]);
+    Object.keys(supplyData).forEach(k=>delete supplyData[k]);
+    // Recovery/clinical bookings (held in distrik_rf)
+    if(typeof bookings==='object' && bookings) Object.keys(bookings).forEach(k=>delete bookings[k]);
+    // Supply POS sales (held in distrik_supply)
+    if(typeof SUPPLY_SALES!=='undefined' && Array.isArray(SUPPLY_SALES)) SUPPLY_SALES.length = 0;
+    // Persist the cleared state across all three stores (config is preserved by these save fns)
+    try{ saveAll(); }catch(e){}
+    try{ saveRFToStorage(); }catch(e){}
+    try{ saveSupplyToStorage(); }catch(e){}
+    const n=document.getElementById('notif');
+    if(n){ n.textContent='All sales & booking data cleared ✓'; n.classList.add('on'); }
+    // Reload so every panel re-renders from the now-empty data
+    setTimeout(()=>location.reload(), 700);
+  }catch(err){
+    console.error('clearAllData error:', err);
+    alert('Something went wrong clearing data. Nothing was changed if you see this before the reload.');
+  }
+}
+window.clearAllData = clearAllData;
+
 function exportAllData(){
   const payload={
     _version:'distrik_backup_v1',
@@ -10011,6 +10068,13 @@ window.showRoomCalendar=showRoomCalendar;
       <button onclick="exportAllData()" class="set-act dark">↓ Export Backup</button>
       <button onclick="switchTab('reference')" class="set-act dark">Reporting Structure</button>
       <button onclick="importAllData()" class="set-act ghost">↑ Import Backup</button>
+    </div>
+
+    <!-- Danger zone: wipe seed / fake transactional data for a clean launch -->
+    <div class="set-danger-zone">
+      <div class="set-danger-label">Pre-launch reset</div>
+      <button onclick="clearAllData()" class="set-act danger">⚠ Clear All Sales &amp; Booking Data</button>
+      <div class="set-danger-note">Resets all sales, café, supply, P&amp;L and bookings to zero. Keeps your roster, staff, services, menu, tax &amp; API setup. Cannot be undone — export a backup first.</div>
     </div>
 
   </div>
