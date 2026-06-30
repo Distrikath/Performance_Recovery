@@ -345,6 +345,76 @@ body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;paddi
 .col-hdrs.zone-row{grid-template-columns:1fr 70px 70px 70px 70px;}
 .col-hdr{font-family:'DM Mono',monospace;font-size:7px;color:#2e2e2e;letter-spacing:1px;text-transform:uppercase;}
 
+/* ── APPLICATIONS ── */
+.app-wrap{padding:24px 20px 60px;}
+.app-hdr{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:20px;}
+.app-hdr h1{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:4px;color:#fff;}
+.app-hdr p{font-family:'DM Mono',monospace;font-size:8px;color:#555;letter-spacing:2px;text-transform:uppercase;margin-top:2px;}
+.app-hdr-btns{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.app-filters{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--bd);}
+.af-lbl{font-family:'DM Mono',monospace;font-size:7px;letter-spacing:2px;text-transform:uppercase;color:#2a2a2a;margin-right:4px;}
+.af-btn{font-family:'DM Mono',monospace;font-size:7.5px;letter-spacing:1px;text-transform:uppercase;padding:4px 10px;border-radius:2px;border:1px solid var(--bd);background:transparent;color:#444;cursor:pointer;transition:background .1s,color .1s;}
+.af-btn:hover{background:var(--s2);color:#888;}
+.af-btn.on{background:#1a1a1a;color:#ddd;border-color:#444;}
+.app-card{background:var(--s1);border:1px solid var(--bd);border-radius:3px;padding:14px 16px;margin-bottom:8px;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start;cursor:pointer;transition:border-color .15s;}
+.app-card:hover{border-color:#2d2d2d;}
+.ac-name{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:#bbb;margin-bottom:3px;}
+.ac-pos{font-family:'DM Mono',monospace;font-size:7.5px;letter-spacing:1.5px;text-transform:uppercase;color:#3a3a3a;margin-bottom:8px;}
+.ac-meta{display:flex;gap:10px;align-items:center;}
+.ac-date{font-family:'DM Mono',monospace;font-size:7px;color:#272727;letter-spacing:1px;}
+.ac-stars{display:flex;gap:2px;}
+.ac-star{font-size:11px;color:#252525;}
+.ac-star.on{color:#f59e0b;}
+.app-empty{padding:48px 20px;text-align:center;font-family:'DM Mono',monospace;font-size:8px;color:#1e1e1e;letter-spacing:2px;text-transform:uppercase;line-height:2;}
+/* Status pills */
+.sp-pill{font-family:'DM Mono',monospace;font-size:6.5px;letter-spacing:1.5px;text-transform:uppercase;padding:3px 8px;border-radius:2px;border:1px solid;white-space:nowrap;}
+.sp-new{background:rgba(59,130,246,.07);color:#3b82f6;border-color:rgba(59,130,246,.15);}
+.sp-reviewing{background:rgba(245,158,11,.07);color:#f59e0b;border-color:rgba(245,158,11,.15);}
+.sp-interview{background:rgba(139,92,246,.07);color:#8b5cf6;border-color:rgba(139,92,246,.15);}
+.sp-rejected{background:rgba(239,68,68,.07);color:#ef4444;border-color:rgba(239,68,68,.15);}
+.sp-hired{background:rgba(16,185,129,.07);color:#10b981;border-color:rgba(16,185,129,.15);}
+/* App modal */
+.app-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:400;overflow-y:auto;padding:20px 12px;}
+.app-modal.on{display:flex;align-items:flex-start;justify-content:center;}
+.ami{background:#0d0d0d;border:1px solid #282828;border-radius:3px;width:100%;max-width:680px;padding:24px;margin:auto;}
+.ami-close{background:transparent;border:none;color:#333;font-size:16px;cursor:pointer;padding:2px 6px;transition:color .2s;line-height:1;}
+.ami-close:hover{color:#888;}
+.ami-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--bd);}
+.ami-name{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;color:#fff;}
+.ami-pos{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:#f59e0b;margin-top:2px;}
+.ami-date{font-family:'DM Mono',monospace;font-size:7px;letter-spacing:1px;color:#252525;margin-top:4px;}
+.ami-ctrl{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:18px;}
+.ami-stars{display:flex;gap:4px;cursor:pointer;}
+.ami-star{font-size:18px;color:#1e1e1e;transition:color .1s;cursor:pointer;line-height:1;}
+.ami-star.on{color:#f59e0b;}
+.ami-sel{background:#111;border:1px solid var(--bd);border-radius:2px;color:#aaa;font-family:'DM Mono',monospace;font-size:8px;letter-spacing:1px;padding:5px 10px;cursor:pointer;}
+.ami-q{margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #111;}
+.ami-q:last-child{border-bottom:none;}
+.ami-qlbl{font-family:'DM Mono',monospace;font-size:7px;letter-spacing:2px;text-transform:uppercase;color:#2d2d2d;margin-bottom:6px;}
+.ami-qans{font-family:'DM Sans',sans-serif;font-size:13px;color:#777;line-height:1.75;}
+.ami-notes-lbl{font-family:'DM Mono',monospace;font-size:7.5px;letter-spacing:2px;text-transform:uppercase;color:#2d2d2d;margin-bottom:8px;}
+.ami-notes-ta{width:100%;background:#080808;border:1px solid #1e1e1e;border-radius:2px;color:#777;font-family:'DM Sans',sans-serif;font-size:13px;padding:8px 10px;height:80px;resize:vertical;outline:none;}
+.ami-notes-ta:focus{border-color:#333;}
+.ami-save{background:var(--c-fuel);color:#fff;border:none;border-radius:2px;font-family:'DM Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;padding:7px 16px;cursor:pointer;}
+.ami-save:hover{filter:brightness(1.1);}
+.ami-del{background:transparent;color:#2a2a2a;border:1px solid #1a1a1a;border-radius:2px;font-family:'DM Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;padding:7px 12px;cursor:pointer;margin-left:8px;}
+.ami-del:hover{color:#ef4444;border-color:#ef4444;}
+/* Compare */
+.cmp-grid{display:grid;gap:8px;}
+.cmp-col{background:var(--s1);border:1px solid var(--bd);border-radius:2px;padding:14px;}
+.cmp-nm{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:2px;color:#ccc;margin-bottom:2px;}
+.cmp-ps{font-family:'DM Mono',monospace;font-size:7px;letter-spacing:1.5px;text-transform:uppercase;color:#3a3a3a;margin-bottom:6px;}
+.cmp-sl{display:flex;gap:2px;margin-bottom:8px;}
+.cmp-ss{font-size:11px;color:#222;}
+.cmp-ss.on{color:#f59e0b;}
+.cmp-qlbl{font-family:'DM Mono',monospace;font-size:7px;letter-spacing:1.5px;text-transform:uppercase;color:#2a2a2a;margin:10px 0 4px;}
+.cmp-qtxt{font-family:'DM Sans',sans-serif;font-size:12px;color:#555;line-height:1.65;}
+/* Import modal inner */
+.imp-code-ta{width:100%;background:#080808;border:1px solid #242424;border-radius:2px;color:#aaa;font-family:'DM Mono',monospace;font-size:8px;padding:8px 10px;height:80px;resize:vertical;outline:none;}
+.imp-code-ta:focus{border-color:#444;}
+.imp-code-err{font-family:'DM Mono',monospace;font-size:8px;color:#e05555;letter-spacing:1px;margin-top:8px;display:none;}
+.imp-code-err.on{display:block;}
+
 /* ── PASSWORD GATE ── */
 .gate{position:fixed;inset:0;background:#0a0a0a;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:0;}
 .gate-inner{display:flex;flex-direction:column;align-items:center;gap:16px;padding:40px;max-width:320px;width:100%;}
@@ -378,6 +448,7 @@ body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;paddi
   <button class="tab-btn" id="tab-sales" onclick="switchTab('sales')">Sales</button>
   <button class="tab-btn" id="tab-pl" onclick="switchTab('pl')">P&amp;L</button>
   <button class="tab-btn" id="tab-settings" onclick="switchTab('settings')">⚙ Settings</button>
+  <button class="tab-btn" id="tab-applications" onclick="switchTab('applications')">Applications</button>
   <button class="tab-btn on"  id="tab-roster" onclick="switchTab('roster')">Weekly Roster</button>
 </div>
 <div class="notif" id="notif"></div>
@@ -1324,6 +1395,7 @@ function switchTab(t){
   if(t==='sales'){initSales();}
   if(t==='pl'){renderPL();}
   if(t==='settings'){buildSettingsPanel();}
+  if(t==='applications'){buildAppsPanel();}
 }
 
 // ── SALES DATA ────────────────────────────────────────────────────
@@ -2509,5 +2581,358 @@ function checkPassword(){
 
   </div>
 </div>
+
+<!-- ── APPLICATIONS PANEL ─────────────────────────────── -->
+<div class="panel" id="panel-applications">
+  <div class="app-wrap">
+    <div class="app-hdr">
+      <div>
+        <h1>Applications</h1>
+        <p id="app-count">0 applicants</p>
+      </div>
+      <div class="app-hdr-btns">
+        <button class="imp-btn" onclick="openImportCode()">⊕ Import Code</button>
+        <button class="imp-btn" onclick="openCompareModal()">⇌ Compare</button>
+      </div>
+    </div>
+
+    <div class="app-filters" id="app-filters">
+      <span class="af-lbl">Filter:</span>
+      <button class="af-btn on" onclick="setAppFilter('',this)">All</button>
+      <button class="af-btn" onclick="setAppFilter('Second in Charge',this)">2IC</button>
+      <button class="af-btn" onclick="setAppFilter('Reception',this)">Reception</button>
+      <button class="af-btn" onclick="setAppFilter('Fuel Bar / Reception',this)">Fuel Bar</button>
+      <button class="af-btn" onclick="setAppFilter('Supply',this)">Supply</button>
+      <button class="af-btn" onclick="setAppFilter('All Rounder',this)">All Rounder</button>
+    </div>
+
+    <div id="app-list"></div>
+  </div>
+</div>
+
+<!-- ── APPLICATION DETAIL MODAL ── -->
+<div class="app-modal" id="appDetailModal">
+  <div class="ami">
+    <div class="ami-hdr">
+      <div>
+        <div class="ami-name" id="ami-name">—</div>
+        <div class="ami-pos"  id="ami-pos">—</div>
+        <div class="ami-date" id="ami-date">—</div>
+      </div>
+      <button class="ami-close" onclick="closeAppDetail()">✕</button>
+    </div>
+    <div class="ami-ctrl">
+      <div class="ami-stars" id="ami-stars"
+           onmouseleave="restoreStars()">
+        <span class="ami-star" data-v="1" onmouseover="previewStars(1)" onclick="setStars(1)">★</span>
+        <span class="ami-star" data-v="2" onmouseover="previewStars(2)" onclick="setStars(2)">★</span>
+        <span class="ami-star" data-v="3" onmouseover="previewStars(3)" onclick="setStars(3)">★</span>
+        <span class="ami-star" data-v="4" onmouseover="previewStars(4)" onclick="setStars(4)">★</span>
+        <span class="ami-star" data-v="5" onmouseover="previewStars(5)" onclick="setStars(5)">★</span>
+      </div>
+      <select class="ami-sel" id="ami-status" onchange="saveAppStatus()">
+        <option value="new">New</option>
+        <option value="reviewing">Reviewing</option>
+        <option value="interview">Interview</option>
+        <option value="rejected">Rejected</option>
+        <option value="hired">Hired</option>
+      </select>
+    </div>
+    <div id="ami-answers"></div>
+    <div style="border-top:1px solid var(--bd);padding-top:16px;">
+      <div class="ami-notes-lbl">Manager Notes</div>
+      <textarea class="ami-notes-ta" id="ami-notes" placeholder="Add internal notes..."></textarea>
+      <div style="margin-top:10px;">
+        <button class="ami-save" onclick="saveAppNotes()">Save Notes</button>
+        <button class="ami-del"  onclick="deleteApp()">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── IMPORT CODE MODAL ── -->
+<div class="app-modal" id="importModal">
+  <div class="ami" style="max-width:480px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;color:#fff;">Import Application</div>
+      <button class="ami-close" onclick="closeImportModal()">✕</button>
+    </div>
+    <div style="font-family:'DM Mono',monospace;font-size:7.5px;color:#444;letter-spacing:1px;line-height:1.9;margin-bottom:14px;">
+      When an application email arrives, copy the value of<br>
+      <span style="color:#666;">DASHBOARD_IMPORT_CODE</span> and paste it below.
+    </div>
+    <textarea class="imp-code-ta" id="import-input" placeholder="Paste code here..."></textarea>
+    <div class="imp-code-err" id="import-err"></div>
+    <div style="display:flex;gap:8px;margin-top:14px;">
+      <button class="imp-ok" onclick="doImport()">Import</button>
+      <button class="imp-close" onclick="closeImportModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── COMPARE MODAL ── -->
+<div class="app-modal" id="compareModal">
+  <div class="ami" style="max-width:920px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;color:#fff;">Compare Applicants</div>
+      <button class="ami-close" onclick="closeCompareModal()">✕</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap;">
+      <div style="font-family:'DM Mono',monospace;font-size:7.5px;color:#444;letter-spacing:1px;">Position:</div>
+      <select id="cmp-pos" onchange="renderCompare()" style="background:#111;border:1px solid var(--bd);border-radius:2px;color:#aaa;font-family:'DM Mono',monospace;font-size:8px;padding:5px 10px;">
+        <option value="">All Positions</option>
+        <option value="Second in Charge">Second in Charge</option>
+        <option value="Reception">Reception</option>
+        <option value="Fuel Bar / Reception">Fuel Bar / Reception</option>
+        <option value="Supply">Supply</option>
+        <option value="All Rounder">All Rounder</option>
+      </select>
+      <div style="font-family:'DM Mono',monospace;font-size:7px;color:#2a2a2a;letter-spacing:1px;">Top 3 shown · sorted by rating</div>
+    </div>
+    <div id="cmp-grid"></div>
+  </div>
+</div>
+
+<script>
+// ── APPLICATIONS ──────────────────────────────────────────────────────────────
+
+function showNotif(msg) {
+  const n = document.getElementById('notif');
+  if (!n) return;
+  n.textContent = msg;
+  n.classList.add('on');
+  clearTimeout(n._t);
+  n._t = setTimeout(() => n.classList.remove('on'), 2800);
+}
+
+let currentAppFilter = '';
+let currentAppId     = null;
+let currentAppRating = 0;
+
+const STATUS_LABELS = { new:'New', reviewing:'Reviewing', interview:'Interview', rejected:'Rejected', hired:'Hired' };
+const STATUS_CSS    = { new:'sp-new', reviewing:'sp-reviewing', interview:'sp-interview', rejected:'sp-rejected', hired:'sp-hired' };
+const APP_QUESTIONS = [
+  { key:'q1', lbl:'Position & Why' },
+  { key:'q2', lbl:'Why a good fit' },
+  { key:'q3', lbl:'Work Experience' },
+  { key:'q4', lbl:'Interest in DISTRIK' },
+  { key:'q5', lbl:'Career Goals' },
+  { key:'q6', lbl:'Availability' },
+  { key:'q7', lbl:'Anything Else' },
+];
+
+function getApps() {
+  try { return JSON.parse(localStorage.getItem('distrik_applications') || '[]'); } catch(e) { return []; }
+}
+function saveApps(arr) {
+  try { localStorage.setItem('distrik_applications', JSON.stringify(arr)); } catch(e) {}
+}
+function escH(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function buildAppsPanel() {
+  const all      = getApps();
+  const filtered = currentAppFilter ? all.filter(a => a.position === currentAppFilter) : all;
+  filtered.sort((a,b) => new Date(b.appliedAt) - new Date(a.appliedAt));
+
+  document.getElementById('app-count').textContent =
+    all.length + ' applicant' + (all.length !== 1 ? 's' : '');
+
+  const list = document.getElementById('app-list');
+  if (!filtered.length) {
+    list.innerHTML = '<div class="app-empty">No applications yet.<br>Import an application code from an email,<br>or share distrikath.com/apply.html with candidates.</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(app => {
+    const date  = new Date(app.appliedAt).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+    const stars = [1,2,3,4,5].map(i=>`<span class="ac-star${i<=(app.rating||0)?' on':''}">★</span>`).join('');
+    const stat  = app.status || 'new';
+    return `<div class="app-card" onclick="openAppDetail('${escH(app.id)}')">
+      <div>
+        <div class="ac-name">${escH(app.name)}</div>
+        <div class="ac-pos">${escH(app.position)}</div>
+        <div class="ac-meta">
+          <div class="ac-stars">${stars}</div>
+          <div class="ac-date">${date}</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+        <span class="sp-pill ${STATUS_CSS[stat]||'sp-new'}">${STATUS_LABELS[stat]||'New'}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setAppFilter(pos, btn) {
+  currentAppFilter = pos;
+  document.querySelectorAll('.af-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  buildAppsPanel();
+}
+
+function openAppDetail(id) {
+  const app = getApps().find(a => a.id === id);
+  if (!app) return;
+  currentAppId     = id;
+  currentAppRating = app.rating || 0;
+
+  document.getElementById('ami-name').textContent   = app.name;
+  document.getElementById('ami-pos').textContent    = app.position;
+  document.getElementById('ami-date').textContent   = 'Applied ' + new Date(app.appliedAt)
+    .toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+  document.getElementById('ami-status').value       = app.status || 'new';
+  document.getElementById('ami-notes').value        = app.notes  || '';
+
+  updateStarDisplay(currentAppRating);
+
+  const ans = APP_QUESTIONS
+    .filter(q => app.answers && app.answers[q.key])
+    .map(q => `<div class="ami-q">
+      <div class="ami-qlbl">${q.lbl}</div>
+      <div class="ami-qans">${escH(app.answers[q.key]).replace(/\n/g,'<br>')}</div>
+    </div>`).join('');
+  document.getElementById('ami-answers').innerHTML = ans;
+
+  document.getElementById('appDetailModal').classList.add('on');
+}
+
+function closeAppDetail() {
+  document.getElementById('appDetailModal').classList.remove('on');
+  currentAppId = null;
+}
+
+function updateStarDisplay(n) {
+  document.querySelectorAll('.ami-star').forEach((s,i) => {
+    s.classList.toggle('on', i < n);
+    s.style.color = '';
+  });
+}
+
+function previewStars(n) {
+  document.querySelectorAll('.ami-star').forEach((s,i) => {
+    s.style.color = i < n ? '#f59e0b' : '#1e1e1e';
+  });
+}
+
+function restoreStars() {
+  updateStarDisplay(currentAppRating);
+}
+
+function setStars(n) {
+  currentAppRating = n;
+  const apps = getApps();
+  const app  = apps.find(a => a.id === currentAppId);
+  if (!app) return;
+  app.rating = n;
+  saveApps(apps);
+  updateStarDisplay(n);
+  buildAppsPanel();
+  showNotif('Rating saved');
+}
+
+function saveAppStatus() {
+  const apps = getApps();
+  const app  = apps.find(a => a.id === currentAppId);
+  if (!app) return;
+  app.status = document.getElementById('ami-status').value;
+  saveApps(apps);
+  buildAppsPanel();
+  showNotif('Status updated');
+}
+
+function saveAppNotes() {
+  const apps = getApps();
+  const app  = apps.find(a => a.id === currentAppId);
+  if (!app) return;
+  app.notes = document.getElementById('ami-notes').value;
+  saveApps(apps);
+  showNotif('Notes saved');
+}
+
+function deleteApp() {
+  if (!confirm('Delete this application? This cannot be undone.')) return;
+  saveApps(getApps().filter(a => a.id !== currentAppId));
+  closeAppDetail();
+  buildAppsPanel();
+  showNotif('Application deleted');
+}
+
+// ── Import code ──
+function openImportCode() {
+  document.getElementById('import-input').value = '';
+  document.getElementById('import-err').classList.remove('on');
+  document.getElementById('import-err').textContent = '';
+  document.getElementById('importModal').classList.add('on');
+}
+function closeImportModal() {
+  document.getElementById('importModal').classList.remove('on');
+}
+function doImport() {
+  const raw    = document.getElementById('import-input').value.trim();
+  const errEl  = document.getElementById('import-err');
+  try {
+    const app = JSON.parse(decodeURIComponent(escape(atob(raw))));
+    if (!app.id || !app.name || !app.email || !app.position || !app.answers) throw new Error('bad');
+    const apps = getApps();
+    if (apps.find(a => a.id === app.id)) {
+      errEl.textContent = 'This application has already been imported.';
+      errEl.classList.add('on');
+      return;
+    }
+    app.status = app.status || 'new';
+    app.rating = app.rating || 0;
+    app.notes  = app.notes  || '';
+    apps.push(app);
+    saveApps(apps);
+    closeImportModal();
+    buildAppsPanel();
+    showNotif(app.name + "’s application imported");
+  } catch(e) {
+    errEl.textContent = 'Invalid code — copy the full DASHBOARD_IMPORT_CODE value from the email.';
+    errEl.classList.add('on');
+  }
+}
+
+// ── Compare ──
+function openCompareModal() {
+  document.getElementById('compareModal').classList.add('on');
+  renderCompare();
+}
+function closeCompareModal() {
+  document.getElementById('compareModal').classList.remove('on');
+}
+function renderCompare() {
+  const pos  = document.getElementById('cmp-pos').value;
+  let   apps = getApps();
+  if (pos) apps = apps.filter(a => a.position === pos);
+  apps.sort((a,b) => (b.rating||0) - (a.rating||0));
+  const show  = apps.slice(0,3);
+  const grid  = document.getElementById('cmp-grid');
+  if (!show.length) {
+    grid.innerHTML = '<div style="font-family:\'DM Mono\',monospace;font-size:8px;color:#1e1e1e;letter-spacing:2px;text-align:center;padding:32px;">No applicants for this position.</div>';
+    return;
+  }
+  const cols = show.length;
+  const qkeys= [
+    {key:'q1',lbl:'Position & Why'},{key:'q2',lbl:'Why a good fit'},
+    {key:'q3',lbl:'Experience'},{key:'q4',lbl:'Interest in DISTRIK'},
+    {key:'q5',lbl:'Career Goals'},{key:'q6',lbl:'Availability'},
+  ];
+  grid.innerHTML = `<div class="cmp-grid" style="grid-template-columns:repeat(${cols},1fr);">
+    ${show.map(app=>`<div class="cmp-col">
+      <div class="cmp-nm">${escH(app.name)}</div>
+      <div class="cmp-ps">${escH(app.position)}</div>
+      <div class="cmp-sl">${[1,2,3,4,5].map(i=>`<span class="cmp-ss${i<=(app.rating||0)?' on':''}">★</span>`).join('')}</div>
+      <span class="sp-pill ${STATUS_CSS[app.status||'new']||'sp-new'}">${STATUS_LABELS[app.status||'new']}</span>
+      ${qkeys.filter(q=>app.answers&&app.answers[q.key]).map(q=>`
+        <div class="cmp-qlbl">${q.lbl}</div>
+        <div class="cmp-qtxt">${escH(app.answers[q.key]).replace(/\n/g,'<br>').substring(0,320)}${(app.answers[q.key]||'').length>320?'…':''}</div>
+      `).join('')}
+    </div>`).join('')}
+  </div>${apps.length>3?`<div style="font-family:'DM Mono',monospace;font-size:7px;color:#2a2a2a;letter-spacing:1px;text-align:center;margin-top:12px;">+${apps.length-3} more — select a specific position to narrow down</div>`:''}`;
+}
+</script>
 </body>
 </html>

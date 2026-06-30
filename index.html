@@ -285,6 +285,16 @@ footer{
 }
 .staff-modal-close:hover{color:rgba(242,242,240,.5)}
 
+/* ── APPLY LINK ── */
+.apply-link{
+  display:block;margin-top:20px;
+  font-family:var(--mono);font-size:8px;letter-spacing:.28em;
+  text-transform:uppercase;color:rgba(242,242,240,.18);
+  text-decoration:none;text-align:center;
+  transition:color .3s;
+}
+.apply-link:hover{color:rgba(242,242,240,.42);}
+
 /* ── STAFF LINKS (shown after auth) ── */
 .staff-links{display:none;margin-top:24px;flex-direction:column;gap:10px}
 .staff-links.visible{display:flex}
@@ -352,6 +362,7 @@ footer{
     </form>
 
     <div class="cs-success" id="regSuccess">— registration received. see you on 01.08 —</div>
+    <a class="apply-link" href="apply.html">work with us →</a>
   </div>
 </main>
 

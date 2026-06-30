@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Join the Team — Distrik.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --b:#0A0A0A;--ink:#F2F2F0;--ink-d:#787878;--r:#FF2D2D;
+  --mono:'Space Mono',ui-monospace,monospace;
+}
+html{overflow-x:clip}
+body{background:var(--b);color:var(--ink);font-family:'Inter',-apple-system,system-ui,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;}
+
+.grain{position:fixed;inset:-50%;width:200%;height:200%;z-index:1;pointer-events:none;opacity:.04;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:220px;mix-blend-mode:overlay;animation:grainShift 8s steps(8) infinite;}
+@keyframes grainShift{0%{transform:translate(0,0)}10%{transform:translate(-2%,-1%)}20%{transform:translate(1%,2%)}30%{transform:translate(-1%,1%)}40%{transform:translate(2%,-2%)}50%{transform:translate(-2%,2%)}60%{transform:translate(1%,-1%)}70%{transform:translate(-1%,2%)}80%{transform:translate(2%,1%)}100%{transform:translate(0,0)}}
+
+.wrap{position:relative;z-index:10;max-width:580px;margin:0 auto;padding:48px 24px 100px;}
+
+.back{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:8px;letter-spacing:.28em;text-transform:uppercase;color:rgba(242,242,240,.18);text-decoration:none;margin-bottom:40px;transition:color .3s;}
+.back:hover{color:rgba(242,242,240,.45);}
+
+.logo{font-family:'Inter',sans-serif;font-size:clamp(44px,8vw,72px);font-weight:900;letter-spacing:-.04em;line-height:1;margin-bottom:6px;}
+.logo span{color:var(--r)}
+.tagline{font-family:var(--mono);font-size:clamp(8px,1vw,9px);letter-spacing:.4em;color:var(--ink-d);text-transform:uppercase;margin-bottom:52px;}
+
+/* Mode tabs */
+.mtabs{display:flex;align-items:center;gap:0;margin-bottom:44px;border-bottom:1px solid rgba(242,242,240,.07);}
+.mt{font-family:var(--mono);font-size:7.5px;letter-spacing:.28em;text-transform:uppercase;padding:12px 0;margin-right:28px;color:#2d2d2d;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .3s;}
+.mt.on{color:var(--ink);border-bottom-color:var(--r);}
+
+/* Step indicator */
+.steps{display:flex;align-items:center;gap:0;margin-bottom:44px;}
+.si{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:7.5px;letter-spacing:.26em;text-transform:uppercase;color:#252525;transition:color .3s;}
+.si.active{color:var(--ink);}
+.si.done{color:#444;}
+.si-num{width:20px;height:20px;border-radius:50%;border:1px solid #1e1e1e;display:flex;align-items:center;justify-content:center;font-size:8px;flex-shrink:0;transition:border-color .3s,color .3s;}
+.si.active .si-num{border-color:var(--r);color:var(--r);}
+.si.done .si-num{border-color:#2a2a2a;background:#131313;color:#555;font-size:10px;}
+.si-sep{flex:1;max-width:36px;height:1px;background:#181818;margin:0 4px;}
+
+/* Section label */
+.sec{font-family:var(--mono);font-size:8px;letter-spacing:.44em;color:var(--ink-d);text-transform:uppercase;margin-bottom:36px;}
+
+/* Fields */
+.f{margin-bottom:30px;}
+.f label,.f .lbl{font-family:var(--mono);font-size:7.5px;letter-spacing:.28em;color:#383838;text-transform:uppercase;display:block;margin-bottom:12px;}
+.f input,.f textarea{width:100%;background:transparent;border:none;border-bottom:1px solid rgba(242,242,240,.1);padding:12px 0;color:var(--ink);font-family:'Inter',sans-serif;font-size:15px;outline:none;transition:border-color .3s;-webkit-appearance:none;border-radius:0;}
+.f input:focus,.f textarea:focus{border-bottom-color:rgba(242,242,240,.32);}
+.f input::placeholder,.f textarea::placeholder{color:rgba(242,242,240,.15);}
+.f textarea{resize:vertical;min-height:110px;line-height:1.65;}
+.f-hint{font-family:var(--mono);font-size:7px;letter-spacing:.1em;color:#2b2b2b;margin-top:8px;line-height:1.9;}
+
+/* Password strength */
+.pwd-bars{display:flex;gap:3px;margin-top:10px;}
+.pb{flex:1;height:2px;background:#181818;border-radius:1px;transition:background .3s;}
+
+/* Radio group */
+.rg{display:flex;flex-direction:column;gap:0;margin-bottom:20px;}
+.ro{display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid rgba(242,242,240,.05);cursor:pointer;}
+.ro:first-child{border-top:1px solid rgba(242,242,240,.05);}
+.ro input[type=radio]{display:none;}
+.rm{width:16px;height:16px;border:1px solid #272727;border-radius:50%;flex-shrink:0;margin-top:3px;display:flex;align-items:center;justify-content:center;transition:border-color .2s;position:relative;}
+.rm::after{content:'';width:6px;height:6px;border-radius:50%;background:var(--r);opacity:0;transition:opacity .2s;}
+.ro.sel .rm{border-color:var(--r);}
+.ro.sel .rm::after{opacity:1;}
+.ro-t{font-size:15px;color:var(--ink);margin-bottom:2px;}
+.ro-s{font-family:var(--mono);font-size:7px;color:#333;letter-spacing:.1em;margin-top:2px;}
+
+/* Error */
+.err{font-family:var(--mono);font-size:8px;color:var(--r);letter-spacing:.1em;margin-top:12px;display:none;}
+.err.on{display:block;}
+
+/* Buttons */
+.btn-row{display:flex;gap:10px;margin-top:48px;}
+.btn{flex:1;background:transparent;border:1px solid rgba(242,242,240,.15);color:var(--ink);font-family:var(--mono);font-size:8px;letter-spacing:.35em;text-transform:uppercase;padding:15px;cursor:pointer;transition:border-color .3s,color .3s;}
+.btn:hover{border-color:var(--r);color:var(--r);}
+.btn-ghost{background:transparent;border:1px solid rgba(242,242,240,.06);color:#383838;font-family:var(--mono);font-size:8px;letter-spacing:.35em;text-transform:uppercase;padding:15px 18px;cursor:pointer;transition:color .3s;}
+.btn-ghost:hover{color:#888;}
+
+/* Step panels */
+.sp{display:none;}
+.sp.on{display:block;}
+
+/* Confirmation */
+.conf{text-align:center;padding:40px 0;}
+.conf-check{font-size:36px;color:var(--r);margin-bottom:20px;}
+.conf-title{font-family:'Inter',sans-serif;font-size:clamp(32px,7vw,58px);font-weight:900;letter-spacing:-.04em;line-height:1;margin-bottom:16px;}
+.conf-sub{font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:var(--ink-d);line-height:2.1;margin-bottom:48px;}
+.conf-home{display:inline-block;font-family:var(--mono);font-size:8px;letter-spacing:.28em;text-transform:uppercase;color:rgba(242,242,240,.18);text-decoration:none;padding:8px 0;transition:color .3s;}
+.conf-home:hover{color:rgba(242,242,240,.5);}
+
+/* Login status */
+.login-status{display:none;margin-top:20px;padding:20px;background:#0d0d0d;border:1px solid #1c1c1c;border-radius:2px;}
+.login-status.on{display:block;}
+.ls-badge{display:inline-block;font-family:var(--mono);font-size:6.5px;letter-spacing:.2em;text-transform:uppercase;padding:3px 8px;border-radius:2px;background:rgba(16,185,129,.08);color:#10b981;border:1px solid rgba(16,185,129,.15);margin-bottom:14px;}
+.ls-msg{font-family:var(--mono);font-size:8px;letter-spacing:.1em;color:var(--ink-d);line-height:2;}
+.ls-meta{font-family:var(--mono);font-size:7px;letter-spacing:.1em;color:#2a2a2a;margin-top:10px;}
+
+@media(max-width:480px){
+  .wrap{padding:36px 20px 80px;}
+  .tagline{letter-spacing:.22em;}
+  .steps{flex-wrap:wrap;gap:8px;}
+  .si-sep{display:none;}
+}
+</style>
+</head>
+<body>
+<div class="grain"></div>
+<div class="wrap">
+
+  <a class="back" href="/">← distrikath.com</a>
+
+  <div class="logo">Distrik<span>.</span></div>
+  <div class="tagline">Join the Team &nbsp;·&nbsp; Canggu, Bali</div>
+
+  <!-- Mode tabs -->
+  <div class="mtabs">
+    <div class="mt on" id="tab-reg" onclick="setMode('register')">Apply Now</div>
+    <div class="mt" id="tab-log" onclick="setMode('login')">Already Applied?</div>
+  </div>
+
+  <!-- ── REGISTER FLOW ───────────────────────── -->
+  <div id="modeRegister">
+
+    <!-- Steps -->
+    <div class="steps">
+      <div class="si active" id="si1"><div class="si-num">1</div><span>Your Details</span></div>
+      <div class="si-sep"></div>
+      <div class="si" id="si2"><div class="si-num">2</div><span>Application</span></div>
+      <div class="si-sep"></div>
+      <div class="si" id="si3"><div class="si-num">3</div></div>
+    </div>
+
+    <!-- Step 1 -->
+    <div class="sp on" id="step1">
+      <div class="sec">[ your details ]</div>
+
+      <div class="f">
+        <label>Full Name</label>
+        <input type="text" id="f-name" placeholder="your full name" autocomplete="name">
+      </div>
+      <div class="f">
+        <label>Email Address</label>
+        <input type="email" id="f-email" placeholder="your email" autocomplete="email">
+      </div>
+      <div class="f">
+        <label>Create a Password</label>
+        <input type="password" id="f-pwd" placeholder="min. 6 characters" oninput="checkPwd()">
+        <div class="pwd-bars">
+          <div class="pb" id="pb1"></div><div class="pb" id="pb2"></div>
+          <div class="pb" id="pb3"></div><div class="pb" id="pb4"></div>
+        </div>
+        <div class="f-hint">Used to check your application status if you return to this page.</div>
+      </div>
+
+      <div class="err" id="e1"></div>
+      <div class="btn-row">
+        <button class="btn" onclick="goStep2()">Next — Application →</button>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="sp" id="step2">
+      <div class="sec">[ your application ]</div>
+
+      <!-- Q1: Position -->
+      <div class="f">
+        <div class="lbl">1. Which position suits you best?</div>
+        <div class="rg">
+          <label class="ro" onclick="selPos(this,'Second in Charge')">
+            <input type="radio" name="pos">
+            <div class="rm"></div>
+            <div><div class="ro-t">Second in Charge</div><div class="ro-s">Operations management</div></div>
+          </label>
+          <label class="ro" onclick="selPos(this,'Reception')">
+            <input type="radio" name="pos">
+            <div class="rm"></div>
+            <div><div class="ro-t">Reception</div><div class="ro-s">Customer service</div></div>
+          </label>
+          <label class="ro" onclick="selPos(this,'Fuel Bar / Reception')">
+            <input type="radio" name="pos">
+            <div class="rm"></div>
+            <div><div class="ro-t">Fuel Bar / Reception</div><div class="ro-s">Barista experience required</div></div>
+          </label>
+          <label class="ro" onclick="selPos(this,'Supply')">
+            <input type="radio" name="pos">
+            <div class="rm"></div>
+            <div><div class="ro-t">Supply</div><div class="ro-s">Retail</div></div>
+          </label>
+          <label class="ro" onclick="selPos(this,'All Rounder')">
+            <input type="radio" name="pos">
+            <div class="rm"></div>
+            <div><div class="ro-t">All Rounder</div><div class="ro-s">Happy working across all areas</div></div>
+          </label>
+        </div>
+        <div class="f-hint" style="margin-top:0;margin-bottom:10px;">And why does this position suit you?</div>
+        <textarea id="f-q1" placeholder="Tell us what draws you to this role..."></textarea>
+      </div>
+
+      <!-- Q2 -->
+      <div class="f">
+        <div class="lbl">2. Why are you a good fit?</div>
+        <div class="f-hint">What experience, skills or personal qualities make you suitable?</div>
+        <textarea id="f-q2" placeholder="Tell us about your strengths and what you bring..."></textarea>
+      </div>
+
+      <!-- Q3 -->
+      <div class="f">
+        <div class="lbl">3. Previous Work Experience</div>
+        <div class="f-hint">What were your main responsibilities, and what did you enjoy most about those roles?</div>
+        <textarea id="f-q3" placeholder="Walk us through your work history..."></textarea>
+      </div>
+
+      <!-- Q4 -->
+      <div class="f">
+        <div class="lbl">4. What Interests You About Working at Distrik?</div>
+        <div class="f-hint">What excites you about our concept, and why do you want to be part of the team?</div>
+        <textarea id="f-q4" placeholder="What draws you to Distrik..."></textarea>
+      </div>
+
+      <!-- Q5 -->
+      <div class="f">
+        <div class="lbl">5. Long-Term Career Goals</div>
+        <div class="f-hint">What are your long-term career goals, and how do you see this role helping you achieve them?</div>
+        <textarea id="f-q5" placeholder="Share your ambitions and where you see yourself..."></textarea>
+      </div>
+
+      <!-- Q6 -->
+      <div class="f">
+        <div class="lbl">6. Availability</div>
+        <div class="f-hint">Are you available to work flexible hours, including weekends and public holidays? When could you start, and is there anything that affects your availability?</div>
+        <textarea id="f-q6" placeholder="Tell us about your availability and start date..."></textarea>
+      </div>
+
+      <!-- Q7 -->
+      <div class="f">
+        <div class="lbl">Anything Else? <span style="color:#242424;font-size:7px;">Optional</span></div>
+        <div class="f-hint">Is there anything else you'd like us to know, or do you have any questions for us?</div>
+        <textarea id="f-q7" placeholder="Optional — anything you'd like to add..."></textarea>
+      </div>
+
+      <div class="err" id="e2"></div>
+      <div class="btn-row">
+        <button class="btn-ghost" onclick="goStep(1)">← Back</button>
+        <button class="btn" id="submit-btn" onclick="submitApp()">Submit Application →</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Confirmation -->
+    <div class="sp" id="step3">
+      <div class="conf">
+        <div class="conf-check">✓</div>
+        <div class="conf-title">Application<br>Received.</div>
+        <div class="conf-sub" id="conf-msg">Thank you. We'll be in touch soon.</div>
+        <a class="conf-home" href="/">← return to distrikath.com</a>
+      </div>
+    </div>
+
+  </div><!-- /modeRegister -->
+
+  <!-- ── LOGIN FLOW ───────────────────────────── -->
+  <div id="modeLogin" style="display:none;">
+    <div class="sec">[ check your status ]</div>
+
+    <div class="f">
+      <label>Email Address</label>
+      <input type="email" id="l-email" placeholder="your email" autocomplete="email">
+    </div>
+    <div class="f">
+      <label>Password</label>
+      <input type="password" id="l-pwd" placeholder="your password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+
+    <div class="err" id="l-err"></div>
+
+    <div class="login-status" id="loginStatus">
+      <div class="ls-badge">Application Received</div>
+      <div class="ls-msg">
+        <span id="ls-name">Your application</span> is currently under review.<br>
+        We'll reach out at <span id="ls-email">your email</span> if we'd like to move forward.
+      </div>
+      <div class="ls-meta">Applied: <span id="ls-date">—</span></div>
+    </div>
+
+    <div class="btn-row" style="margin-top:32px;">
+      <button class="btn" onclick="doLogin()">Check Status →</button>
+    </div>
+  </div>
+
+</div><!-- /wrap -->
+
+<script>
+let selPosition = '';
+
+/* ── Mode switch ── */
+function setMode(m) {
+  document.getElementById('tab-reg').classList.toggle('on', m === 'register');
+  document.getElementById('tab-log').classList.toggle('on', m === 'login');
+  document.getElementById('modeRegister').style.display = m === 'register' ? '' : 'none';
+  document.getElementById('modeLogin').style.display    = m === 'login'    ? '' : 'none';
+  document.getElementById('loginStatus').classList.remove('on');
+  document.getElementById('l-err').classList.remove('on');
+}
+
+/* ── Position radio ── */
+function selPos(el, pos) {
+  document.querySelectorAll('.ro').forEach(r => r.classList.remove('sel'));
+  el.classList.add('sel');
+  selPosition = pos;
+}
+
+/* ── Password strength ── */
+function checkPwd() {
+  const v = document.getElementById('f-pwd').value;
+  let s = 0;
+  if (v.length >= 6) s++;
+  if (v.length >= 10) s++;
+  if (/[A-Z0-9]/.test(v)) s++;
+  if (/[^A-Za-z0-9]/.test(v) && v.length >= 8) s++;
+  const cols = ['#e05555','#e8621a','#f59e0b','#10b981'];
+  [1,2,3,4].forEach(i => {
+    document.getElementById('pb'+i).style.background = i <= s ? cols[s-1] : '#181818';
+  });
+}
+
+/* ── Step navigation ── */
+function goStep(n) {
+  document.querySelectorAll('.sp').forEach(p => p.classList.remove('on'));
+  document.getElementById('step'+n).classList.add('on');
+  [1,2,3].forEach(i => {
+    const el = document.getElementById('si'+i);
+    if (i < n)      { el.className='si done';   el.querySelector('.si-num').textContent='✓'; }
+    else if (i===n) { el.className='si active'; el.querySelector('.si-num').textContent=i; }
+    else            { el.className='si';        el.querySelector('.si-num').textContent=i; }
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.classList.add('on');
+}
+
+function goStep2() {
+  const name  = document.getElementById('f-name').value.trim();
+  const email = document.getElementById('f-email').value.trim();
+  const pwd   = document.getElementById('f-pwd').value;
+  if (!name)                                              { showErr('e1','Please enter your name.'); return; }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr('e1','Please enter a valid email address.'); return; }
+  if (pwd.length < 6)                                     { showErr('e1','Password must be at least 6 characters.'); return; }
+  document.getElementById('e1').classList.remove('on');
+  goStep(2);
+}
+
+/* ── Submit ── */
+function submitApp() {
+  const fields = ['f-q1','f-q2','f-q3','f-q4','f-q5','f-q6'];
+  const vals   = fields.map(id => document.getElementById(id).value.trim());
+  const [q1,q2,q3,q4,q5,q6] = vals;
+
+  if (!selPosition)          { showErr('e2','Please select a position.'); return; }
+  if (!q1)                   { showErr('e2','Please answer question 1.'); return; }
+  if (!q2)                   { showErr('e2','Please answer question 2.'); return; }
+  if (!q3)                   { showErr('e2','Please answer question 3.'); return; }
+  if (!q4)                   { showErr('e2','Please answer question 4.'); return; }
+  if (!q5)                   { showErr('e2','Please answer question 5.'); return; }
+  if (!q6)                   { showErr('e2','Please answer question 6.'); return; }
+  document.getElementById('e2').classList.remove('on');
+
+  const name  = document.getElementById('f-name').value.trim();
+  const email = document.getElementById('f-email').value.trim();
+  const pwd   = document.getElementById('f-pwd').value;
+  const q7    = document.getElementById('f-q7').value.trim();
+  const now   = new Date();
+
+  const app = {
+    id: now.getTime().toString(),
+    name, email,
+    appliedAt: now.toISOString(),
+    position: selPosition,
+    answers: { q1, q2, q3, q4, q5, q6, q7 },
+    status: 'new',
+    rating: 0,
+    notes: ''
+  };
+
+  // Store for staff dashboard (same device) and for applicant status check
+  try {
+    const apps = JSON.parse(localStorage.getItem('distrik_applications') || '[]');
+    apps.push(app);
+    localStorage.setItem('distrik_applications', JSON.stringify(apps));
+  } catch(e) {}
+  try {
+    const accts = JSON.parse(localStorage.getItem('distrik_applicants') || '[]');
+    accts.push({ email, pwd: btoa(unescape(encodeURIComponent(pwd))), id: app.id, appliedAt: app.appliedAt, name });
+    localStorage.setItem('distrik_applicants', JSON.stringify(accts));
+  } catch(e) {}
+
+  // Build import code for the staff dashboard
+  const code = btoa(unescape(encodeURIComponent(JSON.stringify(app))));
+
+  // Disable button to prevent double-submit
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+
+  // Send to Formspree
+  fetch('https://formspree.io/f/mzdqbgno', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify({
+      _subject: 'Job Application — ' + selPosition + ' — ' + name,
+      '01_Name':      name,
+      '02_Email':     email,
+      '03_Position':  selPosition,
+      '04_Applied':   now.toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' }),
+      'Q1_Position_Why':   q1,
+      'Q2_Good_Fit':       q2,
+      'Q3_Experience':     q3,
+      'Q4_Interest':       q4,
+      'Q5_Goals':          q5,
+      'Q6_Availability':   q6,
+      'Q7_Anything_Else':  q7 || 'N/A',
+      'DASHBOARD_IMPORT_CODE': code
+    })
+  }).catch(() => {});
+
+  document.getElementById('conf-msg').innerHTML =
+    'Thank you, ' + esc(name) + '.<br>We\'ll review your application and be in touch at<br>' + esc(email) + '.';
+  goStep(3);
+}
+
+/* ── Login ── */
+function doLogin() {
+  const email = document.getElementById('l-email').value.trim();
+  const pwd   = document.getElementById('l-pwd').value;
+  if (!email || !pwd) { showErr('l-err','Please enter your email and password.'); return; }
+
+  try {
+    const accts = JSON.parse(localStorage.getItem('distrik_applicants') || '[]');
+    const acct  = accts.find(a => a.email === email &&
+                                   a.pwd === btoa(unescape(encodeURIComponent(pwd))));
+    if (!acct) { showErr('l-err','Incorrect email or password.'); return; }
+
+    document.getElementById('l-err').classList.remove('on');
+    document.getElementById('ls-name').textContent  = acct.name + '\'s application';
+    document.getElementById('ls-email').textContent = email;
+    document.getElementById('ls-date').textContent  = new Date(acct.appliedAt)
+      .toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
+    document.getElementById('loginStatus').classList.add('on');
+  } catch(e) {
+    showErr('l-err','Unable to find your application on this device.');
+  }
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>
