@@ -1515,26 +1515,57 @@ const LS_KEY = 'distrik_v1';
 
 function saveAll(){
   try{
-    localStorage.setItem(LS_KEY, JSON.stringify({
+    const data = {
       grid,
       plEntries,
       sData,
       roomBookings,
       savedAt: new Date().toISOString()
-    }));
+    };
+
+    // Save to localStorage (offline support)
+    localStorage.setItem(LS_KEY, JSON.stringify(data));
+
+    // Save to Firestore (cloud sync)
+    if(typeof db !== 'undefined' && db) {
+      db.collection('dashboardData').doc('main').set(data, { merge: true })
+        .catch(err => console.warn('Firestore save failed:', err));
+    }
   } catch(e){ console.warn('Save failed:', e); }
 }
 
 function loadAll(){
   try{
+    // First try loading from localStorage (offline data)
     const raw = localStorage.getItem(LS_KEY);
-    if(!raw) return false;
-    const data = JSON.parse(raw);
-    if(data.grid)         Object.assign(grid, data.grid);
-    if(data.plEntries)    plEntries    = data.plEntries;
-    if(data.sData)        Object.assign(sData, data.sData);
-    if(data.roomBookings) roomBookings = data.roomBookings;
-    console.log('Restored from', data.savedAt);
+    if(raw) {
+      const data = JSON.parse(raw);
+      if(data.grid)         Object.assign(grid, data.grid);
+      if(data.plEntries)    plEntries    = data.plEntries;
+      if(data.sData)        Object.assign(sData, data.sData);
+      if(data.roomBookings) roomBookings = data.roomBookings;
+      console.log('Restored from localStorage:', data.savedAt);
+    }
+
+    // Then load from Firestore and override with latest cloud data
+    if(typeof db !== 'undefined' && db) {
+      db.collection('dashboardData').doc('main').get()
+        .then(doc => {
+          if(doc.exists) {
+            const data = doc.data();
+            if(data.grid)         Object.assign(grid, data.grid);
+            if(data.plEntries)    plEntries    = data.plEntries;
+            if(data.sData)        Object.assign(sData, data.sData);
+            if(data.roomBookings) roomBookings = data.roomBookings;
+            console.log('Synced from Firestore:', data.savedAt);
+            buildGrid();
+            buildBudget();
+            renderSales();
+          }
+        })
+        .catch(err => console.warn('Firestore load failed:', err));
+    }
+
     return true;
   } catch(e){ console.warn('Load failed:', e); return false; }
 }
