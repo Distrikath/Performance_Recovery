@@ -1819,6 +1819,9 @@ h1,
   #panel-settings .col-hdrs{display:none !important;}
 }
 </style>
+<!-- FIREBASE SYNC -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -10604,3 +10607,145 @@ window.showRoomCalendar=showRoomCalendar;
     </div>
   </div>
 </div>
+<!-- ============================================================
+     DISTRIK · FIRESTORE SHARED SYNC  (added, self-contained)
+     Mirrors localStorage business data to one shared Firestore
+     store. Last-writer-wins per key. Login session stays local.
+     ============================================================ -->
+<script>
+(function(){
+  // ---- 1. Firebase project config (verify against console if sync won't connect) ----
+  var firebaseConfig = {
+    apiKey: "AIzaSyC9amKPhl2s_-7qN_Ej0VV7nDkJ7BIXMRc",
+    authDomain: "distrikath80361.firebaseapp.com",
+    projectId: "distrikath80361",
+    storageBucket: "distrikath80361.firebasestorage.app",
+    messagingSenderId: "1039015029135",
+    appId: "1:1039015029135:web:db7583ff1131aed86d03fa",
+    measurementId: "G-9XHV9WZFWV"
+  };
+
+  // Shared business data keys (synced). Session/PIN-entry stays per-device.
+  var SYNC_KEYS = ['distrik_v1','distrik_rf','distrik_supply','distrik_menu',
+                   'distrik_clinical','distrik_tax','distrik_apps_api',
+                   'distrik_formspree','distrik_roster_template','distrik_pins'];
+  var TS_PREFIX = '__synced_ts_';
+  var COLL = 'distrik_state';
+
+  if(typeof firebase==='undefined'){ console.warn('[sync] Firebase SDK not loaded — running local-only.'); return; }
+
+  var db, syncReady=false, applyingRemote=false, pushTimers={};
+  var nativeSetItem = localStorage.setItem.bind(localStorage);
+
+  // ---- status pill (click to force a check) ----
+  var pill=document.createElement('div');
+  pill.id='sync-pill';
+  pill.style.cssText='position:fixed;bottom:22px;left:22px;z-index:9998;font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:1px;padding:6px 11px;border-radius:2px;border:1px solid #e0e0e0;background:#fff;color:#777;box-shadow:0 2px 10px rgba(0,0,0,0.08);cursor:pointer;';
+  pill.title='Click to force a sync check';
+  function setPill(t,c){ pill.textContent=t; pill.style.color=c||'#777'; pill.style.borderColor=c||'#e0e0e0'; }
+  function mountPill(){ if(!pill.parentNode && document.body) document.body.appendChild(pill); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',mountPill); else mountPill();
+
+  try{
+    firebase.initializeApp(firebaseConfig);
+    db=firebase.firestore();
+    setPill('◌ Connecting…','#f59e0b');
+  }catch(e){ console.warn('[sync] init failed',e); setPill('⚠ Sync off','#FF2D2D'); return; }
+
+  // ---- 2. intercept writes to synced keys ----
+  localStorage.setItem = function(k,v){
+    nativeSetItem(k,v);
+    if(!applyingRemote && SYNC_KEYS.indexOf(k)>=0) schedulePush(k);
+  };
+  function schedulePush(k){
+    if(!syncReady) return;
+    if(pushTimers[k]) clearTimeout(pushTimers[k]);
+    pushTimers[k]=setTimeout(function(){ pushKey(k); }, 500);
+  }
+  function pushKey(k){
+    var val=localStorage.getItem(k); if(val===null) return;
+    var ts=Date.now();
+    setPill('↑ Syncing…','#f59e0b');
+    db.collection(COLL).doc(k).set({value:val,ts:ts,by:(window.currentUser&&currentUser.name)||'?'})
+      .then(function(){ nativeSetItem(TS_PREFIX+k,String(ts)); setPill('✓ Synced','#10b981'); console.log('[sync] pushed',k); })
+      .catch(function(e){ console.warn('[sync] push failed',k,e); setPill('⚠ Sync error','#FF2D2D'); });
+  }
+
+  // ---- 3. apply a remote value locally (no echo) ----
+  function applyRemote(k,data){
+    if(!data || typeof data.value!=='string') return false;
+    var localTs=parseInt(localStorage.getItem(TS_PREFIX+k)||'0',10);
+    if(data.ts && data.ts<=localTs) return false;
+    if(localStorage.getItem(k)===data.value){ nativeSetItem(TS_PREFIX+k,String(data.ts||0)); return false; }
+    applyingRemote=true;
+    nativeSetItem(k,data.value);
+    nativeSetItem(TS_PREFIX+k,String(data.ts||Date.now()));
+    applyingRemote=false;
+    console.log('[sync] applied remote',k,'from',data.by||'?');
+    return true;
+  }
+
+  function reloadAndRender(){
+    applyingRemote=true;
+    try{
+      if(typeof loadAll==='function') loadAll();
+      if(typeof loadRFFromStorage==='function') loadRFFromStorage();
+      if(typeof loadSupplyFromStorage==='function') loadSupplyFromStorage();
+      if(typeof loadMenuFromStorage==='function') loadMenuFromStorage();
+      if(typeof loadClinical==='function') loadClinical();
+      if(typeof loadSalesDataFromStorage==='function') loadSalesDataFromStorage();
+      var open=document.querySelector('.panel.on'), id=open?open.id:'';
+      var home=document.getElementById('homeScreen');
+      if(home && home.classList.contains('on') && typeof showHome==='function'){ showHome(); }
+      else if(id==='panel-sales'   && typeof renderSales==='function'){ renderSales(); }
+      else if(id==='panel-pl'      && typeof renderPL==='function'){ renderPL(); }
+      else if(id==='panel-roster'){ if(typeof syncZonesFromHours==='function')syncZonesFromHours(); if(typeof buildGrid==='function')buildGrid(); if(typeof buildTS==='function')buildTS(); if(typeof buildBudget==='function')buildBudget(); }
+      else if(id==='panel-booking'){ if(typeof buildRoomGrid==='function')buildRoomGrid(); if(typeof updateRFSummary==='function')updateRFSummary(); if(typeof updateRFStaffBar==='function')updateRFStaffBar(); }
+      else if(id==='panel-recovery'){ if(typeof buildClinRoomGrid==='function')buildClinRoomGrid(); if(typeof renderClinicalBooking==='function')renderClinicalBooking(); }
+      else if(id==='panel-fuel'){ if(typeof buildPosItems==='function')buildPosItems(); }
+      else if(id==='panel-supply'){ if(typeof renderSupInvSplit==='function')renderSupInvSplit(); if(typeof buildSupPOSItems==='function')buildSupPOSItems(); }
+      else if(id==='panel-settings' && typeof buildSettingsPanel==='function'){ buildSettingsPanel(); }
+    }catch(e){ console.warn('[sync] re-render error',e); }
+    applyingRemote=false;
+  }
+
+  // ---- 4. initial reconcile, then live subscribe ----
+  db.collection(COLL).get().then(function(snap){
+    var remote={}; snap.forEach(function(d){ remote[d.id]=d.data(); });
+    var changed=false;
+    SYNC_KEYS.forEach(function(k){
+      if(remote[k]){ if(applyRemote(k,remote[k])) changed=true; }
+      else if(localStorage.getItem(k)!==null){
+        var ts=Date.now();
+        db.collection(COLL).doc(k).set({value:localStorage.getItem(k),ts:ts,by:'seed'}).catch(function(){});
+        nativeSetItem(TS_PREFIX+k,String(ts));
+      }
+    });
+    if(changed) reloadAndRender();
+    syncReady=true; setPill('✓ Synced','#10b981');
+    subscribe();
+  }).catch(function(e){
+    console.warn('[sync] initial reconcile failed',e); setPill('⚠ Sync error','#FF2D2D');
+    syncReady=true; subscribe();
+  });
+
+  function subscribe(){
+    db.collection(COLL).onSnapshot(function(snap){
+      var changed=false;
+      snap.docChanges().forEach(function(ch){
+        var k=ch.doc.id; if(SYNC_KEYS.indexOf(k)<0) return;
+        if(applyRemote(k,ch.doc.data())) changed=true;
+      });
+      if(changed){ console.log('[sync] remote update → refreshing view'); reloadAndRender(); setPill('✓ Synced','#10b981'); }
+    },function(e){ console.warn('[sync] snapshot error',e); setPill('⚠ Offline','#FF2D2D'); });
+  }
+
+  pill.addEventListener('click',function(){
+    setPill('◌ Checking…','#f59e0b');
+    db.collection(COLL).get().then(function(snap){
+      var c=false; snap.forEach(function(d){ if(SYNC_KEYS.indexOf(d.id)>=0 && applyRemote(d.id,d.data())) c=true; });
+      if(c) reloadAndRender(); setPill('✓ Synced','#10b981');
+    }).catch(function(){ setPill('⚠ Sync error','#FF2D2D'); });
+  });
+})();
+</script>
