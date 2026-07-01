@@ -17,12 +17,10 @@
   --mono:'Space Mono',ui-monospace,monospace;
 }
 
-html,body{height:100%}
-html{overflow-x:clip}
+html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden}
 body{
   background:var(--b);color:var(--ink);
   font-family:'Inter',-apple-system,system-ui,sans-serif;
-  overflow-x:clip;overflow-y:hidden;
   -webkit-font-smoothing:antialiased;
 }
 
@@ -313,18 +311,17 @@ footer{
 
 <!-- FILM FLICKER -->
 <div class="film" id="film">
-  <img class="film-frame" data-frame="0"  src="Film 1.PNG"  loading="eager">
-  <img class="film-frame" data-frame="1"  src="Film 2.PNG"  loading="eager">
-  <img class="film-frame" data-frame="2"  src="Film 3.PNG"  loading="eager">
-  <img class="film-frame" data-frame="3"  src="Film 4.PNG"  loading="eager">
-  <img class="film-frame" data-frame="4"  src="Film 5.PNG"  loading="eager">
-  <img class="film-frame" data-frame="5"  src="Film 6.PNG"  loading="eager">
-  <img class="film-frame" data-frame="6"  src="Film 7.PNG"  loading="eager">
-  <img class="film-frame" data-frame="7"  src="Film 8.PNG"  loading="eager">
-  <img class="film-frame" data-frame="8"  src="Film 9.PNG"  loading="eager">
-  <img class="film-frame" data-frame="9"  src="Film 10.PNG" loading="eager">
-  <img class="film-frame" data-frame="10" src="Film 11.PNG" loading="eager">
-  <img class="film-frame" data-frame="11" src="Film 12.PNG" loading="eager">
+  <img class="film-frame" data-frame="0"  src="film-01.webp" loading="eager">
+  <img class="film-frame" data-frame="1"  src="film-02.webp" loading="eager">
+  <img class="film-frame" data-frame="2"  src="film-03.webp" loading="eager">
+  <img class="film-frame" data-frame="3"  src="film-04.webp" loading="eager">
+  <img class="film-frame" data-frame="4"  src="film-05.webp" loading="eager">
+  <img class="film-frame" data-frame="5"  src="film-06.webp" loading="eager">
+  <img class="film-frame" data-frame="6"  src="film-07.webp" loading="eager">
+  <img class="film-frame" data-frame="7"  src="film-08.webp" loading="eager">
+  <img class="film-frame" data-frame="8"  src="film-09.webp" loading="eager">
+  <img class="film-frame" data-frame="9"  src="film-10.webp" loading="eager">
+  <img class="film-frame" data-frame="10" src="film-11.webp" loading="eager">
 </div>
 
 <div class="overlay"></div>
@@ -395,7 +392,7 @@ footer{
 /* ── FILM FLICKER ── */
 const frames = document.querySelectorAll('.film-frame');
 const FAST_INTERVAL = 150;
-const FAST_FRAMES   = 12;
+const FAST_FRAMES   = 11;
 const slowFrames    = [0, 3, 8, 10, 5, 6];
 let fastIdx = 0, slowIdx = 0, currentFrame = 0;
 
