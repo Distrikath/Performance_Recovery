@@ -1832,7 +1832,8 @@ h1,
   .dk-cell,.dk-mod,.clin-col,.pos-menu-col,.pos-customiser,.pos-receipt,
   .rf-split-left,.rf-split-right,.rf-rooms-col,.rf-summary-col,
   .sup-split-left,.sup-split-mid,.sup-split-right{min-width:0 !important;}
-  .clin-card,.clin-name,.clin-meta,.clin-oline,.dk-mod-name,.dk-name,.dk-desc{overflow-wrap:anywhere;}
+  /* only wrap genuinely long multi-word text — NOT single-word titles */
+  .clin-card,.clin-name,.clin-meta,.clin-oline{overflow-wrap:anywhere;}
   /* multi-column module rows -> single column */
   .dk-cols3,.dk-cols,.dk-hero,.dk-mast,.rk-mast{grid-template-columns:1fr !important;}
   /* stat strips -> 2-up on phones */
@@ -1844,6 +1845,14 @@ h1,
   .dk-h1,.rk-h1{font-size:40px !important;}
   .dk-big{font-size:54px !important;}
   .page-title,.rf-split-title{font-size:26px !important;letter-spacing:1px !important;height:auto !important;}
+
+  /* HOME index rows: number + name + arrow on line 1, description on line 2 */
+  #homeScreen .home-hdr{grid-template-columns:1fr !important;gap:14px !important;}
+  #homeScreen .dk-row{display:flex !important;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:18px 0 !important;}
+  #homeScreen .dk-n{flex:0 0 auto;}
+  #homeScreen .dk-name{flex:1 1 auto;min-width:0;font-size:26px !important;word-break:normal !important;overflow-wrap:normal !important;white-space:normal;}
+  #homeScreen .dk-ar{flex:0 0 auto;margin-left:auto;}
+  #homeScreen .dk-desc{flex:1 1 100%;text-align:left !important;order:9;}
 
   /* RECOVERY (clinical) 3-col booking flow -> stack, natural height */
   #panel-recovery .clin-layout{grid-template-columns:1fr !important;height:auto !important;overflow:visible !important;}
@@ -1870,10 +1879,11 @@ h1,
   .tab-btn{white-space:nowrap;}
 }
 @media (max-width: 430px){
-  .dk-strip{grid-template-columns:1fr !important;}
+  .dk-strip{grid-template-columns:1fr 1fr !important;}
   .home-grid{grid-template-columns:1fr !important;}
   .dk-big{font-size:44px !important;}
-  .dk-h1,.rk-h1{font-size:32px !important;}
+  .dk-h1,.rk-h1{font-size:34px !important;}
+  #homeScreen .dk-name{font-size:23px !important;}
   .kpi-row{grid-template-columns:1fr 1fr !important;}
 }
 
