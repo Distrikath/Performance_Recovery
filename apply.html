@@ -361,7 +361,7 @@ function goStep2() {
 }
 
 /* ── Submit ── */
-function submitApp() {
+async function submitApp() {
   const fields = ['f-q1','f-q2','f-q3','f-q4','f-q5','f-q6'];
   const vals   = fields.map(id => document.getElementById(id).value.trim());
   const [q1,q2,q3,q4,q5,q6] = vals;
@@ -413,25 +413,33 @@ function submitApp() {
   btn.textContent = 'Sending...';
 
   // Send to Formspree
-  fetch('https://formspree.io/f/mzdqbgno', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-    body: JSON.stringify({
-      _subject: 'Job Application — ' + selPosition + ' — ' + name,
-      '01_Name':      name,
-      '02_Email':     email,
-      '03_Position':  selPosition,
-      '04_Applied':   now.toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' }),
-      'Q1_Position_Why':   q1,
-      'Q2_Good_Fit':       q2,
-      'Q3_Experience':     q3,
-      'Q4_Interest':       q4,
-      'Q5_Goals':          q5,
-      'Q6_Availability':   q6,
-      'Q7_Anything_Else':  q7 || 'N/A',
-      'DASHBOARD_IMPORT_CODE': code
-    })
-  }).catch(() => {});
+  try {
+    const res = await fetch('https://formspree.io/f/mzdqbgno', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        _subject: 'Job Application — ' + selPosition + ' — ' + name,
+        '01_Name':      name,
+        '02_Email':     email,
+        '03_Position':  selPosition,
+        '04_Applied':   now.toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' }),
+        'Q1_Position_Why':   q1,
+        'Q2_Good_Fit':       q2,
+        'Q3_Experience':     q3,
+        'Q4_Interest':       q4,
+        'Q5_Goals':          q5,
+        'Q6_Availability':   q6,
+        'Q7_Anything_Else':  q7 || 'N/A',
+        'DASHBOARD_IMPORT_CODE': code
+      })
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+  } catch(err) {
+    btn.disabled = false;
+    btn.textContent = 'Submit Application →';
+    showErr('e2', 'Submission failed — please check your connection and try again.');
+    return;
+  }
 
   document.getElementById('conf-msg').innerHTML =
     'Thank you, ' + esc(name) + '.<br>We\'ll review your application and be in touch at<br>' + esc(email) + '.';

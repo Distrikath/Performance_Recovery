@@ -2591,6 +2591,7 @@ function checkPassword(){
         <p id="app-count">0 applicants</p>
       </div>
       <div class="app-hdr-btns">
+        <button class="imp-btn" onclick="openManualAdd()">+ Add Manually</button>
         <button class="imp-btn" onclick="openImportCode()">⊕ Import Code</button>
         <button class="imp-btn" onclick="openCompareModal()">⇌ Compare</button>
       </div>
@@ -2646,6 +2647,60 @@ function checkPassword(){
         <button class="ami-save" onclick="saveAppNotes()">Save Notes</button>
         <button class="ami-del"  onclick="deleteApp()">Delete</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MANUAL ADD MODAL ── -->
+<div class="app-modal" id="manualAddModal">
+  <div class="ami" style="max-width:600px;max-height:92vh;overflow-y:auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;position:sticky;top:0;background:#0d0d0d;padding-bottom:14px;border-bottom:1px solid var(--bd);">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;color:#fff;">Add Application Manually</div>
+      <button class="ami-close" onclick="closeManualAdd()">✕</button>
+    </div>
+    <div style="font-family:'DM Mono',monospace;font-size:7.5px;color:#555;letter-spacing:1px;line-height:1.8;margin-bottom:20px;">Use this to enter applications received by other means — in person, email, or if the online form failed.</div>
+
+    <!-- Name + Email -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:7px;letter-spacing:2px;text-transform:uppercase;color:#444;margin-bottom:6px;">Full Name *</div>
+        <input id="ma-name" type="text" placeholder="e.g. Toni Smith" style="width:100%;background:#080808;border:1px solid #242424;border-radius:2px;color:#ccc;font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 10px;outline:none;" onfocus="this.style.borderColor='#555'" onblur="this.style.borderColor='#242424'">
+      </div>
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:7px;letter-spacing:2px;text-transform:uppercase;color:#444;margin-bottom:6px;">Email *</div>
+        <input id="ma-email" type="email" placeholder="email address" style="width:100%;background:#080808;border:1px solid #242424;border-radius:2px;color:#ccc;font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 10px;outline:none;" onfocus="this.style.borderColor='#555'" onblur="this.style.borderColor='#242424'">
+      </div>
+    </div>
+
+    <!-- Position -->
+    <div style="margin-bottom:14px;">
+      <div style="font-family:'DM Mono',monospace;font-size:7px;letter-spacing:2px;text-transform:uppercase;color:#444;margin-bottom:6px;">Position Applied For *</div>
+      <select id="ma-position" style="width:100%;background:#080808;border:1px solid #242424;border-radius:2px;color:#ccc;font-family:'DM Mono',monospace;font-size:9px;padding:7px 10px;outline:none;">
+        <option value="">— select position —</option>
+        <option value="Second in Charge">Second in Charge</option>
+        <option value="Reception">Reception</option>
+        <option value="Fuel Bar / Reception">Fuel Bar / Reception</option>
+        <option value="Supply">Supply</option>
+        <option value="All Rounder">All Rounder</option>
+      </select>
+    </div>
+
+    <!-- Applied date -->
+    <div style="margin-bottom:20px;">
+      <div style="font-family:'DM Mono',monospace;font-size:7px;letter-spacing:2px;text-transform:uppercase;color:#444;margin-bottom:6px;">Date Applied</div>
+      <input id="ma-date" type="date" style="background:#080808;border:1px solid #242424;border-radius:2px;color:#ccc;font-family:'DM Mono',monospace;font-size:9px;padding:7px 10px;outline:none;" onfocus="this.style.borderColor='#555'" onblur="this.style.borderColor='#242424'">
+    </div>
+
+    <div style="font-family:'DM Mono',monospace;font-size:7px;letter-spacing:2px;text-transform:uppercase;color:#2a2a2a;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--bd);">Application Answers — enter what you have, leave blank if unknown</div>
+
+    <!-- Q answers -->
+    <div id="ma-questions"></div>
+
+    <div style="font-family:'DM Mono',monospace;font-size:7.5px;color:#e05555;letter-spacing:1px;margin-bottom:10px;display:none;" id="ma-err"></div>
+
+    <div style="display:flex;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--bd);">
+      <button class="amd-save" onclick="saveManualApp()">Save Application</button>
+      <button class="amd-del" onclick="closeManualAdd()">Cancel</button>
     </div>
   </div>
 </div>
@@ -2857,6 +2912,79 @@ function deleteApp() {
   closeAppDetail();
   buildAppsPanel();
   showNotif('Application deleted');
+}
+
+// ── Manual Add ──
+const MA_QUESTIONS = [
+  { id:'ma-q1', lbl:'1. Position & Why — why does this role suit them?' },
+  { id:'ma-q2', lbl:'2. Why a good fit — skills & qualities' },
+  { id:'ma-q3', lbl:'3. Work Experience' },
+  { id:'ma-q4', lbl:'4. Interest in DISTRIK' },
+  { id:'ma-q5', lbl:'5. Career Goals' },
+  { id:'ma-q6', lbl:'6. Availability' },
+  { id:'ma-q7', lbl:'Anything Else (optional)' },
+];
+
+function openManualAdd() {
+  // Build question textareas
+  const container = document.getElementById('ma-questions');
+  container.innerHTML = MA_QUESTIONS.map(q => `
+    <div style="margin-bottom:14px;">
+      <div style="font-family:'DM Mono',monospace;font-size:7px;letter-spacing:1.5px;text-transform:uppercase;color:#444;margin-bottom:6px;">${q.lbl}</div>
+      <textarea id="${q.id}" rows="3" placeholder="Leave blank if unknown..." style="width:100%;background:#080808;border:1px solid #242424;border-radius:2px;color:#999;font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 10px;resize:vertical;outline:none;line-height:1.6;" onfocus="this.style.borderColor='#555'" onblur="this.style.borderColor='#242424'"></textarea>
+    </div>
+  `).join('');
+  // Set today's date as default
+  document.getElementById('ma-date').value = new Date().toISOString().slice(0,10);
+  document.getElementById('ma-name').value = '';
+  document.getElementById('ma-email').value = '';
+  document.getElementById('ma-position').value = '';
+  document.getElementById('ma-err').style.display = 'none';
+  document.getElementById('manualAddModal').classList.add('on');
+  setTimeout(() => document.getElementById('ma-name').focus(), 100);
+}
+
+function closeManualAdd() {
+  document.getElementById('manualAddModal').classList.remove('on');
+}
+
+function saveManualApp() {
+  const name     = document.getElementById('ma-name').value.trim();
+  const email    = document.getElementById('ma-email').value.trim();
+  const position = document.getElementById('ma-position').value;
+  const dateVal  = document.getElementById('ma-date').value;
+  const errEl    = document.getElementById('ma-err');
+
+  if (!name)     { errEl.textContent='Please enter a name.';     errEl.style.display='block'; return; }
+  if (!position) { errEl.textContent='Please select a position.'; errEl.style.display='block'; return; }
+  errEl.style.display = 'none';
+
+  const app = {
+    id:        Date.now().toString(),
+    name, email,
+    appliedAt: dateVal ? new Date(dateVal).toISOString() : new Date().toISOString(),
+    position,
+    answers: {
+      q1: document.getElementById('ma-q1').value.trim(),
+      q2: document.getElementById('ma-q2').value.trim(),
+      q3: document.getElementById('ma-q3').value.trim(),
+      q4: document.getElementById('ma-q4').value.trim(),
+      q5: document.getElementById('ma-q5').value.trim(),
+      q6: document.getElementById('ma-q6').value.trim(),
+      q7: document.getElementById('ma-q7').value.trim(),
+    },
+    status: 'new',
+    rating: 0,
+    notes:  '',
+    manualEntry: true,
+  };
+
+  const apps = getApps();
+  apps.push(app);
+  saveApps(apps);
+  closeManualAdd();
+  buildAppsPanel();
+  showNotif(name + ' added to applications');
 }
 
 // ── Import code ──
