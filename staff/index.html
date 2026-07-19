@@ -7076,11 +7076,11 @@ function saveManualApp(){
     },
     status:'new', rating:0, notes:'', manualEntry:true
   };
-  if(appsConfigured()){
-    fetch(appsBase()+'/api/applications',{method:'POST',headers:appsHeaders(),body:JSON.stringify(app)})
-      .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);})
-      .then(function(){closeManualAdd();loadApplications();})
-      .catch(function(e){alert('Save failed: '+e.message);});
+  if(typeof appsApiAdd==='function'){
+    appsApiAdd(app).then(function(){
+      var nn=document.getElementById('notif'); if(nn){nn.textContent=name+' added ✓';nn.classList.add('on');setTimeout(function(){nn.classList.remove('on');},2000);}
+      closeManualAdd(); openApplications();
+    }).catch(function(e){alert('Save failed: '+e.message);});
   } else {
     try{
       var all=JSON.parse(localStorage.getItem('distrik_applications')||'[]');
@@ -7094,20 +7094,27 @@ function saveManualApp(){
 function openImportCode(){ var m=document.getElementById('importCodeModal'); if(m){document.getElementById('ic-input').value='';m.style.display='flex';} }
 function closeImportCode(){ var m=document.getElementById('importCodeModal'); if(m)m.style.display='none'; }
 function doImportCode(){
-  var raw=(document.getElementById('ic-input')||{}).value.trim();
+  var raw=(document.getElementById('ic-input')||{}).value.trim().replace(/\s+/g,'');
   if(!raw){alert('Paste the import code from the email.');return;}
+  var app;
   try{
-    var app=JSON.parse(decodeURIComponent(escape(atob(raw))));
+    app=JSON.parse(decodeURIComponent(escape(atob(raw))));
     if(!app||!app.name||!app.id) throw new Error('invalid');
-    var all=JSON.parse(localStorage.getItem('distrik_applications')||'[]');
-    if(!all.find(function(x){return x.id===app.id;})){
-      if(!app.status)app.status='new'; if(!app.rating)app.rating=0; if(!app.notes)app.notes='';
-      all.push(app);
-      localStorage.setItem('distrik_applications',JSON.stringify(all));
-    }
-    var nn=document.getElementById('notif'); if(nn){nn.textContent=app.name+"'s application imported ✓";nn.classList.add('on');setTimeout(function(){nn.classList.remove('on');},2200);}
+  }catch(e){alert('Invalid import code. Paste the full DASHBOARD_IMPORT_CODE from the email.');return;}
+  if(!app.status)app.status='new'; if(!app.rating)app.rating=0; if(!app.notes)app.notes='';
+  var doNotify=function(name){
+    var nn=document.getElementById('notif'); if(nn){nn.textContent=name+"'s application imported ✓";nn.classList.add('on');setTimeout(function(){nn.classList.remove('on');},2200);}
     closeImportCode(); openApplications();
-  }catch(e){alert('Invalid import code. Paste the full DASHBOARD_IMPORT_CODE from the email.');}
+  };
+  if(typeof appsApiAdd==='function'){
+    appsApiAdd(app).then(function(){doNotify(app.name);}).catch(function(e){alert('Import failed: '+e.message);});
+  } else {
+    try{
+      var all=JSON.parse(localStorage.getItem('distrik_applications')||'[]');
+      if(!all.find(function(x){return x.id===app.id;})){ all.push(app); localStorage.setItem('distrik_applications',JSON.stringify(all)); }
+      doNotify(app.name);
+    }catch(e){alert('Import failed: '+e.message);}
+  }
 }
 window.openManualAdd=openManualAdd; window.closeManualAdd=closeManualAdd; window.saveManualApp=saveManualApp;
 window.openImportCode=openImportCode; window.closeImportCode=closeImportCode; window.doImportCode=doImportCode;
@@ -11016,6 +11023,9 @@ window.showRoomCalendar=showRoomCalendar;
   };
   window.appsApiDelete = async function(id){
     await fdb().collection(COL).doc(String(id)).delete(); return { success:true };
+  };
+  window.appsApiAdd = async function(app){
+    await fdb().collection(COL).doc(String(app.id)).set(app); return { success:true };
   };
   console.log('[apps] using Firestore collection', COL);
 })();
