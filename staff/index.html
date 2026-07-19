@@ -5252,7 +5252,7 @@ document.addEventListener('DOMContentLoaded', function(){
   loadAll();
   buildPalette();
   buildTabs();
-  buildGrid();
+  _origBuildGrid();
   buildBudget();
 
   // ── Restore notification ──
@@ -11177,7 +11177,6 @@ window.exportXeroCSV = function(){
       if(typeof firebase==='undefined'||!firebase.firestore) return;
       var dk=dayKey(); if(!dk) return;
       var last=null; try{ last=localStorage.getItem('distrik_last_backup'); }catch(e){}
-      if(!force && last===dk) return;
       var blob={};
       ['distrik_v1','distrik_rf','distrik_supply','distrik_menu','distrik_clinical','distrik_tax','distrik_roster_template','distrik_pins'].forEach(function(k){
         try{ var v=localStorage.getItem(k); if(v) blob[k]=v; }catch(e){}
