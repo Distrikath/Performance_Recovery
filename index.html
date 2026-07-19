@@ -396,7 +396,7 @@ footer{
     <!-- Staff member: go straight to dashboard staff login -->
     <div id="sr-stf-form" style="display:none;">
       <p style="font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;color:var(--ink-d);line-height:1.9;margin-bottom:20px;">You'll be asked to select your name and enter your PIN on the next screen.</p>
-      <button class="staff-modal-btn" onclick="window.location.href='staff/?role=staff'">continue →</button>
+      <button class="staff-modal-btn" onclick="window.location.href='staff/#staff'">continue →</button>
     </div>
 
     <button class="staff-modal-close" onclick="closeStaffModal()">close</button>
@@ -518,13 +518,16 @@ function setStaffRole(role) {
 function staffLogin(){
   const input = document.getElementById('staffPwd');
   const err   = document.getElementById('staffErr');
-  const links = document.getElementById('staffLinks');
   const h     = sha256(input.value);
   if(h === STAFF_HASH){
-    input.style.display = 'none';
-    document.getElementById('sr-mgr-form').querySelector('.staff-modal-btn').style.display = 'none';
-    err.textContent = '';
-    links.classList.add('visible');
+    // Write manager session so staff/index.html skips its own login
+    try {
+      localStorage.setItem('distrik_session_v4', JSON.stringify({
+        id:'admin', name:'Manager', col:'#FF2D2D', role:'Admin', type:'admin',
+        expires: Date.now() + 8*60*60*1000
+      }));
+    } catch(e){}
+    window.location.href = 'staff/';
   } else {
     input.classList.add('err');
     err.textContent = 'incorrect password';
