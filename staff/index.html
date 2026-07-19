@@ -7087,7 +7087,7 @@ function saveManualApp(){
       all.push(app);
       localStorage.setItem('distrik_applications',JSON.stringify(all));
       var nn=document.getElementById('notif'); if(nn){nn.textContent=name+' added ✓';nn.classList.add('on');setTimeout(function(){nn.classList.remove('on');},2000);}
-      closeManualAdd(); loadApplications();
+      closeManualAdd(); openApplications();
     }catch(e){alert('Save failed: '+e.message);}
   }
 }
@@ -7106,7 +7106,7 @@ function doImportCode(){
       localStorage.setItem('distrik_applications',JSON.stringify(all));
     }
     var nn=document.getElementById('notif'); if(nn){nn.textContent=app.name+"'s application imported ✓";nn.classList.add('on');setTimeout(function(){nn.classList.remove('on');},2200);}
-    closeImportCode(); loadApplications();
+    closeImportCode(); openApplications();
   }catch(e){alert('Invalid import code. Paste the full DASHBOARD_IMPORT_CODE from the email.');}
 }
 window.openManualAdd=openManualAdd; window.closeManualAdd=closeManualAdd; window.saveManualApp=saveManualApp;
