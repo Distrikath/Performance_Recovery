@@ -373,14 +373,32 @@ footer{
 <div class="staff-modal" id="staffModal">
   <div class="staff-box">
     <div class="staff-modal-title">[ staff access ]</div>
-    <input type="password" id="staffPwd" placeholder="password"
-           onkeydown="if(event.key==='Enter')staffLogin()">
-    <button class="staff-modal-btn" onclick="staffLogin()">enter →</button>
-    <div class="staff-modal-err" id="staffErr"></div>
-    <div class="staff-links" id="staffLinks">
-      <a class="staff-link" href="site.html">→ full website</a>
-      <a class="staff-link" href="staff/">→ staff dashboard</a>
+
+    <!-- Role selector -->
+    <div style="display:flex;gap:0;margin-bottom:24px;border:1px solid rgba(242,242,240,.12);border-radius:1px;overflow:hidden;">
+      <button id="sr-mgr" onclick="setStaffRole('manager')"
+        style="flex:1;padding:9px;background:#1a1a1a;border:none;font-family:var(--mono);font-size:8px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink);cursor:pointer;">Manager</button>
+      <button id="sr-stf" onclick="setStaffRole('staff')"
+        style="flex:1;padding:9px;background:transparent;border:none;border-left:1px solid rgba(242,242,240,.12);font-family:var(--mono);font-size:8px;letter-spacing:.22em;text-transform:uppercase;color:rgba(242,242,240,.35);cursor:pointer;">Staff Member</button>
     </div>
+
+    <!-- Manager: password -->
+    <div id="sr-mgr-form">
+      <input type="password" id="staffPwd" placeholder="password"
+             onkeydown="if(event.key==='Enter')staffLogin()">
+      <button class="staff-modal-btn" onclick="staffLogin()">enter →</button>
+      <div class="staff-modal-err" id="staffErr"></div>
+      <div class="staff-links" id="staffLinks">
+        <a class="staff-link" href="staff/">→ staff dashboard</a>
+      </div>
+    </div>
+
+    <!-- Staff member: go straight to dashboard staff login -->
+    <div id="sr-stf-form" style="display:none;">
+      <p style="font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;color:var(--ink-d);line-height:1.9;margin-bottom:20px;">You'll be asked to select your name and enter your PIN on the next screen.</p>
+      <button class="staff-modal-btn" onclick="window.location.href='staff/?role=staff'">continue →</button>
+    </div>
+
     <button class="staff-modal-close" onclick="closeStaffModal()">close</button>
   </div>
 </div>
@@ -487,6 +505,16 @@ form.addEventListener('submit', async function(e){
 /* ── STAFF LOGIN ── */
 const STAFF_HASH = 'ceb62a48b1460cc387bd0d76774ff19ee96de1f20d0e8ec4e282e3f991545f85'; // D1strik2026!
 
+function setStaffRole(role) {
+  const isMgr = role === 'manager';
+  document.getElementById('sr-mgr-form').style.display = isMgr ? '' : 'none';
+  document.getElementById('sr-stf-form').style.display = isMgr ? 'none' : '';
+  document.getElementById('sr-mgr').style.background = isMgr ? '#1a1a1a' : 'transparent';
+  document.getElementById('sr-mgr').style.color = isMgr ? 'var(--ink)' : 'rgba(242,242,240,.35)';
+  document.getElementById('sr-stf').style.background = isMgr ? 'transparent' : '#1a1a1a';
+  document.getElementById('sr-stf').style.color = isMgr ? 'rgba(242,242,240,.35)' : 'var(--ink)';
+}
+
 function staffLogin(){
   const input = document.getElementById('staffPwd');
   const err   = document.getElementById('staffErr');
@@ -494,7 +522,7 @@ function staffLogin(){
   const h     = sha256(input.value);
   if(h === STAFF_HASH){
     input.style.display = 'none';
-    document.querySelector('.staff-modal-btn').style.display = 'none';
+    document.getElementById('sr-mgr-form').querySelector('.staff-modal-btn').style.display = 'none';
     err.textContent = '';
     links.classList.add('visible');
   } else {
@@ -513,9 +541,10 @@ function closeStaffModal(){
   input.value = '';
   input.classList.remove('err');
   input.style.display = '';
-  document.querySelector('.staff-modal-btn').style.display = '';
+  document.getElementById('sr-mgr-form').querySelector('.staff-modal-btn').style.display = '';
   document.getElementById('staffErr').textContent = '';
   links.classList.remove('visible');
+  setStaffRole('manager');
 }
 
 function sha256(str){
