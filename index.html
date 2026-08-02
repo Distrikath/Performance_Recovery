@@ -386,10 +386,12 @@ footer{
     <div id="sr-mgr-form">
       <input type="password" id="staffPwd" placeholder="password"
              onkeydown="if(event.key==='Enter')staffLogin()">
-      <button class="staff-modal-btn" onclick="staffLogin()">enter →</button>
+      <button class="staff-modal-btn" id="staffEnterBtn" onclick="staffLogin()">enter →</button>
       <div class="staff-modal-err" id="staffErr"></div>
-      <div class="staff-links" id="staffLinks">
-        <a class="staff-link" href="staff/">→ staff dashboard</a>
+      <!-- Shown after correct password -->
+      <div id="staffLinks" style="display:none;flex-direction:column;gap:10px;margin-top:16px;">
+        <button class="staff-modal-btn" onclick="window.location.href='site.html'">→ full website</button>
+        <button class="staff-modal-btn" style="background:transparent;border:1px solid rgba(242,242,240,.25);color:var(--ink-d);" onclick="window.location.href='staff/'">→ staff dashboard</button>
       </div>
     </div>
 
@@ -527,7 +529,11 @@ function staffLogin(){
         expires: Date.now() + 8*60*60*1000
       }));
     } catch(e){}
-    window.location.href = 'staff/';
+    // Hide password field and enter button, show destination options
+    input.style.display = 'none';
+    document.getElementById('staffEnterBtn').style.display = 'none';
+    const links = document.getElementById('staffLinks');
+    links.style.display = 'flex';
   } else {
     input.classList.add('err');
     err.textContent = 'incorrect password';
@@ -539,14 +545,13 @@ function staffLogin(){
 function closeStaffModal(){
   const modal = document.getElementById('staffModal');
   const input = document.getElementById('staffPwd');
-  const links = document.getElementById('staffLinks');
   modal.classList.remove('open');
   input.value = '';
   input.classList.remove('err');
   input.style.display = '';
-  document.getElementById('sr-mgr-form').querySelector('.staff-modal-btn').style.display = '';
+  document.getElementById('staffEnterBtn').style.display = '';
   document.getElementById('staffErr').textContent = '';
-  links.classList.remove('visible');
+  document.getElementById('staffLinks').style.display = 'none';
   setStaffRole('manager');
 }
 
