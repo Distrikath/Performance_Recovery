@@ -438,84 +438,166 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
 </section>
 
 <style>
-.pathways-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);margin-top:0}
-.pathway-step{background:var(--b);padding:56px 48px 64px}
-.pathway-step-num{font-family:var(--mono);font-size:10px;letter-spacing:.45em;color:var(--r);margin-bottom:28px}
-.pathway-step-title{font-family:var(--mono);font-size:9px;letter-spacing:.38em;text-transform:uppercase;color:var(--ink-d);margin-bottom:40px}
-.pathway-option{padding:22px 0;border-bottom:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;gap:6px}
-.pathway-option:first-of-type{border-top:1px solid rgba(255,255,255,.06)}
-.pathway-option-name{font-family:var(--display);font-size:clamp(20px,2vw,28px);font-weight:700;letter-spacing:-.025em;color:var(--ink);text-transform:uppercase;line-height:1}
-.pathway-option-name .pop{font-family:var(--mono);font-size:8px;letter-spacing:.2em;color:var(--r);font-weight:400;margin-left:10px;vertical-align:middle}
-.pathway-option-price{font-family:var(--mono);font-size:9px;letter-spacing:.28em;color:var(--r)}
-.pathway-option-sub{font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--ink-d);line-height:1.7}
-@media(max-width:900px){.pathways-grid{grid-template-columns:1fr}}
-@media(max-width:600px){.pathway-step{padding:40px 24px 48px}}
+/* ── PATHWAYS ── */
+.pw-section{padding:120px 48px 0}
+.pw-card{border-top:1px solid var(--line);display:grid;grid-template-columns:280px 1fr 220px;gap:0;padding:64px 0}
+.pw-card:last-child{border-bottom:1px solid var(--line);margin-bottom:120px}
+.pw-left{padding-right:48px}
+.pw-num{font-family:var(--mono);font-size:10px;letter-spacing:.45em;color:var(--r);margin-bottom:16px}
+.pw-title{font-family:var(--display);font-size:clamp(36px,4vw,56px);font-weight:900;letter-spacing:-.04em;line-height:.92;color:var(--ink);text-transform:uppercase;margin-bottom:0}
+.pw-mid{padding:0 48px;border-left:1px solid var(--line)}
+.pw-label{font-family:var(--mono);font-size:8px;letter-spacing:.42em;text-transform:uppercase;color:var(--r);margin-bottom:16px;margin-top:0}
+.pw-concept{font-size:15px;line-height:1.75;color:var(--ink-d);margin-bottom:40px;max-width:580px}
+.pw-for-list{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:40px}
+.pw-for-tag{font-family:var(--mono);font-size:8px;letter-spacing:.16em;color:var(--ink-d);padding:5px 10px;border:1px solid rgba(255,255,255,.1)}
+.pw-vibe-list{display:flex;flex-wrap:wrap;gap:8px}
+.pw-vibe-tag{font-family:var(--mono);font-size:8px;letter-spacing:.16em;color:rgba(255,255,255,.3);padding:4px 0}
+.pw-right{padding-left:48px;border-left:1px solid var(--line)}
+.pw-pressure-label{font-family:var(--mono);font-size:8px;letter-spacing:.42em;text-transform:uppercase;color:var(--r);margin-bottom:24px}
+.pw-pressure-row{padding:16px 0;border-bottom:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;gap:5px}
+.pw-pressure-row:first-of-type{border-top:1px solid rgba(255,255,255,.06)}
+.pw-pressure-name{font-family:var(--display);font-size:18px;font-weight:700;letter-spacing:-.01em;color:var(--ink);text-transform:uppercase}
+.pw-pressure-sub{font-family:var(--mono);font-size:8px;letter-spacing:.12em;color:var(--ink-d)}
+@media(max-width:1100px){.pw-card{grid-template-columns:1fr 1fr;row-gap:48px}.pw-right{grid-column:1;grid-row:2;border-left:none;padding-left:0;border-top:1px solid var(--line);padding-top:40px}.pw-mid{grid-column:2;grid-row:1 / 3}}
+@media(max-width:768px){.pw-card{grid-template-columns:1fr;row-gap:40px}.pw-mid{border-left:none;padding:0;grid-column:1;grid-row:2}.pw-right{grid-column:1;grid-row:3;padding-top:40px;border-top:1px solid var(--line)}.pw-section{padding:80px 24px 0}}
 </style>
 
-<section class="body-section">
+<section class="pw-section">
   <div class="section-eyebrow">[ pathways ]</div>
-  <h2 class="section-title">build your<br><span class="ink-r">session.</span></h2>
-  <div class="pathways-grid">
+  <h2 class="section-title">choose your<br><span class="ink-r">focus.</span></h2>
 
-    <!-- 01 FOCUS -->
-    <div class="pathway-step">
-      <div class="pathway-step-num">01</div>
-      <div class="pathway-step-title">Choose your focus</div>
-      <div class="pathway-option">
-        <div class="pathway-option-name">Recover</div>
-        <div class="pathway-option-sub">Reduce soreness. Recover faster.</div>
+  <!-- RECOVER -->
+  <div class="pw-card">
+    <div class="pw-left">
+      <div class="pw-num">01</div>
+      <div class="pw-title">Recover</div>
+    </div>
+    <div class="pw-mid">
+      <div class="pw-label">Concept</div>
+      <p class="pw-concept">A system reset after the effort. Slow, deliberate techniques reduce accumulated tension, calm the nervous system and restore natural movement. Long flowing strokes, sustained compressions, myofascial release, assisted mobility and restorative stretching help the body absorb training—not just survive it—leaving you lighter, looser and ready for tomorrow.</p>
+      <div class="pw-label">Designed for</div>
+      <div class="pw-for-list">
+        <span class="pw-for-tag">Post-training recovery</span><span class="pw-for-tag">Muscle fatigue</span><span class="pw-for-tag">Heavy legs</span><span class="pw-for-tag">Travel recovery</span><span class="pw-for-tag">Stress reduction</span><span class="pw-for-tag">Better sleep</span><span class="pw-for-tag">General restoration</span>
       </div>
-      <div class="pathway-option">
-        <div class="pathway-option-name">Perform</div>
-        <div class="pathway-option-sub">Prepare for training or competition.</div>
-      </div>
-      <div class="pathway-option">
-        <div class="pathway-option-name">Move</div>
-        <div class="pathway-option-sub">Improve mobility and movement.</div>
+      <div class="pw-label">Vibe</div>
+      <div class="pw-vibe-list">
+        <span class="pw-vibe-tag">Restorative</span><span class="pw-vibe-tag">·</span><span class="pw-vibe-tag">Grounding</span><span class="pw-vibe-tag">·</span><span class="pw-vibe-tag">Calming</span><span class="pw-vibe-tag">·</span><span class="pw-vibe-tag">Recharging</span><span class="pw-vibe-tag">·</span><span class="pw-vibe-tag">Restoring</span>
       </div>
     </div>
-
-    <!-- 02 TIME -->
-    <div class="pathway-step">
-      <div class="pathway-step-num">02</div>
-      <div class="pathway-step-title">Choose your time</div>
-      <div class="pathway-option">
-        <div class="pathway-option-name">30 min</div>
-        <div class="pathway-option-price">IDR 400K</div>
-      </div>
-      <div class="pathway-option">
-        <div class="pathway-option-name">45 min</div>
-        <div class="pathway-option-price">IDR 550K</div>
-      </div>
-      <div class="pathway-option">
-        <div class="pathway-option-name">60 min <span class="pop">Most Popular</span></div>
-        <div class="pathway-option-price">IDR 650K</div>
-      </div>
-      <div class="pathway-option">
-        <div class="pathway-option-name">90 min</div>
-        <div class="pathway-option-price">IDR 900K</div>
-      </div>
+    <div class="pw-right">
+      <div class="pw-pressure-label">Pressure</div>
+      <div class="pw-pressure-row"><div class="pw-pressure-name">Light</div><div class="pw-pressure-sub">Gentle recovery.</div></div>
+      <div class="pw-pressure-row"><div class="pw-pressure-name">Medium</div><div class="pw-pressure-sub">Balanced pressure.</div></div>
+      <div class="pw-pressure-row"><div class="pw-pressure-name">Firm</div><div class="pw-pressure-sub">Deep muscle release.</div></div>
     </div>
-
-    <!-- 03 PRESSURE -->
-    <div class="pathway-step">
-      <div class="pathway-step-num">03</div>
-      <div class="pathway-step-title">Choose your pressure</div>
-      <div class="pathway-option">
-        <div class="pathway-option-name">Light</div>
-        <div class="pathway-option-sub">Gentle recovery.</div>
-      </div>
-      <div class="pathway-option">
-        <div class="pathway-option-name">Medium</div>
-        <div class="pathway-option-sub">Balanced pressure.</div>
-      </div>
-      <div class="pathway-option">
-        <div class="pathway-option-name">Firm</div>
-        <div class="pathway-option-sub">Deep muscle release.</div>
-      </div>
-    </div>
-
   </div>
+
+  <!-- PERFORM -->
+  <div class="pw-card">
+    <div class="pw-left">
+      <div class="pw-num">02</div>
+      <div class="pw-title">Perform</div>
+    </div>
+    <div class="pw-mid">
+      <div class="pw-label">Concept</div>
+      <p class="pw-concept">An engine tune before the work begins. Pulse-driven, rhythmic techniques increase circulation, reduce stiffness and prepare the body to move with speed, strength and precision. Dynamic compressions, sweeping strokes, joint mobilisation and targeted activation leave muscles awake, responsive and ready to perform.</p>
+      <div class="pw-label">Designed for</div>
+      <div class="pw-for-list">
+        <span class="pw-for-tag">Pre-workout preparation</span><span class="pw-for-tag">Competition</span><span class="pw-for-tag">HYROX</span><span class="pw-for-tag">Running</span><span class="pw-for-tag">Strength training</span><span class="pw-for-tag">Surfing</span><span class="pw-for-tag">Performance readiness</span>
+      </div>
+      <div class="pw-label">Vibe</div>
+      <div class="pw-vibe-list">
+        <span class="pw-vibe-tag">Energising</span><span class="pw-vibe-tag">·</span><span class="pw-vibe-tag">Activating</span><span class="pw-vibe-tag">·</span><span class="pw-vibe-tag">Priming</span><span class="pw-vibe-tag">·</span><span class="pw-vibe-tag">Powerful</span><span class="pw-vibe-tag">·</span><span class="pw-vibe-tag">Performance-focused</span>
+      </div>
+    </div>
+    <div class="pw-right">
+      <div class="pw-pressure-label">Pressure</div>
+      <div class="pw-pressure-row"><div class="pw-pressure-name">Light</div><div class="pw-pressure-sub">Gentle recovery.</div></div>
+      <div class="pw-pressure-row"><div class="pw-pressure-name">Medium</div><div class="pw-pressure-sub">Balanced pressure.</div></div>
+      <div class="pw-pressure-row"><div class="pw-pressure-name">Firm</div><div class="pw-pressure-sub">Deep muscle release.</div></div>
+    </div>
+  </div>
+
+  <!-- MOVE -->
+  <div class="pw-card">
+    <div class="pw-left">
+      <div class="pw-num">03</div>
+      <div class="pw-title">Move</div>
+    </div>
+    <div class="pw-mid">
+      <div class="pw-label">Concept</div>
+      <p class="pw-concept">Movement without restriction. Designed to restore quality of motion, reduce compensations and improve how your body moves every day. Focused release, joint mobilisation, assisted stretching and movement-based techniques create lasting freedom through every stride, lift and rotation.</p>
+      <div class="pw-label">Designed for</div>
+      <div class="pw-for-list">
+        <span class="pw-for-tag">Mobility improvement</span><span class="pw-for-tag">Flexibility</span><span class="pw-for-tag">Injury prevention</span><span class="pw-for-tag">Desk workers</span><span class="pw-for-tag">Functional movement</span><span class="pw-for-tag">Joint stiffness</span><span class="pw-for-tag">Everyday performance</span>
+      </div>
+      <div class="pw-label">Vibe</div>
+      <div class="pw-vibe-list">
+        <span class="pw-vibe-tag">Fluid</span><span class="pw-vibe-tag">·</span><span class="pw-vibe-tag">Balanced</span><span class="pw-vibe-tag">·</span><span class="pw-vibe-tag">Mobile</span><span class="pw-vibe-tag">·</span><span class="pw-vibe-tag">Functional</span><span class="pw-vibe-tag">·</span><span class="pw-vibe-tag">Free</span>
+      </div>
+    </div>
+    <div class="pw-right">
+      <div class="pw-pressure-label">Pressure</div>
+      <div class="pw-pressure-row"><div class="pw-pressure-name">Light</div><div class="pw-pressure-sub">Gentle recovery.</div></div>
+      <div class="pw-pressure-row"><div class="pw-pressure-name">Medium</div><div class="pw-pressure-sub">Balanced pressure.</div></div>
+      <div class="pw-pressure-row"><div class="pw-pressure-name">Firm</div><div class="pw-pressure-sub">Deep muscle release.</div></div>
+    </div>
+  </div>
+
+  <!-- COMPRESSION BOOTS -->
+  <div class="pw-card">
+    <div class="pw-left">
+      <div class="pw-num">04</div>
+      <div class="pw-title">Compression<br>Boots</div>
+    </div>
+    <div class="pw-mid">
+      <div class="pw-label">Concept</div>
+      <p class="pw-concept">Rhythmic air compression designed to accelerate recovery without slowing you down. Graduated pressure gently moves from the feet upward, encouraging circulation, reducing post-exercise heaviness and supporting the body's natural recovery process. A simple, effortless reset that leaves your legs feeling lighter, fresher and ready for what's next.</p>
+      <div class="pw-label">Designed for</div>
+      <div class="pw-for-list">
+        <span class="pw-for-tag">Post-training recovery</span><span class="pw-for-tag">Heavy legs</span><span class="pw-for-tag">Running</span><span class="pw-for-tag">HYROX</span><span class="pw-for-tag">Cycling</span><span class="pw-for-tag">Travel recovery</span><span class="pw-for-tag">Swelling reduction</span><span class="pw-for-tag">Recovery between sessions</span>
+      </div>
+      <div class="pw-label">Vibe</div>
+      <div class="pw-vibe-list">
+        <span class="pw-vibe-tag">Refreshing</span><span class="pw-vibe-tag">·</span><span class="pw-vibe-tag">Restorative</span><span class="pw-vibe-tag">·</span><span class="pw-vibe-tag">Lightening</span><span class="pw-vibe-tag">·</span><span class="pw-vibe-tag">Rejuvenating</span><span class="pw-vibe-tag">·</span><span class="pw-vibe-tag">Effortless</span>
+      </div>
+    </div>
+    <div class="pw-right">
+      <div class="pw-pressure-label">Pressure</div>
+      <div class="pw-pressure-row"><div class="pw-pressure-name">Light</div><div class="pw-pressure-sub">Gentle recovery.</div></div>
+      <div class="pw-pressure-row"><div class="pw-pressure-name">Medium</div><div class="pw-pressure-sub">Balanced pressure.</div></div>
+      <div class="pw-pressure-row"><div class="pw-pressure-name">Firm</div><div class="pw-pressure-sub">Deep muscle release.</div></div>
+    </div>
+  </div>
+
+</section>
+
+<!-- TIME / PRICING -->
+<section class="body-section" style="padding-top:80px;padding-bottom:80px">
+  <div class="section-eyebrow">[ session length ]</div>
+  <h2 class="section-title" style="margin-bottom:40px">choose your<br><span class="ink-r">time.</span></h2>
+  <div class="pathways-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line)">
+    <div class="pathway-step" style="background:var(--b);padding:40px 36px 48px">
+      <div style="font-family:var(--display);font-size:clamp(28px,3vw,40px);font-weight:900;letter-spacing:-.03em;color:var(--ink);margin-bottom:8px">30 min</div>
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:var(--r)">IDR 400K</div>
+    </div>
+    <div class="pathway-step" style="background:var(--b);padding:40px 36px 48px">
+      <div style="font-family:var(--display);font-size:clamp(28px,3vw,40px);font-weight:900;letter-spacing:-.03em;color:var(--ink);margin-bottom:8px">45 min</div>
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:var(--r)">IDR 550K</div>
+    </div>
+    <div class="pathway-step" style="background:var(--b);padding:40px 36px 48px;position:relative">
+      <div style="font-family:var(--mono);font-size:7px;letter-spacing:.28em;color:var(--r);margin-bottom:10px;text-transform:uppercase">Most Popular</div>
+      <div style="font-family:var(--display);font-size:clamp(28px,3vw,40px);font-weight:900;letter-spacing:-.03em;color:var(--ink);margin-bottom:8px">60 min</div>
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:var(--r)">IDR 650K</div>
+    </div>
+    <div class="pathway-step" style="background:var(--b);padding:40px 36px 48px">
+      <div style="font-family:var(--display);font-size:clamp(28px,3vw,40px);font-weight:900;letter-spacing:-.03em;color:var(--ink);margin-bottom:8px">90 min</div>
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:var(--r)">IDR 900K</div>
+    </div>
+  </div>
+</section>
+
+<section class="body-section" style="display:none">
 
   <!-- ─── SIGNATURE ─── -->
   <div class="signature-block">
