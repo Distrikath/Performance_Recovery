@@ -1624,6 +1624,25 @@ h1,
 #panel-recovery .rf-split-title{font-family:'Archivo',sans-serif !important;font-weight:700 !important;font-size:30px !important;letter-spacing:-.02em !important;color:#0A0A0A !important;text-transform:none !important;}
 .clin-nurse-banner{display:flex;align-items:center;gap:12px;padding:13px 18px;border-bottom:1px solid #e8e8e8;background:#fafafa;font-family:'Space Mono',monospace;font-size:11.5px;color:#56565b;}
 .clin-nurse-banner b{color:#0A0A0A;font-weight:700;}
+/* Online booking requests */
+.onreq-bar{border-bottom:2px solid #ddd6fe;padding:10px 14px 14px;background:#f5f3ff;}
+.onreq-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.onreq-title{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#7c3aed;}
+.onreq-badge{background:#7c3aed;color:#fff;border-radius:100px;font-family:'Space Mono',monospace;font-size:10px;padding:2px 9px;min-width:22px;text-align:center;}
+.onreq-refresh{margin-left:auto;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.08em;color:#7c3aed;background:#fff;border:1px solid #c4b5fd;border-radius:4px;padding:4px 10px;cursor:pointer;}
+.onreq-card{background:#fff;border:1px solid #e0d8f8;border-radius:6px;padding:10px 12px;display:flex;align-items:flex-start;gap:12px;margin-bottom:8px;}
+.onreq-card:last-child{margin-bottom:0;}
+.onreq-info{flex:1;display:flex;flex-direction:column;gap:3px;}
+.onreq-pathway{font-family:'Archivo',sans-serif;font-weight:700;font-size:14px;letter-spacing:-.01em;color:#0A0A0A;}
+.onreq-pathway span{font-family:'Space Mono',monospace;font-weight:400;font-size:10px;color:#6b6b72;margin-left:8px;}
+.onreq-meta{font-family:'Space Mono',monospace;font-size:10px;color:#56565b;letter-spacing:.04em;}
+.onreq-client{font-family:'Space Mono',monospace;font-size:11px;color:#0A0A0A;letter-spacing:.03em;}
+.onreq-ref{font-family:'Space Mono',monospace;font-size:9px;color:#c4b5fd;letter-spacing:.06em;}
+.onreq-actions{display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex-shrink:0;}
+.onreq-btn{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;border-radius:4px;padding:6px 12px;cursor:pointer;border:none;white-space:nowrap;text-decoration:none;display:inline-block;text-align:center;}
+.onreq-btn.accept{background:#7c3aed;color:#fff;}
+.onreq-btn.wa{background:#25D366;color:#fff;}
+.onreq-btn.decline{background:#f5f5f5;color:#9a9a9e;border:1px solid #e0e0e0;}
 .clin-nb-dot{width:8px;height:8px;border-radius:50%;background:#FF2D2D;flex-shrink:0;}
 .clin-nb-tag{margin-left:auto;font-size:10px;letter-spacing:.1em;text-transform:uppercase;border:1px solid #0A0A0A;color:#0A0A0A;padding:5px 9px;white-space:nowrap;}
 .clin-datebar{display:flex;align-items:center;padding:11px 20px;border-bottom:1px solid #e8e8e8;background:#fff;}
@@ -2191,6 +2210,17 @@ h1,
     <span><b>Clinical bookings — nurse windows only.</b>&nbsp; Next: Tue · Thu · Sat · 09:00–14:00</span>
     <span class="clin-nb-tag">Partner · ClinicTerrain</span>
   </div>
+
+  <!-- Online Booking Requests -->
+  <div id="online-requests-bar" class="onreq-bar" style="display:none">
+    <div class="onreq-header">
+      <span class="onreq-title">● Website Requests</span>
+      <span class="onreq-badge" id="onreq-count">0</span>
+      <button class="onreq-refresh" onclick="loadOnlineRequests()">↻ Refresh</button>
+    </div>
+    <div id="onreq-list"></div>
+  </div>
+
   <div class="clin-datebar">
     <button onclick="clinChangeDate(-1)" class="clin-datebtn">‹ Prev</button>
     <div class="clin-date-center">
@@ -9711,8 +9741,72 @@ function renderTodayBookings(){
   }).join('');
 }
 
-function initRecovery(){ if(typeof loadClinical==='function') loadClinical(); clinSel=null;clinType=null;clinIntake=false;clinWindow=null;clinRoom=null;clinPay='card';clinDone=false;clinDoneHold=false;clinEditingId=null;clinEditingDate=null;clinOnline=false;clinPressure='';clinPayType='full';clinPatient='';clinEmail='';clinWhatsapp='';clinTime=''; clinDate=(typeof baliNow==='function'?baliNow():new Date()); clinViewYear=null;clinViewMonth=null; clinGroupOpen={recovery:true,clinical:true}; clinSyncDateUI(); renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); }
+function initRecovery(){ if(typeof loadClinical==='function') loadClinical(); clinSel=null;clinType=null;clinIntake=false;clinWindow=null;clinRoom=null;clinPay='card';clinDone=false;clinDoneHold=false;clinEditingId=null;clinEditingDate=null;clinOnline=false;clinPressure='';clinPayType='full';clinPatient='';clinEmail='';clinWhatsapp='';clinTime=''; clinDate=(typeof baliNow==='function'?baliNow():new Date()); clinViewYear=null;clinViewMonth=null; clinGroupOpen={recovery:true,clinical:true}; clinSyncDateUI(); renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); loadOnlineRequests(); }
 window.initRecovery=initRecovery;
+
+// ── Online Booking Requests (public_bookings Firestore collection) ──────
+function _escHtml(s){return(''+(s==null?'':s)).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function _getPublicDb(){try{return firebase.apps.length?firebase.apps[0].firestore():null;}catch(e){return null;}}
+
+function loadOnlineRequests(){
+  var db=_getPublicDb(); if(!db) return;
+  db.collection('public_bookings').where('status','==','pending')
+    .orderBy('submittedAt','desc').limit(50).get()
+    .then(function(snap){
+      var reqs=[];
+      snap.forEach(function(doc){var d=doc.data();d._id=doc.id;reqs.push(d);});
+      renderOnlineRequests(reqs);
+    }).catch(function(e){
+      console.warn('public_bookings read error:',e.message);
+    });
+}
+window.loadOnlineRequests=loadOnlineRequests;
+
+function renderOnlineRequests(reqs){
+  var bar=document.getElementById('online-requests-bar');
+  var list=document.getElementById('onreq-list');
+  var cnt=document.getElementById('onreq-count');
+  if(!bar||!list) return;
+  if(!reqs.length){bar.style.display='none';return;}
+  bar.style.display='';
+  if(cnt) cnt.textContent=reqs.length;
+  list.innerHTML=reqs.map(function(r){
+    var ph=(r.phone||'').replace(/\D/g,'');
+    var waMsg='Hi '+_escHtml(r.name)+', this is DISTRIK. confirming your '+_escHtml(r.pathway)+' session — '+r.duration+' min on '+r.date+' at '+r.time+'. We’ll see you at the Canggu lab! 🍊';
+    var waHref='https://wa.me/'+ph+'?text='+encodeURIComponent(waMsg);
+    return '<div class="onreq-card" data-id="'+r._id+'">'
+      +'<div class="onreq-info">'
+        +'<div class="onreq-pathway">'+_escHtml(r.pathway||'?')+'<span>'+r.duration+' min · '+_escHtml(r.pressure||'—')+' · '+_escHtml(r.price||'')+'</span></div>'
+        +'<div class="onreq-meta">'+_escHtml(r.date||'?')+' at '+_escHtml(r.time||'?')+'</div>'
+        +'<div class="onreq-client">'+_escHtml(r.name||'Unknown')+(r.phone?' &nbsp;·&nbsp; '+_escHtml(r.phone):'')+'</div>'
+        +'<div class="onreq-ref">ref: '+_escHtml(r.ref||r._id)+'</div>'
+      +'</div>'
+      +'<div class="onreq-actions">'
+        +(ph?'<a class="onreq-btn wa" href="'+waHref+'" target="_blank">WhatsApp ↗</a>':'')
+        +'<button class="onreq-btn accept" onclick="acceptOnlineBooking(\''+r._id+'\')">✓ Accept</button>'
+        +'<button class="onreq-btn decline" onclick="declineOnlineBooking(\''+r._id+'\')">Decline</button>'
+      +'</div>'
+    +'</div>';
+  }).join('');
+}
+
+function _onreqUpdateStatus(id,status){
+  var db=_getPublicDb(); if(!db) return;
+  var update={status:status};
+  try{update[status+'At']=firebase.firestore.FieldValue.serverTimestamp();}catch(e){}
+  db.collection('public_bookings').doc(id).update(update)
+    .then(function(){
+      var el=document.querySelector('#onreq-list [data-id="'+id+'"]');
+      if(el) el.remove();
+      var cnt=document.getElementById('onreq-count');
+      if(cnt){var n=Math.max(0,parseInt(cnt.textContent||'0')-1);cnt.textContent=n;if(n===0){var bar=document.getElementById('online-requests-bar');if(bar)bar.style.display='none';}}
+    }).catch(function(e){alert('Update failed: '+e.message);});
+}
+
+function acceptOnlineBooking(id){_onreqUpdateStatus(id,'confirmed');}
+function declineOnlineBooking(id){if(confirm('Decline this booking request?'))_onreqUpdateStatus(id,'declined');}
+window.acceptOnlineBooking=acceptOnlineBooking;
+window.declineOnlineBooking=declineOnlineBooking;
 
 function svcCard(s,type){
   var sel=(clinSel===s.id&&clinType===type);
