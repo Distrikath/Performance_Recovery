@@ -2651,6 +2651,25 @@ h1,
   </div>
 </div>
 
+<!-- ── CLEAR DAY CONFIRM ─────────────────────────────────── -->
+<div class="pl-modal" id="clearDayModal">
+  <div class="pl-modal-inner" style="max-width:360px">
+    <div style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:#FF2D2D;margin-bottom:10px;text-transform:uppercase">Clear day</div>
+    <div style="font-family:'Archivo',sans-serif;font-size:16px;font-weight:700;color:#f0f0f0;margin-bottom:6px">What do you want to clear?</div>
+    <div style="font-family:'Space Mono',monospace;font-size:9px;color:#555;letter-spacing:.5px;line-height:1.7;margin-bottom:20px">
+      <strong id="clearDayLabel" style="color:#ccc">Tuesday</strong> only — clears just this day's slots<br>
+      All 7 days — clears every day in the week
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="pl-ok" onclick="_performClearDay(false)" style="background:#333;flex:1">This day only</button>
+      <button class="pl-ok" onclick="_performClearDay(true)" style="background:#FF2D2D;flex:1">All 7 days</button>
+    </div>
+    <div style="margin-top:8px">
+      <button class="pl-cl" onclick="document.getElementById('clearDayModal').classList.remove('on')" style="width:100%;text-align:center">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── ROSTER PANEL ─────────────────────────────────────── -->
 <div class="panel on" id="panel-roster">
 <div class="rk-wrap">
@@ -3302,12 +3321,26 @@ document.addEventListener('mouseup',()=>{
 
 // Clear day
 function clearDay(){
-  if(!confirm(`Clear all ${DAYS[activeDay]} slots?`)) return;
-  const day=DAYS[activeDay];
-  getLeafZones().forEach(zone=>{
-    grid[day][zone.id]=Array.from({length:zone.rows},()=>Array(TOTAL_SLOTS).fill(null));
-  });
-  buildGrid(); buildTS();
+  const m=document.getElementById('clearDayModal');
+  document.getElementById('clearDayLabel').textContent=DAYS[activeDay];
+  if(m) m.classList.add('on');
+}
+function _performClearDay(allDays){
+  const m=document.getElementById('clearDayModal');
+  if(m) m.classList.remove('on');
+  if(allDays){
+    DAYS.forEach(day=>{
+      getLeafZones().forEach(zone=>{
+        grid[day][zone.id]=Array.from({length:zone.rows},()=>Array(TOTAL_SLOTS).fill(null));
+      });
+    });
+  } else {
+    const day=DAYS[activeDay];
+    getLeafZones().forEach(zone=>{
+      grid[day][zone.id]=Array.from({length:zone.rows},()=>Array(TOTAL_SLOTS).fill(null));
+    });
+  }
+  buildGrid(); buildTS(); saveAll();
 }
 
 // ── TIMESHEETS ────────────────────────────────────────────────────────────────
@@ -3474,11 +3507,7 @@ dropOnSlot = function(z,r,s){
   saveAll();
 };
 
-const _origClearDay = clearDay;
-clearDay = function(){
-  _origClearDay();
-  saveAll();
-};
+// clearDay now shows a modal; saveAll is called inside _performClearDay
 
 // Auto-save on P&L changes
 const _origRenderPL = renderPL;
