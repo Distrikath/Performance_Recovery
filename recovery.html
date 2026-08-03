@@ -970,7 +970,7 @@ function bkRenderCal(){
   for(var d=1;d<=dInMo;d++){
     var dt=new Date(y,mo,d);dt.setHours(0,0,0,0);
     var ds=y+'-'+('0'+(mo+1)).slice(-2)+'-'+('0'+d).slice(-2);
-    html+='<button class="bk-cal-day'+(bkState.date===ds?' sel':'')+'"'+(dt<minD?' disabled':'')+' onclick="bkPickDay(\''+ds+'\')">'+d+'</button>';
+    html+='<button class="bk-cal-day'+(bkState.date===ds?' sel':'')+'"'+((dt<minD||dt.getDay()===1)?' disabled':'')+' onclick="bkPickDay(\''+ds+'\')">'+d+'</button>';
   }
   cal.innerHTML=html+'</div>';
 }
@@ -994,7 +994,7 @@ function bkPickDay(ds){
   if(disp){disp.textContent=DOWS[dt.getDay()]+', '+dt.getDate()+' '+MONS[dt.getMonth()]+' '+dt.getFullYear();disp.classList.remove('empty');}
   bkRenderCal();
   var ts=document.getElementById('bk-therapist');
-  if(ts){ts.innerHTML='<option value="">any / no preference</option>';ts.value='';}
+  if(ts){ts.innerHTML='<option value="" disabled selected>choose your therapist</option>';ts.value='';}
   var tsect=document.getElementById('bk-therapist-sect');if(tsect)tsect.style.display='none';
   renderBkTimes();updateBkNext();
 }
@@ -1004,57 +1004,96 @@ var _bkRosterCache=null;
 var _DAY_NAMES=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 function _bkIsBreak(c){return typeof c==='string'&&c.startsWith('Break:');}
 function _bkStaffId(c){return c?(_bkIsBreak(c)?c.slice(6):c):null;}
-function _bkGetAvailSlots(rData,dateStr,durMins){
+function _bkGetAvailSlots(rData,dateStr,durMins,pathway){
   var SLOT_START=6;
-  var dow=new Date(dateStr+'T12:00:00').getDay(); // 0=Sun,6=Sat
+  var dow=new Date(dateStr+'T12:00:00').getDay();
   var dayName=_DAY_NAMES[dow];
   var isWeekend=(dow===0||dow===6);
-  // Read open/close from roster ZONE_HOURS — falls back to 10-22 if not set
-  var zOpen=10,zClose=22;
-  if(rData&&rData.ZONE_HOURS){
-    for(var zi=0;zi<rData.ZONE_HOURS.length;zi++){
-      if(rData.ZONE_HOURS[zi].id==='Therapy'){
-        var zh=rData.ZONE_HOURS[zi];
-        zOpen =isWeekend?(zh.weOpen !==undefined?zh.weOpen :zh.wdOpen) :zh.wdOpen;
-        zClose=isWeekend?(zh.weClose!==undefined?zh.weClose:zh.wdClose):zh.wdClose;
-        break;
+  var isCompression=(pathway==='COMPRESSION');
+  function zoneHours(zoneId){
+    var open=10,close=22;
+    if(rData&&rData.ZONE_HOURS){
+      for(var zi=0;zi<rData.ZONE_HOURS.length;zi++){
+        if(rData.ZONE_HOURS[zi].id===zoneId){
+          var zh=rData.ZONE_HOURS[zi];
+          open =isWeekend?(zh.weOpen !==undefined?zh.weOpen :zh.wdOpen) :zh.wdOpen;
+          close=isWeekend?(zh.weClose!==undefined?zh.weClose:zh.wdClose):zh.wdClose;
+          break;
+        }
       }
     }
+    return {open:open,close:close};
   }
-  var dayData=(rData&&rData.dailyOverrides&&rData.dailyOverrides[dateStr])||null;
-  var therapyRows=(dayData&&dayData['Therapy'])||
-    (rData&&rData.grid&&rData.grid[dayName]&&rData.grid[dayName]['Therapy'])||null;
-  var tStart=(zOpen-SLOT_START)*2,tEnd=(zClose-SLOT_START)*2,durSlots=Math.ceil(durMins/30);
-  // Only check Therapy group staff — never Operations / Management
-  var THERS=[];
-  if(rData&&rData.STAFF){
-    rData.STAFF.forEach(function(s){if(s.group==='Therapy'&&s.id)THERS.push(s.id);});
+  function zoneRows(zoneId){
+    var dayData=(rData&&rData.dailyOverrides&&rData.dailyOverrides[dateStr])||null;
+    return (dayData&&dayData[zoneId])||
+      (rData&&rData.grid&&rData.grid[dayName]&&rData.grid[dayName][zoneId])||null;
   }
-  // Fallback: scan grid for any IDs present when no Therapy group defined yet
-  if(THERS.length===0&&therapyRows){
-    therapyRows.forEach(function(row){
-      if(!row)return;
-      row.forEach(function(c){if(c&&!_bkIsBreak(c)&&THERS.indexOf(c)<0)THERS.push(c);});
+  function checkRows(rows,staffIds,si,durSlots){
+    var avail=[];
+    if(!rows||!staffIds||staffIds.length===0)return avail;
+    staffIds.forEach(function(tid){
+      rows.forEach(function(row){
+        if(!row||avail.indexOf(tid)>-1)return;
+        var ok=true;
+        for(var ss=si;ss<si+durSlots;ss++){var c=row[ss];if(!c||_bkIsBreak(c)||_bkStaffId(c)!==tid){ok=false;break;}}
+        if(ok)avail.push(tid);
+      });
     });
+    return avail;
   }
   var slots=[];
-  for(var si=tStart;si+durSlots<=tEnd;si++){
-    var h=SLOT_START+si*0.5,h12=Math.floor(h)%12||12,mn=h%1?30:0,ap=Math.floor(h)>=12?'pm':'am';
-    var lbl=h12+(mn?':30':':00')+ap;
-    var avail=[];
-    if(therapyRows&&THERS.length>0){
-      THERS.forEach(function(tid){
-        therapyRows.forEach(function(row){
-          if(!row||avail.indexOf(tid)>-1)return;
-          var ok=true;
-          for(var ss=si;ss<si+durSlots;ss++){var c=row[ss];if(!c||_bkIsBreak(c)||_bkStaffId(c)!==tid){ok=false;break;}}
-          if(ok)avail.push(tid);
-        });
-      });
-    } else if(!therapyRows){
-      avail=['any'];
+  if(isCompression){
+    var recH=zoneHours('Recovery');
+    var recRows=zoneRows('Recovery');
+    var therRows=zoneRows('Therapy');
+    var tStart=(recH.open-SLOT_START)*2,tEnd=(recH.close-SLOT_START)*2,durSlots=Math.ceil(durMins/30);
+    var FOH=[];
+    if(rData&&rData.STAFF){
+      rData.STAFF.forEach(function(s){if((s.group==='Operations'||s.group==='Management')&&s.id)FOH.push(s.id);});
     }
-    if(avail.length>0)slots.push({time:lbl,therapists:avail});
+    var THERS=[];
+    if(rData&&rData.STAFF){
+      rData.STAFF.forEach(function(s){if(s.group==='Therapy'&&s.id)THERS.push(s.id);});
+    }
+    for(var si=tStart;si+durSlots<=tEnd;si++){
+      var h=SLOT_START+si*0.5,h12=Math.floor(h)%12||12,mn=h%1?30:0,ap=Math.floor(h)>=12?'pm':'am';
+      var lbl=h12+(mn?':30':':00')+ap;
+      var therAvail=checkRows(therRows,THERS,si,durSlots);
+      var fohAvail=checkRows(recRows,FOH,si,durSlots);
+      var avail=therAvail.concat(fohAvail.filter(function(id){return therAvail.indexOf(id)<0;}));
+      if(avail.length>0)slots.push({time:lbl,therapists:avail});
+    }
+  } else {
+    var therH=zoneHours('Therapy');
+    var therapyRows=zoneRows('Therapy');
+    var tStart=(therH.open-SLOT_START)*2,tEnd=(therH.close-SLOT_START)*2,durSlots=Math.ceil(durMins/30);
+    var THERS=[];
+    if(rData&&rData.STAFF){
+      rData.STAFF.forEach(function(s){if(s.group==='Therapy'&&s.id)THERS.push(s.id);});
+    }
+    if(THERS.length===0&&therapyRows){
+      therapyRows.forEach(function(row){
+        if(!row)return;
+        row.forEach(function(c){if(c&&!_bkIsBreak(c)&&THERS.indexOf(c)<0)THERS.push(c);});
+      });
+    }
+    for(var si=tStart;si+durSlots<=tEnd;si++){
+      var h=SLOT_START+si*0.5,h12=Math.floor(h)%12||12,mn=h%1?30:0,ap=Math.floor(h)>=12?'pm':'am';
+      var lbl=h12+(mn?':30':':00')+ap;
+      var avail=[];
+      if(therapyRows&&THERS.length>0){
+        THERS.forEach(function(tid){
+          therapyRows.forEach(function(row){
+            if(!row||avail.indexOf(tid)>-1)return;
+            var ok=true;
+            for(var ss=si;ss<si+durSlots;ss++){var c=row[ss];if(!c||_bkIsBreak(c)||_bkStaffId(c)!==tid){ok=false;break;}}
+            if(ok)avail.push(tid);
+          });
+        });
+      }
+      if(avail.length>0)slots.push({time:lbl,therapists:avail});
+    }
   }
   return slots;
 }
@@ -1066,7 +1105,7 @@ function renderBkTimes(){
   function doRender(rData){
     if(rData&&rData.STAFF){rData.STAFF.forEach(function(s){if(s.id&&s.name)THER_NAMES[s.id]=s.name;});}
     wrap.innerHTML='';
-    var avSlots=_bkGetAvailSlots(rData,bkState.date,dur);
+    var avSlots=_bkGetAvailSlots(rData,bkState.date,dur,bkState.pathway);
     if(avSlots.length===0){
       wrap.innerHTML='<div class="bk-no-slots">no available slots on this date — please try another day or <a href="https://wa.me/6281994801516" target="_blank" style="color:rgba(242,242,240,.6)">contact us</a>.</div>';
       return;
@@ -1095,10 +1134,8 @@ function _bkUpdateTherapistOptions(therIds){
   var sel=document.getElementById('bk-therapist');if(!sel)return;
   var tsect=document.getElementById('bk-therapist-sect');
   bkState.therapist='';
-  if(!therIds||therIds[0]==='any'){
-    // No roster data — hide dropdown, auto-assign
+  if(!therIds||therIds.length===0){
     if(tsect)tsect.style.display='none';
-    bkState.therapist='any';
     updateBkNext();
     return;
   }
