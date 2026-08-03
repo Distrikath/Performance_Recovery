@@ -3543,14 +3543,30 @@ function loadAll(){
         if(zh) Object.assign(zh, saved);
       });
     }
-    // Restore STAFF names/colours/salaries
-    // Remove Fuel Staff 2 from any existing saved data
+    // Restore STAFF — update existing entries and re-add any new ones created in Settings
     if(data.STAFF) data.STAFF = data.STAFF.filter(s=>s.id !== 'SB');
-        if(data.STAFF && Array.isArray(data.STAFF)){
+    if(data.STAFF && Array.isArray(data.STAFF)){
       data.STAFF.forEach(saved => {
         const s = STAFF.find(st => st.id === saved.id);
-        if(s){ s.name=saved.name; s.abbr=saved.abbr; s.role=saved.role; s.col=saved.col; s.salary=saved.salary; }
+        if(s){
+          // Update all fields including group (group was previously not restored)
+          s.name=saved.name; s.abbr=saved.abbr; s.role=saved.role;
+          s.col=saved.col; s.salary=saved.salary;
+          if(saved.group) s.group=saved.group;
+          if(saved.pin)   s.pin=saved.pin;
+        } else {
+          // New staff added via Settings — re-add them to the live array
+          STAFF.push({
+            id:saved.id, name:saved.name||'Staff', abbr:saved.abbr||'ST',
+            role:saved.role||'Staff', col:saved.col||'#888',
+            salary:saved.salary||0, group:saved.group||'Operations',
+            pin:saved.pin||'1234'
+          });
+        }
       });
+      // Rebuild STAFF_MAP to include any newly added staff
+      Object.keys(STAFF_MAP).forEach(k=>delete STAFF_MAP[k]);
+      STAFF.forEach(s=>STAFF_MAP[s.id]=s);
     }
     console.log('Restored from', data.savedAt);
     return true;
