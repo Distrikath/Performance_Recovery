@@ -1134,7 +1134,7 @@ function updateBkNext(){
   var btn=document.getElementById('bk-next-btn');if(!btn)return;
   var s=bkState.step,ok=false;
   if(s===1)ok=!!bkState.pathway;
-  else if(s===2)ok=!!(bkState.duration&&bkState.date&&bkState.time&&bkState.therapist);
+  else if(s===2){ var ts=document.getElementById('bk-therapist-sect'); var therShown=ts&&ts.style.display!=='none'; ok=!!(bkState.duration&&bkState.date&&bkState.time&&(!therShown||bkState.therapist)); }
   else if(s===3)ok=!!bkState.pressure;
   else if(s===4)ok=!!bkState.name.trim();
   else if(s===5)ok=!!bkState.phone.trim();
