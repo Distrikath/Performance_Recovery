@@ -908,18 +908,14 @@ function setDateMin(){
 // ── Roster availability helpers ───────────────────────────────────────
 var _bkRosterCache=null;
 var _DAY_NAMES=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-function _bkWeekKey(ds){
-  var d=new Date(ds+'T12:00:00'),dy=d.getDay(),diff=dy===0?-6:1-dy;
-  var m=new Date(d);m.setDate(d.getDate()+diff);
-  return m.getFullYear()+'-'+('0'+(m.getMonth()+1)).slice(-2)+'-'+('0'+m.getDate()).slice(-2);
-}
 function _bkIsBreak(c){return typeof c==='string'&&c.startsWith('Break:');}
 function _bkStaffId(c){return c?(_bkIsBreak(c)?c.slice(6):c):null;}
 function _bkGetAvailSlots(rData,dateStr,durMins){
   var SLOT_START=6,dayName=_DAY_NAMES[new Date(dateStr+'T12:00:00').getDay()];
-  var weekKey=_bkWeekKey(dateStr);
-  var weekGrid=(rData&&rData.weeklyGrids&&rData.weeklyGrids[weekKey])||(rData&&rData.grid)||null;
-  var therapyRows=(weekGrid&&weekGrid[dayName]&&weekGrid[dayName]['Therapy'])||null;
+  // Try per-date override first (new format), then fall back to base template grid
+  var dayData=(rData&&rData.dailyOverrides&&rData.dailyOverrides[dateStr])||null;
+  var therapyRows=(dayData&&dayData['Therapy'])||
+    (rData&&rData.grid&&rData.grid[dayName]&&rData.grid[dayName]['Therapy'])||null;
   var tStart=(10-SLOT_START)*2,tEnd=(22-SLOT_START)*2,durSlots=Math.ceil(durMins/30);
   var THERS=['TA','TB','TC','TD'],slots=[];
   for(var si=tStart;si+durSlots<=tEnd;si++){

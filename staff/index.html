@@ -2792,8 +2792,9 @@ function emptyGrid(){
 }
 
 let grid=emptyGrid();
-let weeklyGrids={}; // {'2026-08-04': {Monday:{...}, Tuesday:{...}, ...}}
+let dailyOverrides={}; // {'2026-08-08': {Therapy:[[...]], ...}} — per specific calendar date
 let _baseGrid=null; // snapshot of default weekly template (set after populateDefaults)
+let _gridDirty=false; // true only when user actually edits; prevents browsing from auto-saving
 let activeDay=0; // will be set to today on roster open
 let rosterWeekOffset=0; // 0=current week, 1=next week, -1=last week
 
@@ -2816,24 +2817,24 @@ function getRosterDateForDay(dayIdx, offset){
   return d;
 }
 
-// Returns 'YYYY-MM-DD' for the Monday of the given week offset
-function getWeekKey(o){
-  const off = (o !== undefined) ? o : rosterWeekOffset;
-  const m = getRosterMonday(off);
-  const y = m.getFullYear();
-  const mo = ('0'+(m.getMonth()+1)).slice(-2);
-  const d = ('0'+m.getDate()).slice(-2);
-  return `${y}-${mo}-${d}`;
+// Returns 'YYYY-MM-DD' for a specific day index (0=Mon … 6=Sun) and week offset
+function getDateKey(dayIdx, weekOffset){
+  const di = (dayIdx !== undefined) ? dayIdx : activeDay;
+  const wo = (weekOffset !== undefined) ? weekOffset : rosterWeekOffset;
+  const d = getRosterDateForDay(di, wo);
+  return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);
 }
-// Snapshot current grid into weeklyGrids for the active week
-function _saveCurrentWeek(){
-  weeklyGrids[getWeekKey()] = JSON.parse(JSON.stringify(grid));
-}
-// Copy a week's stored grid (or the base template) into the live grid variable
-function _loadWeekIntoGrid(key){
-  const fallback = _baseGrid ? JSON.parse(JSON.stringify(_baseGrid)) : JSON.parse(JSON.stringify(grid));
-  const src = weeklyGrids[key] || fallback;
-  DAYS.forEach(day => { if(src[day]) grid[day] = src[day]; });
+// Fill grid from dailyOverrides (per-date) or base template; clears the dirty flag
+function loadGridFromData(){
+  _gridDirty = false;
+  DAYS.forEach((dayName, i) => {
+    const dateKey = getDateKey(i, rosterWeekOffset);
+    if(dailyOverrides[dateKey]){
+      grid[dayName] = JSON.parse(JSON.stringify(dailyOverrides[dateKey]));
+    } else {
+      grid[dayName] = _baseGrid ? JSON.parse(JSON.stringify(_baseGrid[dayName])) : emptyGrid()[dayName];
+    }
+  });
 }
 
 
@@ -2947,6 +2948,7 @@ function applyBreakAt(zone,row,slotIdx){
   }
   if(!nearSid) return false;
   grid[day][zone][row][slotIdx]='Break:'+staffId(nearSid);
+  _gridDirty = true;
   return true;
 }
 function startDragFromGrid(e,zone,row,slotStart,slotEnd,sId){
@@ -2991,7 +2993,7 @@ function dropOnSlot(zone,row,slotIdx){
   const sid=dragging.staffId;
 
   if(sid==='__break__'){
-    applyBreakAt(zone,row,slotIdx);
+    applyBreakAt(zone,row,slotIdx); // sets _gridDirty internally
     dragging.active=false; ghost.style.display='none';
     buildGrid(); buildTS(); buildBudget();
     return;
@@ -3015,6 +3017,7 @@ function dropOnSlot(zone,row,slotIdx){
   }
 
   dragging.active=false; ghost.style.display='none';
+  _gridDirty = true;
   buildGrid(); buildTS(); buildBudget();
 }
 
@@ -3029,18 +3032,20 @@ function clearSlot(zone,row,slotIdx){
     const cid=staffId(c);
     return cid===sid&&Math.abs(i-slotIdx)<=16?null:c;
   });
+  _gridDirty = true;
   buildGrid(); buildTS(); buildBudget();
 }
 
 // Click slot when staff selected from palette
 function clickSlot(zone,row,slotIdx){
   if(selectedStaff){
-    if(selectedStaff==='__break__'){ applyBreakAt(zone,row,slotIdx); buildGrid(); buildTS(); buildBudget(); return; }
+    if(selectedStaff==='__break__'){ applyBreakAt(zone,row,slotIdx); buildGrid(); buildTS(); buildBudget(); return; } // applyBreakAt sets dirty
     const day=DAYS[activeDay];
     const z=getLeafZones().find(z=>z.id===zone);
     const slotH=slotToH(slotIdx);
     if(z&&(slotH<z.start||slotH>=z.end))return;
     grid[day][zone][row][slotIdx]=selectedStaff;
+    _gridDirty = true;
     buildGrid(); buildTS(); buildBudget();
   }
 }
@@ -3059,6 +3064,7 @@ function clickBreakSlot(zone,row,slotIdx){
   }
   if(!nearSid)return;
   grid[day][zone][row][slotIdx]='Break:'+staffId(nearSid);
+  _gridDirty = true;
   buildGrid();
 }
 
@@ -3144,9 +3150,8 @@ function buildTabs(){
 }
 
 function rosterChangeWeek(dir){
-  _saveCurrentWeek();           // persist current week before switching
   rosterWeekOffset += dir;
-  _loadWeekIntoGrid(getWeekKey()); // load new week (or base template if unseen)
+  loadGridFromData(); // load per-date overrides (or template) for the new week; resets dirty flag
   buildTabs();
   buildGrid();
   buildTS();
@@ -3340,7 +3345,7 @@ document.addEventListener('mousemove',e=>{
   buildGrid();
 });
 document.addEventListener('mouseup',()=>{
-  if(resizing){resizing=null;document.body.style.cursor='';buildTS();}
+  if(resizing){resizing=null;document.body.style.cursor='';_gridDirty=true;buildTS();saveAll();}
 });
 
 // Clear day
@@ -3353,16 +3358,20 @@ function _performClearDay(allDays){
   const m=document.getElementById('clearDayModal');
   if(m) m.classList.remove('on');
   if(allDays){
-    DAYS.forEach(day=>{
+    // Clear every day of this specific week — write each date override independently
+    DAYS.forEach((day, i)=>{
       getLeafZones().forEach(zone=>{
         grid[day][zone.id]=Array.from({length:zone.rows},()=>Array(TOTAL_SLOTS).fill(null));
       });
+      dailyOverrides[getDateKey(i, rosterWeekOffset)] = JSON.parse(JSON.stringify(grid[day]));
     });
+    _gridDirty = false; // already written directly to dailyOverrides
   } else {
     const day=DAYS[activeDay];
     getLeafZones().forEach(zone=>{
       grid[day][zone.id]=Array.from({length:zone.rows},()=>Array(TOTAL_SLOTS).fill(null));
     });
+    _gridDirty = true; // let saveAll() write this day's override
   }
   buildGrid(); buildTS(); saveAll();
 }
@@ -3470,13 +3479,15 @@ const LS_KEY = 'distrik_v1';
 
 function saveAll(){
   try{
-    _saveCurrentWeek(); // keep weeklyGrids[currentWeekKey] in sync
-    // Save the base TEMPLATE (not the current week's data) as data.grid
-    // so that new, unseen weeks inherit the clean template, not whatever this week looks like
-    const gridToSave = _baseGrid || grid;
+    // Only write to dailyOverrides when user actually edited (dirty flag prevents browse-only saves)
+    if(_gridDirty){
+      const dateKey = getDateKey(activeDay, rosterWeekOffset);
+      dailyOverrides[dateKey] = JSON.parse(JSON.stringify(grid[DAYS[activeDay]]));
+      _gridDirty = false;
+    }
     localStorage.setItem(LS_KEY, JSON.stringify({
-      grid: gridToSave,
-      weeklyGrids,
+      grid: _baseGrid || grid, // always save base template, not current week
+      dailyOverrides,
       plEntries,
       sData,
       roomBookings,
@@ -3502,9 +3513,23 @@ function loadAll(){
       // data.grid IS the base template — keep _baseGrid in sync with it
       _baseGrid = JSON.parse(JSON.stringify(grid));
     }
-    // Restore per-week grids and load the currently viewed week
-    if(data.weeklyGrids) weeklyGrids = data.weeklyGrids;
-    _loadWeekIntoGrid(getWeekKey()); // uses rosterWeekOffset — correct even on sync-triggered reloads
+    // Restore per-date overrides; migrate from legacy weeklyGrids format if present
+    if(data.dailyOverrides){
+      dailyOverrides = data.dailyOverrides;
+    } else if(data.weeklyGrids){
+      // One-time migration: expand week snapshots into per-date overrides
+      Object.entries(data.weeklyGrids).forEach(([mondayKey, weekSnap])=>{
+        DAYS.forEach((dayName, i)=>{
+          if(weekSnap && weekSnap[dayName]){
+            const [y,mo,d]=mondayKey.split('-').map(Number);
+            const dt=new Date(y,mo-1,d+i);
+            const dk=dt.getFullYear()+'-'+('0'+(dt.getMonth()+1)).slice(-2)+'-'+('0'+dt.getDate()).slice(-2);
+            dailyOverrides[dk]=weekSnap[dayName];
+          }
+        });
+      });
+    }
+    loadGridFromData(); // fill grid from per-date overrides (or template) for current week
     if(data.plEntries)    plEntries    = data.plEntries;
     if(data.sData)        Object.assign(sData, data.sData);
     if(data.recoveryData) Object.assign(recoveryData, data.recoveryData);
@@ -8491,12 +8516,17 @@ function loadSalesDataFromStorage(){
 const TEMPLATE_KEY = 'distrik_roster_template';
 
 function saveAsTemplate(){
-  if(!confirm('Save current week as the base template? Future weeks with no data will default to this schedule.')) return;
-  _baseGrid = JSON.parse(JSON.stringify(grid)); // update in-memory template
-  localStorage.setItem(TEMPLATE_KEY, JSON.stringify(grid));
+  if(!confirm('Save current week layout as the base template?\n\nThis sets what future weeks look like by default.\nIt will NOT change any weeks that already have saved data.')) return;
+  // Snapshot the FULL week from grid (Mon-Sun) as the new base template
+  // We reconstruct a full-week snapshot using the current grid (which loadGridFromData filled)
+  const fullWeek = {};
+  DAYS.forEach(dayName => { fullWeek[dayName] = JSON.parse(JSON.stringify(grid[dayName])); });
+  _baseGrid = fullWeek; // new base — applies to any future date with no dailyOverrides entry
+  localStorage.setItem(TEMPLATE_KEY, JSON.stringify(fullWeek));
+  _gridDirty = false; // template save does not create a date override
   saveAll(); // persists _baseGrid as data.grid so new weeks inherit it
   const n=document.getElementById('notif');
-  if(n){n.textContent='Base template saved ✓ — future weeks will use this schedule';n.classList.add('on');setTimeout(()=>n.classList.remove('on'),3000);}
+  if(n){n.textContent='Base template saved ✓ — future weeks with no data will use this schedule';n.classList.add('on');setTimeout(()=>n.classList.remove('on'),3000);}
 }
 
 function loadTemplate(){
