@@ -443,6 +443,20 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
 .rc-step-num{font-family:var(--mono);font-size:9px;letter-spacing:.45em;color:var(--r)}
 .rc-step-title{font-family:var(--display);font-size:clamp(17px,2vw,24px);font-weight:900;letter-spacing:-.035em;text-transform:uppercase;color:var(--ink)}
 .rc-step-desc{font-family:var(--mono);font-size:10px;letter-spacing:.04em;color:var(--ink-d);line-height:1.8}
+.rc-focus-list{display:flex;flex-direction:column;margin-top:20px;border-top:1px solid var(--line)}
+.rc-focus-item{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--line);background:none;border-left:none;border-right:none;color:var(--ink);cursor:pointer;font-family:var(--display);font-weight:900;font-size:15px;letter-spacing:-.03em;text-transform:uppercase;transition:color .2s;width:100%;text-align:left}
+.rc-focus-item:hover{color:var(--r)}
+.rc-focus-arr{font-size:11px;color:var(--ink-dd);transition:transform .2s,color .2s;flex-shrink:0}
+.rc-focus-item:hover .rc-focus-arr{color:var(--r);transform:translateX(4px)}
+.rc-dur-list{display:flex;flex-direction:column;margin-top:20px;border-top:1px solid var(--line)}
+.rc-dur-row{display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--line)}
+.rc-dur-time{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--ink)}
+.rc-dur-price{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--r)}
+.rc-dur-divider{border-top:1px solid rgba(242,242,240,.04);margin:4px 0}
+.rc-pres-list{display:flex;flex-direction:column;margin-top:20px;border-top:1px solid var(--line)}
+.rc-pres-row{display:flex;justify-content:space-between;align-items:baseline;padding:10px 0;border-bottom:1px solid var(--line)}
+.rc-pres-name{font-family:var(--display);font-size:15px;font-weight:900;letter-spacing:-.03em;text-transform:uppercase;color:var(--ink)}
+.rc-pres-note{font-family:var(--mono);font-size:9px;letter-spacing:.04em;color:var(--ink-d)}
 .rc-cta{padding:80px 48px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:20px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
 .rc-cta-label{font-family:var(--mono);font-size:9px;letter-spacing:.45em;color:var(--ink-d);text-transform:lowercase}
 .rc-cta-btn{font-family:var(--mono);font-size:11px;letter-spacing:.35em;text-transform:uppercase;padding:22px 56px;background:transparent;border:1px solid var(--ink);color:var(--ink);cursor:pointer;transition:all .4s;display:inline-flex;align-items:center;gap:16px}
@@ -590,18 +604,38 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
 <div class="rc-steps">
   <div class="rc-step">
     <div class="rc-step-num">01</div>
-    <div class="rc-step-title">Focus</div>
-    <p class="rc-step-desc">Choose your pathway — Recover, Perform, Move, or Compression. Each one is a specific protocol built around what your body needs today.</p>
+    <div class="rc-step-title">Choose your focus</div>
+    <p class="rc-step-desc">Select your pathway based on what your body needs today.</p>
+    <div class="rc-focus-list">
+      <button class="rc-focus-item" onclick="openBkWith('RECOVER')">RECOVER <span class="rc-focus-arr">→</span></button>
+      <button class="rc-focus-item" onclick="openBkWith('PERFORM')">PERFORM <span class="rc-focus-arr">→</span></button>
+      <button class="rc-focus-item" onclick="openBkWith('MOVE')">MOVE <span class="rc-focus-arr">→</span></button>
+      <button class="rc-focus-item" onclick="openBkWith('COMPRESSION')">COMPRESSION <span class="rc-focus-arr">→</span></button>
+    </div>
   </div>
   <div class="rc-step">
     <div class="rc-step-num">02</div>
-    <div class="rc-step-title">Time</div>
-    <p class="rc-step-desc">Pick your duration — 30, 45, 60, or 90 minutes. Select a date and time that works and we'll lock in your slot.</p>
+    <div class="rc-step-title">Choose your time</div>
+    <p class="rc-step-desc">Pick the session length that works for you.</p>
+    <div class="rc-dur-list">
+      <div class="rc-dur-row"><span class="rc-dur-time">30 min</span><span class="rc-dur-price">IDR 400K</span></div>
+      <div class="rc-dur-row"><span class="rc-dur-time">45 min</span><span class="rc-dur-price">IDR 550K</span></div>
+      <div class="rc-dur-row"><span class="rc-dur-time">60 min</span><span class="rc-dur-price">IDR 650K</span></div>
+      <div class="rc-dur-row"><span class="rc-dur-time">90 min</span><span class="rc-dur-price">IDR 900K</span></div>
+      <div class="rc-dur-divider"></div>
+      <div class="rc-dur-row"><span class="rc-dur-time" style="color:var(--ink-d)">compression 20 min</span><span class="rc-dur-price">IDR 200K</span></div>
+      <div class="rc-dur-row"><span class="rc-dur-time" style="color:var(--ink-d)">compression 40 min</span><span class="rc-dur-price">IDR 400K</span></div>
+    </div>
   </div>
   <div class="rc-step">
     <div class="rc-step-num">03</div>
-    <div class="rc-step-title">Pressure</div>
-    <p class="rc-step-desc">Light, Medium, or Firm. Tell us how you want it to feel, add your details, and you're confirmed. Done in under two minutes.</p>
+    <div class="rc-step-title">Choose your pressure</div>
+    <p class="rc-step-desc">Tell us how you want it to feel and we match the technique to your preference.</p>
+    <div class="rc-pres-list">
+      <div class="rc-pres-row"><span class="rc-pres-name">LIGHT</span><span class="rc-pres-note">gentle recovery</span></div>
+      <div class="rc-pres-row"><span class="rc-pres-name">MEDIUM</span><span class="rc-pres-note">balanced pressure</span></div>
+      <div class="rc-pres-row"><span class="rc-pres-name">FIRM</span><span class="rc-pres-note">deep muscle release</span></div>
+    </div>
   </div>
 </div>
 
@@ -859,6 +893,11 @@ var BK_DURS={RECOVER:[{m:30,p:'IDR 400K'},{m:45,p:'IDR 550K'},{m:60,p:'IDR 650K'
 var THER_NAMES={};
 var _calState={year:0,month:0};
 
+function openBkWith(p){
+  openBk();
+  var el=document.getElementById('bkc-'+p);
+  if(el)pickPathway(el,p);
+}
 function openBk(){
   _bkRosterCache=null;
   _calState={year:0,month:0};
