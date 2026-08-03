@@ -6112,7 +6112,7 @@ function buildServicesList(){
         ${ROOMS.map(r=>`<option value="${r.id}" ${(svc.rooms||[]).includes(r.id)?'selected':''}>${r.name}</option>`).join('')}
       </select>
       <select class="svc-input" id="sv_therapists_${i}" multiple style="height:60px;">
-        ${STAFF.filter(s=>s.group==='Therapy'||s.group==='Management').map(s=>`<option value="${s.id}" ${(svc.therapists||[]).includes(s.id)?'selected':''}>${s.name}</option>`).join('')}
+        ${STAFF.map(s=>`<option value="${s.id}" ${(svc.therapists||[]).includes(s.id)?'selected':''}>${s.name}</option>`).join('')}
       </select>
       <button class="svc-del-btn" onclick="deleteService(${i})">✕</button>
     </div>`).join('');
