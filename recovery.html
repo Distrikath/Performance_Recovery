@@ -514,6 +514,8 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
 .bk-time-btn{border:1px solid rgba(242,242,240,.1);padding:10px 4px;cursor:pointer;transition:border-color .2s,background .2s;background:transparent;font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--ink);text-align:center;width:100%}
 .bk-time-btn:hover{border-color:rgba(242,242,240,.3)}
 .bk-time-btn.sel{border-color:var(--r);background:rgba(255,45,45,.05)}
+.bk-loading{grid-column:1/-1;font-family:var(--mono);font-size:9px;letter-spacing:1px;color:#666;text-transform:uppercase;padding:12px 0}
+.bk-no-slots{grid-column:1/-1;font-family:var(--mono);font-size:10px;color:#666;line-height:1.6;padding:12px 0}
 .bk-contact-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .bk-footer{padding:20px 36px;border-top:1px solid rgba(242,242,240,.07);display:flex;align-items:center;justify-content:space-between;position:sticky;bottom:0;background:#111}
 .bk-back{background:none;border:none;cursor:pointer;font-family:var(--mono);font-size:10px;letter-spacing:.32em;color:var(--ink-d);text-transform:lowercase;transition:color .2s}
@@ -832,9 +834,10 @@ var BK_DURS={RECOVER:[{m:30,p:'IDR 400K'},{m:45,p:'IDR 550K'},{m:60,p:'IDR 650K'
 var THER_NAMES={TA:'Head Therapist',TB:'Therapist 1',TC:'Therapist 2',TD:'Therapist 3'};
 
 function openBk(){
+  _bkRosterCache=null; // always fetch fresh roster when booking opens
   bkState={step:1,pathway:null,duration:null,price:null,pressure:null,date:null,time:null,therapist:'',name:'',phone:''};
   ['bk-date','bk-name','bk-phone'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
-  var ti=document.getElementById('bk-therapist');if(ti)ti.value='';
+  var ti=document.getElementById('bk-therapist');if(ti){ti.innerHTML='<option value="">any / no preference</option>';ti.value='';}
   document.querySelectorAll('.bk-card,.bk-dur').forEach(function(e){e.classList.remove('sel');});
   document.getElementById('bk-overlay').classList.add('open');
   document.body.style.overflow='hidden';
@@ -901,27 +904,86 @@ function setDateMin(){
   var t=new Date();t.setDate(t.getDate()+1);
   di.min=t.toISOString().split('T')[0];
 }
+
+// ── Roster availability helpers ───────────────────────────────────────
+var _bkRosterCache=null;
+var _DAY_NAMES=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+function _bkIsBreak(c){return typeof c==='string'&&c.startsWith('Break:');}
+function _bkStaffId(c){return c?(_bkIsBreak(c)?c.slice(6):c):null;}
+function _bkGetAvailSlots(rData,dateStr,durMins){
+  var SLOT_START=6,dayName=_DAY_NAMES[new Date(dateStr+'T12:00:00').getDay()];
+  // Try per-date override first (new format), then fall back to base template grid
+  var dayData=(rData&&rData.dailyOverrides&&rData.dailyOverrides[dateStr])||null;
+  var therapyRows=(dayData&&dayData['Therapy'])||
+    (rData&&rData.grid&&rData.grid[dayName]&&rData.grid[dayName]['Therapy'])||null;
+  var tStart=(10-SLOT_START)*2,tEnd=(22-SLOT_START)*2,durSlots=Math.ceil(durMins/30);
+  var THERS=['TA','TB','TC','TD'],slots=[];
+  for(var si=tStart;si+durSlots<=tEnd;si++){
+    var h=SLOT_START+si*0.5,h12=Math.floor(h)%12||12,mn=h%1?30:0,ap=Math.floor(h)>=12?'pm':'am';
+    var lbl=h12+(mn?':30':':00')+ap;
+    var avail=[];
+    if(therapyRows){
+      THERS.forEach(function(tid){
+        therapyRows.forEach(function(row){
+          if(avail.indexOf(tid)>-1)return;
+          var ok=true;
+          for(var s=si;s<si+durSlots;s++){var c=row[s];if(!c||_bkIsBreak(c)||_bkStaffId(c)!==tid){ok=false;break;}}
+          if(ok)avail.push(tid);
+        });
+      });
+    } else {
+      avail=['any']; // no roster loaded — show all slots, staff will assign
+    }
+    if(avail.length>0)slots.push({time:lbl,therapists:avail});
+  }
+  return slots;
+}
+
 function onBkDateChange(){
   var di=document.getElementById('bk-date');if(!di||!di.value)return;
-  bkState.date=di.value;bkState.time=null;
+  bkState.date=di.value;bkState.time=null;bkState.therapist='';
+  var ts=document.getElementById('bk-therapist');
+  if(ts){ts.innerHTML='<option value="">any / no preference</option>';ts.value='';}
   renderBkTimes();updateBkNext();
 }
 function renderBkTimes(){
   var wrap=document.getElementById('bk-time-wrap');if(!wrap)return;
-  wrap.innerHTML='';
+  wrap.innerHTML='<div class="bk-loading">checking availability...</div>';
   var dur=bkState.duration||60;
-  for(var m=600;m+dur<=1320;m+=30){
-    var h=Math.floor(m/60),mn=m%60,ap=h<12?'am':'pm',h12=h%12||12;
-    var lbl=h12+(mn?':30':':00')+ap;
-    var btn=document.createElement('button');
-    btn.className='bk-time-btn';btn.textContent=lbl;
-    btn.onclick=(function(l,b){return function(){
-      bkState.time=l;
-      document.querySelectorAll('.bk-time-btn').forEach(function(e){e.classList.remove('sel');});
-      b.classList.add('sel');updateBkNext();
-    };})(lbl,btn);
-    wrap.appendChild(btn);
+  function doRender(rData){
+    wrap.innerHTML='';
+    var avSlots=_bkGetAvailSlots(rData,bkState.date,dur);
+    if(avSlots.length===0){
+      wrap.innerHTML='<div class="bk-no-slots">no available slots on this date — please try another day or <a href="https://wa.me/6281994801516" target="_blank" style="color:rgba(242,242,240,.6)">contact us</a>.</div>';
+      return;
+    }
+    avSlots.forEach(function(slot){
+      var btn=document.createElement('button');
+      btn.className='bk-time-btn';btn.textContent=slot.time;
+      btn.onclick=(function(sl,b){return function(){
+        bkState.time=sl.time;
+        document.querySelectorAll('.bk-time-btn').forEach(function(e){e.classList.remove('sel');});
+        b.classList.add('sel');
+        _bkUpdateTherapistOptions(sl.therapists);
+        updateBkNext();
+      };})(slot,btn);
+      wrap.appendChild(btn);
+    });
   }
+  if(_bkRosterCache){doRender(_bkRosterCache);return;}
+  bkFdb().collection('distrik_state').doc('distrik_v1').get().then(function(doc){
+    try{_bkRosterCache=doc.exists?JSON.parse(doc.data().value||'{}'):{};}catch(e){_bkRosterCache={};}
+    doRender(_bkRosterCache);
+  }).catch(function(){_bkRosterCache={};doRender({});});
+}
+function _bkUpdateTherapistOptions(therIds){
+  var NAMES={TA:'Head Therapist',TB:'Therapist 1',TC:'Therapist 2',TD:'Therapist 3'};
+  var sel=document.getElementById('bk-therapist');if(!sel)return;
+  sel.innerHTML='<option value="">any / no preference</option>';
+  if(therIds&&therIds[0]!=='any'){
+    therIds.forEach(function(id){var o=document.createElement('option');o.value=id;o.textContent=NAMES[id]||id;sel.appendChild(o);});
+  }
+  bkState.therapist='';sel.value='';
 }
 function updateBkNext(){
   var btn=document.getElementById('bk-next-btn');if(!btn)return;
