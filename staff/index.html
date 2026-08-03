@@ -6151,7 +6151,7 @@ function addService(){
   SERVICES.push({id:'s'+Date.now(),name:'New Service',duration:60,buffer:15,price:0,commission:5,rooms:['room1','room2','room3']});
   buildServicesList();
 }
-function deleteService(i){ SERVICES.splice(i,1); buildServicesList(); }
+function deleteService(i){ SERVICES.splice(i,1); saveRFToStorage(); buildServicesList(); }
 
 function saveServices(){
   SERVICES.forEach((svc,i)=>{
@@ -11095,7 +11095,7 @@ window.showRoomCalendar=showRoomCalendar;
     try{
       if(k==='distrik_v1'){ var a=JSON.parse(L),b=JSON.parse(R); var o=Object.assign({},pl?a:b); o.fuelData=mDate(a.fuelData,b.fuelData,'transactions'); o.supplyData=mDate(a.supplyData,b.supplyData,'orders'); o.recoveryData=mDate(a.recoveryData,b.recoveryData,'bookings'); return JSON.stringify(o); }
       if(k==='distrik_supply'){ var a=JSON.parse(L),b=JSON.parse(R); var o=Object.assign({},pl?a:b); o.SUPPLY_SALES=mById(a.SUPPLY_SALES,b.SUPPLY_SALES); return JSON.stringify(o); }
-      if(k==='distrik_rf'){ var a=JSON.parse(L),b=JSON.parse(R); var o=Object.assign({},pl?a:b); var ds={}; Object.keys(a.bookings||{}).forEach(function(d){ds[d]=1;}); Object.keys(b.bookings||{}).forEach(function(d){ds[d]=1;}); var bk={}; Object.keys(ds).forEach(function(d){ bk[d]=mById((a.bookings||{})[d],(b.bookings||{})[d]); }); o.bookings=bk; return JSON.stringify(o); }
+      if(k==='distrik_rf'){ var a=JSON.parse(L),b=JSON.parse(R); var o=Object.assign({},pl?a:b); var ds={}; Object.keys(a.bookings||{}).forEach(function(d){ds[d]=1;}); Object.keys(b.bookings||{}).forEach(function(d){ds[d]=1;}); var bk={}; Object.keys(ds).forEach(function(d){ bk[d]=mById((a.bookings||{})[d],(b.bookings||{})[d]); }); o.bookings=bk; if(a.SERVICES)o.SERVICES=a.SERVICES; if(a.PACKAGES)o.PACKAGES=a.PACKAGES; if(a.ROOMS)o.ROOMS=a.ROOMS; return JSON.stringify(o); }
     }catch(e){ console.warn('[sync] merge',k,e); }
     return R;
   }
