@@ -444,10 +444,7 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
 .rc-step-title{font-family:var(--display);font-size:clamp(17px,2vw,24px);font-weight:900;letter-spacing:-.035em;text-transform:uppercase;color:var(--ink)}
 .rc-step-desc{font-family:var(--mono);font-size:10px;letter-spacing:.04em;color:var(--ink-d);line-height:1.8}
 .rc-focus-list{display:flex;flex-direction:column;margin-top:20px;border-top:1px solid var(--line)}
-.rc-focus-item{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--line);background:none;border-left:none;border-right:none;color:var(--ink);cursor:pointer;font-family:var(--display);font-weight:900;font-size:15px;letter-spacing:-.03em;text-transform:uppercase;transition:color .2s;width:100%;text-align:left}
-.rc-focus-item:hover{color:var(--r)}
-.rc-focus-arr{font-size:11px;color:var(--ink-dd);transition:transform .2s,color .2s;flex-shrink:0}
-.rc-focus-item:hover .rc-focus-arr{color:var(--r);transform:translateX(4px)}
+.rc-focus-item{padding:11px 0;border-bottom:1px solid var(--line);font-family:var(--display);font-weight:900;font-size:15px;letter-spacing:-.03em;text-transform:uppercase;color:var(--ink)}
 .rc-dur-list{display:flex;flex-direction:column;margin-top:20px;border-top:1px solid var(--line)}
 .rc-dur-row{display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--line)}
 .rc-dur-time{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--ink)}
@@ -607,10 +604,10 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
     <div class="rc-step-title">Choose your focus</div>
     <p class="rc-step-desc">Select your pathway based on what your body needs today.</p>
     <div class="rc-focus-list">
-      <button class="rc-focus-item" onclick="openBkWith('RECOVER')">RECOVER <span class="rc-focus-arr">→</span></button>
-      <button class="rc-focus-item" onclick="openBkWith('PERFORM')">PERFORM <span class="rc-focus-arr">→</span></button>
-      <button class="rc-focus-item" onclick="openBkWith('MOVE')">MOVE <span class="rc-focus-arr">→</span></button>
-      <button class="rc-focus-item" onclick="openBkWith('COMPRESSION')">COMPRESSION <span class="rc-focus-arr">→</span></button>
+      <div class="rc-focus-item">RECOVER</div>
+      <div class="rc-focus-item">PERFORM</div>
+      <div class="rc-focus-item">MOVE</div>
+      <div class="rc-focus-item">COMPRESSION</div>
     </div>
   </div>
   <div class="rc-step">
@@ -893,11 +890,6 @@ var BK_DURS={RECOVER:[{m:30,p:'IDR 400K'},{m:45,p:'IDR 550K'},{m:60,p:'IDR 650K'
 var THER_NAMES={};
 var _calState={year:0,month:0};
 
-function openBkWith(p){
-  openBk();
-  var el=document.getElementById('bkc-'+p);
-  if(el)pickPathway(el,p);
-}
 function openBk(){
   _bkRosterCache=null;
   _calState={year:0,month:0};
