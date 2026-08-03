@@ -1060,8 +1060,7 @@ function _bkGetAvailSlots(rData,dateStr,durMins,pathway){
       var h=SLOT_START+si*0.5,h12=Math.floor(h)%12||12,mn=h%1?30:0,ap=Math.floor(h)>=12?'pm':'am';
       var lbl=h12+(mn?':30':':00')+ap;
       var therAvail=checkRows(therRows,THERS,si,durSlots);
-      var fohAvail=checkRows(recRows,FOH,si,durSlots);
-      var avail=therAvail.concat(fohAvail.filter(function(id){return therAvail.indexOf(id)<0;}));
+      var avail=therAvail.length>0?therAvail:checkRows(recRows,FOH,si,durSlots);
       if(avail.length>0)slots.push({time:lbl,therapists:avail});
     }
   } else {
