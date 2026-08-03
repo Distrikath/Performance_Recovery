@@ -2689,10 +2689,10 @@ h1,
       </div>
       <div class="rk-actions">
         <button class="rk-ghost" id="tsbtn" onclick="toggleTS()">Timesheets</button>
-        <button class="rk-ghost" onclick="saveAsTemplate()" title="Save this week as the default base template">Save template</button>
-        <button class="rk-ghost" onclick="loadTemplate()" title="Reset active day to base template">Reset day</button>
+        <button class="rk-ghost" onclick="saveDay()" title="Save this specific date's roster (only this day)">Save day</button>
+        <button class="rk-ghost" onclick="copyDay()" title="Copy this day's roster to paste elsewhere">Copy day</button>
+        <button class="rk-ghost" id="pasteDayBtn" onclick="pasteDay()" title="Paste copied roster to this date" style="display:none">Paste day</button>
         <button class="rk-ghost danger" onclick="clearDay()">Clear day</button>
-        <button class="rk-ghost" onclick="resetSaved()">Reset all</button>
       </div>
     </div>
   </div>
@@ -3144,17 +3144,30 @@ function buildTabs(){
       btn.style.color = i === activeDay ? '#fff' : '#FF2D2D';
       btn.title = 'Today';
     }
-    btn.onclick = () => { activeDay = i; buildTabs(); buildGrid(); buildTS(); };
+    btn.onclick = () => {
+      _autoSaveDirty(); // save current day's edits before switching
+      activeDay = i;
+      loadGridFromData(); // load the specific date's override (or template) for the new active day
+      buildTabs(); buildGrid(); buildTS();
+    };
     el.appendChild(btn);
   });
 }
 
 function rosterChangeWeek(dir){
+  _autoSaveDirty(); // save current day before switching weeks
   rosterWeekOffset += dir;
-  loadGridFromData(); // load per-date overrides (or template) for the new week; resets dirty flag
-  buildTabs();
-  buildGrid();
-  buildTS();
+  loadGridFromData();
+  buildTabs(); buildGrid(); buildTS();
+}
+
+// Auto-save dirty state as a daily override for the currently active date
+function _autoSaveDirty(){
+  if(!_gridDirty) return;
+  const dateKey = getDateKey(activeDay, rosterWeekOffset);
+  dailyOverrides[dateKey] = JSON.parse(JSON.stringify(grid[DAYS[activeDay]]));
+  _gridDirty = false;
+  saveAll();
 }
 
 
@@ -8530,6 +8543,35 @@ function loadSalesDataFromStorage(){
 
 // ── BASE ROSTER TEMPLATE ─────────────────────────────────────────
 const TEMPLATE_KEY = 'distrik_roster_template';
+
+// Save ONLY this specific date's roster — does not touch any other day or the template
+function saveDay(){
+  const dateKey = getDateKey(activeDay, rosterWeekOffset);
+  dailyOverrides[dateKey] = JSON.parse(JSON.stringify(grid[DAYS[activeDay]]));
+  _gridDirty = false;
+  saveAll();
+  const n=document.getElementById('notif');
+  if(n){n.textContent=DAYS[activeDay]+' '+dateKey+' saved ✓';n.classList.add('on');setTimeout(()=>n.classList.remove('on'),2500);}
+}
+
+let _copiedDayGrid=null,_copiedDayLabel='';
+function copyDay(){
+  _copiedDayGrid = JSON.parse(JSON.stringify(grid[DAYS[activeDay]]));
+  _copiedDayLabel = DAYS[activeDay]+' '+getDateKey(activeDay, rosterWeekOffset);
+  const pb=document.getElementById('pasteDayBtn');if(pb)pb.style.display='';
+  const n=document.getElementById('notif');
+  if(n){n.textContent=_copiedDayLabel+' copied — go to another day and press Paste day';n.classList.add('on');setTimeout(()=>n.classList.remove('on'),4000);}
+}
+function pasteDay(){
+  if(!_copiedDayGrid){return;}
+  const toKey=getDateKey(activeDay, rosterWeekOffset);
+  if(!confirm('Paste '+_copiedDayLabel+' roster onto '+DAYS[activeDay]+' '+toKey+'?\nThis will replace the current roster for this date.')) return;
+  grid[DAYS[activeDay]] = JSON.parse(JSON.stringify(_copiedDayGrid));
+  _gridDirty = true;
+  buildGrid(); buildTS(); saveAll();
+  const n=document.getElementById('notif');
+  if(n){n.textContent='Roster pasted to '+DAYS[activeDay]+' '+toKey+' ✓';n.classList.add('on');setTimeout(()=>n.classList.remove('on'),2500);}
+}
 
 function saveAsTemplate(){
   if(!confirm('Save current week layout as the base template?\n\nThis sets what future weeks look like by default.\nIt will NOT change any weeks that already have saved data.')) return;
