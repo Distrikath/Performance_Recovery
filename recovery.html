@@ -1010,21 +1010,33 @@ function _bkGetAvailSlots(rData,dateStr,durMins){
   var therapyRows=(dayData&&dayData['Therapy'])||
     (rData&&rData.grid&&rData.grid[dayName]&&rData.grid[dayName]['Therapy'])||null;
   var tStart=(10-SLOT_START)*2,tEnd=(22-SLOT_START)*2,durSlots=Math.ceil(durMins/30);
-  var THERS=['TA','TB','TC','TD'],slots=[];
+  // Only check Therapy group staff — never Operations / Management
+  var THERS=[];
+  if(rData&&rData.STAFF){
+    rData.STAFF.forEach(function(s){if(s.group==='Therapy'&&s.id)THERS.push(s.id);});
+  }
+  // Fallback: scan grid for any IDs present when no Therapy group defined yet
+  if(THERS.length===0&&therapyRows){
+    therapyRows.forEach(function(row){
+      if(!row)return;
+      row.forEach(function(c){if(c&&!_bkIsBreak(c)&&THERS.indexOf(c)<0)THERS.push(c);});
+    });
+  }
+  var slots=[];
   for(var si=tStart;si+durSlots<=tEnd;si++){
     var h=SLOT_START+si*0.5,h12=Math.floor(h)%12||12,mn=h%1?30:0,ap=Math.floor(h)>=12?'pm':'am';
     var lbl=h12+(mn?':30':':00')+ap;
     var avail=[];
-    if(therapyRows){
+    if(therapyRows&&THERS.length>0){
       THERS.forEach(function(tid){
         therapyRows.forEach(function(row){
-          if(avail.indexOf(tid)>-1)return;
+          if(!row||avail.indexOf(tid)>-1)return;
           var ok=true;
           for(var ss=si;ss<si+durSlots;ss++){var c=row[ss];if(!c||_bkIsBreak(c)||_bkStaffId(c)!==tid){ok=false;break;}}
           if(ok)avail.push(tid);
         });
       });
-    } else {
+    } else if(!therapyRows){
       avail=['any'];
     }
     if(avail.length>0)slots.push({time:lbl,therapists:avail});
