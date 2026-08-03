@@ -9598,6 +9598,8 @@ var NURSE_WINDOW_SLOTS = ['Tue 09:30','Tue 11:00','Thu 10:00','Thu 12:30','Sat 0
 var clinSel=null, clinType=null, clinIntake=false, clinWindow=null, clinRoom=null, clinPay='card', clinDone=false, clinDoneHold=false;
 var clinEditingId=null, clinEditingDate=null;
 var clinOnline=false; // online booking → take 50% deposit, balance on arrival
+var clinPressure=''; // 'light' | 'medium' | 'firm'
+var clinPayType='full'; // 'deposit' | 'full'
 var clinPatient='', clinEmail='', clinWhatsapp='', clinTime='';
 var clinDate=(typeof baliNow==='function'?baliNow():new Date());
 var clinGroupOpen={recovery:true,clinical:true};
@@ -9709,7 +9711,7 @@ function renderTodayBookings(){
   }).join('');
 }
 
-function initRecovery(){ if(typeof loadClinical==='function') loadClinical(); clinSel=null;clinType=null;clinIntake=false;clinWindow=null;clinRoom=null;clinPay='card';clinDone=false;clinDoneHold=false;clinEditingId=null;clinEditingDate=null;clinOnline=false;clinPatient='';clinEmail='';clinWhatsapp='';clinTime=''; clinDate=(typeof baliNow==='function'?baliNow():new Date()); clinViewYear=null;clinViewMonth=null; clinGroupOpen={recovery:true,clinical:true}; clinSyncDateUI(); renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); }
+function initRecovery(){ if(typeof loadClinical==='function') loadClinical(); clinSel=null;clinType=null;clinIntake=false;clinWindow=null;clinRoom=null;clinPay='card';clinDone=false;clinDoneHold=false;clinEditingId=null;clinEditingDate=null;clinOnline=false;clinPressure='';clinPayType='full';clinPatient='';clinEmail='';clinWhatsapp='';clinTime=''; clinDate=(typeof baliNow==='function'?baliNow():new Date()); clinViewYear=null;clinViewMonth=null; clinGroupOpen={recovery:true,clinical:true}; clinSyncDateUI(); renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); }
 window.initRecovery=initRecovery;
 
 function svcCard(s,type){
@@ -9740,7 +9742,7 @@ function renderClinicalServices(){
     +'</div>'
     +'<div class="clin-acc-body'+(cOpen?' open':'')+'">'+cSvcs.map(function(s){return svcCard(s,'clinical');}).join('')+'</div>';
 }
-function selectService(id,type){ clinSel=id;clinType=type;clinIntake=false;clinWindow=null;clinRoom=null;clinDone=false;clinOnline=false;clinPatient='';clinEmail='';clinWhatsapp='';clinTime=''; renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); }
+function selectService(id,type){ clinSel=id;clinType=type;clinIntake=false;clinWindow=null;clinRoom=null;clinDone=false;clinOnline=false;clinPressure='';clinPayType='full';clinPatient='';clinEmail='';clinWhatsapp='';clinTime=''; renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); }
 window.selectService=selectService;
 
 // Which rooms can the currently-selected service be booked in (with roster therapist + eligibility)
@@ -9908,7 +9910,6 @@ function renderClinicalBooking(){
       +'<div class="clin-tagline"><span>Internal tag</span><span class="clin-tag">Clinical Partner</span></div>'
       +'</div>';
   } else {
-    var stepHdr='<div style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#56565b;margin:18px 0 10px;padding-top:14px;border-top:1px solid #f0f0f0;">5 · Client details</div>';
     var timeField;
     if(!clinRoom){
       timeField='<div class="clin-field"><label>4 · Time</label><div class="clin-placeholder" style="padding:8px 0;text-align:left;">Pick a room above first.</div></div>';
@@ -9923,13 +9924,26 @@ function renderClinicalBooking(){
           +'</div></div>';
       }
     }
+    var pressureSep='<div style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#56565b;margin:18px 0 10px;padding-top:14px;border-top:1px solid #f0f0f0;">5 · Pressure</div>';
+    var pressureBlock=pressureSep+'<div class="clin-windows">'
+      +[['light','Light · Gentle recovery'],['medium','Medium · Balanced pressure'],['firm','Firm · Deep tissue release']].map(function(p){ return '<button class="clin-win'+(clinPressure===p[0]?' sel':'')+'" onclick="clinSetPressure(\''+p[0]+'\')">'+p[1]+'</button>'; }).join('')
+      +'</div>';
+    var clientSep='<div style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#56565b;margin:18px 0 10px;padding-top:14px;border-top:1px solid #f0f0f0;">6 · Client details</div>';
+    var svcPrice=s.price||0, dep50=Math.round(svcPrice*0.5);
+    var paymentSep='<div style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#56565b;margin:18px 0 10px;padding-top:14px;border-top:1px solid #f0f0f0;">7 · Payment</div>';
+    var paymentBlock=paymentSep+'<div class="clin-windows">'
+      +'<button class="clin-win'+(clinPayType==='deposit'?' sel':'')+'" onclick="clinSetPayType(\'deposit\')">Deposit 50% · '+(typeof clinFmt==='function'?clinFmt(dep50):'IDR '+dep50)+'</button>'
+      +'<button class="clin-win'+(clinPayType==='full'?' sel':'')+'" onclick="clinSetPayType(\'full\')">Full · '+(typeof clinFmt==='function'?clinFmt(svcPrice):'IDR '+svcPrice)+'</button>'
+      +'</div>';
     el.innerHTML=renderClinMiniCal()+roomGridDiv+dateBar
       +'<div style="padding:0 16px 16px;">'
       +'<div class="clin-bk-hdr" style="margin-top:12px;">'+s.name+'</div>'
       +'<div class="clin-field"><label>3 · Room &amp; therapist</label>'+roomLine+'</div>'
       +timeField
-      +stepHdr
+      +pressureBlock
+      +clientSep
       +contactBlock
+      +paymentBlock
       +'</div>';
   }
   buildClinRoomGrid();
@@ -9954,9 +9968,12 @@ function renderClinicalOrder(){
       +'<div class="clin-oline sub"><span>Internal tag</span><span>Clinical Partner</span></div>';
   } else {
     var rt=clinRoom?roomTherapist(clinRoom):null;
+    var _svcP=(clinSvc()||{}).price||0;
     lines+=(clinRoom?'<div class="clin-oline sub"><span>Room</span><span>'+clinRoom+'</span></div>':'')
       +(rt?'<div class="clin-oline sub"><span>Therapist</span><span>'+rt.therapist+'</span></div>':'')
-      +(clinTime?'<div class="clin-oline sub"><span>Time</span><span>'+clinDate.toLocaleDateString('en-US',{weekday:'short'})+' '+clinTime+'</span></div>':'');
+      +(clinTime?'<div class="clin-oline sub"><span>Time</span><span>'+clinDate.toLocaleDateString('en-US',{weekday:'short'})+' '+clinTime+'</span></div>':'')
+      +(clinPressure?'<div class="clin-oline sub"><span>Pressure</span><span style="text-transform:capitalize;">'+clinPressure+'</span></div>':'')
+      +(clinPayType?'<div class="clin-oline sub"><span>Payment</span><span>'+(clinPayType==='deposit'?'Deposit 50% · '+(typeof clinFmt==='function'?clinFmt(Math.round(_svcP*0.5)):'IDR '+Math.round(_svcP*0.5)):'Full · '+(typeof clinFmt==='function'?clinFmt(_svcP):'IDR '+_svcP))+'</span></div>':'');
   }
   el.innerHTML=lines;
   var ob=document.getElementById('clin-online'); if(ob) ob.checked=clinOnline;
@@ -9968,14 +9985,15 @@ function updateClinicalTotals(base){
   var tax=0, total=base; // Recovery/spa & clinical: NON-PKP, no PBJT → no consumption tax
   clinSetText('clin-subtotal',clinFmt(base)); clinSetText('clin-tax',clinFmt(tax)); clinSetText('clin-total',clinFmt(total));
   var dep=Math.round(total*0.5), bal=total-dep;
+  var isDeposit=(clinPayType==='deposit')||clinOnline;
   var dl=document.getElementById('clin-deposit-lines');
-  if(dl) dl.innerHTML=(clinOnline&&clinSel)?('<div class="clin-deposit-line due"><span>Deposit due now (50%)</span><span>'+clinFmt(dep)+'</span></div><div class="clin-deposit-line bal"><span>Balance on arrival (50%)</span><span>'+clinFmt(bal)+'</span></div>'):'';
+  if(dl) dl.innerHTML=(isDeposit&&clinSel)?('<div class="clin-deposit-line due"><span>Deposit due now (50%)</span><span>'+clinFmt(dep)+'</span></div><div class="clin-deposit-line bal"><span>Balance on arrival (50%)</span><span>'+clinFmt(bal)+'</span></div>'):'';
   var btn=document.getElementById('clin-confirm-btn'); if(!btn) return;
   var conflict = (typeof clinCurrentConflict==='function') && clinCurrentConflict();
   var baseOk = (clinType==='clinical' ? (clinSel && clinRoom && clinWindow) : (clinSel && clinRoom && clinTime));
   var ok = baseOk && !conflict;
   btn.disabled=!ok;
-  var depTxt = clinOnline ? ('Take 50% deposit · '+clinFmt(dep)) : null;
+  var depTxt = isDeposit ? ('Take 50% deposit · '+clinFmt(dep)) : null;
   var readyTxt = depTxt || (clinEditingId?'Update booking':'Confirm booking');
   if(!clinSel) btn.textContent='Select a service';
   else if(conflict) btn.textContent = (clinType==='clinical'?'Chair':'Room')+' busy at that time';
@@ -9984,6 +10002,9 @@ function updateClinicalTotals(base){
 }
 function clinSetPay(m){ clinPay=m; ['clin-pay-card','clin-pay-qr'].forEach(function(id){ var b=document.getElementById(id); if(b) b.classList.toggle('active', id==='clin-pay-'+m); }); }
 window.clinSetPay=clinSetPay;
+function clinSetPressure(p){ clinPressure=p; renderClinicalBooking(); renderClinicalOrder(); }
+function clinSetPayType(t){ clinPayType=t; renderClinicalBooking(); renderClinicalOrder(); }
+window.clinSetPressure=clinSetPressure; window.clinSetPayType=clinSetPayType;
 // ── Double-booking guard ───────────────────────────────────────────
 // A room/chair is occupied for [start, start+duration+buffer). Held AND confirmed both block.
 function clinHasConflict(roomId, startHHMM, durationMin, excludeId){
@@ -10076,10 +10097,12 @@ function confirmClinical(){
     therapist:therapistId, therapistName:therapistName,
     start:startTime, time:startTime, duration:duration,
     client:patient, email:clinEmail||'', whatsapp:clinWhatsapp||'', phone:clinWhatsapp||'',
-    price:s.price, source:(clinOnline?'Online':'Walk-in'), status:(isHold?'hold':'confirmed'), payMethod:clinPay
+    price:s.price, pressure:clinPressure||null, payType:clinPayType||'full',
+    source:(clinOnline?'Online':'Walk-in'), status:(isHold?'hold':'confirmed'), payMethod:clinPay
   };
   if(clinType==='clinical'){ rec.clinical=true; rec.tag='ClinicTerrain'; rec.window=clinWindow; rec.intake=(clinIntake?'approved':'pending'); }
   if(clinOnline){ var _tot=s.price; rec.online=true; rec.deposit=Math.round(_tot*0.5); rec.balanceDue=_tot-Math.round(_tot*0.5); rec.balancePaid=false; }
+  else if(clinPayType==='deposit'){ rec.deposit=Math.round(s.price*0.5); rec.balanceDue=s.price-Math.round(s.price*0.5); rec.balancePaid=false; }
   try{
     // If editing an existing booking, remove the original first (reverse whatever revenue it contributed)
     if(clinEditingId){
@@ -10109,8 +10132,8 @@ function confirmClinical(){
 // Pre-tax revenue currently counted for a booking
 function clinCollected(b){
   if(!b) return 0;
-  if(b.status==='cancelled') return (b.online && b.forfeited) ? Math.round((b.price||0)*0.5) : 0;
-  if(b.online){ var dep=Math.round((b.price||0)*0.5); return dep + (b.balancePaid?((b.price||0)-dep):0); }
+  if(b.status==='cancelled') return ((b.online||b.payType==='deposit') && b.forfeited) ? Math.round((b.price||0)*0.5) : 0;
+  if(b.online||b.payType==='deposit'){ var dep=Math.round((b.price||0)*0.5); return dep + (b.balancePaid?((b.price||0)-dep):0); }
   if(b.status==='hold') return 0;
   return (b.price||0);
 }

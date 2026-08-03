@@ -897,10 +897,7 @@ function bkGoStep(n){
 function bkAdvance(){
   var s=bkState.step;
   if(s===1&&bkState.pathway){buildDurGrid();bkInitCal();bkGoStep(2);}
-  else if(s===2&&bkState.duration&&bkState.date&&bkState.time){
-    if(bkState.pathway==='COMPRESSION'){bkState.pressure='n/a';bkGoStep(4);}
-    else bkGoStep(3);
-  }
+  else if(s===2&&bkState.duration&&bkState.date&&bkState.time){bkGoStep(3);}
   else if(s===3&&bkState.pressure){bkGoStep(4);}
   else if(s===4&&bkState.name.trim()){bkGoStep(5);}
   else if(s===5&&bkState.phone.trim()){submitBk();}
@@ -909,7 +906,7 @@ function bkBack(){
   var s=bkState.step;
   if(s===2)bkGoStep(1);
   else if(s===3)bkGoStep(2);
-  else if(s===4){if(bkState.pathway==='COMPRESSION')bkGoStep(2);else bkGoStep(3);}
+  else if(s===4){bkGoStep(3);}
   else if(s===5)bkGoStep(4);
 }
 
