@@ -754,9 +754,9 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
         </div>
         <div class="bk-sect" id="bk-therapist-sect" style="display:none">
           <div class="bk-field">
-            <label>preferred therapist (optional)</label>
-            <select id="bk-therapist" onchange="bkState.therapist=this.value">
-              <option value="">any / no preference</option>
+            <label>therapist</label>
+            <select id="bk-therapist" onchange="bkState.therapist=this.value;updateBkNext()">
+              <option value="" disabled selected>choose your therapist</option>
             </select>
           </div>
         </div>
@@ -1005,11 +1005,26 @@ var _DAY_NAMES=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Sat
 function _bkIsBreak(c){return typeof c==='string'&&c.startsWith('Break:');}
 function _bkStaffId(c){return c?(_bkIsBreak(c)?c.slice(6):c):null;}
 function _bkGetAvailSlots(rData,dateStr,durMins){
-  var SLOT_START=6,dayName=_DAY_NAMES[new Date(dateStr+'T12:00:00').getDay()];
+  var SLOT_START=6;
+  var dow=new Date(dateStr+'T12:00:00').getDay(); // 0=Sun,6=Sat
+  var dayName=_DAY_NAMES[dow];
+  var isWeekend=(dow===0||dow===6);
+  // Read open/close from roster ZONE_HOURS — falls back to 10-22 if not set
+  var zOpen=10,zClose=22;
+  if(rData&&rData.ZONE_HOURS){
+    for(var zi=0;zi<rData.ZONE_HOURS.length;zi++){
+      if(rData.ZONE_HOURS[zi].id==='Therapy'){
+        var zh=rData.ZONE_HOURS[zi];
+        zOpen =isWeekend?(zh.weOpen !==undefined?zh.weOpen :zh.wdOpen) :zh.wdOpen;
+        zClose=isWeekend?(zh.weClose!==undefined?zh.weClose:zh.wdClose):zh.wdClose;
+        break;
+      }
+    }
+  }
   var dayData=(rData&&rData.dailyOverrides&&rData.dailyOverrides[dateStr])||null;
   var therapyRows=(dayData&&dayData['Therapy'])||
     (rData&&rData.grid&&rData.grid[dayName]&&rData.grid[dayName]['Therapy'])||null;
-  var tStart=(10-SLOT_START)*2,tEnd=(22-SLOT_START)*2,durSlots=Math.ceil(durMins/30);
+  var tStart=(zOpen-SLOT_START)*2,tEnd=(zClose-SLOT_START)*2,durSlots=Math.ceil(durMins/30);
   // Only check Therapy group staff — never Operations / Management
   var THERS=[];
   if(rData&&rData.STAFF){
@@ -1078,17 +1093,36 @@ function renderBkTimes(){
 }
 function _bkUpdateTherapistOptions(therIds){
   var sel=document.getElementById('bk-therapist');if(!sel)return;
-  sel.innerHTML='<option value="">any / no preference</option>';
-  if(therIds&&therIds[0]!=='any'){
-    therIds.forEach(function(id){var o=document.createElement('option');o.value=id;o.textContent=THER_NAMES[id]||id;sel.appendChild(o);});
+  var tsect=document.getElementById('bk-therapist-sect');
+  bkState.therapist='';
+  if(!therIds||therIds[0]==='any'){
+    // No roster data — hide dropdown, auto-assign
+    if(tsect)tsect.style.display='none';
+    bkState.therapist='any';
+    updateBkNext();
+    return;
   }
-  bkState.therapist='';sel.value='';
+  sel.innerHTML='<option value="" disabled selected>choose your therapist</option>';
+  therIds.forEach(function(id){
+    var o=document.createElement('option');
+    o.value=id;
+    o.textContent=THER_NAMES[id]||id;
+    sel.appendChild(o);
+  });
+  sel.value='';
+  if(tsect)tsect.style.display='';
+  // Auto-select if only one therapist available
+  if(therIds.length===1){
+    sel.value=therIds[0];
+    bkState.therapist=therIds[0];
+  }
+  updateBkNext();
 }
 function updateBkNext(){
   var btn=document.getElementById('bk-next-btn');if(!btn)return;
   var s=bkState.step,ok=false;
   if(s===1)ok=!!bkState.pathway;
-  else if(s===2)ok=!!(bkState.duration&&bkState.date&&bkState.time);
+  else if(s===2)ok=!!(bkState.duration&&bkState.date&&bkState.time&&bkState.therapist);
   else if(s===3)ok=!!bkState.pressure;
   else if(s===4)ok=!!bkState.name.trim();
   else if(s===5)ok=!!bkState.phone.trim();
