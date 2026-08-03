@@ -1237,10 +1237,8 @@ footer.contact-strip{
     <div class="ld-block">
       <div class="ld-label">[ status ]</div>
       <div class="ld-status"><span class="ld-dot"></span>operational</div>
-      <div class="ld-sub" style="margin-top:22px">opening</div>
+      <div class="ld-sub" style="margin-top:22px">since</div>
       <div class="ld-value">22.08.2026</div>
-      <div class="ld-sub" style="margin-top:22px">countdown</div>
-      <div class="ld-value" id="countdown">—d —h —m —s</div>
     </div>
   </div>
 
@@ -1472,7 +1470,12 @@ footer.contact-strip{
           contact
           <span class="menu-item-arrow">→</span>
         </a>
-        <a href="staff/" class="menu-item" style="opacity:0.25;font-size:0.75em;margin-top:8px;">
+        <a href="apply.html" class="menu-item">
+          <span class="menu-item-num">06</span>
+          work with us
+          <span class="menu-item-arrow">→</span>
+        </a>
+        <a href="staff/" class="menu-item" style="margin-top:16px;opacity:0.45;font-size:0.82em;">
           <span class="menu-item-num">—</span>
           staff access
           <span class="menu-item-arrow">→</span>
@@ -1805,22 +1808,6 @@ function updateLiveTime(){
 }
 updateLiveTime();
 setInterval(updateLiveTime, 1000);
-
-// Countdown to opening: August 22, 2026 00:00 WITA (which is August 21 2026 16:00 UTC)
-const OPENING = Date.UTC(2026, 7, 21, 16, 0, 0); // month is 0-indexed: 7 = August
-function updateCountdown(){
-  const el = document.getElementById('countdown');
-  if(!el) return;
-  const now = Date.now();
-  let diff = Math.max(0, OPENING - now);
-  const d = Math.floor(diff / 86400000); diff -= d * 86400000;
-  const h = Math.floor(diff / 3600000);  diff -= h * 3600000;
-  const m = Math.floor(diff / 60000);    diff -= m * 60000;
-  const s = Math.floor(diff / 1000);
-  el.textContent = `${String(d).padStart(3,'0')}d ${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
-}
-updateCountdown();
-setInterval(updateCountdown, 1000);
 
 /* ─── Hero text parallax fade on scroll ─── */
 const heroMark = document.getElementById('heroMark');
