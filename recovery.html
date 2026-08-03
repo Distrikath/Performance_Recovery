@@ -1005,26 +1005,15 @@ var _DAY_NAMES=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Sat
 function _bkIsBreak(c){return typeof c==='string'&&c.startsWith('Break:');}
 function _bkStaffId(c){return c?(_bkIsBreak(c)?c.slice(6):c):null;}
 function _bkGetAvailSlots(rData,dateStr,durMins,pathway){
-  var SLOT_START=6;
+  // Scan all 32 half-hour slots (6am–10pm, matching admin TOTAL_SLOTS=32, SLOT_START=6).
+  // Zone hours are NOT used to gate the window — the roster grid is the only source of truth.
+  // If a therapist's cell is filled at a slot they're available; if null/empty they're not.
+  var SLOT_START=6,TOTAL_BK=32;
   var dow=new Date(dateStr+'T12:00:00').getDay();
   var dayName=_DAY_NAMES[dow];
-  var isWeekend=(dow===0||dow===6);
   var isCompression=(pathway==='COMPRESSION');
-  function zoneHours(zoneId){
-    var open=10,close=22;
-    if(rData&&rData.ZONE_HOURS){
-      for(var zi=0;zi<rData.ZONE_HOURS.length;zi++){
-        if(rData.ZONE_HOURS[zi].id===zoneId){
-          var zh=rData.ZONE_HOURS[zi];
-          open =isWeekend?(zh.weOpen !==undefined?zh.weOpen :zh.wdOpen) :zh.wdOpen;
-          close=isWeekend?(zh.weClose!==undefined?zh.weClose:zh.wdClose):zh.wdClose;
-          break;
-        }
-      }
-    }
-    return {open:open,close:close};
-  }
   function zoneRows(zoneId){
+    // Prefer the specific daily override; fall back to base weekly template
     var dayData=(rData&&rData.dailyOverrides&&rData.dailyOverrides[dateStr])||null;
     return (dayData&&dayData[zoneId])||
       (rData&&rData.grid&&rData.grid[dayName]&&rData.grid[dayName][zoneId])||null;
@@ -1036,18 +1025,20 @@ function _bkGetAvailSlots(rData,dateStr,durMins,pathway){
       rows.forEach(function(row){
         if(!row||avail.indexOf(tid)>-1)return;
         var ok=true;
-        for(var ss=si;ss<si+durSlots;ss++){var c=row[ss];if(!c||_bkIsBreak(c)||_bkStaffId(c)!==tid){ok=false;break;}}
+        for(var ss=si;ss<si+durSlots;ss++){
+          var c=row[ss];
+          if(!c||_bkIsBreak(c)||_bkStaffId(c)!==tid){ok=false;break;}
+        }
         if(ok)avail.push(tid);
       });
     });
     return avail;
   }
   var slots=[];
+  var durSlots=Math.ceil(durMins/30);
   if(isCompression){
-    var recH=zoneHours('Recovery');
     var recRows=zoneRows('Recovery');
     var therRows=zoneRows('Therapy');
-    var tStart=(recH.open-SLOT_START)*2,tEnd=(recH.close-SLOT_START)*2,durSlots=Math.ceil(durMins/30);
     var FOH=[];
     if(rData&&rData.STAFF){
       rData.STAFF.forEach(function(s){if((s.group==='Operations'||s.group==='Management')&&s.id)FOH.push(s.id);});
@@ -1056,41 +1047,31 @@ function _bkGetAvailSlots(rData,dateStr,durMins,pathway){
     if(rData&&rData.STAFF){
       rData.STAFF.forEach(function(s){if(s.group==='Therapy'&&s.id)THERS.push(s.id);});
     }
-    for(var si=tStart;si+durSlots<=tEnd;si++){
+    for(var si=0;si+durSlots<=TOTAL_BK;si++){
       var h=SLOT_START+si*0.5,h12=Math.floor(h)%12||12,mn=h%1?30:0,ap=Math.floor(h)>=12?'pm':'am';
       var lbl=h12+(mn?':30':':00')+ap;
+      // Therapists first; FOH only for slots where no therapist is rostered
       var therAvail=checkRows(therRows,THERS,si,durSlots);
       var avail=therAvail.length>0?therAvail:checkRows(recRows,FOH,si,durSlots);
       if(avail.length>0)slots.push({time:lbl,therapists:avail});
     }
   } else {
-    var therH=zoneHours('Therapy');
     var therapyRows=zoneRows('Therapy');
-    var tStart=(therH.open-SLOT_START)*2,tEnd=(therH.close-SLOT_START)*2,durSlots=Math.ceil(durMins/30);
     var THERS=[];
     if(rData&&rData.STAFF){
       rData.STAFF.forEach(function(s){if(s.group==='Therapy'&&s.id)THERS.push(s.id);});
     }
+    // Fallback: scan grid for IDs when no Therapy group defined in STAFF yet
     if(THERS.length===0&&therapyRows){
       therapyRows.forEach(function(row){
         if(!row)return;
         row.forEach(function(c){if(c&&!_bkIsBreak(c)&&THERS.indexOf(c)<0)THERS.push(c);});
       });
     }
-    for(var si=tStart;si+durSlots<=tEnd;si++){
+    for(var si=0;si+durSlots<=TOTAL_BK;si++){
       var h=SLOT_START+si*0.5,h12=Math.floor(h)%12||12,mn=h%1?30:0,ap=Math.floor(h)>=12?'pm':'am';
       var lbl=h12+(mn?':30':':00')+ap;
-      var avail=[];
-      if(therapyRows&&THERS.length>0){
-        THERS.forEach(function(tid){
-          therapyRows.forEach(function(row){
-            if(!row||avail.indexOf(tid)>-1)return;
-            var ok=true;
-            for(var ss=si;ss<si+durSlots;ss++){var c=row[ss];if(!c||_bkIsBreak(c)||_bkStaffId(c)!==tid){ok=false;break;}}
-            if(ok)avail.push(tid);
-          });
-        });
-      }
+      var avail=checkRows(therapyRows,THERS,si,durSlots);
       if(avail.length>0)slots.push({time:lbl,therapists:avail});
     }
   }
