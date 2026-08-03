@@ -535,6 +535,21 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
 .bk-confirm-detail{font-family:var(--mono);font-size:11px;color:var(--ink-d);line-height:2.1;letter-spacing:.04em}
 .bk-confirm-deposit{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--r);margin-top:20px;padding:12px 16px;border:1px solid rgba(255,45,45,.2);text-transform:uppercase;display:inline-block}
 .bk-confirm-note{font-family:var(--mono);font-size:10px;color:var(--ink-d);margin-top:24px;letter-spacing:.04em;line-height:1.9}
+/* Calendar picker */
+.bk-cal{margin-top:4px}
+.bk-cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.bk-cal-month{font-family:var(--mono);font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--ink)}
+.bk-cal-arr{background:none;border:none;cursor:pointer;color:var(--ink-d);font-size:15px;padding:4px 10px;transition:color .2s;line-height:1}
+.bk-cal-arr:hover{color:var(--ink)}
+.bk-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.bk-cal-dow{font-family:var(--mono);font-size:7px;letter-spacing:.2em;color:var(--ink-d);text-align:center;padding:8px 0;text-transform:uppercase}
+.bk-cal-day{background:none;border:1px solid transparent;color:var(--ink);font-family:var(--mono);font-size:9px;padding:10px 0;cursor:pointer;text-align:center;transition:all .15s;width:100%}
+.bk-cal-day:hover:not(:disabled){border-color:rgba(242,242,240,.2)}
+.bk-cal-day:disabled{color:rgba(242,242,240,.18);cursor:not-allowed}
+.bk-cal-day.sel{border-color:var(--r);background:rgba(255,45,45,.08)}
+.bk-cal-day.empty{visibility:hidden;pointer-events:none;border:none}
+.bk-cal-display{font-family:var(--display);font-size:17px;font-weight:700;letter-spacing:-.02em;color:var(--ink);padding:12px 0;border-bottom:1px solid rgba(242,242,240,.15);margin-bottom:18px}
+.bk-cal-display.empty{color:rgba(242,242,240,.22);font-weight:400}
 @media(max-width:900px){
   .pw-step{grid-template-columns:80px 1fr;gap:32px}
   .pw-focus-name{min-width:140px;font-size:26px}
@@ -728,9 +743,8 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
         <div class="bk-dur-grid" id="bk-dur-grid"></div>
         <div class="bk-sect">
           <div class="bk-sect-label">date</div>
-          <div class="bk-field">
-            <input type="date" id="bk-date" onchange="onBkDateChange()">
-          </div>
+          <div class="bk-cal-display empty" id="bk-date-display">select a date</div>
+          <div class="bk-cal" id="bk-cal"></div>
         </div>
         <div class="bk-sect">
           <div class="bk-sect-label">available times</div>
@@ -843,14 +857,17 @@ function closeFd(){
 // ── Booking ───────────────────────────────────────────────────────────
 var bkState={step:1,pathway:null,duration:null,price:null,pressure:null,date:null,time:null,therapist:'',name:'',phone:''};
 var BK_DURS={RECOVER:[{m:30,p:'IDR 400K'},{m:45,p:'IDR 550K'},{m:60,p:'IDR 650K'},{m:90,p:'IDR 900K'}],PERFORM:[{m:30,p:'IDR 400K'},{m:45,p:'IDR 550K'},{m:60,p:'IDR 650K'},{m:90,p:'IDR 900K'}],MOVE:[{m:30,p:'IDR 400K'},{m:45,p:'IDR 550K'},{m:60,p:'IDR 650K'},{m:90,p:'IDR 900K'}],COMPRESSION:[{m:20,p:'IDR 200K'},{m:40,p:'IDR 400K'}]};
-var THER_NAMES={TA:'Head Therapist',TB:'Therapist 1',TC:'Therapist 2',TD:'Therapist 3'};
+var THER_NAMES={};
+var _calState={year:0,month:0};
 
 function openBk(){
   _bkRosterCache=null;
+  _calState={year:0,month:0};
   bkState={step:1,pathway:null,duration:null,price:null,pressure:null,date:null,time:null,therapist:'',name:'',phone:''};
-  ['bk-date','bk-name','bk-phone'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+  ['bk-name','bk-phone'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
   var ti=document.getElementById('bk-therapist');if(ti){ti.innerHTML='<option value="">any / no preference</option>';ti.value='';}
   var ts=document.getElementById('bk-therapist-sect');if(ts)ts.style.display='none';
+  var dd=document.getElementById('bk-date-display');if(dd){dd.textContent='select a date';dd.classList.add('empty');}
   document.querySelectorAll('.bk-card,.bk-dur').forEach(function(e){e.classList.remove('sel');});
   document.getElementById('bk-overlay').classList.add('open');
   document.body.style.overflow='hidden';
@@ -879,7 +896,7 @@ function bkGoStep(n){
 }
 function bkAdvance(){
   var s=bkState.step;
-  if(s===1&&bkState.pathway){buildDurGrid();setDateMin();bkGoStep(2);}
+  if(s===1&&bkState.pathway){buildDurGrid();bkInitCal();bkGoStep(2);}
   else if(s===2&&bkState.duration&&bkState.date&&bkState.time){
     if(bkState.pathway==='COMPRESSION'){bkState.pressure='n/a';bkGoStep(4);}
     else bkGoStep(3);
@@ -929,10 +946,57 @@ function pickPressure(el,p){
   el.classList.add('sel');
   updateBkNext();updateBkSum();
 }
-function setDateMin(){
-  var di=document.getElementById('bk-date');if(!di)return;
+function bkInitCal(){
   var t=new Date();t.setDate(t.getDate()+1);
-  di.min=t.toISOString().split('T')[0];
+  _calState={year:t.getFullYear(),month:t.getMonth()};
+  bkRenderCal();
+}
+function bkRenderCal(){
+  var cal=document.getElementById('bk-cal');if(!cal)return;
+  var today=new Date();today.setHours(0,0,0,0);
+  var minD=new Date(today);minD.setDate(minD.getDate()+1);
+  var y=_calState.year,mo=_calState.month;
+  var firstDow=new Date(y,mo,1).getDay();
+  var dInMo=new Date(y,mo+1,0).getDate();
+  var offset=(firstDow+6)%7;
+  var MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var html='<div class="bk-cal-nav">'+
+    '<button class="bk-cal-arr" onclick="bkCalPrev()">&#x2190;</button>'+
+    '<span class="bk-cal-month">'+MONTHS[mo]+' '+y+'</span>'+
+    '<button class="bk-cal-arr" onclick="bkCalNext()">&#x2192;</button>'+
+    '</div><div class="bk-cal-grid">'+
+    ['Mo','Tu','We','Th','Fr','Sa','Su'].map(function(d){return '<div class="bk-cal-dow">'+d+'</div>';}).join('');
+  for(var i=0;i<offset;i++)html+='<button class="bk-cal-day empty" disabled></button>';
+  for(var d=1;d<=dInMo;d++){
+    var dt=new Date(y,mo,d);dt.setHours(0,0,0,0);
+    var ds=y+'-'+('0'+(mo+1)).slice(-2)+'-'+('0'+d).slice(-2);
+    html+='<button class="bk-cal-day'+(bkState.date===ds?' sel':'')+'"'+(dt<minD?' disabled':'')+' onclick="bkPickDay(\''+ds+'\')">'+d+'</button>';
+  }
+  cal.innerHTML=html+'</div>';
+}
+function bkCalPrev(){
+  _calState.month--;
+  if(_calState.month<0){_calState.month=11;_calState.year--;}
+  bkRenderCal();
+}
+function bkCalNext(){
+  _calState.month++;
+  if(_calState.month>11){_calState.month=0;_calState.year++;}
+  bkRenderCal();
+}
+function bkPickDay(ds){
+  bkState.date=ds;bkState.time=null;bkState.therapist='';
+  var pts=ds.split('-');
+  var dt=new Date(parseInt(pts[0]),parseInt(pts[1])-1,parseInt(pts[2]));
+  var DOWS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var MONS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var disp=document.getElementById('bk-date-display');
+  if(disp){disp.textContent=DOWS[dt.getDay()]+', '+dt.getDate()+' '+MONS[dt.getMonth()]+' '+dt.getFullYear();disp.classList.remove('empty');}
+  bkRenderCal();
+  var ts=document.getElementById('bk-therapist');
+  if(ts){ts.innerHTML='<option value="">any / no preference</option>';ts.value='';}
+  var tsect=document.getElementById('bk-therapist-sect');if(tsect)tsect.style.display='none';
+  renderBkTimes();updateBkNext();
 }
 
 // ── Roster availability helpers ───────────────────────────────────────
@@ -968,19 +1032,12 @@ function _bkGetAvailSlots(rData,dateStr,durMins){
   return slots;
 }
 
-function onBkDateChange(){
-  var di=document.getElementById('bk-date');if(!di||!di.value)return;
-  bkState.date=di.value;bkState.time=null;bkState.therapist='';
-  var ts=document.getElementById('bk-therapist');
-  if(ts){ts.innerHTML='<option value="">any / no preference</option>';ts.value='';}
-  var tsect=document.getElementById('bk-therapist-sect');if(tsect)tsect.style.display='none';
-  renderBkTimes();updateBkNext();
-}
 function renderBkTimes(){
   var wrap=document.getElementById('bk-time-wrap');if(!wrap)return;
   wrap.innerHTML='<div class="bk-loading">checking availability...</div>';
   var dur=bkState.duration||60;
   function doRender(rData){
+    if(rData&&rData.STAFF){rData.STAFF.forEach(function(s){if(s.id&&s.name)THER_NAMES[s.id]=s.name;});}
     wrap.innerHTML='';
     var avSlots=_bkGetAvailSlots(rData,bkState.date,dur);
     if(avSlots.length===0){
