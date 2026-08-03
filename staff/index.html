@@ -2657,8 +2657,8 @@ h1,
     <div style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:#FF2D2D;margin-bottom:10px;text-transform:uppercase">Clear day</div>
     <div style="font-family:'Archivo',sans-serif;font-size:16px;font-weight:700;color:#f0f0f0;margin-bottom:6px">What do you want to clear?</div>
     <div style="font-family:'Space Mono',monospace;font-size:9px;color:#555;letter-spacing:.5px;line-height:1.7;margin-bottom:20px">
-      <strong id="clearDayLabel" style="color:#ccc">Tuesday</strong> only — clears just this day's slots<br>
-      All 7 days — clears every day in the week
+      <strong id="clearDayLabel" style="color:#ccc">Tuesday</strong> only — clears just this day this week<br>
+      All 7 days — clears all days for this week only
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="pl-ok" onclick="_performClearDay(false)" style="background:#333;flex:1">This day only</button>
@@ -2792,6 +2792,8 @@ function emptyGrid(){
 }
 
 let grid=emptyGrid();
+let weeklyGrids={}; // {'2026-08-04': {Monday:{...}, Tuesday:{...}, ...}}
+let _baseGrid=null; // snapshot of default weekly template (set after populateDefaults)
 let activeDay=0; // will be set to today on roster open
 let rosterWeekOffset=0; // 0=current week, 1=next week, -1=last week
 
@@ -2812,6 +2814,26 @@ function getRosterDateForDay(dayIdx, offset){
   const d = new Date(monday);
   d.setDate(monday.getDate() + dayIdx);
   return d;
+}
+
+// Returns 'YYYY-MM-DD' for the Monday of the given week offset
+function getWeekKey(o){
+  const off = (o !== undefined) ? o : rosterWeekOffset;
+  const m = getRosterMonday(off);
+  const y = m.getFullYear();
+  const mo = ('0'+(m.getMonth()+1)).slice(-2);
+  const d = ('0'+m.getDate()).slice(-2);
+  return `${y}-${mo}-${d}`;
+}
+// Snapshot current grid into weeklyGrids for the active week
+function _saveCurrentWeek(){
+  weeklyGrids[getWeekKey()] = JSON.parse(JSON.stringify(grid));
+}
+// Copy a week's stored grid (or the base template) into the live grid variable
+function _loadWeekIntoGrid(key){
+  const fallback = _baseGrid ? JSON.parse(JSON.stringify(_baseGrid)) : JSON.parse(JSON.stringify(grid));
+  const src = weeklyGrids[key] || fallback;
+  DAYS.forEach(day => { if(src[day]) grid[day] = src[day]; });
 }
 
 
@@ -3122,7 +3144,9 @@ function buildTabs(){
 }
 
 function rosterChangeWeek(dir){
+  _saveCurrentWeek();           // persist current week before switching
   rosterWeekOffset += dir;
+  _loadWeekIntoGrid(getWeekKey()); // load new week (or base template if unseen)
   buildTabs();
   buildGrid();
   buildTS();
@@ -3446,8 +3470,10 @@ const LS_KEY = 'distrik_v1';
 
 function saveAll(){
   try{
+    _saveCurrentWeek(); // keep weeklyGrids[currentWeekKey] in sync
     localStorage.setItem(LS_KEY, JSON.stringify({
       grid,
+      weeklyGrids,
       plEntries,
       sData,
       roomBookings,
@@ -3469,6 +3495,12 @@ function loadAll(){
     if(data.grid){        Object.assign(grid, data.grid);
       // Therapy is now 3 rooms (was 4) — trim any legacy 4th row
       try{ DAYS.forEach(d=>{ if(grid[d]&&grid[d]['Therapy']&&grid[d]['Therapy'].length>3) grid[d]['Therapy'].length=3; }); }catch(e){}
+    }
+    // Restore per-week grids and load the current week
+    if(data.weeklyGrids) weeklyGrids = data.weeklyGrids;
+    const _curKey = getWeekKey(0);
+    if(weeklyGrids[_curKey]){
+      DAYS.forEach(day=>{ if(weeklyGrids[_curKey][day]) grid[day]=weeklyGrids[_curKey][day]; });
     }
     if(data.plEntries)    plEntries    = data.plEntries;
     if(data.sData)        Object.assign(sData, data.sData);
@@ -5278,7 +5310,8 @@ document.addEventListener('DOMContentLoaded', function(){
   // ── Initialize roster ──
   grid = emptyGrid();
   populateDefaults();
-  loadAll();
+  _baseGrid = JSON.parse(JSON.stringify(grid)); // snapshot default template
+  loadAll(); // overrides grid with saved per-week data for current week
   buildPalette();
   buildTabs();
   _origBuildGrid();
