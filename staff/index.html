@@ -9466,6 +9466,19 @@ function clearAllData(){
 }
 window.clearAllData = clearAllData;
 
+function clearRostersBefore(cutoffStr){
+  // cutoffStr e.g. '2026-08-01' — deletes all dailyOverrides with a date key strictly before this date
+  if(!cutoffStr) cutoffStr = '2026-08-01';
+  const keys = Object.keys(dailyOverrides).filter(k => k < cutoffStr);
+  if(keys.length === 0){ alert('No roster data found before ' + cutoffStr + '. Nothing to clear.'); return; }
+  if(!confirm('Clear all rostered days before ' + cutoffStr + '?\n\nThis will permanently delete ' + keys.length + ' day(s) of roster data:\n' + keys.slice(0,8).join('\n') + (keys.length>8?'\n…and '+(keys.length-8)+' more':'')+'\n\nThis cannot be undone.')) return;
+  keys.forEach(k => delete dailyOverrides[k]);
+  saveAll();
+  const n = document.getElementById('notif');
+  if(n){ n.textContent = keys.length + ' old roster day(s) cleared ✓'; n.classList.add('on'); setTimeout(()=>n.classList.remove('on'), 3000); }
+}
+window.clearRostersBefore = clearRostersBefore;
+
 function exportAllData(){
   const payload={
     _version:'distrik_backup_v1',
@@ -10444,6 +10457,8 @@ window.showRoomCalendar=showRoomCalendar;
     <!-- Danger zone: wipe seed / fake transactional data for a clean launch -->
     <div class="set-danger-zone">
       <div class="set-danger-label">Pre-launch reset</div>
+      <button onclick="clearRostersBefore('2026-08-01')" class="set-act danger">⚠ Clear All Roster Days Before 1 Aug 2026</button>
+      <div class="set-danger-note" style="margin-bottom:12px">Deletes all per-date roster overrides saved before 1 August 2026. The base template and all data from 1 Aug onwards are kept. Cannot be undone.</div>
       <button onclick="clearAllData()" class="set-act danger">⚠ Clear All Sales &amp; Booking Data</button>
       <div class="set-danger-note">Resets all sales, café, supply, P&amp;L and bookings to zero. Keeps your roster, staff, services, menu, tax &amp; API setup. Cannot be undone — export a backup first.</div>
     </div>
