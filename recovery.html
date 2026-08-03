@@ -427,36 +427,37 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
     </svg>
     back
   </a>
-  <button class="initiate-btn" onclick="openBk()">book</button>
 </nav>
 
 <div class="page-label">01 / recovery</div>
 
 
 <style>
-/* ── PATHWAYS ── */
-.pw-section{padding:160px 48px 0}
-.pw-step{border-top:1px solid var(--line);padding:64px 0;display:grid;grid-template-columns:120px 1fr;gap:60px;align-items:start}
-.pw-step-num{font-family:var(--mono);font-size:9px;letter-spacing:.45em;color:var(--r);padding-top:6px}
-.pw-step-inner{display:flex;flex-direction:column;gap:28px}
-.pw-step-title{font-family:var(--mono);font-size:8px;letter-spacing:.48em;text-transform:uppercase;color:var(--ink-d)}
-.pw-focus-item{display:flex;align-items:center;gap:24px;padding:18px 0;border-bottom:1px solid var(--line);cursor:pointer;transition:all .25s;user-select:none}
-.pw-focus-item:first-child{border-top:1px solid var(--line)}
-.pw-focus-item:hover .pw-focus-name{color:var(--r)}
-.pw-focus-item:hover .pw-focus-arrow{color:var(--r);transform:translateX(4px)}
-.pw-focus-name{font-family:var(--display);font-size:clamp(22px,3vw,32px);font-weight:900;letter-spacing:-.04em;text-transform:uppercase;color:var(--ink);transition:color .25s;flex-shrink:0;min-width:200px}
-.pw-focus-line{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--ink-d);line-height:1.5;flex:1}
-.pw-focus-arrow{margin-left:auto;font-size:18px;color:var(--ink-dd);transition:all .25s;flex-shrink:0}
-.pw-time-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line)}
-.pw-time-card{background:var(--b);padding:28px 24px 32px}
-.pw-time-dur{font-family:var(--display);font-size:clamp(22px,3vw,32px);font-weight:900;letter-spacing:-.04em}
-.pw-time-sub{font-family:var(--mono);font-size:8px;letter-spacing:.35em;color:var(--ink-d);margin-left:4px;font-weight:400}
-.pw-time-price{font-family:var(--mono);font-size:9px;letter-spacing:.32em;color:var(--r);margin-top:8px}
-.pw-time-pop{font-family:var(--mono);font-size:7px;letter-spacing:.28em;color:var(--r);margin-bottom:6px}
-.pw-pressure-grid{display:flex;gap:1px;background:var(--line)}
-.pw-pressure-card{flex:1;background:var(--b);padding:24px 20px 28px}
-.pw-pressure-name{font-family:var(--display);font-size:20px;font-weight:900;letter-spacing:-.03em;text-transform:uppercase}
-.pw-pressure-desc{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--ink-d);margin-top:6px;line-height:1.5}
+/* ── HOW TO BOOK (horizontal steps + therapies) ── */
+.rc-intro{padding:140px 48px 64px;border-bottom:1px solid var(--line)}
+.rc-intro-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:.45em;color:var(--r);margin-bottom:20px;text-transform:lowercase}
+.rc-intro-heading{font-family:var(--display);font-size:clamp(52px,9vw,128px);font-weight:900;letter-spacing:-.055em;line-height:.86;color:var(--ink);text-transform:uppercase}
+.rc-intro-sub{font-family:var(--mono);font-size:12px;letter-spacing:.04em;color:var(--ink-d);line-height:1.85;max-width:480px;margin-top:32px}
+.rc-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line)}
+.rc-step{background:var(--b);padding:52px 40px 56px;display:flex;flex-direction:column;gap:18px}
+.rc-step-num{font-family:var(--mono);font-size:9px;letter-spacing:.45em;color:var(--r)}
+.rc-step-title{font-family:var(--display);font-size:clamp(17px,2vw,24px);font-weight:900;letter-spacing:-.035em;text-transform:uppercase;color:var(--ink)}
+.rc-step-desc{font-family:var(--mono);font-size:10px;letter-spacing:.04em;color:var(--ink-d);line-height:1.8}
+.rc-cta{padding:80px 48px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:20px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.rc-cta-label{font-family:var(--mono);font-size:9px;letter-spacing:.45em;color:var(--ink-d);text-transform:lowercase}
+.rc-cta-btn{font-family:var(--mono);font-size:11px;letter-spacing:.35em;text-transform:uppercase;padding:22px 56px;background:transparent;border:1px solid var(--ink);color:var(--ink);cursor:pointer;transition:all .4s;display:inline-flex;align-items:center;gap:16px}
+.rc-cta-btn:hover{background:var(--r);border-color:var(--r);letter-spacing:.45em}
+.rc-therapies{padding:0 48px 80px}
+.rc-therapies-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:.45em;color:var(--r);margin-bottom:48px;padding-top:56px;text-transform:lowercase}
+.rc-therapy-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line)}
+.rc-therapy{background:var(--b);padding:48px 40px 44px;display:flex;flex-direction:column;gap:14px;cursor:pointer;transition:background .35s}
+.rc-therapy:hover{background:#101010}
+.rc-therapy-num{font-family:var(--mono);font-size:9px;letter-spacing:.45em;color:var(--r)}
+.rc-therapy-name{font-family:var(--display);font-size:clamp(24px,3vw,36px);font-weight:900;letter-spacing:-.04em;text-transform:uppercase;color:var(--ink);transition:color .35s}
+.rc-therapy:hover .rc-therapy-name{color:var(--r)}
+.rc-therapy-desc{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--ink-d);line-height:1.8;flex:1;max-width:420px}
+.rc-therapy-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.rc-therapy-tag{font-family:var(--mono);font-size:8px;letter-spacing:.12em;color:var(--ink-d);padding:4px 9px;border:1px solid rgba(242,242,240,.1)}
 /* Focus Detail Overlay */
 .fd-overlay{position:fixed;inset:0;background:rgba(10,10,10,.97);z-index:1900;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;backdrop-filter:blur(4px)}
 .fd-overlay.open{opacity:1;pointer-events:all}
@@ -551,17 +552,20 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
 .bk-cal-display{font-family:var(--display);font-size:17px;font-weight:700;letter-spacing:-.02em;color:var(--ink);padding:12px 0;border-bottom:1px solid rgba(242,242,240,.15);margin-bottom:18px}
 .bk-cal-display.empty{color:rgba(242,242,240,.22);font-weight:400}
 @media(max-width:900px){
-  .pw-step{grid-template-columns:80px 1fr;gap:32px}
-  .pw-focus-name{min-width:140px;font-size:26px}
-  .pw-time-grid{grid-template-columns:repeat(2,1fr)}
+  .rc-intro{padding:120px 24px 48px}
+  .rc-steps{grid-template-columns:1fr}
+  .rc-step{padding:36px 24px 40px}
+  .rc-cta{padding:60px 24px}
+  .rc-therapies{padding:0 24px 60px}
+  .rc-therapy-grid{grid-template-columns:1fr}
+  .rc-therapy{padding:36px 24px 32px}
 }
 @media(max-width:600px){
-  .pw-section{padding:120px 20px 0}
-  .pw-step{grid-template-columns:50px 1fr;gap:20px;padding:48px 0}
-  .pw-focus-name{min-width:100px;font-size:22px}
-  .pw-focus-line{display:none}
-  .pw-time-grid{grid-template-columns:repeat(2,1fr)}
-  .pw-pressure-grid{flex-direction:column}
+  .rc-intro{padding:100px 18px 40px}
+  .rc-step{padding:28px 18px 32px}
+  .rc-cta{padding:48px 18px}
+  .rc-therapies{padding:0 18px 48px}
+  .rc-therapy{padding:28px 18px 28px}
   .fd-modal{padding:28px 20px;margin:0;max-height:100vh;border-left:none;border-right:none}
   .fd-close{top:16px;right:16px}
   .bk-modal{margin:0;max-height:100vh;border-left:none;border-right:none}
@@ -575,92 +579,87 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
 }
 </style>
 
-<section class="pw-section">
-  <div class="section-eyebrow">[ pathways ]</div>
-  <h2 class="section-title">choose your<br>focus.</h2>
-
-  <div class="pw-step">
-    <div class="pw-step-num">01</div>
-    <div class="pw-step-inner">
-      <div class="pw-step-title">choose your focus</div>
-      <div class="pw-focus-item" onclick="showFocusDetail('RECOVER')">
-        <span class="pw-focus-name">RECOVER</span>
-        <span class="pw-focus-line">Reduce soreness. Recover faster.</span>
-        <span class="pw-focus-arrow">↗</span>
-      </div>
-      <div class="pw-focus-item" onclick="showFocusDetail('PERFORM')">
-        <span class="pw-focus-name">PERFORM</span>
-        <span class="pw-focus-line">Prepare for training or competition.</span>
-        <span class="pw-focus-arrow">↗</span>
-      </div>
-      <div class="pw-focus-item" onclick="showFocusDetail('MOVE')">
-        <span class="pw-focus-name">MOVE</span>
-        <span class="pw-focus-line">Improve mobility and movement.</span>
-        <span class="pw-focus-arrow">↗</span>
-      </div>
-      <div class="pw-focus-item" onclick="showFocusDetail('COMPRESSION')">
-        <span class="pw-focus-name">COMPRESSION</span>
-        <span class="pw-focus-line">Reset via rhythmic air compression.</span>
-        <span class="pw-focus-arrow">↗</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="pw-step">
-    <div class="pw-step-num">02</div>
-    <div class="pw-step-inner">
-      <div class="pw-step-title">choose your time</div>
-      <div class="pw-time-grid">
-        <div class="pw-time-card">
-          <div class="pw-time-dur">30<span class="pw-time-sub">min</span></div>
-          <div class="pw-time-price">IDR 400K</div>
-        </div>
-        <div class="pw-time-card">
-          <div class="pw-time-dur">45<span class="pw-time-sub">min</span></div>
-          <div class="pw-time-price">IDR 550K</div>
-        </div>
-        <div class="pw-time-card">
-          <div class="pw-time-pop">most popular</div>
-          <div class="pw-time-dur">60<span class="pw-time-sub">min</span></div>
-          <div class="pw-time-price">IDR 650K</div>
-        </div>
-        <div class="pw-time-card">
-          <div class="pw-time-dur">90<span class="pw-time-sub">min</span></div>
-          <div class="pw-time-price">IDR 900K</div>
-        </div>
-      </div>
-      <div style="margin-top:14px;font-family:var(--mono);font-size:8px;letter-spacing:.3em;color:var(--ink-d);text-transform:lowercase">compression boots &mdash; 20 min idr 200k &nbsp;&middot;&nbsp; 40 min idr 400k</div>
-    </div>
-  </div>
-
-  <div class="pw-step" style="border-bottom:1px solid var(--line);margin-bottom:80px">
-    <div class="pw-step-num">03</div>
-    <div class="pw-step-inner">
-      <div class="pw-step-title">choose your pressure</div>
-      <div class="pw-pressure-grid">
-        <div class="pw-pressure-card">
-          <div class="pw-pressure-name">LIGHT</div>
-          <div class="pw-pressure-desc">Gentle recovery.</div>
-        </div>
-        <div class="pw-pressure-card">
-          <div class="pw-pressure-name">MEDIUM</div>
-          <div class="pw-pressure-desc">Balanced pressure.</div>
-        </div>
-        <div class="pw-pressure-card">
-          <div class="pw-pressure-name">FIRM</div>
-          <div class="pw-pressure-desc">Deep muscle release.</div>
-        </div>
-      </div>
-    </div>
-  </div>
+<!-- INTRO -->
+<section class="rc-intro">
+  <div class="rc-intro-eyebrow">[ recovery lab ]</div>
+  <h1 class="rc-intro-heading">RECOVER<span style="color:var(--r)">.</span><br>PERFORM<span style="color:var(--r)">.</span><br>MOVE<span style="color:var(--r)">.</span></h1>
+  <p class="rc-intro-sub">Evidence-based recovery at the Canggu lab. Choose your therapy, pick your duration, and we'll handle the rest.</p>
 </section>
 
-<!-- TIME / PRICING -->
+<!-- HOW TO BOOK -->
+<div class="rc-steps">
+  <div class="rc-step">
+    <div class="rc-step-num">01</div>
+    <div class="rc-step-title">Choose your focus</div>
+    <p class="rc-step-desc">Select from four evidence-based pathways — Recover, Perform, Move, or Compression — based on what your body needs today.</p>
+  </div>
+  <div class="rc-step">
+    <div class="rc-step-num">02</div>
+    <div class="rc-step-title">Choose your duration</div>
+    <p class="rc-step-desc">30, 45, 60, or 90 minutes. Pick a date and time that works. We'll confirm your slot and pair you with the right therapist.</p>
+  </div>
+  <div class="rc-step">
+    <div class="rc-step-num">03</div>
+    <div class="rc-step-title">Confirm &amp; book</div>
+    <p class="rc-step-desc">Choose your pressure — Light, Medium, or Firm — add your details, and lock in your session. Done in under two minutes.</p>
+  </div>
+</div>
 
+<!-- CTA -->
+<div class="rc-cta">
+  <div class="rc-cta-label">[ ready to recover ]</div>
+  <button class="rc-cta-btn" onclick="openBk()">BOOK A SESSION →</button>
+</div>
 
-<section class="booking-strip">
-  <h3>ready to recover<span class="ink-r">.</span> book a session at the canggu lab.</h3>
-  <button class="booking-cta" onclick="openBk()">book a session →</button>
+<!-- THE THERAPIES -->
+<section class="rc-therapies">
+  <div class="rc-therapies-eyebrow">[ the therapies ]</div>
+  <div class="rc-therapy-grid">
+    <div class="rc-therapy" onclick="showFocusDetail('RECOVER')">
+      <div class="rc-therapy-num">01</div>
+      <div class="rc-therapy-name">RECOVER</div>
+      <p class="rc-therapy-desc">Sports massage designed to reduce delayed onset muscle soreness and accelerate recovery between training sessions. A targeted protocol for the athlete who needs to be ready again, fast.</p>
+      <div class="rc-therapy-tags">
+        <span class="rc-therapy-tag">sports massage</span>
+        <span class="rc-therapy-tag">DOMS relief</span>
+        <span class="rc-therapy-tag">active recovery</span>
+        <span class="rc-therapy-tag">soreness reduction</span>
+      </div>
+    </div>
+    <div class="rc-therapy" onclick="showFocusDetail('PERFORM')">
+      <div class="rc-therapy-num">02</div>
+      <div class="rc-therapy-name">PERFORM</div>
+      <p class="rc-therapy-desc">Pre-performance preparation for the body and mind. Dynamic tissue work and activation sequencing to prime your neuromuscular system before training, competition, or anything that demands your best.</p>
+      <div class="rc-therapy-tags">
+        <span class="rc-therapy-tag">pre-performance</span>
+        <span class="rc-therapy-tag">activation</span>
+        <span class="rc-therapy-tag">neuromuscular prep</span>
+        <span class="rc-therapy-tag">competition ready</span>
+      </div>
+    </div>
+    <div class="rc-therapy" onclick="showFocusDetail('MOVE')">
+      <div class="rc-therapy-num">03</div>
+      <div class="rc-therapy-name">MOVE</div>
+      <p class="rc-therapy-desc">Mobility-focused soft tissue therapy to improve range of motion, reduce restriction, and restore functional movement patterns. For anyone who sits, surfs, trains, or just wants to move better.</p>
+      <div class="rc-therapy-tags">
+        <span class="rc-therapy-tag">mobility</span>
+        <span class="rc-therapy-tag">flexibility</span>
+        <span class="rc-therapy-tag">tissue release</span>
+        <span class="rc-therapy-tag">movement patterns</span>
+      </div>
+    </div>
+    <div class="rc-therapy" onclick="showFocusDetail('COMPRESSION')">
+      <div class="rc-therapy-num">04</div>
+      <div class="rc-therapy-name">COMPRESSION</div>
+      <p class="rc-therapy-desc">Pneumatic compression therapy using rhythmic air pressure to accelerate lymphatic drainage, reduce swelling, and flush metabolic waste. Passive recovery at its most effective.</p>
+      <div class="rc-therapy-tags">
+        <span class="rc-therapy-tag">compression boots</span>
+        <span class="rc-therapy-tag">lymphatic drainage</span>
+        <span class="rc-therapy-tag">swelling reduction</span>
+        <span class="rc-therapy-tag">passive recovery</span>
+      </div>
+    </div>
+  </div>
 </section>
 
 <footer>
