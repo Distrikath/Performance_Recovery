@@ -3471,8 +3471,11 @@ const LS_KEY = 'distrik_v1';
 function saveAll(){
   try{
     _saveCurrentWeek(); // keep weeklyGrids[currentWeekKey] in sync
+    // Save the base TEMPLATE (not the current week's data) as data.grid
+    // so that new, unseen weeks inherit the clean template, not whatever this week looks like
+    const gridToSave = _baseGrid || grid;
     localStorage.setItem(LS_KEY, JSON.stringify({
-      grid,
+      grid: gridToSave,
       weeklyGrids,
       plEntries,
       sData,
@@ -3492,16 +3495,16 @@ function loadAll(){
     const raw = localStorage.getItem(LS_KEY);
     if(!raw) return false;
     const data = JSON.parse(raw);
-    if(data.grid){        Object.assign(grid, data.grid);
+    if(data.grid){
+      Object.assign(grid, data.grid);
       // Therapy is now 3 rooms (was 4) — trim any legacy 4th row
       try{ DAYS.forEach(d=>{ if(grid[d]&&grid[d]['Therapy']&&grid[d]['Therapy'].length>3) grid[d]['Therapy'].length=3; }); }catch(e){}
+      // data.grid IS the base template — keep _baseGrid in sync with it
+      _baseGrid = JSON.parse(JSON.stringify(grid));
     }
-    // Restore per-week grids and load the current week
+    // Restore per-week grids and load the currently viewed week
     if(data.weeklyGrids) weeklyGrids = data.weeklyGrids;
-    const _curKey = getWeekKey(0);
-    if(weeklyGrids[_curKey]){
-      DAYS.forEach(day=>{ if(weeklyGrids[_curKey][day]) grid[day]=weeklyGrids[_curKey][day]; });
-    }
+    _loadWeekIntoGrid(getWeekKey()); // uses rosterWeekOffset — correct even on sync-triggered reloads
     if(data.plEntries)    plEntries    = data.plEntries;
     if(data.sData)        Object.assign(sData, data.sData);
     if(data.recoveryData) Object.assign(recoveryData, data.recoveryData);
@@ -8488,10 +8491,12 @@ function loadSalesDataFromStorage(){
 const TEMPLATE_KEY = 'distrik_roster_template';
 
 function saveAsTemplate(){
-  if(!confirm('Save current week as the base template? This will be the default roster going forward.')) return;
+  if(!confirm('Save current week as the base template? Future weeks with no data will default to this schedule.')) return;
+  _baseGrid = JSON.parse(JSON.stringify(grid)); // update in-memory template
   localStorage.setItem(TEMPLATE_KEY, JSON.stringify(grid));
+  saveAll(); // persists _baseGrid as data.grid so new weeks inherit it
   const n=document.getElementById('notif');
-  if(n){n.textContent='Base template saved ✓';n.classList.add('on');setTimeout(()=>n.classList.remove('on'),2500);}
+  if(n){n.textContent='Base template saved ✓ — future weeks will use this schedule';n.classList.add('on');setTimeout(()=>n.classList.remove('on'),3000);}
 }
 
 function loadTemplate(){
