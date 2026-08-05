@@ -6899,12 +6899,12 @@ function addPkg(){
   PACKAGES.push({id:'pkg'+Date.now(),name:'New Package',description:'',components:[],totalDuration:0,price:0,commission:5,rooms:['room1','room2','room3']});
   buildPackagesList();
 }
-function deletePkg(i){ PACKAGES.splice(i,1); buildPackagesList(); }
+function deletePkg(i){ PACKAGES.splice(i,1); saveRFToStorage(); buildPackagesList(); }
 function addPkgComp(pi){
   PACKAGES[pi].components.push({serviceId:'',duration:30,buffer:10,label:'New Component'});
   buildPackagesList();
 }
-function deletePkgComp(pi,ci){ PACKAGES[pi].components.splice(ci,1); buildPackagesList(); }
+function deletePkgComp(pi,ci){ PACKAGES[pi].components.splice(ci,1); saveRFToStorage(); buildPackagesList(); }
 
 function savePackages(){
   PACKAGES.forEach((pkg,pi)=>{
