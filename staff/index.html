@@ -6655,18 +6655,19 @@ function buildMenuMgr(){
   const body=document.getElementById('mmgr-body'); if(!body) return;
   if(menuMgrTab==='items'){
     let html=`<div style="max-height:400px;overflow-y:auto;">
-      <div style="display:grid;grid-template-columns:1.5fr 1fr 80px 80px 80px 28px;gap:6px;font-family:'Space Mono',monospace;font-size:9px;color:#777;letter-spacing:1.5px;text-transform:uppercase;padding:6px 0 6px;border-bottom:2px solid #e8e8e8;margin:0 16px;">
-        <div>Name</div><div>Category</div><div>RRP</div><div>Cost</div><div>Price</div><div></div>
+      <div style="display:grid;grid-template-columns:1.2fr 0.8fr 1fr 70px 70px 70px 28px;gap:6px;font-family:'Space Mono',monospace;font-size:9px;color:#777;letter-spacing:1.5px;text-transform:uppercase;padding:6px 0 6px;border-bottom:2px solid #e8e8e8;margin:0 16px;">
+        <div>Name</div><div>Category</div><div>Description</div><div>RRP</div><div>Cost</div><div>Price</div><div></div>
       </div>`;
     MENU_ITEMS.forEach((item,i)=>{
-      html+=`<div style="display:grid;grid-template-columns:1.5fr 1fr 80px 80px 80px 28px;gap:6px;align-items:center;padding:5px 16px;border-bottom:1px solid #f5f5f5;">
+      html+=`<div style="display:grid;grid-template-columns:1.2fr 0.8fr 1fr 70px 70px 70px 28px;gap:6px;align-items:center;padding:5px 16px;border-bottom:1px solid #f5f5f5;">
         <input class="svc-input" id="mi_name_${i}" value="${item.name}" placeholder="Item name">
         <select class="svc-input" id="mi_cat_${i}">
           ${MENU_CATS.map(c=>`<option value="${c.id}" ${item.cat===c.id?'selected':''}>${c.name}</option>`).join('')}
         </select>
+        <input class="svc-input" id="mi_desc_${i}" value="${item.desc||''}" placeholder="e.g. Double shot">
         <input class="svc-input" id="mi_rrp_${i}" type="number" value="${item.rrp||''}" placeholder="RRP">
         <input class="svc-input" id="mi_cost_${i}" type="number" value="${item.cost||''}" placeholder="Cost">
-        <input class="svc-input" id="mi_price_${i}" type="number" value="${item.price}" placeholder="Our price">
+        <input class="svc-input" id="mi_price_${i}" type="number" value="${item.price}" placeholder="Price">
         <button class="svc-del-btn" onclick="delMenuItem(${i})">✕</button>
       </div>`;
     });
@@ -6708,6 +6709,7 @@ function _menuFlushAll(){
       const n=id=>{const e=document.getElementById(id);return parseInt((document.getElementById(id)||{}).value)||0;};
       if(v('mi_name_'+i)!=null) item.name=v('mi_name_'+i)||item.name;
       if(v('mi_cat_'+i))        item.cat=v('mi_cat_'+i);
+      if(v('mi_desc_'+i)!=null) item.desc=v('mi_desc_'+i);
       item.rrp=n('mi_rrp_'+i); item.cost=n('mi_cost_'+i); item.price=n('mi_price_'+i);
     });
   } else {
