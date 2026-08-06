@@ -6580,8 +6580,8 @@ function updateReceipt(){
   const s=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
   const lbl=(id,t)=>{const e=document.getElementById(id);if(e)e.textContent=t;};
   s('r-subtotal',   fmt(subtotal));
-  lbl('r-service-label','Service Charge '+(TAX_CFG.cafeService*100)+'%');
-  lbl('r-pbjt-label','PB1 / PBJT '+(TAX_CFG.cafePBJT*100)+'%');
+  lbl('r-service-label','Service Charge '+parseFloat((TAX_CFG.cafeService*100).toFixed(4))+'%');
+  lbl('r-pbjt-label','PB1 / PBJT '+parseFloat((TAX_CFG.cafePBJT*100).toFixed(4))+'%');
   s('r-service-tax',fmt(serviceTax));
   s('r-tax',        fmt(tax));
   s('r-total',      fmt(total));
