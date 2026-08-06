@@ -6701,32 +6701,39 @@ function buildMenuMgr(){
     body.innerHTML=html;
   }
 }
-function addMenuItem(){
-  MENU_ITEMS.push({id:'m'+Date.now(),cat:MENU_CATS[0]?.id||'coffee',name:'New Item',price:0,desc:''});
-  buildMenuMgr();
-}
-function delMenuItem(i){ MENU_ITEMS.splice(i,1); buildMenuMgr(); }
-function addOpt(key){ MENU_OPTS[key].push({id:'o'+Date.now(),name:'New Option',price:0}); buildMenuMgr(); }
-function delOpt(key,i){ MENU_OPTS[key].splice(i,1); buildMenuMgr(); }
-function saveMenuMgr(){
+function _menuFlushAll(){
   if(menuMgrTab==='items'){
     MENU_ITEMS.forEach((item,i)=>{
-      item.name  = document.getElementById(`mi_name_${i}`)?.value  || item.name;
-      item.cat   = document.getElementById(`mi_cat_${i}`)?.value   || item.cat;
-      item.rrp   = parseInt(document.getElementById(`mi_rrp_${i}`)?.value)  || 0;
-      item.cost  = parseInt(document.getElementById(`mi_cost_${i}`)?.value) || 0;
-      item.price = parseInt(document.getElementById(`mi_price_${i}`)?.value)|| 0;
+      const v=id=>{const e=document.getElementById(id);return e?e.value:null;};
+      const n=id=>{const e=document.getElementById(id);return parseInt((document.getElementById(id)||{}).value)||0;};
+      if(v('mi_name_'+i)!=null) item.name=v('mi_name_'+i)||item.name;
+      if(v('mi_cat_'+i))        item.cat=v('mi_cat_'+i);
+      item.rrp=n('mi_rrp_'+i); item.cost=n('mi_cost_'+i); item.price=n('mi_price_'+i);
     });
   } else {
     ['sizes','milks','addons','extras'].forEach(key=>{
       MENU_OPTS[key].forEach((opt,i)=>{
-        opt.name  = document.getElementById(`opt_${key}_name_${i}`)?.value  || opt.name;
-        opt.rrp   = parseInt(document.getElementById(`opt_${key}_rrp_${i}`)?.value)  || 0;
-        opt.cost  = parseInt(document.getElementById(`opt_${key}_cost_${i}`)?.value) || 0;
-        opt.price = parseInt(document.getElementById(`opt_${key}_price_${i}`)?.value)|| 0;
+        const v=id=>{const e=document.getElementById(id);return e?e.value:null;};
+        const n=id=>{return parseInt((document.getElementById(id)||{}).value)||0;};
+        if(v('opt_'+key+'_name_'+i)) opt.name=v('opt_'+key+'_name_'+i);
+        opt.rrp=n('opt_'+key+'_rrp_'+i); opt.cost=n('opt_'+key+'_cost_'+i); opt.price=n('opt_'+key+'_price_'+i);
       });
     });
   }
+}
+function _menuScrollBottom(){
+  setTimeout(()=>{const s=document.querySelector('#mmgr-body div[style*="overflow-y"]');if(s)s.scrollTop=s.scrollHeight;},30);
+}
+function addMenuItem(){
+  _menuFlushAll();
+  MENU_ITEMS.push({id:'m'+Date.now(),cat:MENU_CATS[0]?.id||'coffee',name:'',price:0,desc:''});
+  buildMenuMgr(); _menuScrollBottom();
+}
+function delMenuItem(i){ _menuFlushAll(); MENU_ITEMS.splice(i,1); buildMenuMgr(); }
+function addOpt(key){ _menuFlushAll(); MENU_OPTS[key].push({id:'o'+Date.now(),name:'',rrp:0,cost:0,price:0}); buildMenuMgr(); _menuScrollBottom(); }
+function delOpt(key,i){ _menuFlushAll(); MENU_OPTS[key].splice(i,1); buildMenuMgr(); }
+function saveMenuMgr(){
+  _menuFlushAll();
   saveMenuToStorage();
   document.getElementById('menuMgrModal').classList.remove('open');
   buildPosCats(); buildPosItems();
