@@ -6574,7 +6574,7 @@ function updateReceipt(){
   // Totals
   const subtotal=cart.reduce((s,c)=>s+c.linePrice*c.qty,0);
   const serviceTax=Math.round(subtotal*TAX_CFG.cafeService); // 7% service charge (gratuity)
-  const tax=Math.round(subtotal*TAX_CFG.cafePBJT);            // 10% PBJT (regional F&B tax)
+  const tax=Math.round((subtotal+serviceTax)*TAX_CFG.cafePBJT); // 10% PBJT on subtotal+service charge
   const total=subtotal+serviceTax+tax;
   const fmt=n=>'IDR '+n.toLocaleString('id-ID');
   const s=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
@@ -6607,7 +6607,7 @@ function processSale(){
   if(cart.length===0) return;
   const subtotal=cart.reduce((s,c)=>s+c.linePrice*c.qty,0);
   const serviceTax=Math.round(subtotal*TAX_CFG.cafeService); // 7% service charge
-  const tax=Math.round(subtotal*TAX_CFG.cafePBJT);            // 10% PBJT
+  const tax=Math.round((subtotal+serviceTax)*TAX_CFG.cafePBJT); // 10% PBJT on subtotal+service charge
   const total=subtotal+serviceTax+tax;
 
   // Record to fuelData
@@ -8899,10 +8899,11 @@ function downloadPLReport(period, which){
     const bpjsEmp=Math.round(payroll*0.04);
     const pph21  =Math.round(payroll*0.05);
     // Café revenue is stored GROSS (subtotal + service charge + PBJT). Derive the components.
-    const cafeDiv=1+TAX_CFG.cafeService+TAX_CFG.cafePBJT;
-    const fuelSubtotal=Math.round(fuelRev/cafeDiv);            // food/drink value ex tax & service charge
-    const pbjt   =Math.round(fuelSubtotal*TAX_CFG.cafePBJT);   // PBJT collected (pass-through to regency)
+    // PBJT base = subtotal + service charge, so divisor = (1+service)*(1+PBJT)
+    const cafeDiv=(1+TAX_CFG.cafeService)*(1+TAX_CFG.cafePBJT);
+    const fuelSubtotal=Math.round(fuelRev/cafeDiv);            // food/drink value ex service charge & PBJT
     const cafeServiceCharge=Math.round(fuelSubtotal*TAX_CFG.cafeService);
+    const pbjt   =Math.round((fuelSubtotal+cafeServiceCharge)*TAX_CFG.cafePBJT); // PBJT on subtotal+service
     const cafeRevenue=fuelRev-pbjt;                            // Distrik café turnover (subtotal + service charge)
     const operatingProfit=grossProfit-payroll-bpjsEmp;
     // ── Revenue-model split (agent vs principal) ──
