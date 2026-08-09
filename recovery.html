@@ -1064,22 +1064,28 @@ function _bkGetAvailSlots(rData,dateStr,durMins,pathway){
   var slots=[];
   var durSlots=Math.ceil(durMins/30);
   if(isCompression){
-    var recRows=zoneRows('Recovery');
     var therRows=zoneRows('Therapy');
+    // FOH staff are in Reception and Fuel zones (no 'Recovery' zone exists in the admin panel)
+    var fohRows=(zoneRows('Reception')||[]).concat(zoneRows('Fuel')||[]);
+    if(fohRows.length===0) fohRows=null;
     var FOH=[];
     if(rData&&rData.STAFF){
       rData.STAFF.forEach(function(s){if((s.group==='Operations'||s.group==='Management')&&s.id)FOH.push(s.id);});
     }
+    // Also pick up any IDs actually in the FOH zones regardless of group tag
+    if(fohRows){fohRows.forEach(function(row){if(!row)return;row.forEach(function(c){if(c&&!_bkIsBreak(c)&&FOH.indexOf(c)<0)FOH.push(c);});});}
     var THERS=[];
     if(rData&&rData.STAFF){
       rData.STAFF.forEach(function(s){if(s.group==='Therapy'&&s.id)THERS.push(s.id);});
     }
+    // Also pick up any IDs actually in the Therapy zone regardless of group tag
+    if(therRows){therRows.forEach(function(row){if(!row)return;row.forEach(function(c){if(c&&!_bkIsBreak(c)&&THERS.indexOf(c)<0)THERS.push(c);});});}
     for(var si=0;si+durSlots<=TOTAL_BK;si++){
       var h=SLOT_START+si*0.5,h12=Math.floor(h)%12||12,mn=h%1?30:0,ap=Math.floor(h)>=12?'pm':'am';
       var lbl=h12+(mn?':30':':00')+ap;
       // Therapists first; FOH only for slots where no therapist is rostered
       var therAvail=checkRows(therRows,THERS,si,durSlots);
-      var avail=therAvail.length>0?therAvail:checkRows(recRows,FOH,si,durSlots);
+      var avail=therAvail.length>0?therAvail:checkRows(fohRows,FOH,si,durSlots);
       if(avail.length>0)slots.push({time:lbl,therapists:avail});
     }
   } else {
@@ -1088,8 +1094,9 @@ function _bkGetAvailSlots(rData,dateStr,durMins,pathway){
     if(rData&&rData.STAFF){
       rData.STAFF.forEach(function(s){if(s.group==='Therapy'&&s.id)THERS.push(s.id);});
     }
-    // Fallback: scan grid for IDs when no Therapy group defined in STAFF yet
-    if(THERS.length===0&&therapyRows){
+    // Always include any IDs actually present in the Therapy zone grid —
+    // catches staff placed in Therapy zone but tagged group='Operations' in Settings
+    if(therapyRows){
       therapyRows.forEach(function(row){
         if(!row)return;
         row.forEach(function(c){if(c&&!_bkIsBreak(c)&&THERS.indexOf(c)<0)THERS.push(c);});
