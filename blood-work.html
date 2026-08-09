@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Distrik. — Blood Work by HELIX &times; HUMAN+</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,700;0,800;0,900;1,900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --b:#0A0A0A;--b2:#000;--b3:#161616;
+  --ink:#F2F2F0;--ink-d:#787878;--ink-dd:#3a3936;
+  --r:#FF2D2D;
+  --line:rgba(242,242,240,.06);--line-mid:rgba(242,242,240,.12);
+  --display:'Inter',ui-sans-serif,system-ui,sans-serif;
+  --mono:'Space Mono',ui-monospace,'SF Mono',Menlo,monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--b);color:var(--ink);font-family:var(--display);overflow-x:hidden;cursor:none;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+a{color:inherit}
+img{display:block;max-width:100%}
+
+/* GRAIN */
+.grain{position:fixed;inset:-50%;width:200%;height:200%;z-index:9000;pointer-events:none;opacity:.06;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:220px;mix-blend-mode:overlay;
+  animation:grainShift 8s steps(8) infinite}
+@keyframes grainShift{
+  0%{transform:translate(0,0)}10%{transform:translate(-2%,-1%)}20%{transform:translate(1%,2%)}
+  30%{transform:translate(-1%,1%)}40%{transform:translate(2%,-2%)}50%{transform:translate(-2%,2%)}
+  60%{transform:translate(1%,-1%)}70%{transform:translate(-1%,-2%)}80%{transform:translate(2%,1%)}
+  90%{transform:translate(-2%,2%)}100%{transform:translate(0,0)}}
+
+/* CURSOR */
+.cur{position:fixed;width:6px;height:6px;background:var(--ink);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .25s,height .25s,background .3s;mix-blend-mode:difference}
+.cur-ring{position:fixed;width:32px;height:32px;border:1px solid rgba(242,242,240,.4);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:width .5s cubic-bezier(.16,1,.3,1),height .5s cubic-bezier(.16,1,.3,1),border-color .4s;mix-blend-mode:difference}
+body.h .cur{width:12px;height:12px;background:var(--r)}
+body.h .cur-ring{width:54px;height:54px;border-color:var(--r)}
+
+/* NAV */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:1000;
+  padding:22px 28px;
+  display:grid;grid-template-columns:1fr 1fr 1fr;align-items:center;
+  background:linear-gradient(to bottom,rgba(10,10,10,.92),rgba(10,10,10,0));
+}
+.nav-logo{font-family:var(--display);font-size:17px;font-weight:900;font-style:italic;letter-spacing:-.02em;color:var(--ink);text-decoration:none;justify-self:start}
+.back-btn{justify-self:center;background:none;border:none;cursor:none;font-family:var(--mono);font-weight:400;font-size:11px;color:var(--ink);letter-spacing:.28em;text-transform:lowercase;display:flex;align-items:center;gap:14px;padding:8px 0;text-decoration:none}
+.back-btn:hover{color:var(--r)}
+
+/* PAGE LABEL */
+.page-label{
+  position:fixed;top:88px;right:50%;transform:translateX(50%);
+  z-index:999;font-family:var(--mono);font-weight:400;
+  font-size:10px;letter-spacing:.45em;color:var(--r);
+  text-transform:lowercase;pointer-events:none;
+  opacity:0;animation:fadeIn .8s ease .3s forwards;
+}
+@keyframes fadeIn{to{opacity:1}}
+@keyframes slideUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+
+/* HERO */
+.hero{
+  position:relative;min-height:100vh;
+  display:flex;flex-direction:column;justify-content:flex-end;
+  padding:160px 48px 80px;border-bottom:1px solid var(--line-mid);
+}
+.hero-eyebrow{
+  font-family:var(--mono);font-size:11px;letter-spacing:.45em;color:var(--r);
+  text-transform:lowercase;margin-bottom:28px;
+  opacity:0;animation:slideUp 1s cubic-bezier(.16,1,.3,1) .3s forwards;
+}
+.hero h1{
+  font-family:var(--display);
+  font-size:clamp(60px,10vw,160px);font-weight:900;letter-spacing:-.058em;line-height:.86;
+  color:var(--ink);text-transform:uppercase;
+  opacity:0;animation:slideUp 1s cubic-bezier(.16,1,.3,1) .4s forwards;
+}
+.hero-by{
+  font-family:var(--mono);font-size:14px;letter-spacing:.04em;
+  color:var(--r);margin-top:20px;
+  opacity:0;animation:slideUp 1s cubic-bezier(.16,1,.3,1) .52s forwards;
+}
+.hero-copy{
+  max-width:540px;font-family:var(--mono);font-weight:400;
+  font-size:12px;line-height:1.85;color:var(--ink-d);letter-spacing:.04em;margin-top:28px;
+  opacity:0;animation:slideUp 1s cubic-bezier(.16,1,.3,1) .65s forwards;
+}
+
+/* PACKAGES SECTION */
+.body-section{padding:120px 48px;background:var(--b)}
+.section-eyebrow{font-family:var(--mono);font-weight:400;font-size:10px;letter-spacing:.45em;color:var(--r);margin-bottom:24px;text-transform:lowercase}
+.section-title{
+  font-family:var(--display);font-size:clamp(36px,5vw,64px);font-weight:900;
+  letter-spacing:-.045em;line-height:.95;color:var(--ink);margin-bottom:72px;text-transform:uppercase;
+}
+
+/* PACKAGE CARDS GRID */
+.packages-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line)}
+.pkg-card{
+  position:relative;background:var(--b);padding:52px 40px 48px;
+  display:flex;flex-direction:column;min-height:560px;
+  transition:background .4s ease;cursor:none;
+}
+.pkg-card:hover{background:#101010}
+.pkg-card.featured{background:#0D0D0D}
+.pkg-card.featured::before{
+  content:'elite';
+  position:absolute;top:-1px;left:40px;
+  background:var(--r);color:var(--ink);
+  font-family:var(--mono);font-size:8px;letter-spacing:.32em;
+  padding:5px 12px;text-transform:lowercase;
+}
+.pkg-num{font-family:var(--mono);font-size:10px;letter-spacing:.45em;color:var(--r);margin-bottom:28px}
+.pkg-name{
+  font-family:var(--display);font-size:clamp(28px,3.2vw,40px);font-weight:900;
+  letter-spacing:-.035em;text-transform:uppercase;color:var(--ink);
+  margin-bottom:10px;transition:color .35s;line-height:1;
+}
+.pkg-card:hover .pkg-name{color:var(--r)}
+.pkg-tagline{
+  font-family:var(--mono);font-size:10px;letter-spacing:.04em;color:var(--ink-d);
+  line-height:1.7;margin-bottom:32px;font-style:italic;
+}
+.pkg-features{list-style:none;flex-grow:1;display:flex;flex-direction:column;gap:10px;margin-bottom:32px;padding-left:0}
+.pkg-features li{
+  font-family:var(--mono);font-size:10px;color:var(--ink);letter-spacing:.04em;
+  line-height:1.6;padding-left:16px;position:relative;
+}
+.pkg-features li::before{content:'+';position:absolute;left:0;color:var(--r)}
+.pkg-pricing{
+  border-top:1px solid var(--line-mid);padding-top:24px;margin-top:auto;
+  display:flex;flex-direction:column;gap:10px;
+}
+.pkg-price-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.pkg-gender{font-family:var(--mono);font-size:9px;letter-spacing:.32em;color:var(--ink-d);text-transform:lowercase}
+.pkg-amount{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--ink);text-align:right}
+.pkg-ideal{
+  font-family:var(--mono);font-size:9px;letter-spacing:.04em;color:var(--ink-dd);
+  line-height:1.7;margin-top:16px;font-style:italic;border-top:1px solid var(--line);padding-top:16px;
+}
+
+/* BOOKING STRIP */
+.booking-strip{
+  padding:80px 48px;background:var(--b);border-top:1px solid var(--line);
+  display:flex;align-items:center;justify-content:space-between;gap:40px;
+}
+.booking-strip h3{
+  font-family:var(--display);font-size:clamp(24px,3.2vw,44px);font-weight:900;
+  letter-spacing:-.025em;color:var(--ink);text-transform:uppercase;max-width:560px;line-height:1.05;
+}
+.booking-strip h3 .ink-r{color:var(--r)}
+.booking-cta{
+  font-family:var(--mono);font-weight:400;font-size:10px;letter-spacing:.35em;color:var(--ink);
+  text-decoration:none;text-transform:lowercase;padding:20px 36px;border:1px solid var(--ink);
+  transition:all .4s;display:inline-flex;align-items:center;gap:14px;white-space:nowrap;
+  background:transparent;cursor:none;
+}
+.booking-cta:hover{background:var(--r);border-color:var(--r);color:var(--ink);letter-spacing:.45em}
+
+/* INFO STRIP */
+.info-strip{
+  padding:48px;border-top:1px solid var(--line);
+  display:grid;grid-template-columns:repeat(3,1fr);gap:48px;
+}
+.info-label{font-family:var(--mono);font-size:10px;letter-spacing:.4em;color:var(--r);margin-bottom:12px;text-transform:lowercase}
+.info-value{font-family:var(--mono);font-size:11px;color:var(--ink);letter-spacing:.04em;line-height:1.85}
+.info-value a{color:var(--ink);text-decoration:none;transition:color .3s}
+.info-value a:hover{color:var(--r)}
+
+/* FOOTER */
+footer{padding:40px 48px 28px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline;gap:24px;background:var(--b)}
+.ft-brand{font-family:var(--display);font-size:15px;font-weight:900;font-style:italic;letter-spacing:-.02em;color:var(--ink-dd)}
+.ft-copy{font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--ink-dd)}
+
+/* ────────────────────────────────────────
+   BOOKING OVERLAY
+──────────────────────────────────────── */
+.bk-overlay{position:fixed;inset:0;background:rgba(10,10,10,.96);z-index:2000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .35s;backdrop-filter:blur(4px)}
+.bk-overlay.open{opacity:1;pointer-events:all}
+.bk-modal{width:100%;max-width:680px;margin:0 20px;background:#111;border:1px solid rgba(242,242,240,.1);max-height:92vh;overflow-y:auto;display:flex;flex-direction:column;scrollbar-width:none}
+.bk-modal::-webkit-scrollbar{display:none}
+.bk-header{display:flex;align-items:center;justify-content:space-between;padding:18px 32px;border-bottom:1px solid rgba(242,242,240,.07);position:sticky;top:0;background:#111;z-index:1;gap:16px}
+.bk-steps-row{display:flex;align-items:center;flex:1;overflow-x:auto;scrollbar-width:none;min-width:0}
+.bk-steps-row::-webkit-scrollbar{display:none}
+.bk-step-item{display:flex;align-items:center;gap:5px;white-space:nowrap;opacity:.2;transition:opacity .3s;flex-shrink:0}
+.bk-step-item.active{opacity:1}
+.bk-step-item.done{opacity:.45}
+.bk-si-num{font-family:var(--mono);font-size:7px;letter-spacing:.4em;color:var(--r)}
+.bk-si-lbl{font-family:var(--mono);font-size:7px;letter-spacing:.25em;text-transform:uppercase;color:var(--ink)}
+.bk-si-sep{font-family:var(--mono);font-size:9px;color:rgba(242,242,240,.12);margin:0 8px;flex-shrink:0}
+.bk-close-btn{background:none;border:none;cursor:none;font-family:var(--mono);font-size:9px;letter-spacing:.25em;color:var(--ink-d);padding:4px 0;text-transform:lowercase;transition:color .2s;flex-shrink:0}
+.bk-close-btn:hover{color:var(--ink)}
+.bk-body{padding:36px 32px;flex:1}
+.bk-step{display:none}
+.bk-step.on{display:block}
+.bk-sect-label{font-family:var(--mono);font-size:8px;letter-spacing:.45em;text-transform:uppercase;color:var(--ink-d);margin-bottom:14px;display:block}
+.bk-sect{margin-top:28px}
+.bk-field{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.bk-field label{font-family:var(--mono);font-size:8px;letter-spacing:.42em;color:var(--ink-d);text-transform:lowercase}
+.bk-field input,.bk-field select{
+  background:transparent;border:none;border-bottom:1px solid rgba(242,242,240,.15);
+  padding:12px 0;color:var(--ink);font-family:var(--display);font-size:17px;font-weight:700;
+  letter-spacing:-.02em;outline:none;transition:border-color .3s;width:100%;
+  -webkit-appearance:none;border-radius:0;cursor:none;
+}
+.bk-field input::placeholder{color:rgba(242,242,240,.25);font-weight:400}
+.bk-field input:focus,.bk-field select:focus{border-bottom-color:var(--r)}
+.bk-field select option{background:#111;color:var(--ink)}
+.bk-field-note{font-family:var(--mono);font-size:8px;letter-spacing:.05em;color:var(--ink-d);margin-top:6px;line-height:1.7}
+.bk-price-display{
+  font-family:var(--mono);font-size:10px;letter-spacing:.28em;color:var(--r);
+  margin-top:12px;min-height:20px;transition:opacity .3s;
+}
+.bk-cal{margin-top:4px}
+.bk-cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.bk-cal-month{font-family:var(--mono);font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--ink)}
+.bk-cal-arr{background:none;border:none;cursor:none;color:var(--ink-d);font-size:15px;padding:4px 10px;transition:color .2s;line-height:1}
+.bk-cal-arr:hover{color:var(--ink)}
+.bk-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.bk-cal-dow{font-family:var(--mono);font-size:7px;letter-spacing:.2em;color:var(--ink-d);text-align:center;padding:8px 0;text-transform:uppercase}
+.bk-cal-day{background:none;border:1px solid transparent;color:var(--ink);font-family:var(--mono);font-size:9px;padding:10px 0;cursor:none;text-align:center;transition:all .15s;width:100%}
+.bk-cal-day:hover:not(:disabled){border-color:rgba(242,242,240,.2)}
+.bk-cal-day:disabled{color:rgba(242,242,240,.18);cursor:not-allowed}
+.bk-cal-day.sel{border-color:var(--r);background:rgba(255,45,45,.08)}
+.bk-cal-day.empty{visibility:hidden;pointer-events:none;border:none}
+.bk-cal-display{font-family:var(--display);font-size:17px;font-weight:700;letter-spacing:-.02em;color:var(--ink);padding:12px 0;border-bottom:1px solid rgba(242,242,240,.15);margin-bottom:18px}
+.bk-cal-display.empty{color:rgba(242,242,240,.22);font-weight:400}
+.bk-time-wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:4px}
+.bk-time-btn{border:1px solid rgba(242,242,240,.1);padding:10px 4px;cursor:none;transition:border-color .2s,background .2s;background:transparent;font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--ink);text-align:center;width:100%}
+.bk-time-btn:hover{border-color:rgba(242,242,240,.3)}
+.bk-time-btn.sel{border-color:var(--r);background:rgba(255,45,45,.05)}
+.bk-footer{padding:18px 32px;border-top:1px solid rgba(242,242,240,.07);display:flex;align-items:center;justify-content:space-between;position:sticky;bottom:0;background:#111}
+.bk-back{background:none;border:none;cursor:none;font-family:var(--mono);font-size:9px;letter-spacing:.32em;color:var(--ink-d);text-transform:lowercase;transition:color .2s}
+.bk-back:hover{color:var(--ink)}
+.bk-next{font-family:var(--mono);font-size:9px;letter-spacing:.32em;text-transform:lowercase;padding:13px 24px;background:transparent;border:1px solid var(--ink);color:var(--ink);cursor:none;transition:all .35s}
+.bk-next:hover:not(:disabled){background:var(--r);border-color:var(--r);letter-spacing:.42em}
+.bk-next:disabled{opacity:.28;cursor:not-allowed}
+.bk-sum-text{font-family:var(--mono);font-size:9px;color:var(--ink-d);letter-spacing:.04em;max-width:160px;line-height:1.5;text-align:center}
+.bk-confirm-wrap{text-align:center;padding:24px 0 8px}
+.bk-confirm-check{font-size:32px;margin-bottom:16px;color:var(--r)}
+.bk-confirm-title{font-family:var(--display);font-size:36px;font-weight:900;letter-spacing:-.04em;margin-bottom:20px}
+.bk-confirm-detail{font-family:var(--mono);font-size:11px;color:var(--ink-d);line-height:2.1;letter-spacing:.04em;margin-bottom:20px}
+.bk-confirm-note{font-family:var(--mono);font-size:10px;color:var(--ink-d);margin-top:16px;letter-spacing:.04em;line-height:1.9;margin-bottom:24px}
+.bk-confirm-wa{
+  display:inline-flex;align-items:center;gap:10px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.3em;text-transform:lowercase;
+  padding:16px 28px;border:1px solid rgba(255,45,45,.4);color:var(--r);
+  text-decoration:none;transition:all .35s;
+}
+.bk-confirm-wa:hover{background:var(--r);color:var(--ink);border-color:var(--r)}
+
+/* RESPONSIVE */
+@media(max-width:1100px){
+  .packages-grid{grid-template-columns:1fr}
+  .pkg-card{min-height:auto}
+  .pkg-card.featured::before{top:-1px}
+}
+@media(max-width:900px){
+  nav{padding:18px 20px}
+  .nav-logo{font-size:15px}
+  .back-btn{font-size:10px;letter-spacing:.22em;gap:8px}
+  .page-label{top:72px;font-size:9px;letter-spacing:.32em}
+  .hero{padding:140px 24px 60px}
+  .body-section{padding:80px 24px}
+  .packages-grid{grid-template-columns:1fr}
+  .pkg-card{padding:40px 24px 36px}
+  .booking-strip{flex-direction:column;align-items:flex-start;padding:60px 24px}
+  .info-strip{grid-template-columns:1fr;gap:32px;padding:40px 24px}
+  footer{padding:32px 24px 20px;flex-direction:column;gap:10px}
+  .bk-modal{margin:0;max-height:100vh;border-left:none;border-right:none}
+  .bk-body{padding:24px 20px}
+  .bk-header,.bk-footer{padding:14px 20px}
+  .bk-si-lbl{display:none}
+  .bk-time-wrap{grid-template-columns:repeat(4,1fr)}
+}
+@media(max-width:600px){
+  nav{padding:14px 16px}
+  .hero{padding:100px 18px 48px}
+  .body-section{padding:60px 18px 80px}
+  .booking-strip{padding:48px 18px}
+  .info-strip{padding:32px 18px}
+  footer{padding:28px 18px 18px}
+  .bk-time-wrap{grid-template-columns:repeat(3,1fr)}
+}
+</style>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<div class="grain"></div>
+<div class="cur"></div>
+<div class="cur-ring"></div>
+
+<nav>
+  <a href="index.html" class="nav-logo">DISTRIK.</a>
+  <a href="index.html" class="back-btn">
+    <svg width="16" height="10" viewBox="0 0 16 10" fill="none">
+      <path d="M0 5h15M5 1L1 5l4 4" stroke="currentColor" stroke-width="1"/>
+    </svg>
+    back
+  </a>
+</nav>
+
+<div class="page-label">[ blood work ]</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-eyebrow">[ helix &times; human+ ]</div>
+  <h1>BLOOD<br>WORK</h1>
+  <div class="hero-by">by HELIX &times; HUMAN+</div>
+  <p class="hero-copy">Precision diagnostics at Distrik, powered by HELIX Laboratorium &amp; Klinik. Comprehensive blood panels administered in our dedicated clinical suite — your longevity baseline, mapped with clinical precision.</p>
+</section>
+
+<!-- PACKAGES -->
+<section class="body-section">
+  <div class="section-eyebrow">[ diagnostic packages ]</div>
+  <div class="section-title">CHOOSE YOUR<br>PANEL</div>
+
+  <div class="packages-grid">
+
+    <!-- BASIC -->
+    <div class="pkg-card">
+      <div class="pkg-num">01</div>
+      <div class="pkg-name">BASIC</div>
+      <p class="pkg-tagline">"Your health baseline, mapped with precision."</p>
+      <ul class="pkg-features">
+        <li>Lung Function Examination</li>
+        <li>Basic Heart Health &amp; Cardiac Risk Assessment</li>
+        <li>Full CBC (Complete Blood Count)</li>
+        <li>Metabolic panel — liver, kidney &amp; mineral markers</li>
+        <li>Essential vitamins &amp; electrolytes</li>
+      </ul>
+      <div class="pkg-pricing">
+        <div class="pkg-price-row">
+          <span class="pkg-gender">women</span>
+          <span class="pkg-amount">IDR 4,553,982</span>
+        </div>
+        <div class="pkg-price-row">
+          <span class="pkg-gender">men</span>
+          <span class="pkg-amount">IDR 4,553,982</span>
+        </div>
+        <p class="pkg-ideal">Perfect for anyone who wants clarity and peace of mind.</p>
+      </div>
+    </div>
+
+    <!-- ADVANCED -->
+    <div class="pkg-card">
+      <div class="pkg-num">02</div>
+      <div class="pkg-name">ADVANCED</div>
+      <p class="pkg-tagline">"Go deeper. Discover the markers that drive your performance."</p>
+      <ul class="pkg-features">
+        <li>Everything in Basic</li>
+        <li>Thyroid function — TSH, T3 &amp; T4</li>
+        <li>Hormonal profile — testosterone, FSH, LH &amp; estradiol</li>
+        <li>Inflammation markers — CRP, CK &amp; LDH</li>
+        <li>Full metabolic &amp; organ function panel</li>
+      </ul>
+      <div class="pkg-pricing">
+        <div class="pkg-price-row">
+          <span class="pkg-gender">women</span>
+          <span class="pkg-amount">IDR 13,503,618</span>
+        </div>
+        <div class="pkg-price-row">
+          <span class="pkg-gender">men</span>
+          <span class="pkg-amount">IDR 13,162,968</span>
+        </div>
+        <p class="pkg-ideal">Ideal for those optimizing lifestyle, fitness, and preventive health.</p>
+      </div>
+    </div>
+
+    <!-- ELITE -->
+    <div class="pkg-card featured">
+      <div class="pkg-num">03</div>
+      <div class="pkg-name">ELITE</div>
+      <p class="pkg-tagline">"The ultimate longevity blueprint. Every detail measured."</p>
+      <ul class="pkg-features">
+        <li>Full advanced screening — hormones &amp; thyroid</li>
+        <li>Cancer markers panel</li>
+        <li>Bone &amp; joint health markers</li>
+        <li>Comprehensive liver health panel</li>
+        <li>Infectious disease — HBsAg, Anti-HBs, Anti-HCV, HIV Ab/Ag Combi</li>
+        <li>Complete metabolic, vitamin &amp; mineral profiling</li>
+      </ul>
+      <div class="pkg-pricing">
+        <div class="pkg-price-row">
+          <span class="pkg-gender">women</span>
+          <span class="pkg-amount">IDR 22,109,616</span>
+        </div>
+        <div class="pkg-price-row">
+          <span class="pkg-gender">men</span>
+          <span class="pkg-amount">IDR 26,000,100</span>
+        </div>
+        <p class="pkg-ideal">The gold standard in preventive and longevity medicine.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <p style="font-family:var(--mono);font-size:10px;color:var(--ink-dd);letter-spacing:.04em;margin-top:20px;line-height:1.7">all prices in indonesian rupiah &nbsp;&middot;&nbsp; pricing may vary &mdash; contact helix to confirm before booking</p>
+</section>
+
+<!-- BOOKING STRIP -->
+<div class="booking-strip">
+  <h3>BOOK YOUR<br><span class="ink-r">DIAGNOSTICS</span></h3>
+  <button class="booking-cta" onclick="openBk()">REQUEST AN APPOINTMENT &nbsp;&#x2192;</button>
+</div>
+
+<!-- INFO STRIP -->
+<div class="info-strip">
+  <div>
+    <div class="info-label">[ laboratory ]</div>
+    <div class="info-value">HELIX Laboratorium &amp; Klinik<br>in partnership with HUMAN+</div>
+  </div>
+  <div>
+    <div class="info-label">[ whatsapp ]</div>
+    <div class="info-value"><a href="https://wa.me/6285333716596" target="_blank">+62 853-3371-6596 &#x2197;</a></div>
+  </div>
+  <div>
+    <div class="info-label">[ contact ]</div>
+    <div class="info-value">
+      <a href="mailto:info@helixlabbali.com">info@helixlabbali.com</a><br>
+      <a href="https://instagram.com/helixlab.bali" target="_blank">@helixlab.bali &#x2197;</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <span class="ft-brand">DISTRIK.</span>
+  <span class="ft-copy">blood work by helix &times; human+ &nbsp;&middot;&nbsp; canggu, bali</span>
+</footer>
+
+<!-- BOOKING OVERLAY -->
+<div id="bk-overlay" class="bk-overlay" role="dialog" aria-modal="true">
+  <div class="bk-modal">
+
+    <div class="bk-header" id="bk-header-bar">
+      <div class="bk-steps-row">
+        <div class="bk-step-item active" id="bksi1"><span class="bk-si-num">01</span><span class="bk-si-lbl">package</span></div>
+        <span class="bk-si-sep">|</span>
+        <div class="bk-step-item" id="bksi2"><span class="bk-si-num">02</span><span class="bk-si-lbl">date &amp; time</span></div>
+        <span class="bk-si-sep">|</span>
+        <div class="bk-step-item" id="bksi3"><span class="bk-si-num">03</span><span class="bk-si-lbl">contact</span></div>
+      </div>
+      <button class="bk-close-btn" onclick="closeBk()">close &#xd7;</button>
+    </div>
+
+    <div class="bk-body">
+
+      <!-- Step 1: Package + Gender -->
+      <div class="bk-step on" id="bks1">
+        <span class="bk-sect-label">select package &amp; gender</span>
+        <div class="bk-field" style="margin-top:16px">
+          <label>diagnostic package</label>
+          <select id="bk-pkg" onchange="bkPickPackage(this.value)">
+            <option value="" disabled selected>choose a package</option>
+            <option value="BASIC|Women|4553982">BASIC &mdash; Women &mdash; IDR 4,553,982</option>
+            <option value="BASIC|Men|4553982">BASIC &mdash; Men &mdash; IDR 4,553,982</option>
+            <option value="ADVANCED|Women|13503618">ADVANCED &mdash; Women &mdash; IDR 13,503,618</option>
+            <option value="ADVANCED|Men|13162968">ADVANCED &mdash; Men &mdash; IDR 13,162,968</option>
+            <option value="ELITE|Women|22109616">ELITE &mdash; Women &mdash; IDR 22,109,616</option>
+            <option value="ELITE|Men|26000100">ELITE &mdash; Men &mdash; IDR 26,000,100</option>
+          </select>
+        </div>
+        <div class="bk-price-display" id="bk-price-display"></div>
+        <p style="font-family:var(--mono);font-size:9px;color:var(--ink-dd);letter-spacing:.04em;line-height:1.75;margin-top:16px">
+          morning slots recommended &mdash; many panels require fasting (8&ndash;10 hours). helix will confirm fasting requirements when they contact you.
+        </p>
+      </div>
+
+      <!-- Step 2: Date & Time -->
+      <div class="bk-step" id="bks2">
+        <span class="bk-sect-label">select date</span>
+        <div class="bk-cal-display empty" id="bk-date-display">select a date</div>
+        <div class="bk-cal" id="bk-cal"></div>
+        <div class="bk-sect">
+          <span class="bk-sect-label">select time</span>
+          <div class="bk-time-wrap" id="bk-time-wrap">
+            <span style="font-family:var(--mono);font-size:9px;color:var(--ink-d);letter-spacing:.04em;grid-column:1/-1">select a date first</span>
+          </div>
+          <p style="font-family:var(--mono);font-size:9px;color:var(--ink-dd);letter-spacing:.04em;line-height:1.7;margin-top:14px">morning slots preferred for fasting panels</p>
+        </div>
+      </div>
+
+      <!-- Step 3: Contact -->
+      <div class="bk-step" id="bks3">
+        <div class="bk-field">
+          <label>your name</label>
+          <input type="text" id="bk-name" placeholder="full name" autocomplete="name" oninput="bkState.name=this.value;updateBkNext()">
+        </div>
+        <div class="bk-field">
+          <label>whatsapp number</label>
+          <input type="tel" id="bk-phone" placeholder="+62 ..." autocomplete="tel" oninput="bkState.phone=this.value;updateBkNext()">
+          <div class="bk-field-note">helix &times; human+ will confirm your appointment and fasting requirements via whatsapp.</div>
+        </div>
+      </div>
+
+      <!-- Step 4: Confirmation -->
+      <div class="bk-step" id="bks4">
+        <div class="bk-confirm-wrap">
+          <div class="bk-confirm-check">&#x2713;</div>
+          <div class="bk-confirm-title">request sent.</div>
+          <div class="bk-confirm-detail" id="bk-conf-detail"></div>
+          <div class="bk-confirm-note">
+            your appointment request has been sent to HELIX &times; HUMAN+.<br>
+            we'll confirm via whatsapp within a few hours.
+          </div>
+          <a class="bk-confirm-wa" href="https://wa.me/6285333716596" target="_blank">contact helix on whatsapp &#x2192;</a>
+          <br>
+          <button class="bk-next" style="margin-top:24px;cursor:none" onclick="closeBk()">done &#x2192;</button>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="bk-footer" id="bk-footer-bar">
+      <button class="bk-back" id="bk-back-btn" onclick="bkBack()">&#x2190; back</button>
+      <span class="bk-sum-text" id="bk-sum-text"></span>
+      <button class="bk-next" id="bk-next-btn" onclick="bkAdvance()" disabled>next &#x2192;</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── Cursor ────────────────────────────────────────────────────────────
+(function(){
+  var mx=window.innerWidth/2,my=window.innerHeight/2;
+  var cur=document.querySelector('.cur'),ring=document.querySelector('.cur-ring');
+  document.addEventListener('mousemove',function(e){mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px'});
+  (function tick(){ring.style.left=mx+'px';ring.style.top=my+'px';requestAnimationFrame(tick)})();
+  document.addEventListener('mouseover',function(e){
+    if(e.target.closest('a,button,[onclick]'))document.body.classList.add('h');
+    else document.body.classList.remove('h');
+  });
+})();
+
+// ── Firebase ──────────────────────────────────────────────────────────
+var _fbApp=null,_fbDb=null;
+function bkFdb(){
+  if(!_fbApp){
+    var c={apiKey:'AIzaSyC9amKPhl2s_-7qN_Ej0VV7nDkJ7BIXMRc',authDomain:'distrikath80361.firebaseapp.com',projectId:'distrikath80361',storageBucket:'distrikath80361.firebasestorage.app',messagingSenderId:'1039015029135',appId:'1:1039015029135:web:db7583ff1131aed86d03fa'};
+    _fbApp=firebase.apps.length?firebase.app():firebase.initializeApp(c);
+  }
+  if(!_fbDb)_fbDb=_fbApp.firestore();
+  return _fbDb;
+}
+
+// ── Booking state ─────────────────────────────────────────────────────
+var bkState={step:1,package:'',gender:'',price:0,date:null,time:null,name:'',phone:''};
+var _calState={year:0,month:0};
+var BW_SLOTS=['8am','9am','10am','11am','12pm','2pm','3pm'];
+
+var PRICE_FMT={
+  'BASIC|Women|4553982':'IDR 4,553,982',
+  'BASIC|Men|4553982':'IDR 4,553,982',
+  'ADVANCED|Women|13503618':'IDR 13,503,618',
+  'ADVANCED|Men|13162968':'IDR 13,162,968',
+  'ELITE|Women|22109616':'IDR 22,109,616',
+  'ELITE|Men|26000100':'IDR 26,000,100'
+};
+
+function openBk(){
+  bkState={step:1,package:'',gender:'',price:0,date:null,time:null,name:'',phone:''};
+  _calState={year:0,month:0};
+  ['bk-name','bk-phone'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+  var sel=document.getElementById('bk-pkg');if(sel)sel.value='';
+  var pd=document.getElementById('bk-price-display');if(pd)pd.textContent='';
+  var dd=document.getElementById('bk-date-display');if(dd){dd.textContent='select a date';dd.classList.add('empty');}
+  var tw=document.getElementById('bk-time-wrap');if(tw)tw.innerHTML='<span style="font-family:var(--mono);font-size:9px;color:var(--ink-d);letter-spacing:.04em;grid-column:1/-1">select a date first</span>';
+  document.getElementById('bk-overlay').classList.add('open');
+  document.body.style.overflow='hidden';
+  bkGoStep(1);
+}
+function closeBk(){
+  document.getElementById('bk-overlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+function bkGoStep(n){
+  bkState.step=n;
+  for(var i=1;i<=4;i++){var s=document.getElementById('bks'+i);if(s)s.classList.toggle('on',i===n);}
+  for(var j=1;j<=3;j++){
+    var item=document.getElementById('bksi'+j);if(!item)continue;
+    item.classList.remove('active','done');
+    if(j<n)item.classList.add('done');
+    else if(j===n)item.classList.add('active');
+  }
+  var hdr=document.getElementById('bk-header-bar');if(hdr)hdr.style.display=n===4?'none':'flex';
+  var ft=document.getElementById('bk-footer-bar');if(ft)ft.style.display=n===4?'none':'flex';
+  var bb=document.getElementById('bk-back-btn');if(bb)bb.style.visibility=(n>1&&n<4)?'visible':'hidden';
+  updateBkNext();updateBkSum();
+}
+function bkAdvance(){
+  var s=bkState.step;
+  if(s===1&&bkState.package){bkInitCal();bkGoStep(2);}
+  else if(s===2&&bkState.date&&bkState.time){bkGoStep(3);}
+  else if(s===3&&bkState.name.trim()&&bkState.phone.trim()){submitBk();}
+}
+function bkBack(){
+  var s=bkState.step;
+  if(s===2)bkGoStep(1);
+  else if(s===3)bkGoStep(2);
+}
+function bkPickPackage(v){
+  if(!v)return;
+  var parts=v.split('|');
+  bkState.package=parts[0]||'';
+  bkState.gender=parts[1]||'';
+  bkState.price=parseInt(parts[2]||'0',10);
+  var pd=document.getElementById('bk-price-display');
+  if(pd&&PRICE_FMT[v])pd.textContent=PRICE_FMT[v];
+  updateBkNext();updateBkSum();
+}
+
+// ── Calendar ──────────────────────────────────────────────────────────
+function bkInitCal(){
+  var t=new Date();t.setDate(t.getDate()+1);
+  _calState={year:t.getFullYear(),month:t.getMonth()};
+  bkRenderCal();
+}
+function bkRenderCal(){
+  var cal=document.getElementById('bk-cal');if(!cal)return;
+  var today=new Date();today.setHours(0,0,0,0);
+  var minD=new Date(today);minD.setDate(minD.getDate()+1);
+  var y=_calState.year,mo=_calState.month;
+  var firstDow=new Date(y,mo,1).getDay();
+  var dInMo=new Date(y,mo+1,0).getDate();
+  var offset=(firstDow+6)%7;
+  var MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var html='<div class="bk-cal-nav">'+
+    '<button class="bk-cal-arr" onclick="bkCalPrev()">&#x2190;</button>'+
+    '<span class="bk-cal-month">'+MONTHS[mo]+' '+y+'</span>'+
+    '<button class="bk-cal-arr" onclick="bkCalNext()">&#x2192;</button>'+
+    '</div><div class="bk-cal-grid">'+
+    ['Mo','Tu','We','Th','Fr','Sa','Su'].map(function(d){return '<div class="bk-cal-dow">'+d+'</div>';}).join('');
+  for(var i=0;i<offset;i++)html+='<button class="bk-cal-day empty" disabled></button>';
+  for(var d=1;d<=dInMo;d++){
+    var dt=new Date(y,mo,d);dt.setHours(0,0,0,0);
+    var ds=y+'-'+('0'+(mo+1)).slice(-2)+'-'+('0'+d).slice(-2);
+    var disabled=(dt<minD||dt.getDay()===1);
+    html+='<button class="bk-cal-day'+(bkState.date===ds?' sel':'')+'"'+(disabled?' disabled':'')+' onclick="bkPickDay(\''+ds+'\')">'+d+'</button>';
+  }
+  cal.innerHTML=html+'</div>';
+}
+function bkCalPrev(){_calState.month--;if(_calState.month<0){_calState.month=11;_calState.year--;}bkRenderCal();}
+function bkCalNext(){_calState.month++;if(_calState.month>11){_calState.month=0;_calState.year++;}bkRenderCal();}
+function bkPickDay(ds){
+  bkState.date=ds;bkState.time=null;
+  var pts=ds.split('-');
+  var dt=new Date(parseInt(pts[0]),parseInt(pts[1])-1,parseInt(pts[2]));
+  var DOWS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var MONS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var disp=document.getElementById('bk-date-display');
+  if(disp){disp.textContent=DOWS[dt.getDay()]+', '+dt.getDate()+' '+MONS[dt.getMonth()]+' '+dt.getFullYear();disp.classList.remove('empty');}
+  bkRenderCal();
+  renderTimes();
+  updateBkNext();updateBkSum();
+}
+function renderTimes(){
+  var wrap=document.getElementById('bk-time-wrap');if(!wrap)return;
+  wrap.innerHTML='';
+  BW_SLOTS.forEach(function(t){
+    var btn=document.createElement('button');
+    btn.className='bk-time-btn';btn.textContent=t;
+    btn.onclick=(function(time,b){return function(){
+      bkState.time=time;
+      document.querySelectorAll('.bk-time-btn').forEach(function(e){e.classList.remove('sel');});
+      b.classList.add('sel');
+      updateBkNext();updateBkSum();
+    };})(t,btn);
+    wrap.appendChild(btn);
+  });
+}
+
+// ── Next / Summary ────────────────────────────────────────────────────
+function updateBkNext(){
+  var btn=document.getElementById('bk-next-btn');if(!btn)return;
+  var s=bkState.step,ok=false;
+  if(s===1)ok=!!(bkState.package&&bkState.gender);
+  else if(s===2)ok=!!(bkState.date&&bkState.time);
+  else if(s===3)ok=!!(bkState.name.trim()&&bkState.phone.trim());
+  btn.disabled=!ok;
+  btn.innerHTML=s===3?'confirm &#x2192;':'next &#x2192;';
+}
+function updateBkSum(){
+  var el=document.getElementById('bk-sum-text');if(!el)return;
+  var pts=[];
+  if(bkState.package)pts.push(bkState.package+(bkState.gender?' \xb7 '+bkState.gender:''));
+  if(bkState.date)pts.push(bkState.date);
+  if(bkState.time)pts.push(bkState.time);
+  el.textContent=pts.join(' \xb7 ');
+}
+
+// ── Submit ────────────────────────────────────────────────────────────
+function submitBk(){
+  var btn=document.getElementById('bk-next-btn');
+  if(btn){btn.disabled=true;btn.textContent='sending...';}
+  var priceStr=PRICE_FMT[bkState.package+'|'+bkState.gender+'|'+bkState.price]||('IDR '+bkState.price);
+  var rec={
+    type:'blood_work',
+    package:bkState.package,
+    gender:bkState.gender,
+    price:bkState.price,
+    date:bkState.date,
+    time:bkState.time,
+    name:bkState.name.trim(),
+    phone:bkState.phone.trim(),
+    status:'pending',
+    submittedAt:firebase.firestore.FieldValue.serverTimestamp()
+  };
+  bkFdb().collection('public_bookings').add(rec).then(function(){
+    var de=document.getElementById('bk-conf-detail');
+    if(de)de.innerHTML=
+      rec.package+' &mdash; '+rec.gender+'<br>'+
+      priceStr+'<br>'+
+      rec.date+' at '+rec.time+'<br>'+
+      rec.name+' &middot; '+rec.phone;
+    bkGoStep(4);
+  }).catch(function(e){
+    if(btn){btn.disabled=false;btn.innerHTML='confirm &#x2192;';}
+    alert('Something went wrong: '+e.message+'\n\nPlease contact HELIX directly: +62 853-3371-6596');
+  });
+}
+
+document.addEventListener('DOMContentLoaded',function(){
+  var ov=document.getElementById('bk-overlay');
+  if(ov)ov.addEventListener('click',function(e){if(e.target===ov)closeBk();});
+});
+</script>
+</body>
+</html>
