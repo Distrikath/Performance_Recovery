@@ -6168,24 +6168,30 @@ function buildServicesList(){
     </div>`).join('');
 }
 
+function _servicesFlushAll(){
+  SERVICES.forEach((svc,i)=>{
+    const v=id=>{const e=document.getElementById(id);return e?e.value:null;};
+    if(v('sv_name_'+i)!=null) svc.name=v('sv_name_'+i)||svc.name;
+    svc.duration   = parseInt(v('sv_dur_'+i))||svc.duration;
+    svc.buffer     = parseInt(v('sv_buf_'+i))||0;
+    svc.price      = parseInt(v('sv_price_'+i))||0;
+    svc.commission = parseFloat(v('sv_comm_'+i))||0;
+    const sel=document.getElementById('sv_rooms_'+i);
+    if(sel) svc.rooms=[...sel.selectedOptions].map(o=>o.value);
+    const tsel=document.getElementById('sv_therapists_'+i);
+    if(tsel) svc.therapists=[...tsel.selectedOptions].map(o=>o.value);
+  });
+}
+
 function addService(){
+  _servicesFlushAll();
   SERVICES.push({id:'s'+Date.now(),name:'New Service',duration:60,buffer:15,price:0,commission:5,rooms:['room1','room2','room3']});
   buildServicesList();
 }
-function deleteService(i){ SERVICES.splice(i,1); saveRFToStorage(); buildServicesList(); }
+function deleteService(i){ _servicesFlushAll(); SERVICES.splice(i,1); saveRFToStorage(); buildServicesList(); }
 
 function saveServices(){
-  SERVICES.forEach((svc,i)=>{
-    svc.name     = document.getElementById(`sv_name_${i}`)?.value||svc.name;
-    svc.duration = parseInt(document.getElementById(`sv_dur_${i}`)?.value)||svc.duration;
-    svc.buffer   = parseInt(document.getElementById(`sv_buf_${i}`)?.value)||0;
-    svc.price    = parseInt(document.getElementById(`sv_price_${i}`)?.value)||0;
-    svc.commission = parseFloat(document.getElementById(`sv_comm_${i}`)?.value)||0;
-    const sel=document.getElementById(`sv_rooms_${i}`);
-    if(sel) svc.rooms=[...sel.selectedOptions].map(o=>o.value);
-    const tsel=document.getElementById(`sv_therapists_${i}`);
-    if(tsel) svc.therapists=[...tsel.selectedOptions].map(o=>o.value);
-  });
+  _servicesFlushAll();
   saveRFToStorage();
   closeServicesModal();
   const n=document.getElementById('notif');
@@ -6211,16 +6217,20 @@ function buildClinicalSvcList(){
       <button class="svc-del-btn" onclick="deleteClinicalSvc(${i})">✕</button>
     </div>`).join('');
 }
-function addClinicalSvc(){ CLINICAL_SERVICES.push({id:'cs'+Date.now(),name:'New Treatment',rrp:0,cost:0,price:0,dur:30}); buildClinicalSvcList(); }
-function deleteClinicalSvc(i){ CLINICAL_SERVICES.splice(i,1); saveClinical(); buildClinicalSvcList(); }
-function saveClinicalSvc(){
+function _clinicalFlushAll(){
   CLINICAL_SERVICES.forEach((svc,i)=>{
-    svc.name  = document.getElementById(`cl_name_${i}`)?.value||svc.name;
-    svc.dur   = parseInt(document.getElementById(`cl_dur_${i}`)?.value)||svc.dur;
-    svc.rrp   = parseInt(document.getElementById(`cl_rrp_${i}`)?.value)||0;
-    svc.cost  = parseInt(document.getElementById(`cl_cost_${i}`)?.value)||0;
-    svc.price = parseInt(document.getElementById(`cl_price_${i}`)?.value)||0;
+    const v=id=>{const e=document.getElementById(id);return e?e.value:null;};
+    if(v('cl_name_'+i)!=null) svc.name=v('cl_name_'+i)||svc.name;
+    svc.dur  = parseInt(v('cl_dur_'+i))||svc.dur;
+    svc.rrp  = parseInt(v('cl_rrp_'+i))||0;
+    svc.cost = parseInt(v('cl_cost_'+i))||0;
+    svc.price= parseInt(v('cl_price_'+i))||0;
   });
+}
+function addClinicalSvc(){ _clinicalFlushAll(); CLINICAL_SERVICES.push({id:'cs'+Date.now(),name:'New Treatment',rrp:0,cost:0,price:0,dur:30}); buildClinicalSvcList(); }
+function deleteClinicalSvc(i){ _clinicalFlushAll(); CLINICAL_SERVICES.splice(i,1); saveClinical(); buildClinicalSvcList(); }
+function saveClinicalSvc(){
+  _clinicalFlushAll();
   saveClinical();
   closeServicesModal();
   if(typeof renderClinicalServices==='function') renderClinicalServices();
@@ -6863,11 +6873,10 @@ function buildPackagesList(){
     return `<div class="pkg-card" id="pkg-card-${pi}">
       <div class="pkg-card-hdr">
         <input class="pkg-name-input" id="pkg_name_${pi}" value="${pkg.name}" placeholder="Package name">
-        <span style="font-family:'Space Mono',monospace;font-size:10px;color:#777;">${totalMins} min total</span>
         <span style="font-family:'Space Mono',monospace;font-size:10px;color:#777;">Commission %</span>
         <input class="pkg-price-input" id="pkg_comm_${pi}" type="number" value="${pkg.commission||5}" style="width:60px;" placeholder="5">
         <input class="pkg-price-input" id="pkg_price_${pi}" type="number" value="${pkg.price}" placeholder="IDR">
-        <button onclick="deletePkg(${pi})" style="background:transparent;border:1px solid #eee;border-radius:2px;color:#ddd;font-size:11px;cursor:pointer;padding:4px 8px;transition:all .15s" onmouseover="this.style.borderColor='#FF2D2D';this.style.color='#FF2D2D'" onmouseout="this.style.borderColor='#eee';this.style.color='#ddd'">✕</button>
+        <button onclick="deletePkg(${pi})" style="background:#fff;border:1px solid #FF2D2D;border-radius:2px;color:#FF2D2D;font-size:10px;font-family:'Space Mono',monospace;cursor:pointer;padding:5px 12px;transition:all .15s;white-space:nowrap;" onmouseover="this.style.background='#FF2D2D';this.style.color='#fff'" onmouseout="this.style.background='#fff';this.style.color='#FF2D2D'">Delete</button>
       </div>
       <div style="padding:6px 14px 4px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:#BFC2C7;">Components</div>
       ${pkg.components.map((comp,ci)=>`
@@ -6904,30 +6913,37 @@ function buildPackagesList(){
   }).join('') + `<div style="padding:4px 16px 16px;"><button onclick="addPkg()" class="rf-add-row-btn">+ Add Package</button></div>`;
 }
 
+function _pkgFlushAll(){
+  PACKAGES.forEach((pkg,pi)=>{
+    const v=id=>{const e=document.getElementById(id);return e?e.value:null;};
+    if(v('pkg_name_'+pi)!=null)  pkg.name=v('pkg_name_'+pi)||pkg.name;
+    pkg.price      = parseInt(v('pkg_price_'+pi))||pkg.price;
+    pkg.commission = parseFloat(v('pkg_comm_'+pi))||pkg.commission;
+    pkg.components.forEach((comp,ci)=>{
+      if(v('pkg_comp_label_'+pi+'_'+ci)!=null) comp.label=v('pkg_comp_label_'+pi+'_'+ci)||comp.label;
+      comp.serviceId = v('pkg_comp_svc_'+pi+'_'+ci)||comp.serviceId;
+      comp.duration  = parseInt(v('pkg_comp_dur_'+pi+'_'+ci))||comp.duration;
+      comp.buffer    = parseInt(v('pkg_comp_buf_'+pi+'_'+ci))||0;
+    });
+    pkg.totalDuration=pkg.components.reduce((s,c)=>s+c.duration+(c.buffer||0),0);
+  });
+}
+
 function addPkg(){
+  _pkgFlushAll();
   PACKAGES.push({id:'pkg'+Date.now(),name:'New Package',description:'',components:[],totalDuration:0,price:0,commission:5,rooms:['room1','room2','room3']});
   buildPackagesList();
 }
-function deletePkg(i){ PACKAGES.splice(i,1); saveRFToStorage(); buildPackagesList(); }
+function deletePkg(i){ _pkgFlushAll(); PACKAGES.splice(i,1); saveRFToStorage(); buildPackagesList(); }
 function addPkgComp(pi){
+  _pkgFlushAll();
   PACKAGES[pi].components.push({serviceId:'',duration:30,buffer:10,label:'New Component'});
   buildPackagesList();
 }
-function deletePkgComp(pi,ci){ PACKAGES[pi].components.splice(ci,1); saveRFToStorage(); buildPackagesList(); }
+function deletePkgComp(pi,ci){ _pkgFlushAll(); PACKAGES[pi].components.splice(ci,1); saveRFToStorage(); buildPackagesList(); }
 
 function savePackages(){
-  PACKAGES.forEach((pkg,pi)=>{
-    pkg.name  = document.getElementById(`pkg_name_${pi}`)?.value||pkg.name;
-    pkg.price = parseInt(document.getElementById(`pkg_price_${pi}`)?.value)||0;
-    pkg.commission = parseFloat(document.getElementById(`pkg_comm_${pi}`)?.value)||5;
-    pkg.components.forEach((comp,ci)=>{
-      comp.label     = document.getElementById(`pkg_comp_label_${pi}_${ci}`)?.value||comp.label;
-      comp.serviceId = document.getElementById(`pkg_comp_svc_${pi}_${ci}`)?.value||'';
-      comp.duration  = parseInt(document.getElementById(`pkg_comp_dur_${pi}_${ci}`)?.value)||30;
-      comp.buffer    = parseInt(document.getElementById(`pkg_comp_buf_${pi}_${ci}`)?.value)||0;
-    });
-    pkg.totalDuration = pkg.components.reduce((s,c)=>s+c.duration+(c.buffer||0),0);
-  });
+  _pkgFlushAll();
   saveRFToStorage();
   closeServicesModal();
   // Rebuild service dropdown in booking form to include packages
