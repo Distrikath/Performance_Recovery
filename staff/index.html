@@ -2205,11 +2205,6 @@ h1,
       <button onclick="openServicesMgr()" class="nav-action-btn">Services &amp; Treatments</button>
     </div>
   </div>
-  <div class="clin-nurse-banner">
-    <span class="clin-nb-dot"></span>
-    <span><b>Clinical bookings — nurse windows only.</b>&nbsp; Next: Tue · Thu · Sat · 09:00–14:00</span>
-    <span class="clin-nb-tag">Partner · ClinicTerrain</span>
-  </div>
 
   <!-- Online Booking Requests -->
   <div id="online-requests-bar" class="onreq-bar" style="display:none">
@@ -10089,15 +10084,27 @@ function renderClinicalBooking(){
     roomLine='<div class="clin-room-prompt">↑ Tap a '+(clinType==='clinical'?'recovery chair':'room')+' above to assign</div>';
   }
   if(clinType==='clinical'){
-    var windows=NURSE_WINDOW_SLOTS.map(function(w){ return '<button class="clin-win'+(clinWindow===w?' sel':'')+'" onclick="selectWindow(\''+w+'\')">'+w+'</button>'; }).join('');
+    var intakeBlock;
+    if(clinIntake){
+      intakeBlock='<div class="clin-intake done">'
+        +'<div class="clin-intake-h"><span>✓ Intake approved</span><span class="clin-intake-st">Approved</span></div>'
+        +'<div class="clin-intake-b">Intake complete &amp; nurse-approved — ready to confirm.</div>'
+        +'<button class="clin-intake-btn" style="background:#0A0A0A;margin-top:10px;" onclick="confirmClinical()">Confirm booking ✓</button>'
+        +'</div>';
+    } else {
+      intakeBlock='<div class="clin-intake">'
+        +'<div class="clin-intake-h"><span>Intake form</span><span class="clin-intake-st">Pending</span></div>'
+        +'<div class="clin-intake-b">Send the patient their intake form. You can <b>save this as tentative</b> and confirm once it&rsquo;s returned &amp; nurse-approved.</div>'
+        +'<div style="display:flex;gap:6px;"><button class="clin-intake-btn" onclick="sendIntake()">Send intake form →</button><button class="clin-intake-btn" style="background:#0A0A0A;" onclick="approveIntake()">Mark approved ✓</button></div>'
+        +'</div>';
+    }
     el.innerHTML=renderClinMiniCal()+roomGridDiv+dateBar
       +'<div style="padding:0 16px 16px;">'
       +'<div class="clin-bk-hdr" style="margin-top:12px;">'+s.name+'</div>'
       +'<div class="clin-field"><label>3 · Recovery chair</label>'+roomLine+'</div>'
-      +'<div class="clin-field"><label>4 · Nurse window <span style="text-transform:none;color:#9a9a9e">· external clinical calendar</span></label><div class="clin-windows">'+windows+'</div></div>'
-      +'<div style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#56565b;margin:18px 0 10px;padding-top:14px;border-top:1px solid #f0f0f0;">5 · Patient details</div>'
+      +'<div style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#56565b;margin:18px 0 10px;padding-top:14px;border-top:1px solid #f0f0f0;">4 · Patient details</div>'
       +contactBlock
-      +'<div class="clin-intake'+(clinIntake?' done':'')+'"><div class="clin-intake-h"><span>'+(clinIntake?'✓ Intake approved':'Intake form')+'</span><span class="clin-intake-st">'+(clinIntake?'Approved':'Pending')+'</span></div><div class="clin-intake-b">'+(clinIntake?'Intake complete &amp; nurse-approved — ready to confirm.':'Send the patient their intake form. You can <b>hold the space now</b> and confirm once it&rsquo;s returned &amp; nurse-approved.')+'</div>'+(clinIntake?'':'<div style="display:flex;gap:6px;"><button class="clin-intake-btn" onclick="sendIntake()">Send intake form →</button><button class="clin-intake-btn" style="background:#0A0A0A;" onclick="approveIntake()">Mark approved ✓</button></div>')+'</div>'
+      +intakeBlock
       +'<div class="clin-tagline"><span>Internal tag</span><span class="clin-tag">Clinical Partner</span></div>'
       +'</div>';
   } else {
@@ -10141,20 +10148,34 @@ function renderClinicalBooking(){
   clinRestoreInputs();
 }
 function selectRoom(rn){ clinCaptureInputs(); clinRoom=rn; renderClinicalBooking(); renderClinicalOrder(); }
-function sendIntake(){ clinCaptureInputs(); var n=document.getElementById('notif'); if(n){n.textContent='Intake form sent to patient ✓';n.classList.add('on');setTimeout(function(){n.classList.remove('on');},2200);} renderClinicalBooking(); renderClinicalOrder(); }
+function sendIntake(){
+  clinCaptureInputs();
+  var name=clinPatient||'(patient not entered)';
+  var wa=(clinWhatsapp||'').replace(/\D/g,'');
+  var email=clinEmail||'';
+  var svc=clinSvc()?clinSvc().name:'?';
+  var date=clinDate?clinDate.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}):'?';
+  var msg='Hi HUMAN+ — please send the intake form to '+name;
+  if(wa) msg+=' (WA: +'+wa+')';
+  if(email) msg+=' / '+email;
+  msg+='. Service: '+svc+' on '+date+'. Thank you!';
+  window.open('https://wa.me/6281237521662?text='+encodeURIComponent(msg),'_blank');
+  var n=document.getElementById('notif');
+  if(n){n.textContent='Intake request sent to HUMAN+ ✓';n.classList.add('on');setTimeout(function(){n.classList.remove('on');},2500);}
+  renderClinicalBooking(); renderClinicalOrder();
+}
 function approveIntake(){ clinCaptureInputs(); clinIntake=true; renderClinicalBooking(); renderClinicalOrder(); }
 function selectWindow(w){ clinCaptureInputs(); clinWindow=w; renderClinicalBooking(); renderClinicalOrder(); }
 window.selectRoom=selectRoom; window.sendIntake=sendIntake; window.approveIntake=approveIntake; window.selectWindow=selectWindow;
 
 function renderClinicalOrder(){
   var el=document.getElementById('clin-order-body'); if(!el) return;
-  if(clinDone){ var dMsg=clinDoneHold?'Space held':'Booking confirmed'; var dIco=clinDoneHold?'<span style="color:#FF2D2D;">●</span>':'✓'; var dSub=clinDoneHold?'<div style="font-family:Space Mono,monospace;font-size:11px;color:#56565b;margin-top:8px;line-height:1.5;">Intake pending. Confirm from the bookings list once it&rsquo;s returned &amp; approved.</div>':''; el.innerHTML='<div class="clin-confirm"><div class="clin-confirm-ico">'+dIco+'</div><div class="clin-confirm-msg">'+dMsg+'</div>'+dSub+'<button class="clin-intake-btn" style="background:#0A0A0A;margin-top:14px;" onclick="initRecovery()">New booking</button></div>'; clinSetText('clin-subtotal','—'); clinSetText('clin-tax','—'); clinSetText('clin-total','—'); var b=document.getElementById('clin-confirm-btn'); if(b){b.disabled=true;b.textContent=clinDoneHold?'Held':'Booked';} return; }
+  if(clinDone){ var dMsg=clinDoneHold?'Tentative — intake pending':'Booking confirmed'; var dIco=clinDoneHold?'<span style="color:#FF2D2D;">●</span>':'✓'; var dSub=clinDoneHold?'<div style="font-family:Space Mono,monospace;font-size:11px;color:#56565b;margin-top:8px;line-height:1.5;">Chair reserved. Confirm once intake is returned &amp; approved.</div>':''; el.innerHTML='<div class="clin-confirm"><div class="clin-confirm-ico">'+dIco+'</div><div class="clin-confirm-msg">'+dMsg+'</div>'+dSub+'<button class="clin-intake-btn" style="background:#0A0A0A;margin-top:14px;" onclick="initRecovery()">New booking</button></div>'; clinSetText('clin-subtotal','—'); clinSetText('clin-tax','—'); clinSetText('clin-total','—'); var b=document.getElementById('clin-confirm-btn'); if(b){b.disabled=true;b.textContent=clinDoneHold?'Tentative':'Confirmed';} return; }
   if(!clinSel){ el.innerHTML='<div class="receipt-empty" style="padding:24px;text-align:center;color:#9a9a9e;font-family:Space Mono,monospace;font-size:11px;">No service selected</div>'; updateClinicalTotals(0); return; }
   var s=clinSvc();
   var lines='<div class="clin-oline"><span>'+s.name+'</span><span>'+clinFmt(s.price)+'</span></div>';
   if(clinType==='clinical'){
     lines+=(clinRoom?'<div class="clin-oline sub"><span>Recovery chair</span><span>'+clinRoom+'</span></div>':'')
-      +(clinWindow?'<div class="clin-oline sub"><span>Nurse window</span><span>'+clinWindow+'</span></div>':'')
       +'<div class="clin-oline sub"><span>Clinician</span><span>Nurse · ClinicTerrain</span></div>'
       +'<div class="clin-oline sub"><span>Internal tag</span><span>Clinical Partner</span></div>';
   } else {
@@ -10181,14 +10202,14 @@ function updateClinicalTotals(base){
   if(dl) dl.innerHTML=(isDeposit&&clinSel)?('<div class="clin-deposit-line due"><span>Deposit due now (50%)</span><span>'+clinFmt(dep)+'</span></div><div class="clin-deposit-line bal"><span>Balance on arrival (50%)</span><span>'+clinFmt(bal)+'</span></div>'):'';
   var btn=document.getElementById('clin-confirm-btn'); if(!btn) return;
   var conflict = (typeof clinCurrentConflict==='function') && clinCurrentConflict();
-  var baseOk = (clinType==='clinical' ? (clinSel && clinRoom && clinWindow) : (clinSel && clinRoom && clinTime));
+  var baseOk = (clinType==='clinical' ? (clinSel && clinRoom) : (clinSel && clinRoom && clinTime));
   var ok = baseOk && !conflict;
   btn.disabled=!ok;
   var depTxt = isDeposit ? ('Take 50% deposit · '+clinFmt(dep)) : null;
   var readyTxt = depTxt || (clinEditingId?'Update booking':'Confirm booking');
   if(!clinSel) btn.textContent='Select a service';
   else if(conflict) btn.textContent = (clinType==='clinical'?'Chair':'Room')+' busy at that time';
-  else if(clinType==='clinical') btn.textContent = !clinRoom?'Select a chair':(!clinWindow?'Select nurse window':(depTxt||(clinIntake?(clinEditingId?'Update booking':'Confirm booking'):'Hold space · intake pending')));
+  else if(clinType==='clinical') btn.textContent = !clinRoom?'Select a chair':(depTxt||(clinIntake?(clinEditingId?'Update booking':'Confirm booking'):'Save tentative · intake pending'));
   else btn.textContent = !clinRoom?'Select a room':(!clinTime?'Select a time':readyTxt);
 }
 function clinSetPay(m){ clinPay=m; ['clin-pay-card','clin-pay-qr'].forEach(function(id){ var b=document.getElementById(id); if(b) b.classList.toggle('active', id==='clin-pay-'+m); }); }
@@ -10257,7 +10278,7 @@ function sendBookingEmail(rec, dateLabel, kind){
 
 function confirmClinical(){
   clinCaptureInputs();
-  var ok = clinType==='clinical' ? (clinSel && clinRoom && clinWindow) : (clinSel && clinRoom && clinTime);
+  var ok = clinType==='clinical' ? (clinSel && clinRoom) : (clinSel && clinRoom && clinTime);
   if(!ok) return;
   // block double-booking — held & confirmed both reserve the slot
   if(clinCurrentConflict()){ clinNotify((clinType==='clinical'?'That chair':'That room')+' is already booked at that time — pick another '+(clinType==='clinical'?'chair or window':'time or room')+'.'); return; }
