@@ -4709,7 +4709,12 @@ function cfgDelStaffIdx(idx){
     });
   });
   STAFF.splice(idx,1);
+  delete STAFF_MAP[sid];
   buildCfgStaff();
+  buildPalette();
+  saveAll();
+  const n=document.getElementById('notif');
+  if(n){ n.textContent='Staff removed ✓'; n.classList.add('on'); setTimeout(()=>n.classList.remove('on'),2000); }
 }
 function cfgDelStaff(prefix, idx){ cfgDelStaffIdx(idx); }
 
@@ -11147,6 +11152,16 @@ window.showRoomCalendar=showRoomCalendar;
       Object.keys(co).forEach(function(f){keys[f]=1;});
       Object.keys(keys).forEach(function(f){
         if(tf.indexOf(f)>=0){ res[f]=(lo[f]!==undefined)?lo[f]:(f==='SUPPLY_SALES'?[]:{}); return; } // transactions: keep local
+        // STAFF: union-merge by id so locally-added staff survive a cloud pull
+        if(f==='STAFF' && Array.isArray(lo[f]) && Array.isArray(co[f])){
+          var byId={};
+          (co[f]||[]).forEach(function(s){ if(s&&s.id) byId[s.id]=s; });
+          (lo[f]||[]).forEach(function(s){ if(s&&s.id) byId[s.id]=s; }); // local version of each entry wins
+          var localIds=(lo[f]||[]).map(function(s){ return s&&s.id; });
+          var cloudOnly=(co[f]||[]).filter(function(s){ return s&&s.id&&localIds.indexOf(s.id)<0; });
+          res[f]=(lo[f]||[]).map(function(s){ return (s&&s.id)?byId[s.id]:s; }).concat(cloudOnly);
+          return;
+        }
         var lJson=JSON.stringify(lo[f]);
         if(lJson===JSON.stringify(ba[f])){ res[f]=(co[f]!==undefined)?co[f]:lo[f]; }  // I didn't change this field -> take theirs
         else { res[f]=lo[f]; }                                                        // I changed it -> keep mine
