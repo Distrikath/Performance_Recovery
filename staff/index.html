@@ -11578,23 +11578,40 @@ window.waReceipt = function(number, text){
 window.buildReceiptText = function(sale){
   function fmt(n){ return 'IDR '+Math.round(n||0).toLocaleString('id-ID'); }
   var channel = (sale.kind==='fuel') ? 'Fuel | Café' : 'Supply';
-  var div = '------------------------';
+  var div = '────────────────────────';
   var lines=[
-    '*DISTRIK*',
-    '',
-    channel,
-    '',
-    div,
-    '',
-    'Total Paid',
-    '*'+fmt(sale.total)+'*',
+    '*DISTRIK* — ' + channel,
+    sale.date + (sale.time ? ' · ' + sale.time : ''),
     '',
     div,
-    '',
-    'Thank you for visiting DISTRIK.',
-    '',
-    'See you again soon.'
+    ''
   ];
+  // Items
+  if(sale.items && sale.items.length){
+    sale.items.forEach(function(it){
+      var qty = (it.qty && it.qty > 1) ? it.qty + '× ' : '';
+      lines.push(qty + it.name + '   ' + fmt(it.price * (it.qty||1)));
+    });
+    lines.push('');
+  }
+  lines.push(div);
+  lines.push('');
+  lines.push('Total               ' + fmt(sale.subtotal));
+  if(sale.serviceTax){
+    lines.push('Service Charge 7%   ' + fmt(sale.serviceTax));
+  }
+  if(sale.tax){
+    lines.push('PB1 10%             ' + fmt(sale.tax));
+  }
+  lines.push('');
+  lines.push('*Grand Total        ' + fmt(sale.total) + '*');
+  lines.push('');
+  lines.push('Payment: ' + (sale.method||'—').toUpperCase());
+  lines.push('');
+  lines.push(div);
+  lines.push('');
+  lines.push('Thank you for visiting DISTRIK.');
+  lines.push('See you again soon.');
   return lines.join('\n');
 };
 
@@ -11643,7 +11660,7 @@ window.injectWaCapture = function(confirmId, sale){
         if(day&&day[field]&&day[field].length>before){
           var it=day[field][day[field].length-1];
           window.injectWaCapture(kind==='fuel'?'receipt-confirm':'sup-confirm',
-            {kind:kind, id:it.id, total:it.total, method:it.method, date:key, items:it.items, time:it.time});
+            {kind:kind, id:it.id, total:it.total, subtotal:it.subtotal, serviceTax:it.serviceTax, tax:it.tax, method:it.method, date:key, items:it.items, time:it.time});
         }
       }catch(e){ console.warn('[wa] wrap',e); }
       return r;
