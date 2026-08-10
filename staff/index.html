@@ -4716,36 +4716,40 @@ function cfgDelStaff(prefix, idx){ cfgDelStaffIdx(idx); }
 function cfgAddStaff(type){
   const col = ['#e879f9','#fb923c','#a3e635','#38bdf8','#f472b6','#34d399'][Math.floor(Math.random()*6)];
   const isT = type==='th';
-  STAFF.push({
+  const newS = {
     id: (isT?'T':'S')+'new'+Date.now(),
     col, abbr: isT?'NT':'NS',
     name: isT?'New Therapist':'New Staff',
     role: isT?'Therapist':'Staff',
+    group: isT?'Therapy':'Operations',
     salary: 3900000
-  });
+  };
+  STAFF.push(newS);
+  STAFF_MAP[newS.id] = newS;
   buildCfgStaff();
 }
 
 function saveCfg(){
-  // Save staff from buildSettingsStaff IDs: stf_col_0, stf_name_0, stf_role_0, stf_sal_0
+  // Read staff from buildCfgStaff IDs: sfc{i} col, sfn{i} name, sfr{i} role, sfs{i} salary
   STAFF.forEach((s,i)=>{
-    const name   = document.getElementById(`stf_name_${i}`)?.value.trim();
-    const role   = document.getElementById(`stf_role_${i}`)?.value.trim();
-    const salary = parseInt(document.getElementById(`stf_sal_${i}`)?.value);
-    const col    = document.getElementById(`stf_col_${i}`)?.value;
+    const name   = document.getElementById(`sfn${i}`)?.value.trim();
+    const role   = document.getElementById(`sfr${i}`)?.value.trim();
+    const salary = parseInt(document.getElementById(`sfs${i}`)?.value);
+    const col    = document.getElementById(`sfc${i}`)?.value;
     if(name){ s.name=name; s.abbr=name.slice(0,2).toUpperCase(); }
     if(role)  s.role=role;
     if(!isNaN(salary)&&salary>0) s.salary=salary;
     if(col)   s.col=col;
+    STAFF_MAP[s.id] = s;
   });
 
-  // Save zone hours from buildSettingsZones IDs: zn_col_0, zn_wdo_0, zn_wdc_0, zn_weo_0, zn_wec_0
+  // Read zone hours from buildCfgZones IDs: zc{i} col, zwo{i}/zwc{i} weekday, zeo{i}/zec{i} weekend
   ZONE_HOURS.forEach((z,i)=>{
-    const col = document.getElementById(`zn_col_${i}`)?.value;
-    const wdo = parseFloat(document.getElementById(`zn_wdo_${i}`)?.value);
-    const wdc = parseFloat(document.getElementById(`zn_wdc_${i}`)?.value);
-    const weo = parseFloat(document.getElementById(`zn_weo_${i}`)?.value);
-    const wec = parseFloat(document.getElementById(`zn_wec_${i}`)?.value);
+    const col = document.getElementById(`zc${i}`)?.value;
+    const wdo = parseFloat(document.getElementById(`zwo${i}`)?.value);
+    const wdc = parseFloat(document.getElementById(`zwc${i}`)?.value);
+    const weo = parseFloat(document.getElementById(`zeo${i}`)?.value);
+    const wec = parseFloat(document.getElementById(`zec${i}`)?.value);
     if(col)       z.col=col;
     if(!isNaN(wdo)) z.wdOpen=wdo;
     if(!isNaN(wdc)) z.wdClose=wdc;
@@ -4945,7 +4949,9 @@ function buildSettingsZones(){
 function settingsAddStaff(){
   const colors = ['#e879f9','#fb923c','#a3e635','#38bdf8','#f472b6','#34d399'];
   const col = colors[STAFF.length % colors.length];
-  STAFF.push({id:'new'+Date.now(), col, group:'Operations', name:'New Staff', abbr:'NS', role:'Staff', salary:3900000});
+  const newS = {id:'new'+Date.now(), col, group:'Operations', name:'New Staff', abbr:'NS', role:'Staff', salary:3900000};
+  STAFF.push(newS);
+  STAFF_MAP[newS.id] = newS;
   buildSettingsStaff();
 }
 
