@@ -11164,6 +11164,14 @@ window.showRoomCalendar=showRoomCalendar;
           res[f]=(lo[f]||[]).map(function(s){ return (s&&s.id)?byId[s.id]:s; }).concat(cloudOnly);
           return;
         }
+        // dailyOverrides: merge by date key — local dates always win so a stale device can't revert roster edits
+        if(f==='dailyOverrides'){
+          var doOut=Object.assign({},co[f]||{});
+          Object.keys(lo[f]||{}).forEach(function(d){ doOut[d]=(lo[f])[d]; });
+          res[f]=doOut; return;
+        }
+        // grid (base weekly template): local always wins — stale device must not revert template edits
+        if(f==='grid'){ res[f]=lo[f]!==undefined?lo[f]:co[f]; return; }
         var lJson=JSON.stringify(lo[f]);
         if(lJson===JSON.stringify(ba[f])){ res[f]=(co[f]!==undefined)?co[f]:lo[f]; }  // I didn't change this field -> take theirs
         else { res[f]=lo[f]; }                                                        // I changed it -> keep mine
