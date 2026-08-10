@@ -3108,6 +3108,7 @@ function buildPalette(){
     chip.style.cssText=`background:#fff;border:1px solid #e0e0e0;color:#0A0A0A;border-radius:0;`;
     chip.innerHTML=`${s.name}<span class="chip-role">${s.role}</span>`;
     chip.draggable=true;
+    chip.addEventListener('dragstart',e=>e.preventDefault()); // prevent Safari native drag hijacking custom mouse drag
     chip.addEventListener('mousedown',e=>startDragFromPalette(e,s.id));
     chip.addEventListener('touchstart',e=>startDragFromPalette(e,s.id),{passive:false});
     // Also click to select
@@ -3125,6 +3126,7 @@ function buildPalette(){
   bchip.innerHTML=`Break`;
   bchip.title='Drag onto a shift (or tap, then tap a slot)';
   bchip.draggable=true;
+  bchip.addEventListener('dragstart',e=>e.preventDefault());
   bchip.addEventListener('mousedown',e=>startDragFromPalette(e,'__break__'));
   bchip.addEventListener('touchstart',e=>startDragFromPalette(e,'__break__'),{passive:false});
   bchip.addEventListener('click',()=>{
