@@ -1642,7 +1642,10 @@ h1,
 .onreq-btn{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;border-radius:4px;padding:6px 12px;cursor:pointer;border:none;white-space:nowrap;text-decoration:none;display:inline-block;text-align:center;}
 .onreq-btn.accept{background:#7c3aed;color:#fff;}
 .onreq-btn.wa{background:#25D366;color:#fff;}
+.onreq-btn.suggest{background:#ede9fe;color:#7c3aed;border:1px solid #c4b5fd;}
 .onreq-btn.decline{background:#f5f5f5;color:#9a9a9e;border:1px solid #e0e0e0;}
+.bk-notif-pill{align-items:center;gap:5px;background:#7c3aed;color:#fff;border-radius:100px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:5px 13px;cursor:pointer;border:none;animation:bk-pulse 2s ease-in-out infinite;}
+@keyframes bk-pulse{0%,100%{box-shadow:0 0 0 0 rgba(124,58,237,.5);}70%{box-shadow:0 0 0 7px rgba(124,58,237,0);}}
 .clin-nb-dot{width:8px;height:8px;border-radius:50%;background:#FF2D2D;flex-shrink:0;}
 .clin-nb-tag{margin-left:auto;font-size:10px;letter-spacing:.1em;text-transform:uppercase;border:1px solid #0A0A0A;color:#0A0A0A;padding:5px 9px;white-space:nowrap;}
 .clin-datebar{display:flex;align-items:center;padding:11px 20px;border-bottom:1px solid #e8e8e8;background:#fff;}
@@ -1980,6 +1983,7 @@ h1,
   </div>
   <div style="margin-left:auto;display:flex;align-items:center;gap:8px;padding:0 16px;">
     <span id="nav-user-name" style="font-family:'Space Mono',monospace;font-size:10px;color:#777;letter-spacing:1px;"></span>
+    <button id="bk-notif-pill" class="bk-notif-pill" onclick="switchTab('recovery')" style="display:none">● <span id="bk-notif-count">0</span>&nbsp;Booking</button>
     <button onclick="showHome()" class="nav-action-btn">Home</button>
     <button onclick="doLogout()" class="nav-action-btn" style="border-color:#FF2D2D;color:#FF2D2D;">Sign Out</button>
   </div>
@@ -2212,7 +2216,7 @@ h1,
     <div class="onreq-header">
       <span class="onreq-title">● Website Requests</span>
       <span class="onreq-badge" id="onreq-count">0</span>
-      <button class="onreq-refresh" onclick="loadOnlineRequests()">↻ Refresh</button>
+      <button class="onreq-refresh" onclick="if(_bkListener){_bkListener();_bkListener=null;_bkListenerReady=false;}startBookingListener()">↻ Refresh</button>
     </div>
     <div id="onreq-list"></div>
   </div>
@@ -9768,72 +9772,138 @@ function renderTodayBookings(){
   }).join('');
 }
 
-function initRecovery(){ if(typeof loadClinical==='function') loadClinical(); clinSel=null;clinType=null;clinIntake=false;clinWindow=null;clinRoom=null;clinPay='card';clinDone=false;clinDoneHold=false;clinEditingId=null;clinEditingDate=null;clinOnline=false;clinPressure='';clinPayType='full';clinPatient='';clinEmail='';clinWhatsapp='';clinTime=''; clinDate=(typeof baliNow==='function'?baliNow():new Date()); clinViewYear=null;clinViewMonth=null; clinGroupOpen={recovery:true,clinical:true}; clinSyncDateUI(); renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); loadOnlineRequests(); }
+function initRecovery(){ if(typeof loadClinical==='function') loadClinical(); clinSel=null;clinType=null;clinIntake=false;clinWindow=null;clinRoom=null;clinPay='card';clinDone=false;clinDoneHold=false;clinEditingId=null;clinEditingDate=null;clinOnline=false;clinPressure='';clinPayType='full';clinPatient='';clinEmail='';clinWhatsapp='';clinTime=''; clinDate=(typeof baliNow==='function'?baliNow():new Date()); clinViewYear=null;clinViewMonth=null; clinGroupOpen={recovery:true,clinical:true}; clinSyncDateUI(); renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); startBookingListener(); }
 window.initRecovery=initRecovery;
 
 // ── Online Booking Requests (public_bookings Firestore collection) ──────
 function _escHtml(s){return(''+(s==null?'':s)).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
 function _getPublicDb(){try{return firebase.apps.length?firebase.apps[0].firestore():null;}catch(e){return null;}}
 
-function loadOnlineRequests(){
-  var db=_getPublicDb(); if(!db) return;
-  db.collection('public_bookings').where('status','==','pending')
-    .orderBy('submittedAt','desc').limit(50).get()
-    .then(function(snap){
-      var reqs=[];
-      snap.forEach(function(doc){var d=doc.data();d._id=doc.id;reqs.push(d);});
-      renderOnlineRequests(reqs);
-    }).catch(function(e){
-      console.warn('public_bookings read error:',e.message);
-    });
+// ── Booking type helpers ─────────────────────────────────────────────
+var _bkReqs=[];
+function _onreqLabel(r){
+  if(r.type==='iv_therapy') return r.protocol||'IV Therapy';
+  if(r.type==='blood_work'){ var p=r.package||''; return p?p.charAt(0).toUpperCase()+p.slice(1).toLowerCase()+' Blood Work':'Blood Work'; }
+  return r.pathway||r.service||'Booking';
 }
-window.loadOnlineRequests=loadOnlineRequests;
+function _onreqSub(r){
+  if(r.type==='blood_work'){ var pts=[]; if(r.gender)pts.push(r.gender); if(r.price)pts.push('IDR '+parseInt(r.price,10).toLocaleString('id-ID')); return pts.join(' · '); }
+  var pts=[]; if(r.duration)pts.push(r.duration+' min'); if(r.pressure)pts.push(r.pressure); if(r.price)pts.push(r.price); return pts.join(' · ');
+}
+function _onreqWaMsg(r,action,altTimes){
+  var n=r.name||'there', svc=_onreqLabel(r), dt=(r.date||'')+(r.time?' at '+r.time:'');
+  if(action==='confirm') return 'Hi '+n+' — DISTRIK here! Your '+svc+' booking on '+dt+' is confirmed. We’re looking forward to seeing you 🙏';
+  if(action==='decline') return 'Hi '+n+' — DISTRIK here. Unfortunately we’re unable to confirm your '+svc+' booking for '+dt+'. Please reach out to us to arrange an alternative time.';
+  if(action==='suggest') return 'Hi '+n+' — DISTRIK here. Your requested '+svc+' on '+(r.date||'')+' at '+(r.time||'')+' isn’t available. Could you do '+altTimes+' instead? Please let us know!';
+  return '';
+}
+
+function _updateBkPill(count){
+  var pill=document.getElementById('bk-notif-pill');
+  var span=document.getElementById('bk-notif-count');
+  if(!pill) return;
+  if(count>0){ pill.style.display='flex'; if(span) span.textContent=count+(count===1?'':'s'); }
+  else { pill.style.display='none'; }
+}
+
+// ── Real-time listener ────────────────────────────────────────────────
+var _bkListenerReady=false,_bkListener=null;
+function startBookingListener(){
+  var db=_getPublicDb();
+  if(!db){ setTimeout(startBookingListener,3000); return; }
+  if(_bkListener) return;
+  if(window.Notification&&Notification.permission==='default') Notification.requestPermission();
+  _bkListenerReady=false;
+  _bkListener=db.collection('public_bookings')
+    .where('status','==','tentative')
+    .orderBy('submittedAt','desc').limit(50)
+    .onSnapshot(function(snap){
+      var reqs=[];
+      snap.forEach(function(doc){ var d=doc.data(); d._id=doc.id; reqs.push(d); });
+      renderOnlineRequests(reqs);
+      if(_bkListenerReady){
+        snap.docChanges().forEach(function(change){
+          if(change.type==='added'){
+            var r=change.doc.data();
+            if(window.Notification&&Notification.permission==='granted')
+              new Notification('New Booking — DISTRIK',{body:(r.name||'Guest')+' — '+_onreqLabel(r)+' on '+(r.date||'?')+' at '+(r.time||'?')});
+          }
+        });
+      }
+      _bkListenerReady=true;
+    },function(e){ console.warn('booking listener:',e.message); });
+}
+window.startBookingListener=startBookingListener;
+window.loadOnlineRequests=function(){ startBookingListener(); };
 
 function renderOnlineRequests(reqs){
   var bar=document.getElementById('online-requests-bar');
   var list=document.getElementById('onreq-list');
   var cnt=document.getElementById('onreq-count');
   if(!bar||!list) return;
-  if(!reqs.length){bar.style.display='none';return;}
+  _bkReqs=reqs;
+  _updateBkPill(reqs.length);
+  if(!reqs.length){ bar.style.display='none'; return; }
   bar.style.display='';
   if(cnt) cnt.textContent=reqs.length;
   list.innerHTML=reqs.map(function(r){
-    var ph=(r.phone||'').replace(/\D/g,'');
-    var waMsg='Hi '+_escHtml(r.name)+' - DISTRIK. confirming your '+_escHtml(r.pathway)+' session. '+r.duration+' min on '+r.date+' at '+r.time+'. See you at the Canggu lab.';
-    var waHref='https://wa.me/'+ph+'?text='+encodeURIComponent(waMsg);
-    return '<div class="onreq-card" data-id="'+r._id+'">'
+    var label=_escHtml(_onreqLabel(r));
+    var sub=_escHtml(_onreqSub(r));
+    var id=_escHtml(r._id);
+    return '<div class="onreq-card" data-id="'+id+'">'
       +'<div class="onreq-info">'
-        +'<div class="onreq-pathway">'+_escHtml(r.pathway||'?')+'<span>'+r.duration+' min · '+_escHtml(r.pressure||'—')+' · '+_escHtml(r.price||'')+'</span></div>'
+        +'<div class="onreq-pathway">'+label+(sub?'<span>'+sub+'</span>':'')+'</div>'
         +'<div class="onreq-meta">'+_escHtml(r.date||'?')+' at '+_escHtml(r.time||'?')+'</div>'
-        +'<div class="onreq-client">'+_escHtml(r.name||'Unknown')+(r.phone?' &nbsp;·&nbsp; '+_escHtml(r.phone):'')+'</div>'
-        +'<div class="onreq-ref">ref: '+_escHtml(r.ref||r._id)+'</div>'
+        +'<div class="onreq-client">'+_escHtml(r.name||'Unknown')+(r.phone?' &nbsp;&middot;&nbsp; '+_escHtml(r.phone):'')+'</div>'
+        +'<div class="onreq-ref">ref: '+id+'</div>'
       +'</div>'
       +'<div class="onreq-actions">'
-        +(ph?'<a class="onreq-btn wa" href="'+waHref+'" target="_blank">WhatsApp ↗</a>':'')
-        +'<button class="onreq-btn accept" onclick="acceptOnlineBooking(\''+r._id+'\')">✓ Accept</button>'
-        +'<button class="onreq-btn decline" onclick="declineOnlineBooking(\''+r._id+'\')">Decline</button>'
+        +'<button class="onreq-btn accept" onclick="acceptOnlineBooking(\''+id+'\')">&#x2713; Confirm</button>'
+        +'<button class="onreq-btn suggest" onclick="suggestAlternative(\''+id+'\')">Alt. Time</button>'
+        +'<button class="onreq-btn decline" onclick="declineOnlineBooking(\''+id+'\')">&#x2715; Decline</button>'
       +'</div>'
     +'</div>';
   }).join('');
 }
 
-function _onreqUpdateStatus(id,status){
+function _onreqUpdateStatus(id,status,cb){
   var db=_getPublicDb(); if(!db) return;
   var update={status:status};
-  try{update[status+'At']=firebase.firestore.FieldValue.serverTimestamp();}catch(e){}
+  try{ update[status+'At']=firebase.firestore.FieldValue.serverTimestamp(); }catch(e){}
   db.collection('public_bookings').doc(id).update(update)
-    .then(function(){
-      var el=document.querySelector('#onreq-list [data-id="'+id+'"]');
-      if(el) el.remove();
-      var cnt=document.getElementById('onreq-count');
-      if(cnt){var n=Math.max(0,parseInt(cnt.textContent||'0')-1);cnt.textContent=n;if(n===0){var bar=document.getElementById('online-requests-bar');if(bar)bar.style.display='none';}}
-    }).catch(function(e){alert('Update failed: '+e.message);});
+    .then(function(){ if(cb) cb(); })
+    .catch(function(e){ alert('Update failed: '+e.message); });
 }
+function _findReq(id){ for(var i=0;i<_bkReqs.length;i++){ if(_bkReqs[i]._id===id) return _bkReqs[i]; } return null; }
 
-function acceptOnlineBooking(id){_onreqUpdateStatus(id,'confirmed');}
-function declineOnlineBooking(id){if(confirm('Decline this booking request?'))_onreqUpdateStatus(id,'declined');}
+function acceptOnlineBooking(id){
+  var r=_findReq(id); if(!r) return;
+  if(!confirm('Confirm booking for '+_escHtml(r.name||'this customer')+'?\n\nA WhatsApp confirmation will open for you to send.')) return;
+  _onreqUpdateStatus(id,'confirmed',function(){
+    var ph=(r.phone||'').replace(/\D/g,'');
+    if(ph) window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(_onreqWaMsg(r,'confirm')),'_blank');
+  });
+}
+function declineOnlineBooking(id){
+  var r=_findReq(id); if(!r) return;
+  if(!confirm('Decline booking for '+(r.name||'this customer')+'?\n\nA WhatsApp decline message will open for you to send.')) return;
+  _onreqUpdateStatus(id,'declined',function(){
+    var ph=(r.phone||'').replace(/\D/g,'');
+    if(ph) window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(_onreqWaMsg(r,'decline')),'_blank');
+  });
+}
+function suggestAlternative(id){
+  var r=_findReq(id); if(!r) return;
+  var alt=prompt('Suggest alternative times for '+_onreqLabel(r)+' (e.g. "10am or 2pm on '+r.date+'"):');
+  if(!alt||!alt.trim()) return;
+  var db=_getPublicDb(); if(!db) return;
+  db.collection('public_bookings').doc(id).update({note:'Alternatives suggested: '+alt.trim()}).catch(function(){});
+  var ph=(r.phone||'').replace(/\D/g,'');
+  if(ph) window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(_onreqWaMsg(r,'suggest',alt.trim())),'_blank');
+}
 window.acceptOnlineBooking=acceptOnlineBooking;
 window.declineOnlineBooking=declineOnlineBooking;
+window.suggestAlternative=suggestAlternative;
 
 function svcCard(s,type){
   var sel=(clinSel===s.id&&clinType===type);

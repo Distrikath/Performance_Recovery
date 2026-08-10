@@ -765,7 +765,7 @@ function submitBk(){
     time:bkState.time,
     name:bkState.name.trim(),
     phone:bkState.phone.trim(),
-    status:'pending',
+    status:'tentative',
     submittedAt:firebase.firestore.FieldValue.serverTimestamp()
   };
   bkFdb().collection('public_bookings').add(rec).then(function(){
