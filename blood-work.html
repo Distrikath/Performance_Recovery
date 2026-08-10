@@ -648,6 +648,38 @@ function bkRenderCal(){
 function bkCalPrev(){_calState.month--;if(_calState.month<0){_calState.month=11;_calState.year--;}bkRenderCal();}
 function bkCalNext(){_calState.month++;if(_calState.month>11){_calState.month=0;_calState.year++;}bkRenderCal();}
 var BW_CAPACITY=1; // blood work room 3 — one appointment per slot
+
+function getRosterWorkedSlots(dateStr,zone){
+  var data={};
+  try{ data=JSON.parse(localStorage.getItem('distrik_v1')||'{}'); }catch(e){ return null; }
+  var pts=dateStr.split('-');
+  var dow=new Date(parseInt(pts[0]),parseInt(pts[1])-1,parseInt(pts[2])).getDay();
+  var dayIdx=dow===0?6:dow-1;
+  var RDAYS=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+  var dayName=RDAYS[dayIdx];
+  var dayGrid=null;
+  if(data.dailyOverrides&&data.dailyOverrides[dateStr]) dayGrid=data.dailyOverrides[dateStr];
+  else if(data.grid&&data.grid[dayName]) dayGrid=data.grid[dayName];
+  if(!dayGrid) return null;
+  var rows=dayGrid[zone];
+  if(!rows||!rows.length) return {};
+  var worked={};
+  rows.forEach(function(row){
+    if(!Array.isArray(row)) return;
+    row.forEach(function(cell,si){ if(cell&&!cell.startsWith('Break:')) worked[si]=true; });
+  });
+  return worked;
+}
+function slotRostered(timeStr,worked){
+  if(worked===null) return true;
+  var m=timeStr.match(/^(\d+)(am|pm)$/i); if(!m) return false;
+  var h=parseInt(m[1]);
+  if(m[2].toLowerCase()==='pm'&&h!==12) h+=12;
+  if(m[2].toLowerCase()==='am'&&h===12) h=0;
+  var si=(h-6)*2;
+  return !!(worked[si]||worked[si+1]);
+}
+
 function bkPickDay(ds){
   bkState.date=ds;bkState.time=null;
   var pts=ds.split('-');
@@ -657,27 +689,38 @@ function bkPickDay(ds){
   var disp=document.getElementById('bk-date-display');
   if(disp){disp.textContent=DOWS[dt.getDay()]+', '+dt.getDate()+' '+MONS[dt.getMonth()]+' '+dt.getFullYear();disp.classList.remove('empty');}
   bkRenderCal();
+  var worked=getRosterWorkedSlots(ds,'Therapy');
+  if(worked!==null&&Object.keys(worked).length===0){
+    renderTimes({},worked); updateBkNext();updateBkSum(); return;
+  }
   renderTimes({_loading:true});
-  bkFdb().collection('public_bookings').where('date','==',ds).get()
-    .then(function(snap){
-      var counts={};
-      snap.forEach(function(doc){
-        var d=doc.data();
-        if(d.type==='blood_work'&&d.status!=='cancelled'&&d.time)
-          counts[d.time]=(counts[d.time]||0)+1;
-      });
-      renderTimes(counts);
-    }).catch(function(){ renderTimes({}); });
+  try{
+    bkFdb().collection('public_bookings').where('date','==',ds).get()
+      .then(function(snap){
+        var counts={};
+        snap.forEach(function(doc){
+          var d=doc.data();
+          if(d.type==='blood_work'&&d.status!=='cancelled'&&d.time)
+            counts[d.time]=(counts[d.time]||0)+1;
+        });
+        renderTimes(counts,worked);
+      }).catch(function(){ renderTimes({},worked); });
+  }catch(e){ renderTimes({},worked); }
   updateBkNext();updateBkSum();
 }
-function renderTimes(counts){
+function renderTimes(counts,worked){
   var wrap=document.getElementById('bk-time-wrap');if(!wrap)return;
   if(counts&&counts._loading){
     wrap.innerHTML='<div style="grid-column:1/-1;font-family:var(--mono);font-size:9px;color:var(--ink-d);letter-spacing:.1em;padding:12px 0;">checking availability...</div>';
     return;
   }
   wrap.innerHTML='';
-  BW_SLOTS.forEach(function(t){
+  var available=BW_SLOTS.filter(function(t){ return slotRostered(t,worked); });
+  if(available.length===0){
+    wrap.innerHTML='<div style="grid-column:1/-1;font-family:var(--mono);font-size:9px;color:var(--ink-d);letter-spacing:.1em;padding:12px 0;">no availability this day</div>';
+    return;
+  }
+  available.forEach(function(t){
     var booked=(counts&&counts[t])||0;
     var full=booked>=BW_CAPACITY;
     var btn=document.createElement('button');
