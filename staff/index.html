@@ -2321,10 +2321,10 @@ h1,
         <div class="receipt-empty">No items yet</div>
       </div>
       <div class="receipt-totals">
-        <div class="receipt-row"><span>Subtotal</span><span id="r-subtotal">IDR 0</span></div>
+        <div class="receipt-row"><span>Total</span><span id="r-subtotal">IDR 0</span></div>
         <div class="receipt-row"><span id="r-service-label">Service Charge 7%</span><span id="r-service-tax">IDR 0</span></div>
-        <div class="receipt-row"><span id="r-pbjt-label">PB1 / PBJT 10%</span><span id="r-tax">IDR 0</span></div>
-        <div class="receipt-row receipt-total"><span>Total</span><span id="r-total">IDR 0</span></div>
+        <div class="receipt-row"><span id="r-pbjt-label">PB1 10%</span><span id="r-tax">IDR 0</span></div>
+        <div class="receipt-row receipt-total"><span>Grand Total</span><span id="r-total">IDR 0</span></div>
       </div>
       <div class="receipt-payment">
         <div class="pay-method-label">Payment</div>
@@ -6597,7 +6597,7 @@ function updateReceipt(){
   const lbl=(id,t)=>{const e=document.getElementById(id);if(e)e.textContent=t;};
   s('r-subtotal',   fmt(subtotal));
   lbl('r-service-label','Service Charge '+parseFloat((TAX_CFG.cafeService*100).toFixed(4))+'%');
-  lbl('r-pbjt-label','PB1 / PBJT '+parseFloat((TAX_CFG.cafePBJT*100).toFixed(4))+'%');
+  lbl('r-pbjt-label','PB1 '+parseFloat((TAX_CFG.cafePBJT*100).toFixed(4))+'%');
   s('r-service-tax',fmt(serviceTax));
   s('r-tax',        fmt(tax));
   s('r-total',      fmt(total));
