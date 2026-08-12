@@ -6086,6 +6086,9 @@ function saveBooking(){
   buildRoomGrid();
   updateRFSummary();
   saveRFToStorage();
+  if(phone&&typeof window.clientUpsert==='function'){
+    window.clientUpsert({name:client,whatsapp:phone,source:bk.source||'recovery'});
+  }
   const n=document.getElementById('notif');
   if(n){n.textContent='Booking saved ✓';n.classList.add('on');setTimeout(()=>n.classList.remove('on'),2000);}
 }
@@ -9830,13 +9833,9 @@ function renderTodayBookings(){
       +'<div class="clin-bk-line">'
       +'<span class="clin-bk-time">'+_escHtml(r.time||'—')+'</span>'
       +'<span class="clin-bk-svc">'+label+'<em>'+client+'</em>'
-      +'<span style="display:inline-block;background:#7c3aed;color:#fff;font-family:\'Space Mono\',monospace;font-size:7px;letter-spacing:.14em;padding:2px 6px;text-transform:uppercase;margin-left:6px;vertical-align:middle;">TENTATIVE</span>'
+      +'<span style="display:inline-block;background:#7c3aed;color:#fff;font-family:\'Space Mono\',monospace;font-size:7px;letter-spacing:.14em;padding:2px 6px;text-transform:uppercase;margin-left:6px;vertical-align:middle;">PENDING</span>'
       +'</span></div>'
-      +'<div class="clin-bk-acts">'
-      +'<button class="clin-bk-act go" onclick="acceptOnlineBooking(\''+id+'\')">✓ Confirm</button>'
-      +'<button class="clin-bk-act" onclick="suggestAlternative(\''+id+'\')">Alt. Time</button>'
-      +'<button class="clin-bk-act danger" onclick="declineOnlineBooking(\''+id+'\')">✕ Decline</button>'
-      +'</div></div>';
+      +'</div>';
   }).join('');
   var confirmedHtml=confirmedOnline.slice().sort(function(a,b){return (a.time||'').localeCompare(b.time||'');}).map(function(r){
     var id=_escHtml(r._id||'');
@@ -9875,7 +9874,40 @@ function loadConfirmedForDate(dateStr){
   db.collection('public_bookings').where('date','==',dateStr).limit(50).get()
     .then(function(snap){
       _bkConfirmed=[];
-      snap.forEach(function(doc){ var d=doc.data(); d._id=doc.id; if(d.status==='confirmed') _bkConfirmed.push(d); });
+      // Build therapist→room map from today's roster
+      var therRoomMap={};
+      var recChairName='Recovery Chair 1';
+      try{
+        if(typeof getRoomsToday==='function') getRoomsToday().forEach(function(r){
+          if(r.type==='therapy'&&r.therapistId) therRoomMap[r.therapistId]=r.room;
+          if(r.type==='recovery'&&!therRoomMap._recChair) recChairName=r.room;
+        });
+      }catch(e){}
+      snap.forEach(function(doc){
+        var d=doc.data(); d._id=doc.id;
+        if(d.status==='confirmed'){
+          _bkConfirmed.push(d);
+          if((d.phone||d.whatsapp)&&typeof window.clientUpsert==='function'){
+            window.clientUpsert({name:d.name,whatsapp:d.phone||d.whatsapp,source:d.type||d.pathway||'recovery'});
+          }
+          if(typeof window.ledgerWrite==='function'){
+            var detail=Object.assign({},d);
+            detail.client=d.name;
+            detail.whatsapp=d.phone||d.whatsapp||'';
+            detail.start=d.time;
+            detail.serviceName=d.pathway||d.type||'Booking';
+            // Auto-assign room for room-grid display
+            var isChair=(d.pathway==='COMPRESSION'||d.pathway==='PERFORM');
+            if(isChair){
+              detail.roomName=recChairName;
+            } else if(d.therapist&&therRoomMap[d.therapist]){
+              detail.roomName=therRoomMap[d.therapist];
+              detail.therapistName=d.therapist;
+            }
+            window.ledgerWrite(d.type||'recovery',d._id,d.date||'',d.price||0,0,'online',detail,'confirmed');
+          }
+        }
+      });
       if(typeof renderClinicalBooking==='function') renderClinicalBooking();
     })
     .catch(function(e){ console.warn('confirmed fetch error:',e.message); });
@@ -10024,10 +10056,14 @@ function _findReq(id){ for(var i=0;i<_bkReqs.length;i++){ if(_bkReqs[i]._id===id
 function acceptOnlineBooking(id){
   var r=_findReq(id); if(!r) return;
   if(!confirm('Confirm booking for '+_escHtml(r.name||'this customer')+'?\n\nA WhatsApp confirmation will open for you to send.')) return;
+  _bkConfirmedDate=''; // invalidate cache so the confirmed booking loads into the schedule immediately
   _onreqUpdateStatus(id,'confirmed',function(){
     var ph=(r.phone||'').replace(/\D/g,'');
     if(ph) window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(_onreqWaMsg(r,'confirm')),'_blank');
   });
+  if((r.phone||r.whatsapp)&&typeof window.clientUpsert==='function'){
+    window.clientUpsert({name:r.name,whatsapp:r.phone||r.whatsapp,source:r.type||r.pathway||'recovery'});
+  }
 }
 function declineOnlineBooking(id){
   var r=_findReq(id); if(!r) return;
@@ -10173,7 +10209,7 @@ function buildClinRoomGrid(){
     : '<div class="clin-roomgrid-hdr">On the floor · '+clinDateWord()+'</div>';
   el.innerHTML=hdr+rooms.map(function(room){
     var realRoom=(typeof ROOMS!=='undefined'?ROOMS.find(function(x){return x.id===room.id;}):null)||{id:room.id,name:room.name,color:room.color||'#0A0A0A'};
-    var roomBks=dayBks.filter(function(b){return b.room===room.id&&b.status!=='cancelled'&&b.start;});
+    var roomBks=dayBks.filter(function(b){return (b.room===room.id||b.roomName===room.name)&&b.status!=='cancelled'&&b.start;});
     var isSel=(canSel&&clinRoom===room.name);
     var selectable=(canSel&&room.eligible);
     var dot=isSel?'#FF2D2D':(room.eligible?(room.color||'#0A0A0A'):'#cfcfcf');
