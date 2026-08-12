@@ -9733,23 +9733,40 @@ function clinFmt(n){ return 'IDR '+Math.round(n||0).toLocaleString('id-ID'); }
 function clinSetText(id,t){ var e=document.getElementById(id); if(e) e.textContent=t; }
 function clinSvc(){ if(!clinSel) return null; return (clinType==='clinical'?CLINICAL_SERVICES:SERVICES).find(function(x){return x.id===clinSel;}); }
 
-/* Who's in what room today — pulled from the Weekly Roster (Therapy zone) */
+/* Who's in what room today — cross-referenced against Roster + Room Settings */
 function getRoomsToday(){
   var out=[];
   try{
     var dayName=clinDayName();
     var allRooms=(typeof ROOMS!=='undefined'?ROOMS:[]);
-    // Exactly 3 therapy rooms
-    var therapyRooms=allRooms.filter(function(r){return r.type==='therapy';}).slice(0,3);
-    // Fill to 3 if ROOMS doesn't have enough
-    while(therapyRooms.length<3) therapyRooms.push({name:'Therapy Room '+(therapyRooms.length+1),type:'therapy'});
     var dk=clinKey();
     var _dayData=(typeof dailyOverrides!=='undefined'&&dailyOverrides[dk])?dailyOverrides[dk]:((typeof grid!=='undefined'&&grid[dayName])||null);
+
+    // Build set of staff IDs rostered in non-Therapy zones today — they cannot be therapy staff
+    var otherZoneStaff={};
+    ['Fuel','Reception','Supply'].forEach(function(zid){
+      var zrows=(_dayData&&_dayData[zid])||[];
+      zrows.forEach(function(row){ if(!Array.isArray(row)) return; row.forEach(function(cell){ if(cell&&!isBreakCell(cell)) otherZoneStaff[staffId(cell)]=zid; }); });
+    });
+
+    var therapyRooms=allRooms.filter(function(r){return r.type==='therapy';}).slice(0,3);
+    while(therapyRooms.length<3) therapyRooms.push({name:'Therapy Room '+(therapyRooms.length+1),type:'therapy'});
     var grows=(_dayData&&_dayData['Therapy'])||[];
     therapyRooms.forEach(function(room,ri){
       var row=grows[ri]||[];
+      // room.staff from Settings defines who is eligible for this room; empty = any
+      var roomStaff=(room.staff&&room.staff.length)?room.staff:null;
       var sc=null,start=null,end=null;
-      row.forEach(function(cell,si){ if(cell&&!isBreakCell(cell)){ if(sc===null){sc=staffId(cell);start=si;} end=si+1; } });
+      row.forEach(function(cell,si){
+        if(cell&&!isBreakCell(cell)){
+          var sid=staffId(cell);
+          // Skip: this person is rostered in another zone today
+          if(otherZoneStaff[sid]) return;
+          // Skip: room has a staff list and this person isn't on it
+          if(roomStaff&&roomStaff.indexOf(sid)<0) return;
+          if(sc===null){sc=sid;start=si;} end=si+1;
+        }
+      });
       var st=(sc!==null&&typeof getStaff==='function')?getStaff(sc):null;
       out.push({room:room.name, therapist:st?st.name:null, therapistId:(sc!==null?sc:null), time:(sc!==null?tl(slotToH(start))+'–'+tl(slotToH(end)):null), startH:(sc!==null?slotToH(start):null), endH:(sc!==null?slotToH(end):null), type:'therapy'});
     });
