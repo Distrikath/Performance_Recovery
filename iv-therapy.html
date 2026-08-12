@@ -513,12 +513,6 @@ footer{padding:40px 48px 28px;border-top:1px solid var(--line);display:flex;just
 </div>
 
 <script>
-  document.addEventListener('mouseover',function(e){
-    if(e.target.closest('a,button,[onclick]'))document.body.classList.add('h');
-    else document.body.classList.remove('h');
-  });
-})();
-
 // ── Enhancements toggle ───────────────────────────────────────────────
 function toggleEnh(btn){
   var body=document.getElementById('enh-body');
