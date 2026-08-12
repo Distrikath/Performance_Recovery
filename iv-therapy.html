@@ -635,14 +635,14 @@ function bkPickProtocol(v){
 
 // ── Calendar ──────────────────────────────────────────────────────────
 function bkInitCal(){
-  var t=new Date();t.setDate(t.getDate()+1);
+  var t=new Date(Date.now()+24*60*60*1000);
   _calState={year:t.getFullYear(),month:t.getMonth()};
   bkRenderCal();
 }
 function bkRenderCal(){
   var cal=document.getElementById('bk-cal');if(!cal)return;
   var today=new Date();today.setHours(0,0,0,0);
-  var minD=new Date(today);minD.setDate(minD.getDate()+1);
+  var minD=new Date(Date.now()+24*60*60*1000);
   var y=_calState.year,mo=_calState.month;
   var firstDow=new Date(y,mo,1).getDay();
   var dInMo=new Date(y,mo+1,0).getDate();

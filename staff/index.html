@@ -2876,7 +2876,7 @@ function getDateKey(dayIdx, weekOffset){
   const d = getRosterDateForDay(di, wo);
   return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);
 }
-// Fill grid from dailyOverrides (per-date) or base template; clears the dirty flag
+// Fill grid from dailyOverrides (per-date only — no template fallback); clears the dirty flag
 function loadGridFromData(){
   _gridDirty = false;
   DAYS.forEach((dayName, i) => {
@@ -2884,7 +2884,7 @@ function loadGridFromData(){
     if(dailyOverrides[dateKey]){
       grid[dayName] = JSON.parse(JSON.stringify(dailyOverrides[dateKey]));
     } else {
-      grid[dayName] = _baseGrid ? JSON.parse(JSON.stringify(_baseGrid[dayName])) : emptyGrid()[dayName];
+      grid[dayName] = emptyGrid()[dayName];
     }
   });
 }
@@ -9788,14 +9788,16 @@ function todayBookingCount(){
   var local=todayBookings().filter(function(b){return b.status!=='cancelled';}).length;
   var dk=clinKey();
   var online=(_bkReqs||[]).filter(function(r){return r.date===dk;}).length;
-  var n=local+online;
+  var confirmedOnline=(_bkConfirmed||[]).filter(function(r){return r.date===dk;}).length;
+  var n=local+online+confirmedOnline;
   return n+' booking'+(n!==1?'s':'');
 }
 function renderTodayBookings(){
   var bks=todayBookings().filter(function(b){return b.status!=='cancelled';});
   var dk=clinKey();
   var online=(_bkReqs||[]).filter(function(r){return r.date===dk;});
-  if(!bks.length&&!online.length) return '<div class="clin-placeholder" style="padding:8px 0 0;text-align:left;">No bookings yet '+clinDateWord()+'.</div>';
+  var confirmedOnline=(_bkConfirmed||[]).filter(function(r){return r.date===dk;});
+  if(!bks.length&&!online.length&&!confirmedOnline.length) return '<div class="clin-placeholder" style="padding:8px 0 0;text-align:left;">No bookings yet '+clinDateWord()+'.</div>';
   var localHtml=bks.slice().sort(function(a,b){return (a.start||a.time||'').localeCompare(b.start||b.time||'');}).map(function(b){
     var det = b.clinical ? (b.window||'Clinical') : (b.roomName||b.room||'');
     var isHold = b.status==='hold';
@@ -9836,7 +9838,22 @@ function renderTodayBookings(){
       +'<button class="clin-bk-act danger" onclick="declineOnlineBooking(\''+id+'\')">✕ Decline</button>'
       +'</div></div>';
   }).join('');
-  return localHtml+onlineHtml;
+  var confirmedHtml=confirmedOnline.slice().sort(function(a,b){return (a.time||'').localeCompare(b.time||'');}).map(function(r){
+    var id=_escHtml(r._id||'');
+    var label=_escHtml(_onreqLabel(r));
+    var client=_escHtml(r.name||'Guest')+(r.phone?' · '+_escHtml(r.phone):'');
+    var ther=r.therapist?(' · '+_escHtml(r.therapist)):'';
+    return '<div class="clin-bk-row2" style="border-left:3px solid #10b981;background:#f0fdf4;">'
+      +'<div class="clin-bk-line">'
+      +'<span class="clin-bk-time">'+_escHtml(r.time||'—')+'</span>'
+      +'<span class="clin-bk-svc">'+label+ther+'<em>'+client+'</em>'
+      +'<span style="display:inline-block;background:#10b981;color:#fff;font-family:\'Space Mono\',monospace;font-size:7px;letter-spacing:.14em;padding:2px 6px;text-transform:uppercase;margin-left:6px;vertical-align:middle;">CONFIRMED</span>'
+      +'</span></div>'
+      +'<div class="clin-bk-acts">'
+      +'<button class="clin-bk-act danger" onclick="declineOnlineBooking(\''+id+'\')">✕ Cancel</button>'
+      +'</div></div>';
+  }).join('');
+  return localHtml+confirmedHtml+onlineHtml;
 }
 
 function initRecovery(){ if(typeof loadClinical==='function') loadClinical(); clinSel=null;clinType=null;clinIntake=false;clinWindow=null;clinRoom=null;clinPay='card';clinDone=false;clinDoneHold=false;clinEditingId=null;clinEditingDate=null;clinOnline=false;clinPressure='';clinPayType='full';clinPatient='';clinEmail='';clinWhatsapp='';clinTime=''; clinDate=(typeof baliNow==='function'?baliNow():new Date()); clinViewYear=null;clinViewMonth=null; clinGroupOpen={recovery:true,clinical:true}; clinSyncDateUI(); renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); startBookingListener(); }
@@ -9848,6 +9865,21 @@ function _getPublicDb(){try{return firebase.apps.length?firebase.apps[0].firesto
 
 // ── Booking type helpers ─────────────────────────────────────────────
 var _bkReqs=[];
+var _bkConfirmed=[];
+var _bkConfirmedDate='';
+function loadConfirmedForDate(dateStr){
+  if(_bkConfirmedDate===dateStr) return;
+  _bkConfirmedDate=dateStr;
+  _bkConfirmed=[];
+  var db=_getPublicDb(); if(!db) return;
+  db.collection('public_bookings').where('date','==',dateStr).limit(50).get()
+    .then(function(snap){
+      _bkConfirmed=[];
+      snap.forEach(function(doc){ var d=doc.data(); d._id=doc.id; if(d.status==='confirmed') _bkConfirmed.push(d); });
+      if(typeof renderClinicalBooking==='function') renderClinicalBooking();
+    })
+    .catch(function(e){ console.warn('confirmed fetch error:',e.message); });
+}
 function _onreqLabel(r){
   if(r.type==='iv_therapy'){
     var lbl=r.protocol||'IV Therapy';
@@ -10175,6 +10207,7 @@ function renderClinicalBooking(){
   var roomGridDiv='<div id="clin-room-grid" style="border-top:1px solid #e8e8e8;"></div>';
 
   if(!clinSel){
+    loadConfirmedForDate(clinKey());
     el.innerHTML=renderClinMiniCal()+roomGridDiv
       +'<div style="padding:12px 16px 0;">'
       +'<div class="clin-rooms-lbl">Bookings '+clinDateWord()+' <span>· '+todayBookingCount()+'</span></div>'+renderTodayBookings()

@@ -839,10 +839,10 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
         <div class="bk-confirm-wrap">
           <div class="bk-confirm-check">&#x2713;</div>
           <div class="bk-confirm-ref" id="bk-ref-text"></div>
-          <div class="bk-confirm-title">request sent.</div>
+          <div class="bk-confirm-title">booking confirmed.</div>
           <div class="bk-confirm-detail" id="bk-conf-detail"></div>
-          <div class="bk-confirm-deposit">50% deposit required &mdash; payment gateway coming soon</div>
-          <div class="bk-confirm-note">we'll confirm your session via whatsapp within a few hours.<br>see you at the canggu lab.</div>
+          <div class="bk-confirm-deposit" id="bk-confirm-deposit"></div>
+          <div class="bk-confirm-note">your session is locked in.<br>see you at the canggu lab.</div>
           <button class="bk-next" style="margin-top:32px" onclick="closeBk()">done &#x2192;</button>
         </div>
       </div>
@@ -977,14 +977,14 @@ function pickPressure(el,p){
   updateBkNext();updateBkSum();
 }
 function bkInitCal(){
-  var t=new Date();t.setDate(t.getDate()+1);
+  var t=new Date();
   _calState={year:t.getFullYear(),month:t.getMonth()};
   bkRenderCal();
 }
 function bkRenderCal(){
   var cal=document.getElementById('bk-cal');if(!cal)return;
   var today=new Date();today.setHours(0,0,0,0);
-  var minD=new Date(today);minD.setDate(minD.getDate()+1);
+  var minD=new Date(today);
   var y=_calState.year,mo=_calState.month;
   var firstDow=new Date(y,mo,1).getDay();
   var dInMo=new Date(y,mo+1,0).getDate();
@@ -1279,7 +1279,7 @@ function submitBk(){
   var btn=document.getElementById('bk-next-btn');
   if(btn){btn.disabled=true;btn.textContent='sending...';}
   var ts=Date.now(),rnd='DR-'+ts.toString(36).slice(-4).toUpperCase();
-  var rec={ref:rnd,pathway:bkState.pathway,duration:bkState.duration,price:bkState.price,pressure:bkState.pressure,date:bkState.date,time:bkState.time,therapist:bkState.therapist||null,name:bkState.name.trim(),phone:bkState.phone.trim(),status:'tentative',submittedAt:firebase.firestore.FieldValue.serverTimestamp()};
+  var rec={ref:rnd,pathway:bkState.pathway,duration:bkState.duration,price:bkState.price,pressure:bkState.pressure,date:bkState.date,time:bkState.time,therapist:bkState.therapist||null,name:bkState.name.trim(),phone:bkState.phone.trim(),status:'confirmed',submittedAt:firebase.firestore.FieldValue.serverTimestamp()};
   bkFdb().collection('public_bookings').add(rec).then(function(){showBkConfirm(rnd,rec);}).catch(function(e){
     if(btn){btn.disabled=false;btn.textContent='confirm →';}
     alert('Booking error: '+e.message+'\n\nPlease WhatsApp us directly: +62 819 9480 1516');
