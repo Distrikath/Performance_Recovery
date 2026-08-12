@@ -1087,18 +1087,21 @@ function _bkGetAvailSlots(rData,dateStr,durMins,pathway,rooms){
     });
   });
 
-  // Rule 2: room/chair staff allowlist — only staff assigned to at least one room of the right type
-  // If ALL rooms have specific staff configured, restrict; if any room is open (staff:[]), anyone goes
-  var roomAllowlist=null;
-  if(rooms&&rooms.length>0){
-    var tRooms=rooms.filter(function(r){return r.type==='therapy'||r.type==='recovery';});
-    var anyRestricted=tRooms.some(function(r){return r.staff&&r.staff.length>0;});
-    var anyOpen=tRooms.some(function(r){return !r.staff||r.staff.length===0;});
-    if(anyRestricted&&!anyOpen){
-      roomAllowlist={};
-      tRooms.forEach(function(r){(r.staff||[]).forEach(function(sid){roomAllowlist[sid]=true;});});
-    }
+  // Rule 2: room/chair staff allowlist — scoped to the relevant room type per pathway
+  // COMPRESSION → recovery chairs; RECOVER/RELEASE → therapy rooms
+  // Build a union of staff from all restricted rooms of that type.
+  // An open room (staff:[]) doesn't contribute names but also doesn't block the allowlist.
+  function buildRoomAllowlist(roomType){
+    if(!rooms||!rooms.length)return null;
+    var rms=rooms.filter(function(r){return r.type===roomType;});
+    if(!rms.length)return null;
+    var anyRestricted=rms.some(function(r){return r.staff&&r.staff.length>0;});
+    if(!anyRestricted)return null; // all rooms open — no restriction
+    var list={};
+    rms.forEach(function(r){if(r.staff&&r.staff.length)r.staff.forEach(function(sid){list[sid]=true;});});
+    return Object.keys(list).length?list:null;
   }
+  var roomAllowlist=buildRoomAllowlist(isCompression?'recovery':'therapy');
 
   function checkRows(rows,staffIds,si,durSlots){
     var avail=[];
@@ -1149,33 +1152,34 @@ function _bkGetAvailSlots(rData,dateStr,durMins,pathway,rooms){
   var durSlots=Math.ceil(durMins/30);
 
   if(isCompression){
-    var therRows=zoneRows('Therapy');
+    // Compression is performed by FOH (Operations/Management) staff in Reception/Fuel zones.
+    // Therapists never appear for compression — they work in Therapy rooms, not recovery chairs.
     var fohRows=(zoneRows('Reception')||[]).concat(zoneRows('Fuel')||[]);
     if(fohRows.length===0)fohRows=null;
-    // FOH: Operations/Management staff rostered in Reception/Fuel (they belong there)
     var FOH=[];
     if(rData&&rData.STAFF){
       rData.STAFF.forEach(function(s){
-        if((s.group==='Operations'||s.group==='Management')&&s.id)FOH.push(s.id);
+        if((s.group==='Operations'||s.group==='Management')&&s.id){
+          if(!roomAllowlist||roomAllowlist[s.id])FOH.push(s.id);
+        }
       });
     }
+    // Also include any staff actually in the FOH zone rows who exist in STAFF and pass room filter
     if(fohRows){
       fohRows.forEach(function(row){
         if(!row)return;
         row.forEach(function(c){
           if(c&&!_bkIsBreak(c)){
             var sid=_bkStaffId(c);
-            if(FOH.indexOf(sid)<0&&validStaff[sid])FOH.push(sid);
+            if(FOH.indexOf(sid)<0&&validStaff[sid]&&(!roomAllowlist||roomAllowlist[sid]))FOH.push(sid);
           }
         });
       });
     }
-    var THERS=buildThers(therRows);
     for(var si=siMin;si+durSlots<=siMax;si++){
       var h=SLOT_START+si*0.5,h12=Math.floor(h)%12||12,mn=h%1?30:0,ap=Math.floor(h)>=12?'pm':'am';
       var lbl=h12+(mn?':30':':00')+ap;
-      var therAvail=checkRows(therRows,THERS,si,durSlots);
-      var avail=therAvail.length>0?therAvail:checkRows(fohRows,FOH,si,durSlots);
+      var avail=checkRows(fohRows,FOH,si,durSlots);
       if(avail.length>0)slots.push({time:lbl,therapists:avail});
     }
   } else {
