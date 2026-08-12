@@ -9910,12 +9910,19 @@ function startBookingListener(){
   if(_bkListener) return;
   if(window.Notification&&Notification.permission==='default') Notification.requestPermission();
   _bkListenerReady=false;
+  // No orderBy — avoids requiring a composite Firestore index.
+  // Sort is done client-side below. Single-field index on 'status' is auto-created.
   _bkListener=db.collection('public_bookings')
     .where('status','==','tentative')
-    .orderBy('submittedAt','desc').limit(50)
+    .limit(50)
     .onSnapshot(function(snap){
       var reqs=[];
       snap.forEach(function(doc){ var d=doc.data(); d._id=doc.id; reqs.push(d); });
+      // Sort newest first client-side
+      reqs.sort(function(a,b){
+        function ms(r){ var t=r.submittedAt; if(!t)return 0; if(t.toMillis)return t.toMillis(); return (t.seconds||0)*1000; }
+        return ms(b)-ms(a);
+      });
       renderOnlineRequests(reqs);
       if(_bkListenerReady){
         snap.docChanges().forEach(function(change){
@@ -9927,7 +9934,11 @@ function startBookingListener(){
         });
       }
       _bkListenerReady=true;
-    },function(e){ console.warn('booking listener:',e.message); });
+    },function(e){
+      console.warn('booking listener error:',e.message);
+      // Reset so the refresh button can retry
+      _bkListener=null;
+    });
 }
 window.startBookingListener=startBookingListener;
 window.loadOnlineRequests=function(){ startBookingListener(); };
