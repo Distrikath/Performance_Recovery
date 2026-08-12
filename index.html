@@ -24,7 +24,7 @@ html{background:var(--b);scroll-behavior:smooth}
 body{
   background:var(--b);color:var(--ink);
   font-family:'Inter',-apple-system,system-ui,sans-serif;
-  font-weight:400;overflow-x:clip;cursor:none;
+  font-weight:400;overflow-x:clip;
   -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
 }
 img{display:block;max-width:100%}
@@ -47,11 +47,6 @@ img{display:block;max-width:100%}
   100%{transform:translate(0,0)}
 }
 
-/* CURSOR */
-.cur{position:fixed;width:6px;height:6px;background:var(--ink);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .25s,height .25s,background .3s;mix-blend-mode:difference}
-.cur-ring{position:fixed;width:32px;height:32px;border:1px solid rgba(242,242,240,.4);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:width .5s cubic-bezier(.16,1,.3,1),height .5s cubic-bezier(.16,1,.3,1),border-color .4s;mix-blend-mode:difference}
-body.h .cur{width:12px;height:12px;background:var(--r)}
-body.h .cur-ring{width:54px;height:54px;border-color:var(--r)}
 
 /* ═══════════════════════════════════════
    NAVIGATION — Logo / Menu Button / Notify Me
@@ -69,7 +64,7 @@ nav{
   color:var(--ink);text-decoration:none;justify-self:start;
 }
 .menu-btn{
-  background:none;border:none;cursor:none;
+  background:none;border:none;
   font-family:var(--mono);font-weight:400;color:var(--ink);
   font-size:11px;letter-spacing:.28em;text-transform:lowercase;
   justify-self:center;
@@ -379,7 +374,7 @@ nav{
   border-bottom:1px solid var(--line);
 }
 .menu-close{
-  background:none;border:none;cursor:none;
+  background:none;border:none;
   font-family:var(--mono);font-weight:400;color:var(--ink);
   font-size:11px;letter-spacing:.28em;text-transform:lowercase;
   justify-self:center;
@@ -533,7 +528,7 @@ nav{
   letter-spacing:.05em;
   outline:none;
   transition:border-color .3s;
-  cursor:none;
+  
   width:100%;
   -webkit-appearance:none;-moz-appearance:none;appearance:none;
   border-radius:0;
@@ -549,12 +544,12 @@ nav{
   padding-right:48px;
 }
 .field input[type="date"]::-webkit-calendar-picker-indicator{
-  filter:invert(.5);cursor:none;
+  filter:invert(.5);
 }
 .submit-btn{
   margin-top:16px;
   background:var(--r);color:var(--ink);
-  border:none;cursor:none;
+  border:none;
   font-family:var(--mono);font-weight:400;
   font-size:13px;letter-spacing:.3em;text-transform:lowercase;
   padding:24px;
@@ -672,7 +667,7 @@ footer{
   position:absolute;top:24px;right:28px;z-index:2;
   width:36px;height:36px;
   background:none;border:1px solid rgba(242,242,240,.2);border-radius:50%;
-  cursor:none;
+  
   display:flex;align-items:center;justify-content:center;
   transition:border-color .3s,background .3s;
   opacity:0;
@@ -737,7 +732,7 @@ footer{
   letter-spacing:.06em;
   outline:none;
   transition:border-color .35s;
-  cursor:none;
+  
   width:100%;
   -webkit-appearance:none;-moz-appearance:none;appearance:none;
   border-radius:0;
@@ -751,7 +746,7 @@ footer{
   background-position:right 4px center;
   padding-right:40px;
 }
-.field input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(.4);cursor:none}
+.field input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(.4)}
 
 .protocol-desc{
   display:none;
@@ -777,7 +772,7 @@ footer{
   margin-top:32px;
   background:transparent;color:var(--ink);
   border:1px solid rgba(242,242,240,.2);
-  cursor:none;
+  
   font-family:var(--mono);font-weight:400;
   font-size:11px;letter-spacing:.35em;text-transform:lowercase;
   padding:20px;
@@ -855,7 +850,7 @@ footer{
 }
 .bk-focus-card{
   border:1px solid var(--line);padding:16px 10px 14px;
-  cursor:none;transition:border-color .2s,background .2s;
+  transition:border-color .2s,background .2s;
   text-align:left;background:transparent;
 }
 .bk-focus-card:hover{border-color:rgba(242,242,240,.28)}
@@ -871,7 +866,7 @@ footer{
 .bk-chips{display:flex;gap:8px;flex-wrap:wrap}
 .bk-chip{
   border:1px solid var(--line);padding:11px 18px;
-  cursor:none;background:transparent;
+  background:transparent;
   font-family:var(--mono);font-size:10px;color:var(--ink);
   letter-spacing:.18em;text-transform:lowercase;
   transition:border-color .2s,background .2s;
@@ -892,7 +887,7 @@ footer{
   border-bottom:1px solid var(--line-mid);
   padding:6px 0 14px;letter-spacing:.06em;
   outline:none;transition:border-color .35s;
-  width:100%;cursor:none;
+  width:100%;
 }
 .bk-input-field input:focus{border-color:var(--r)}
 .bk-input-field input::placeholder{color:var(--ink-dd)}
@@ -1187,8 +1182,6 @@ footer.contact-strip{
 <body>
 
 <div class="grain"></div>
-<div class="cur"></div>
-<div class="cur-ring"></div>
 
 <!-- ═══ FILM REEL ═══ -->
 <div class="film" id="film">
@@ -1542,15 +1535,6 @@ footer.contact-strip{
 <script src="https://d3js.org/d3.v7.min.js"></script>
 <script src="https://unpkg.com/topojson-client@3/dist/topojson-client.min.js"></script>
 <script>
-/* ─── CURSOR ─── */
-const cur=document.querySelector('.cur'),ring=document.querySelector('.cur-ring');
-let mx=innerWidth/2,my=innerHeight/2,rx=mx,ry=my;
-document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px'});
-(function r(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(r)})();
-document.querySelectorAll('a,button,.menu-item,input,select,.submit-btn').forEach(el=>{
-  el.addEventListener('mouseenter',()=>document.body.classList.add('h'));
-  el.addEventListener('mouseleave',()=>document.body.classList.remove('h'));
-});
 
 /* ─── FILM REEL — montage choreography ─── */
 const frames = document.querySelectorAll('.film-frame');
