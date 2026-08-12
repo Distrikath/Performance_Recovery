@@ -4853,10 +4853,19 @@ function buildSettingsManagers(){
     {t:'Supply — Brands &amp; Products', d:'Brands &amp; split %, products, per-size stock, pricing &amp; tax.', a:`<div class="set-mgr-actions"><button onclick="goToModule('supply')" class="set-mgr-btn">Open →</button><button onclick="openAddBrand()" class="set-mgr-btn alt">+ Brand</button></div>`},
     {t:'Rooms &amp; Recovery Chairs', d:'Set which services each room/chair can host, assigned staff &amp; type.', a:`<div class="set-room-list">${roomBtns||'<span style="color:#6b6b72;font-family:Space Mono,monospace;font-size:10px;">No rooms configured</span>'}</div>`},
     {t:'Recruitment — Job Applications', d:'Review, rate &amp; action careers applications from the website (status, rating, notes).', a:`<button onclick="openApplications()" class="set-mgr-btn">Open →</button>`},
+    {t:'Payments — Xendit Deposit Link', d:'Paste your Xendit payment link URL here. Staff will see a WhatsApp button to send it to patients when taking a deposit.', a:`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><input id="set-xendit-url" type="url" placeholder="https://checkout.xendit.co/..." style="flex:1;min-width:200px;font-family:'Space Mono',monospace;font-size:10px;border:1px solid #d3d3ce;padding:8px 10px;background:#fafafa;color:#0A0A0A;" value="${(function(){try{return JSON.parse(localStorage.getItem('distrik_payments')||'{}').xenditLink||'';}catch(e){return '';}})()}"><button onclick="saveXenditLink()" class="set-mgr-btn">Save</button></div>`},
   ];
   el.innerHTML=cards.map(c=>`<div class="set-mgr-card"><div class="set-mgr-title">${c.t}</div><div class="set-mgr-desc">${c.d}</div>${c.a}</div>`).join('');
 }
 window.buildSettingsManagers=buildSettingsManagers;
+function getXenditLink(){ try{ return JSON.parse(localStorage.getItem('distrik_payments')||'{}').xenditLink||''; }catch(e){ return ''; } }
+function saveXenditLink(){
+  var el=document.getElementById('set-xendit-url'); if(!el) return;
+  var url=el.value.trim();
+  try{ var d=JSON.parse(localStorage.getItem('distrik_payments')||'{}'); d.xenditLink=url; localStorage.setItem('distrik_payments',JSON.stringify(d)); }catch(e){}
+  var n=document.getElementById('notif'); if(n){n.textContent='Xendit link saved ✓';n.classList.add('on');setTimeout(function(){n.classList.remove('on');},2000);}
+}
+window.saveXenditLink=saveXenditLink;
 
 function buildSettingsStaff(){
   const el = document.getElementById('settings-staff-list');
@@ -9777,8 +9786,10 @@ function renderTodayBookings(){
     if(b.online){ pay = b.balancePaid
       ? '<span class="clin-bk-pay">Online · paid in full</span>'
       : '<span class="clin-bk-pay due">Online · deposit IDR '+(b.deposit||0).toLocaleString('id-ID')+' paid · balance IDR '+(b.balanceDue||0).toLocaleString('id-ID')+' on arrival</span>'; }
+    var _bDepLink=(b.online&&!b.depositPaid&&getXenditLink())?'<button class="clin-bk-act go" onclick="resendDepositLink(\''+id+'\')">Send deposit link &#x2192;</button>':'';
     var acts='<div class="clin-bk-acts">'
       +(isHold?'<button class="clin-bk-act go" onclick="clinConfirmHold(\''+id+'\')">Intake back · confirm ✓</button>':'')
+      +_bDepLink
       +((b.online&&!b.balancePaid)?'<button class="clin-bk-act go" onclick="clinCollectBalance(\''+id+'\')">Check in · collect balance</button>':'')
       +'<button class="clin-bk-act" onclick="clinEditBooking(\''+id+'\')">Edit / move</button>'
       +'<button class="clin-bk-act danger" onclick="clinCancelBooking(\''+id+'\')">Cancel</button>'
@@ -10252,7 +10263,7 @@ function renderClinicalOrder(){
   var lines='<div class="clin-oline"><span>'+s.name+'</span><span>'+clinFmt(s.price)+'</span></div>';
   if(clinType==='clinical'){
     lines+=(clinRoom?'<div class="clin-oline sub"><span>Recovery chair</span><span>'+clinRoom+'</span></div>':'')
-      +'<div class="clin-oline sub"><span>Clinician</span><span>Nurse · ClinicTerrain</span></div>'
+      +'<div class="clin-oline sub"><span>Clinician</span><span>Nurse · Human+</span></div>'
       +'<div class="clin-oline sub"><span>Internal tag</span><span>Clinical Partner</span></div>';
   } else {
     var rt=clinRoom?roomTherapist(clinRoom):null;
@@ -10275,7 +10286,16 @@ function updateClinicalTotals(base){
   var dep=Math.round(total*0.5), bal=total-dep;
   var isDeposit=(clinPayType==='deposit')||clinOnline;
   var dl=document.getElementById('clin-deposit-lines');
-  if(dl) dl.innerHTML=(isDeposit&&clinSel)?('<div class="clin-deposit-line due"><span>Deposit due now (50%)</span><span>'+clinFmt(dep)+'</span></div><div class="clin-deposit-line bal"><span>Balance on arrival (50%)</span><span>'+clinFmt(bal)+'</span></div>'):'';
+  if(dl){
+    var depHtml=(isDeposit&&clinSel)?('<div class="clin-deposit-line due"><span>Deposit due now (50%)</span><span>'+clinFmt(dep)+'</span></div><div class="clin-deposit-line bal"><span>Balance on arrival (50%)</span><span>'+clinFmt(bal)+'</span></div>'):'';
+    if(isDeposit&&clinSel){
+      var xLink=getXenditLink();
+      if(xLink){
+        depHtml+='<button class="clin-intake-btn" style="margin-top:10px;background:#0A0A0A;" onclick="sendDepositLink()">Send deposit link via WhatsApp &#x2192;</button>';
+      }
+    }
+    dl.innerHTML=depHtml;
+  }
   var btn=document.getElementById('clin-confirm-btn'); if(!btn) return;
   var conflict = (typeof clinCurrentConflict==='function') && clinCurrentConflict();
   var baseOk = (clinType==='clinical' ? (clinSel && clinRoom) : (clinSel && clinRoom && clinTime));
@@ -10293,6 +10313,18 @@ window.clinSetPay=clinSetPay;
 function clinSetPressure(p){ clinPressure=p; renderClinicalBooking(); renderClinicalOrder(); }
 function clinSetPayType(t){ clinPayType=t; renderClinicalBooking(); renderClinicalOrder(); }
 window.clinSetPressure=clinSetPressure; window.clinSetPayType=clinSetPayType;
+function sendDepositLink(){
+  clinCaptureInputs();
+  var xLink=getXenditLink(); if(!xLink) return alert('No Xendit link set — add it in Settings → Payments.');
+  var ph=(clinWhatsapp||'').replace(/\D/g,''); if(!ph) return alert('Enter the patient\'s WhatsApp number first.');
+  var s=clinSvc(); if(!s) return;
+  var dep=Math.round(s.price*0.5);
+  var svcName=s.name||'your session';
+  var date=clinDate?clinDate.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}):'';
+  var msg='Hi '+(clinPatient||'there')+' — DISTRIK here. To confirm your '+svcName+(date?' on '+date:'')+', please pay your 50% deposit of IDR '+dep.toLocaleString('id-ID')+' via the link below.\n\n'+xLink+'\n\nOnce received we\'ll confirm your booking. See you soon 🙏';
+  window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(msg),'_blank');
+}
+window.sendDepositLink=sendDepositLink;
 // ── Double-booking guard ───────────────────────────────────────────
 // A room/chair is occupied for [start, start+duration+buffer). Held AND confirmed both block.
 function clinHasConflict(roomId, startHHMM, durationMin, excludeId){
@@ -10441,6 +10473,17 @@ function clinCollectBalance(id){
   }catch(e){ console.warn('collect balance',e); }
 }
 window.clinCollectBalance=clinCollectBalance;
+function resendDepositLink(id){
+  var xLink=getXenditLink(); if(!xLink) return alert('No Xendit link set — add it in Settings → Payments.');
+  var dk=clinKey(); var day=recoveryData&&recoveryData[dk]; if(!day||!day.bookings) return;
+  var b=day.bookings.find(function(x){return x.id===id;}); if(!b) return;
+  var ph=(b.whatsapp||b.phone||'').replace(/\D/g,''); if(!ph) return alert('No WhatsApp number on this booking.');
+  var dep=Math.round((b.price||0)*0.5);
+  var date=clinDate.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+  var msg='Hi '+(b.client||'there')+' — DISTRIK here. To confirm your '+(b.serviceName||'session')+' on '+date+', please pay your 50% deposit of IDR '+dep.toLocaleString('id-ID')+' via the link below.\n\n'+xLink+'\n\nOnce received we\'ll confirm your booking. See you soon 🙏';
+  window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(msg),'_blank');
+}
+window.resendDepositLink=resendDepositLink;
 // Hours from now until a booking starts (Bali time)
 function clinHoursUntil(b){
   try{
