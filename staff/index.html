@@ -2773,14 +2773,10 @@ const TOTAL_SLOTS=32; // 6am–10pm, 30min each
 const SLOT_START=6;   // 6am
 
 const ZONES=[
-  // Reception & Fuel share one section (6 rows: 0-1=Fuel, 2-5=Reception)
-  {id:'FrontOfHouse', rows:6, start:6, end:22, col:'#FF2D2D', label:'Reception & Fuel',
-   subZones:[
-     {id:'Fuel',      rows:2, rowStart:0, col:'#FF2D2D', label:'Cafe / Fuel', min:'1 staff'},
-     {id:'Reception', rows:4, rowStart:2, col:'#3b82f6', label:'Reception',   min:'2 staff'},
-   ]},
-  {id:'Supply',    rows:2, start:8,  end:20, col:'#10b981', label:'Supply',  min:'1 staff'},
-  {id:'Therapy',   rows:3, start:10, end:22, col:'#8b5cf6', label:'Therapy', min:'3 rooms'},
+  {id:'Fuel',      rows:2, start:6,  end:20, col:'#FF2D2D', label:'Fuel',      min:'2 staff', rowLabels:['Fuel Open','Fuel Close']},
+  {id:'Reception', rows:4, start:10, end:22, col:'#3b82f6', label:'Reception', min:'2 staff', rowLabels:['Manager','Reception Open','Reception Close','Club Assistant']},
+  {id:'Supply',    rows:1, start:8,  end:20, col:'#10b981', label:'Supply',    min:'1 staff', rowLabels:['Supply Cover']},
+  {id:'Therapy',   rows:3, start:10, end:22, col:'#8b5cf6', label:'Therapy',   min:'3 rooms', rowLabels:['Room 1','Room 2','Room 3']},
 ];
 
 const STAFF=[
@@ -2803,14 +2799,7 @@ function emptyGrid(){
   return Object.fromEntries(DAYS.map(day=>{
     const entries = [];
     ZONES.forEach(z=>{
-      if(z.subZones){
-        // Add entries for each subZone (Fuel, Reception etc)
-        z.subZones.forEach(sub=>{
-          entries.push([sub.id, Array.from({length:sub.rows},()=>Array(TOTAL_SLOTS).fill(null))]);
-        });
-      } else {
-        entries.push([z.id, Array.from({length:z.rows},()=>Array(TOTAL_SLOTS).fill(null))]);
-      }
+      entries.push([z.id, Array.from({length:z.rows},()=>Array(TOTAL_SLOTS).fill(null))]);
     });
     return [day, Object.fromEntries(entries)];
   }));
@@ -2893,7 +2882,6 @@ function populateDefaults(){
 
     // SUPPLY
     shift(day,'Supply',0,'SD',10,18,14);                          // SD supply 10-6pm
-    if(day==='Thursday'||day==='Friday') shift(day,'Supply',1,'SE',12,16,14); // SE part-time supply cover
 
     // THERAPY (10am-10pm, 3 rooms — 4 therapists share across them)
     shift(day,'Therapy',0,'TA',10,18,14);                         // TA — Room 1
@@ -3009,7 +2997,7 @@ function endDrag(){
 function dropOnSlot(zone,row,slotIdx){
   if(!dragging.active)return;
   const day=DAYS[activeDay];
-  // Find zone from leaf zones (handles subZones like Fuel, Reception)
+  // Find zone
   const z=getLeafZones().find(lz=>lz.id===zone);
   if(!z)return;
   const slotH=slotToH(slotIdx);
@@ -3203,30 +3191,13 @@ function _autoSaveDirty(){
 function syncZonesFromHours(){
   const isWe = (activeDay >= 4); // Fri-Sun group
   ZONE_HOURS.forEach(zh => {
-    // Check top-level zones
     const zone = ZONES.find(z => z.id === zh.id);
     if(zone){
-      zone.col = zh.col; zone.label = zh.label || zone.label;
-      zone.start = isWe ? zh.weOpen : zh.wdOpen;
+      zone.col   = zh.col;
+      zone.label = zh.label || zone.label;
+      zone.start = isWe ? zh.weOpen  : zh.wdOpen;
       zone.end   = isWe ? zh.weClose : zh.wdClose;
     }
-    // Check subZones (Fuel, Reception inside FrontOfHouse)
-    ZONES.forEach(z => {
-      if(z.subZones){
-        const sub = z.subZones.find(s => s.id === zh.id);
-        if(sub){
-          sub.col   = zh.col;
-          sub.label = zh.label || sub.label;
-          sub.start = isWe ? zh.weOpen  : zh.wdOpen;
-          sub.end   = isWe ? zh.weClose : zh.wdClose;
-        }
-        // FrontOfHouse span = min subZone start to max subZone end
-        if(z.id === 'FrontOfHouse' && z.subZones.length){
-          z.start = Math.min(...z.subZones.map(s=>s.start||6));
-          z.end   = Math.max(...z.subZones.map(s=>s.end||22));
-        }
-      }
-    });
   });
 }
 
@@ -3247,11 +3218,11 @@ function buildGrid(){
   }
   html+=`</div></div>`;
 
-  function renderZoneRows(zoneId, zoneCol, zoneStart, zoneEnd, numRows){
+  function renderZoneRows(zoneId, zoneCol, zoneStart, zoneEnd, numRows, rowLabels){
     if(!grid[day][zoneId]) grid[day][zoneId]=Array(numRows).fill(null).map(()=>[]);
     for(let row=0;row<numRows;row++){
       const rowSlots=grid[day][zoneId][row]||[];
-      const rowLabel = zoneId==='Therapy' ? `Room ${row+1}` : `Row ${row+1}`;
+      const rowLabel = (rowLabels&&rowLabels[row]) ? rowLabels[row] : `Row ${row+1}`;
       html+=`<div class="slot-row">
         <div class="row-label">${rowLabel}</div>
         <div class="slots" id="slots-${zoneId}-${row}" style="position:relative">`;
@@ -3267,32 +3238,14 @@ function buildGrid(){
   }
 
   ZONES.forEach(zone=>{
-    if(zone.subZones){
-      // ── GROUPED ZONE: one header, sub-labels, all rows ──
-      html+=`<div class="zone-header">
-        <div class="zone-label" style="border-color:#555">
-          <h4>${zone.label.toUpperCase()}</h4>
-          <p>${fmtH(zone.start)} — ${fmtH(zone.end)}</p>
-        </div>
-        <div class="zone-hours">${fmtH(zone.start)} — ${fmtH(zone.end)}</div>
-      </div>`;
-      zone.subZones.forEach(sub=>{
-        const s=sub.start!==undefined?sub.start:zone.start;
-        const e=sub.end!==undefined?sub.end:zone.end;
-        // sub-zone rows (no label)
-        renderZoneRows(sub.id, sub.col, s, e, sub.rows);
-      });
-    } else {
-      // ── NORMAL ZONE ──
-      html+=`<div class="zone-header">
-        <div class="zone-label" style="border-color:${zone.col}">
-          <h4>${zone.id.toUpperCase()}</h4>
-          <p>${fmtH(zone.start)} — ${fmtH(zone.end)} · ${zone.min}</p>
-        </div>
-        <div class="zone-hours">${fmtH(zone.start)} — ${fmtH(zone.end)}</div>
-      </div>`;
-      renderZoneRows(zone.id, zone.col, zone.start, zone.end, zone.rows);
-    }
+    html+=`<div class="zone-header">
+      <div class="zone-label" style="border-color:${zone.col}">
+        <h4>${zone.id.toUpperCase()}</h4>
+        <p>${fmtH(zone.start)} — ${fmtH(zone.end)} · ${zone.min}</p>
+      </div>
+      <div class="zone-hours">${fmtH(zone.start)} — ${fmtH(zone.end)}</div>
+    </div>`;
+    renderZoneRows(zone.id, zone.col, zone.start, zone.end, zone.rows, zone.rowLabels);
   });
 
   el.innerHTML=html;
@@ -3428,13 +3381,7 @@ function toggleTS(){
 
 
 function getLeafZones(){
-  // Returns flat list of all zones that have grid rows (subZones expanded)
-  const result = [];
-  ZONES.forEach(z=>{
-    if(z.subZones) z.subZones.forEach(s=>result.push({...s, parentLabel:z.label}));
-    else result.push(z);
-  });
-  return result;
+  return ZONES.slice();
 }
 
 function buildTS(){
