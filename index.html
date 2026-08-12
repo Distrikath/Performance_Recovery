@@ -621,28 +621,37 @@ footer{
 }
 
 
-/* Hero technical signature — subtle brand system label */
+/* Hero service buttons */
 .hero-signature{
   margin-top:56px;
   width:100%;
-  display:flex;align-items:center;justify-content:center;gap:56px;
+  display:flex;align-items:center;justify-content:center;gap:12px;
   padding:22px 32px;
   border-top:1px solid rgba(242,242,240,.12);
   border-bottom:1px solid rgba(242,242,240,.12);
-  font-family:var(--mono);font-weight:400;
-  font-size:10px;letter-spacing:.5em;color:var(--ink);
-  text-transform:lowercase;
   opacity:0;
   animation:tagIn 1.4s ease 3.2s forwards;
 }
-.hero-signature > span:not(.dot){opacity:.7;flex:0 0 auto}
-.hero-signature .dot{
-  width:3px;height:3px;background:var(--r);border-radius:50%;
-  opacity:.8;
+.hero-svc-btn{
+  font-family:var(--mono);font-size:10px;letter-spacing:.32em;
+  text-transform:uppercase;color:var(--ink);text-decoration:none;
+  border:1px solid rgba(242,242,240,.28);
+  padding:13px 22px;
+  display:inline-flex;align-items:center;justify-content:center;
+  transition:background .2s,border-color .2s,color .2s,letter-spacing .2s;
+  flex:1;max-width:220px;text-align:center;
+}
+.hero-svc-btn:hover{
+  background:var(--r);border-color:var(--r);color:#fff;letter-spacing:.42em;
 }
 @media (max-width:900px){
-  .hero-signature{font-size:9px;letter-spacing:.4em;gap:28px;padding:16px 24px;margin-top:40px}
-  .hero-signature .dot{width:2px;height:2px}
+  .hero-signature{gap:8px;padding:16px 16px;margin-top:40px;}
+  .hero-svc-btn{font-size:9px;letter-spacing:.22em;padding:12px 14px;}
+  .hero-svc-btn:hover{letter-spacing:.3em;}
+}
+@media (max-width:480px){
+  .hero-signature{flex-direction:column;gap:8px;padding:16px;}
+  .hero-svc-btn{max-width:100%;width:100%;}
 }
 
 
@@ -1232,11 +1241,9 @@ footer.contact-strip{
       <span>est. 2026</span>
     </div>
     <div class="hero-signature">
-      <a href="recovery.html" style="color:inherit;text-decoration:none;">recovery</a>
-      <span class="dot"></span>
-      <a href="iv-therapy.html" style="color:inherit;text-decoration:none;">iv therapy</a>
-      <span class="dot"></span>
-      <a href="blood-work.html" style="color:inherit;text-decoration:none;">blood work</a>
+      <a href="recovery.html" class="hero-svc-btn">Recovery</a>
+      <a href="iv-therapy.html" class="hero-svc-btn">IV Therapy</a>
+      <a href="blood-work.html" class="hero-svc-btn">Blood Work</a>
     </div>
   </div>
 </section>
