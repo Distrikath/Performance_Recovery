@@ -4863,6 +4863,9 @@ function saveXenditLink(){
   var el=document.getElementById('set-xendit-url'); if(!el) return;
   var url=el.value.trim();
   try{ var d=JSON.parse(localStorage.getItem('distrik_payments')||'{}'); d.xenditLink=url; localStorage.setItem('distrik_payments',JSON.stringify(d)); }catch(e){}
+  // Sync to Firestore so public pages (recovery.html, iv-therapy.html) can read it
+  var db=_getPublicDb();
+  if(db) db.collection('distrik_state').doc('distrik_payments').set({xenditLink:url,savedAt:new Date().toISOString()}).catch(function(){});
   var n=document.getElementById('notif'); if(n){n.textContent='Xendit link saved ✓';n.classList.add('on');setTimeout(function(){n.classList.remove('on');},2000);}
 }
 window.saveXenditLink=saveXenditLink;

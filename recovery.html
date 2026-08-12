@@ -545,7 +545,10 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
 .bk-confirm-ref{font-family:var(--mono);font-size:8px;letter-spacing:.42em;color:var(--r);margin-bottom:10px;text-transform:uppercase}
 .bk-confirm-title{font-family:var(--display);font-size:36px;font-weight:900;letter-spacing:-.04em;margin-bottom:20px}
 .bk-confirm-detail{font-family:var(--mono);font-size:11px;color:var(--ink-d);line-height:2.1;letter-spacing:.04em}
-.bk-confirm-deposit{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--r);margin-top:20px;padding:12px 16px;border:1px solid rgba(255,45,45,.2);text-transform:uppercase;display:inline-block}
+.bk-confirm-deposit{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--r);margin-top:20px;padding:12px 16px;border:1px solid rgba(255,45,45,.2);text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:12px}
+.bk-deposit-link{color:var(--r);text-decoration:none;border-bottom:1px solid rgba(255,45,45,.4);padding-bottom:1px;letter-spacing:.1em;text-transform:uppercase;font-size:9px}
+.bk-deposit-link:hover{border-bottom-color:var(--r)}
+.bk-deposit-amt{opacity:.7}
 .bk-confirm-note{font-family:var(--mono);font-size:10px;color:var(--ink-d);margin-top:24px;letter-spacing:.04em;line-height:1.9}
 /* Calendar picker */
 .bk-cal{margin-top:4px}
@@ -1272,7 +1275,7 @@ function submitBk(){
   var btn=document.getElementById('bk-next-btn');
   if(btn){btn.disabled=true;btn.textContent='sending...';}
   var ts=Date.now(),rnd='DR-'+ts.toString(36).slice(-4).toUpperCase();
-  var rec={ref:rnd,pathway:bkState.pathway,duration:bkState.duration,price:bkState.price,pressure:bkState.pressure,date:bkState.date,time:bkState.time,therapist:bkState.therapist||null,name:bkState.name.trim(),phone:bkState.phone.trim(),status:'pending',submittedAt:firebase.firestore.FieldValue.serverTimestamp()};
+  var rec={ref:rnd,pathway:bkState.pathway,duration:bkState.duration,price:bkState.price,pressure:bkState.pressure,date:bkState.date,time:bkState.time,therapist:bkState.therapist||null,name:bkState.name.trim(),phone:bkState.phone.trim(),status:'tentative',submittedAt:firebase.firestore.FieldValue.serverTimestamp()};
   bkFdb().collection('public_bookings').add(rec).then(function(){showBkConfirm(rnd,rec);}).catch(function(e){
     if(btn){btn.disabled=false;btn.textContent='confirm →';}
     alert('Booking error: '+e.message+'\n\nPlease WhatsApp us directly: +62 819 9480 1516');
@@ -1286,6 +1289,21 @@ function showBkConfirm(ref,rec){
     de.innerHTML=rec.pathway+' · '+rec.duration+' min'+(rec.pressure&&rec.pressure!=='n/a'?' · '+rec.pressure:'')+'<br>'+rec.date+' at '+rec.time+'<br>therapist: '+tn+'<br>'+rec.name+' · '+rec.phone;
   }
   bkGoStep(6);
+  // Fetch Xendit link from Firestore to display deposit button
+  var depEl=document.getElementById('bk-confirm-deposit');
+  bkFdb().collection('distrik_state').doc('distrik_payments').get().then(function(doc){
+    var link=doc.exists?(doc.data().xenditLink||''):'';
+    var half=rec.price?Math.round(rec.price/2):null;
+    if(depEl){
+      if(link){
+        depEl.innerHTML='<a href="'+link+'" target="_blank" rel="noopener" class="bk-deposit-link">pay 50% deposit &rarr;</a>'+(half?'<span class="bk-deposit-amt">IDR '+half.toLocaleString()+'</span>':'');
+      } else {
+        depEl.textContent='our team will send your deposit link via WhatsApp.';
+      }
+    }
+  }).catch(function(){
+    if(depEl) depEl.textContent='our team will send your deposit link via WhatsApp.';
+  });
 }
 
 document.addEventListener('DOMContentLoaded',function(){
