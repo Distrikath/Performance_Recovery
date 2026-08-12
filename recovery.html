@@ -997,7 +997,8 @@ function bkRenderCal(){
   for(var d=1;d<=dInMo;d++){
     var dt=new Date(y,mo,d);dt.setHours(0,0,0,0);
     var ds=y+'-'+('0'+(mo+1)).slice(-2)+'-'+('0'+d).slice(-2);
-    html+='<button class="bk-cal-day'+(bkState.date===ds?' sel':'')+'"'+((dt<minD||dt.getDay()===1)?' disabled':'')+' onclick="bkPickDay(\''+ds+'\')">'+d+'</button>';
+    var dayHours=_bkBusinessHours(bkState.pathway,dt.getDay());
+    html+='<button class="bk-cal-day'+(bkState.date===ds?' sel':'')+'"'+((dt<minD||!dayHours)?' disabled':'')+' onclick="bkPickDay(\''+ds+'\')">'+d+'</button>';
   }
   cal.innerHTML=html+'</div>';
 }
@@ -1028,23 +1029,74 @@ function bkPickDay(ds){
 
 // ── Roster availability helpers ───────────────────────────────────────
 var _bkRosterCache=null;
+var _bkRfCache=null;
 var _DAY_NAMES=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+// Rule 1 hard-lock: returns {start,end} hours or null (closed) based on pathway and day-of-week
+// Recovery (RECOVER/RELEASE): Tue-Thu 10-22, Fri-Sun 8-20, Mon closed
+// Compression/IV/Bloods: Thu 10-22, Fri-Sun 8-20, Mon-Wed closed
+function _bkBusinessHours(pathway,dow){
+  var isComp=(pathway==='COMPRESSION');
+  if(dow===1)return null; // Monday closed for all
+  if(isComp){
+    if(dow>=2&&dow<=3)return null; // Tue-Wed closed for Compression
+    if(dow===4)return{start:10,end:22};
+    return{start:8,end:20}; // Fri-Sun
+  } else {
+    if(dow>=2&&dow<=4)return{start:10,end:22}; // Tue-Thu
+    return{start:8,end:20}; // Fri-Sun
+  }
+}
 function _bkIsBreak(c){return typeof c==='string'&&c.startsWith('Break:');}
 function _bkStaffId(c){return c?(_bkIsBreak(c)?c.slice(6):c):null;}
-function _bkGetAvailSlots(rData,dateStr,durMins,pathway){
-  // Scan all 32 half-hour slots (6am–10pm, matching admin TOTAL_SLOTS=32, SLOT_START=6).
-  // Zone hours are NOT used to gate the window — the roster grid is the only source of truth.
-  // If a therapist's cell is filled at a slot they're available; if null/empty they're not.
+function _bkGetAvailSlots(rData,dateStr,durMins,pathway,rooms){
   var SLOT_START=6,TOTAL_BK=32;
   var dow=new Date(dateStr+'T12:00:00').getDay();
   var dayName=_DAY_NAMES[dow];
   var isCompression=(pathway==='COMPRESSION');
+
+  // Rule 1: hard-locked business hours
+  var bh=_bkBusinessHours(pathway,dow);
+  if(!bh)return []; // closed day
+  var siMin=Math.max(0,Math.round((bh.start-SLOT_START)*2));
+  var siMax=Math.min(TOTAL_BK,Math.round((bh.end-SLOT_START)*2));
+
   function zoneRows(zoneId){
-    // Prefer the specific daily override; fall back to base weekly template
     var dayData=(rData&&rData.dailyOverrides&&rData.dailyOverrides[dateStr])||null;
     return (dayData&&dayData[zoneId])||
       (rData&&rData.grid&&rData.grid[dayName]&&rData.grid[dayName][zoneId])||null;
   }
+
+  // Build set of valid staff IDs from STAFF list — orphan/stale grid entries excluded
+  var validStaff={};
+  if(rData&&rData.STAFF){rData.STAFF.forEach(function(s){if(s.id)validStaff[s.id]=s;});}
+
+  // Rule 3a: cross-zone exclusion — staff rostered in Fuel/Reception/Supply today can't appear in Therapy
+  var otherZoneIds={};
+  ['Fuel','Reception','Supply'].forEach(function(zid){
+    var zr=zoneRows(zid);
+    if(!zr)return;
+    zr.forEach(function(row){
+      if(!row)return;
+      row.forEach(function(c){
+        if(c&&!_bkIsBreak(c)){var sid=_bkStaffId(c);if(validStaff[sid])otherZoneIds[sid]=zid;}
+      });
+    });
+  });
+
+  // Rule 2: room/chair staff allowlist — only staff assigned to at least one room of the right type
+  // If ALL rooms have specific staff configured, restrict; if any room is open (staff:[]), anyone goes
+  var roomAllowlist=null;
+  if(rooms&&rooms.length>0){
+    var tRooms=rooms.filter(function(r){return r.type==='therapy'||r.type==='recovery';});
+    var anyRestricted=tRooms.some(function(r){return r.staff&&r.staff.length>0;});
+    var anyOpen=tRooms.some(function(r){return !r.staff||r.staff.length===0;});
+    if(anyRestricted&&!anyOpen){
+      roomAllowlist={};
+      tRooms.forEach(function(r){(r.staff||[]).forEach(function(sid){roomAllowlist[sid]=true;});});
+    }
+  }
+
   function checkRows(rows,staffIds,si,durSlots){
     var avail=[];
     if(!rows||!staffIds||staffIds.length===0)return avail;
@@ -1061,48 +1113,72 @@ function _bkGetAvailSlots(rData,dateStr,durMins,pathway){
     });
     return avail;
   }
+
+  // Build validated THERS list for therapy-zone staff
+  function buildThers(therRows){
+    var THERS=[];
+    // Start from STAFF list — only Therapy-group staff not in another zone
+    if(rData&&rData.STAFF){
+      rData.STAFF.forEach(function(s){
+        if(s.group==='Therapy'&&s.id&&!otherZoneIds[s.id]){
+          if(!roomAllowlist||roomAllowlist[s.id])THERS.push(s.id);
+        }
+      });
+    }
+    // Also include staff in grid with non-Therapy group tag IF they exist in STAFF and pass checks
+    if(therRows){
+      therRows.forEach(function(row){
+        if(!row)return;
+        row.forEach(function(c){
+          if(!c||_bkIsBreak(c))return;
+          var sid=_bkStaffId(c);
+          if(THERS.indexOf(sid)>-1)return;
+          if(!validStaff[sid]||otherZoneIds[sid])return; // must exist in STAFF, not in another zone
+          if(roomAllowlist&&!roomAllowlist[sid])return;
+          THERS.push(sid);
+        });
+      });
+    }
+    return THERS;
+  }
+
   var slots=[];
   var durSlots=Math.ceil(durMins/30);
+
   if(isCompression){
     var therRows=zoneRows('Therapy');
-    // FOH staff are in Reception and Fuel zones (no 'Recovery' zone exists in the admin panel)
     var fohRows=(zoneRows('Reception')||[]).concat(zoneRows('Fuel')||[]);
-    if(fohRows.length===0) fohRows=null;
+    if(fohRows.length===0)fohRows=null;
+    // FOH: Operations/Management staff rostered in Reception/Fuel (they belong there)
     var FOH=[];
     if(rData&&rData.STAFF){
-      rData.STAFF.forEach(function(s){if((s.group==='Operations'||s.group==='Management')&&s.id)FOH.push(s.id);});
+      rData.STAFF.forEach(function(s){
+        if((s.group==='Operations'||s.group==='Management')&&s.id)FOH.push(s.id);
+      });
     }
-    // Also pick up any IDs actually in the FOH zones regardless of group tag
-    if(fohRows){fohRows.forEach(function(row){if(!row)return;row.forEach(function(c){if(c&&!_bkIsBreak(c)&&FOH.indexOf(c)<0)FOH.push(c);});});}
-    var THERS=[];
-    if(rData&&rData.STAFF){
-      rData.STAFF.forEach(function(s){if(s.group==='Therapy'&&s.id)THERS.push(s.id);});
+    if(fohRows){
+      fohRows.forEach(function(row){
+        if(!row)return;
+        row.forEach(function(c){
+          if(c&&!_bkIsBreak(c)){
+            var sid=_bkStaffId(c);
+            if(FOH.indexOf(sid)<0&&validStaff[sid])FOH.push(sid);
+          }
+        });
+      });
     }
-    // Also pick up any IDs actually in the Therapy zone regardless of group tag
-    if(therRows){therRows.forEach(function(row){if(!row)return;row.forEach(function(c){if(c&&!_bkIsBreak(c)&&THERS.indexOf(c)<0)THERS.push(c);});});}
-    for(var si=0;si+durSlots<=TOTAL_BK;si++){
+    var THERS=buildThers(therRows);
+    for(var si=siMin;si+durSlots<=siMax;si++){
       var h=SLOT_START+si*0.5,h12=Math.floor(h)%12||12,mn=h%1?30:0,ap=Math.floor(h)>=12?'pm':'am';
       var lbl=h12+(mn?':30':':00')+ap;
-      // Therapists first; FOH only for slots where no therapist is rostered
       var therAvail=checkRows(therRows,THERS,si,durSlots);
       var avail=therAvail.length>0?therAvail:checkRows(fohRows,FOH,si,durSlots);
       if(avail.length>0)slots.push({time:lbl,therapists:avail});
     }
   } else {
     var therapyRows=zoneRows('Therapy');
-    var THERS=[];
-    if(rData&&rData.STAFF){
-      rData.STAFF.forEach(function(s){if(s.group==='Therapy'&&s.id)THERS.push(s.id);});
-    }
-    // Always include any IDs actually present in the Therapy zone grid —
-    // catches staff placed in Therapy zone but tagged group='Operations' in Settings
-    if(therapyRows){
-      therapyRows.forEach(function(row){
-        if(!row)return;
-        row.forEach(function(c){if(c&&!_bkIsBreak(c)&&THERS.indexOf(c)<0)THERS.push(c);});
-      });
-    }
-    for(var si=0;si+durSlots<=TOTAL_BK;si++){
+    var THERS=buildThers(therapyRows);
+    for(var si=siMin;si+durSlots<=siMax;si++){
       var h=SLOT_START+si*0.5,h12=Math.floor(h)%12||12,mn=h%1?30:0,ap=Math.floor(h)>=12?'pm':'am';
       var lbl=h12+(mn?':30':':00')+ap;
       var avail=checkRows(therapyRows,THERS,si,durSlots);
@@ -1116,10 +1192,11 @@ function renderBkTimes(){
   var wrap=document.getElementById('bk-time-wrap');if(!wrap)return;
   wrap.innerHTML='<div class="bk-loading">checking availability...</div>';
   var dur=bkState.duration||60;
-  function doRender(rData){
+  function doRender(rData,rfData){
     if(rData&&rData.STAFF){rData.STAFF.forEach(function(s){if(s.id&&s.name)THER_NAMES[s.id]=s.name;});}
     wrap.innerHTML='';
-    var avSlots=_bkGetAvailSlots(rData,bkState.date,dur,bkState.pathway);
+    var rooms=(rfData&&rfData.ROOMS)||[];
+    var avSlots=_bkGetAvailSlots(rData,bkState.date,dur,bkState.pathway,rooms);
     if(avSlots.length===0){
       wrap.innerHTML='<div class="bk-no-slots">no available slots on this date — please try another day or <a href="https://wa.me/6281994801516" target="_blank" style="color:rgba(242,242,240,.6)">contact us</a>.</div>';
       return;
@@ -1137,11 +1214,16 @@ function renderBkTimes(){
       wrap.appendChild(btn);
     });
   }
-  if(_bkRosterCache){doRender(_bkRosterCache);return;}
-  bkFdb().collection('distrik_state').doc('distrik_v1').get().then(function(doc){
-    try{_bkRosterCache=doc.exists?JSON.parse(doc.data().value||'{}'):{};}catch(e){_bkRosterCache={};}
-    doRender(_bkRosterCache);
-  }).catch(function(){_bkRosterCache={};doRender({});});
+  if(_bkRosterCache){doRender(_bkRosterCache,_bkRfCache||{});return;}
+  var db=bkFdb();
+  Promise.all([
+    db.collection('distrik_state').doc('distrik_v1').get(),
+    db.collection('distrik_state').doc('distrik_rf').get()
+  ]).then(function(results){
+    try{_bkRosterCache=results[0].exists?JSON.parse(results[0].data().value||'{}'):{};}catch(e){_bkRosterCache={};}
+    try{_bkRfCache=results[1].exists?JSON.parse(results[1].data().value||'{}'):{};} catch(e){_bkRfCache={};}
+    doRender(_bkRosterCache,_bkRfCache);
+  }).catch(function(){_bkRosterCache={};_bkRfCache={};doRender({},{});});
 }
 function _bkUpdateTherapistOptions(therIds){
   var sel=document.getElementById('bk-therapist');if(!sel)return;
