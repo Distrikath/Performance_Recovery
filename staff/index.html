@@ -3674,6 +3674,14 @@ function initSales(){
 }
 
 function renderSales(){
+  // Sync confirmed online bookings for the viewed day into the ledger
+  // so they appear in recovery revenue (async — triggers a re-render via onSnapshot)
+  try{
+    if(typeof loadConfirmedForDate==='function'){
+      const dk=salesDayKey(salesDayOffset);
+      if(_bkConfirmedDate!==dk) loadConfirmedForDate(dk);
+    }
+  }catch(e){}
   const keys=getPeriodKeys();
   const p=document.getElementById('sales-period')?.value||'today';
   const lbl=document.getElementById('sales-date-lbl');
@@ -3810,37 +3818,42 @@ function renderSalesChart(keys){
 }
 
 function getStaffOnToday(){
-  const todayDayIdx=baliNow().getDay();
-  const rDay=todayDayIdx===0?6:todayDayIdx-1;
-  const dayName=DAYS[rDay];
+  const dateKey=salesDayKey(salesDayOffset);
+  const dayData=dailyOverrides[dateKey];
+  if(!dayData) return 0;
   let count=0;
   const seen=new Set();
-  getLeafZones().forEach(z=>{ grid[dayName][z.id].forEach(row=>{ row.forEach(cell=>{ if(cell&&!cell.startsWith('Break:')&&!seen.has(cell)){seen.add(cell);count++;} }); }); });
+  getLeafZones().forEach(z=>{ const zd=dayData[z.id]; if(!zd) return; zd.forEach(row=>{ row.forEach(cell=>{ if(cell&&!cell.startsWith('Break:')&&!seen.has(cell)){seen.add(cell);count++;} }); }); });
   return count;
 }
 
 function renderSalesRoster(){
   const el=document.getElementById('sales-today-roster'); if(!el) return;
-  const todayDayIdx=baliNow().getDay();
-  const rDay=todayDayIdx===0?6:todayDayIdx-1;
-  const dayName=DAYS[rDay];
+  const dateKey=salesDayKey(salesDayOffset);
+  const dayData=dailyOverrides[dateKey];
   const dayEl=document.getElementById('on-today-day');
+  // Derive day label from the date key
+  const dt=new Date(dateKey+'T12:00:00');
+  const dayName=DAYS[dt.getDay()===0?6:dt.getDay()-1]||'';
   if(dayEl) dayEl.textContent=dayName.toUpperCase();
 
   let html='';
   getLeafZones().forEach(z=>{
+    const zoneData=dayData?dayData[z.id]:null;
     const people=[];
-    grid[dayName][z.id].forEach(row=>{
-      const seen=new Set();
-      row.forEach((cell,si)=>{
-        if(!cell||cell.startsWith('Break:')) return;
-        if(!seen.has(cell)){
-          seen.add(cell);
-          const s=getStaff(cell);
-          if(s) people.push({s, time:tl(slotToH(si))});
-        }
+    if(zoneData){
+      zoneData.forEach(row=>{
+        const seen=new Set();
+        row.forEach((cell,si)=>{
+          if(!cell||cell.startsWith('Break:')) return;
+          if(!seen.has(cell)){
+            seen.add(cell);
+            const s=getStaff(cell);
+            if(s) people.push({s, time:tl(slotToH(si))});
+          }
+        });
       });
-    });
+    }
     if(people.length){
       html+=`<div class="sales-roster-zone">
         <div class="sales-roster-zone-name">${z.id}</div>
@@ -3852,7 +3865,7 @@ function renderSalesRoster(){
       </div>`;
     }
   });
-  el.innerHTML = html || "<div style='padding:12px 0;color:#777;font-size:10px;'>No staff scheduled today.</div>";
+  el.innerHTML = html || "<div style='padding:12px 0;color:#777;font-size:10px;'>No staff scheduled for this day.</div>";
 }
 
 // ── ROOM SCHEDULE ─────────────────────────────────────────────────
@@ -9941,10 +9954,14 @@ function _updateBkPill(count){
   else { pill.style.display='none'; }
 }
 
-function _showBkAlertIfNeeded(){
+var _bkAlertSeenIds=new Set(); // tracks IDs the user has already reviewed this session
+function _showBkAlertIfNeeded(forceNew){
   if(!_bkReqs||!_bkReqs.length) return;
+  // Only show if there's a booking the user hasn't yet seen/dismissed
+  var unseen=_bkReqs.filter(function(r){return !_bkAlertSeenIds.has(r._id);});
+  if(!unseen.length) return;
   var overlay=document.getElementById('bk-alert-overlay'); if(!overlay) return;
-  var r=_bkReqs[0];
+  var r=unseen[0];
   var svcEl=document.getElementById('bk-alert-service');
   var metaEl=document.getElementById('bk-alert-meta');
   var clientEl=document.getElementById('bk-alert-client');
@@ -9952,10 +9969,13 @@ function _showBkAlertIfNeeded(){
   if(svcEl) svcEl.textContent=_onreqLabel(r);
   if(metaEl) metaEl.textContent=(r.date||'?')+' at '+(r.time||'?');
   if(clientEl) clientEl.textContent=(r.name||'Guest')+(r.phone?' · '+r.phone:'');
-  if(countEl) countEl.textContent=_bkReqs.length>1?'+'+(_bkReqs.length-1)+' more pending':'1 pending';
+  if(countEl) countEl.textContent=unseen.length>1?'+'+(unseen.length-1)+' more pending':'1 pending';
   overlay.classList.add('on');
 }
 function bkAlertDismiss(){
+  // Mark the currently shown booking as seen so it doesn't re-popup
+  var r=(_bkReqs||[]).find(function(x){return !_bkAlertSeenIds.has(x._id);});
+  if(r) _bkAlertSeenIds.add(r._id);
   var overlay=document.getElementById('bk-alert-overlay'); if(overlay) overlay.classList.remove('on');
 }
 function bkAlertGoToReview(){
@@ -10055,7 +10075,7 @@ function _findReq(id){ for(var i=0;i<_bkReqs.length;i++){ if(_bkReqs[i]._id===id
 
 function acceptOnlineBooking(id){
   var r=_findReq(id); if(!r) return;
-  if(!confirm('Confirm booking for '+_escHtml(r.name||'this customer')+'?\n\nA WhatsApp confirmation will open for you to send.')) return;
+  _bkAlertSeenIds.add(id); // mark as handled so popup doesn't re-appear
   _bkConfirmedDate=''; // invalidate cache so the confirmed booking loads into the schedule immediately
   _onreqUpdateStatus(id,'confirmed',function(){
     var ph=(r.phone||'').replace(/\D/g,'');
