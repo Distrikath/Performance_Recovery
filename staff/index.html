@@ -1646,6 +1646,26 @@ h1,
 .onreq-btn.decline{background:#f5f5f5;color:#9a9a9e;border:1px solid #e0e0e0;}
 .bk-notif-pill{align-items:center;gap:5px;background:#7c3aed;color:#fff;border-radius:100px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:5px 13px;cursor:pointer;border:none;animation:bk-pulse 2s ease-in-out infinite;}
 @keyframes bk-pulse{0%,100%{box-shadow:0 0 0 0 rgba(124,58,237,.5);}70%{box-shadow:0 0 0 7px rgba(124,58,237,0);}}
+/* ── Booking Alert Modal ── */
+#bk-alert-overlay{display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.76);align-items:center;justify-content:center;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
+#bk-alert-overlay.on{display:flex;}
+.bk-alert-card{background:#fff;width:100%;max-width:460px;margin:20px;border-top:3px solid #7c3aed;padding:28px 28px 22px;position:relative;}
+.bk-alert-eyebrow{display:flex;align-items:center;gap:9px;margin-bottom:14px;}
+.bk-alert-dot{width:8px;height:8px;border-radius:50%;background:#7c3aed;animation:bk-pulse 2s ease-in-out infinite;flex-shrink:0;}
+.bk-alert-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:#7c3aed;}
+.bk-alert-count{margin-left:auto;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.1em;color:#9a9a9e;}
+.bk-alert-service{font-family:'Archivo',sans-serif;font-weight:700;font-size:20px;color:#0A0A0A;line-height:1.2;margin-bottom:4px;}
+.bk-alert-meta{font-family:'Space Mono',monospace;font-size:10px;color:#56565b;letter-spacing:.04em;margin-bottom:3px;}
+.bk-alert-client{font-family:'Space Mono',monospace;font-size:10px;color:#888;letter-spacing:.04em;margin-bottom:22px;}
+.bk-alert-more{font-size:12px;color:#9a9a9e;font-weight:400;}
+.bk-alert-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.bk-alert-btn-review{flex:1;padding:14px;background:#0A0A0A;border:none;color:#fff;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.22em;text-transform:uppercase;cursor:pointer;transition:background .2s;}
+.bk-alert-btn-review:hover{background:#FF2D2D;}
+.bk-alert-btn-later{padding:14px 18px;background:transparent;border:1px solid #d0d0d0;color:#555;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;transition:border-color .2s,color .2s;}
+.bk-alert-btn-later:hover{border-color:#888;color:#0A0A0A;}
+/* Mini-cal tentative hold dot */
+.clin-mc-day.has-hold{position:relative;}
+.clin-mc-day.has-hold::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:3px;height:3px;border-radius:50%;background:#7c3aed;}
 .clin-nb-dot{width:8px;height:8px;border-radius:50%;background:#FF2D2D;flex-shrink:0;}
 .clin-nb-tag{margin-left:auto;font-size:10px;letter-spacing:.1em;text-transform:uppercase;border:1px solid #0A0A0A;color:#0A0A0A;padding:5px 9px;white-space:nowrap;}
 .clin-datebar{display:flex;align-items:center;padding:11px 20px;border-bottom:1px solid #e8e8e8;background:#fff;}
@@ -1910,6 +1930,24 @@ h1,
 <body>
 
 <!-- ═══ LOGIN SCREEN ═══ -->
+<!-- ── Booking Alert Modal (all panels except Supply) ── -->
+<div id="bk-alert-overlay">
+  <div class="bk-alert-card">
+    <div class="bk-alert-eyebrow">
+      <span class="bk-alert-dot"></span>
+      <span class="bk-alert-label">New Booking Request</span>
+      <span class="bk-alert-count" id="bk-alert-count"></span>
+    </div>
+    <div class="bk-alert-service" id="bk-alert-service"></div>
+    <div class="bk-alert-meta" id="bk-alert-meta"></div>
+    <div class="bk-alert-client" id="bk-alert-client"></div>
+    <div class="bk-alert-actions">
+      <button class="bk-alert-btn-review" onclick="bkAlertGoToReview()">Review &amp; Confirm &#x2192;</button>
+      <button class="bk-alert-btn-later" onclick="bkAlertDismiss()">Later</button>
+    </div>
+  </div>
+</div>
+
 <div class="login-screen" id="loginScreen">
   <div class="login-box">
     <div class="login-logo">DISTRIK</div>
@@ -5064,7 +5102,9 @@ function onLoginSuccess(){
   } catch(e){ console.warn('Session save failed:', e); }
   const ls = document.getElementById('loginScreen');
   if(ls) ls.style.display='none';
-  try { showHome(); } catch(e){ 
+  // Start booking listener globally on login so all panels can show alerts
+  setTimeout(function(){ if(typeof startBookingListener==='function') startBookingListener(); }, 1500);
+  try { showHome(); } catch(e){
     console.error('showHome error:', e); 
     // Fallback: force show homeScreen
     const hs = document.getElementById('homeScreen');
@@ -5163,6 +5203,7 @@ function switchTab(t){
   if(panel) panel.classList.add('on');
   const bc = document.getElementById('nav-breadcrumb');
   if(bc) bc.textContent = PAGE_NAMES[t]||t;
+  if(t!=='supply') setTimeout(function(){ if(typeof _showBkAlertIfNeeded==='function') _showBkAlertIfNeeded(); },400);
   if(t==='sales')   initSales();
   if(t==='pl')      renderPL();
   if(t==='settings') buildSettingsPanel();
@@ -9633,9 +9674,11 @@ function renderClinMiniCal(){
   var selY=clinDate.getFullYear(),selM=clinDate.getMonth(),selD=clinDate.getDate();
   var DOW=['M','T','W','T','F','S','S'];
   var bkDays={};
+  var holdDays={};
   try{
     var dk=vy+'-'+(vm<9?'0':'')+(vm+1);
     Object.keys(recoveryData||{}).forEach(function(k){ if(k.indexOf(dk)===0&&recoveryData[k]&&(recoveryData[k].bookings||[]).length) bkDays[parseInt(k.split('-')[2])]=true; });
+    (_bkReqs||[]).forEach(function(r){ if(r.date&&r.date.indexOf(dk)===0) holdDays[parseInt(r.date.split('-')[2])]=true; });
   }catch(e){}
   var h='<div class="clin-mini-cal"><div style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#56565b;margin-bottom:8px;">2 · Date</div><div class="clin-mc-hdr"><button class="clin-mc-nav" onclick="clinCalMonth(-1)">‹</button><span class="clin-mc-month">'+MONTHS[vm]+' '+vy+'</span><button class="clin-mc-nav" onclick="clinCalMonth(1)">›</button></div><div class="clin-mc-grid">';
   DOW.forEach(function(d){ h+='<span class="clin-mc-dow">'+d+'</span>'; });
@@ -9644,8 +9687,9 @@ function renderClinMiniCal(){
     var isSel=(vy===selY&&vm===selM&&day===selD);
     var isToday=(vy===ty&&vm===tm&&day===td);
     var hasBk=!!bkDays[day];
+    var hasHold=!!holdDays[day];
     var ds=vy+'-'+(vm<9?'0':'')+(vm+1)+'-'+(day<10?'0':'')+day;
-    var cls='clin-mc-day'+(isToday?' today':'')+(isSel?' sel':'')+(hasBk?' has-bk':'');
+    var cls='clin-mc-day'+(isToday?' today':'')+(isSel?' sel':'')+(hasBk?' has-bk':'')+(hasHold?' has-hold':'');
     h+='<button class="'+cls+'" onclick="clinSetDate(\''+ds+'\')">'+day+'</button>';
   }
   h+='</div></div>';
@@ -9748,6 +9792,31 @@ function _updateBkPill(count){
   else { pill.style.display='none'; }
 }
 
+function _showBkAlertIfNeeded(){
+  if(!_bkReqs||!_bkReqs.length) return;
+  var overlay=document.getElementById('bk-alert-overlay'); if(!overlay) return;
+  var r=_bkReqs[0];
+  var svcEl=document.getElementById('bk-alert-service');
+  var metaEl=document.getElementById('bk-alert-meta');
+  var clientEl=document.getElementById('bk-alert-client');
+  var countEl=document.getElementById('bk-alert-count');
+  if(svcEl) svcEl.textContent=_onreqLabel(r);
+  if(metaEl) metaEl.textContent=(r.date||'?')+' at '+(r.time||'?');
+  if(clientEl) clientEl.textContent=(r.name||'Guest')+(r.phone?' · '+r.phone:'');
+  if(countEl) countEl.textContent=_bkReqs.length>1?'+'+(_bkReqs.length-1)+' more pending':'1 pending';
+  overlay.classList.add('on');
+}
+function bkAlertDismiss(){
+  var overlay=document.getElementById('bk-alert-overlay'); if(overlay) overlay.classList.remove('on');
+}
+function bkAlertGoToReview(){
+  bkAlertDismiss();
+  switchTab('recovery');
+}
+window.bkAlertDismiss=bkAlertDismiss;
+window.bkAlertGoToReview=bkAlertGoToReview;
+window._showBkAlertIfNeeded=_showBkAlertIfNeeded;
+
 // ── Real-time listener ────────────────────────────────────────────────
 var _bkListenerReady=false,_bkListener=null;
 function startBookingListener(){
@@ -9785,6 +9854,10 @@ function renderOnlineRequests(reqs){
   if(!bar||!list) return;
   _bkReqs=reqs;
   _updateBkPill(reqs.length);
+  // Show alert modal if not on Supply tab
+  var _activePanel=document.querySelector('.panel.on');
+  var _activePanelId=_activePanel?_activePanel.id:'';
+  if(reqs.length&&_activePanelId!=='panel-supply') _showBkAlertIfNeeded();
   if(!reqs.length){ bar.style.display='none'; return; }
   bar.style.display='';
   if(cnt) cnt.textContent=reqs.length;
