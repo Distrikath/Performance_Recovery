@@ -3691,7 +3691,7 @@ function renderSales(){
     const r=recoveryData[k]; const f=fuelData[k]; const s=supplyData[k];
     if(r){ recRev+=r.revenue||0; recBk+=(r.bookings||[]).length; recCancel+=(r.cancellations||0);
       (r.bookings||[]).forEach(b=>{ recBookings.push({...b,date:k});
-        const tn=b.therapistName||((typeof getStaff==='function'&&b.therapist)?((getStaff(b.therapist)||{}).name):null)||(b.clinical?'Nurse · ClinicTerrain':null);
+        const tn=b.therapistName||((typeof getStaff==='function'&&b.therapist)?((getStaff(b.therapist)||{}).name):null)||(b.clinical?'Nurse · Human+':null);
         if(tn) therapistRev[tn]=(therapistRev[tn]||0)+b.price; }); }
     if(f){ fuelRev+=f.revenue||0; fuelTxn+=(f.transactions||[]).length;
       (f.transactions||[]).forEach(t=>{ fuelTxns.push({...t,date:k}); fuelCard+=t.total;
@@ -4821,7 +4821,7 @@ function buildSettingsTax(){
     +'<div><label style="'+lbl+'">Service Charge %</label><input id="tx-cafeService" type="number" step="0.5" value="'+P(TAX_CFG.cafeService)+'" style="'+inp+'"></div>'
     +'<div><label style="'+lbl+'">PBJT / PB1 %</label><input id="tx-cafePBJT" type="number" step="0.5" value="'+P(TAX_CFG.cafePBJT)+'" style="'+inp+'"></div>'
     +'</div>'
-    +'<div style="'+sub+'">Clinical · ClinicTerrain (agent)</div>'
+    +'<div style="'+sub+'">Clinical · Human+ (agent)</div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'
     +'<div><label style="'+lbl+'">Distrik Commission %</label><input id="tx-clinicCommission" type="number" step="1" value="'+P(TAX_CFG.clinicCommission)+'" style="'+inp+'"></div>'
     +'<div><label style="'+lbl+'">PPh 23 Withholding %</label><input id="tx-pph23" type="number" step="0.5" value="'+P(TAX_CFG.pph23)+'" style="'+inp+'"></div>'
@@ -4848,7 +4848,7 @@ function buildSettingsManagers(){
   const rooms=(typeof ROOMS!=='undefined'?ROOMS:[]);
   const roomBtns=rooms.map(r=>`<button onclick="openRoomConfig('${r.id}')" class="set-room-btn">${r.name}</button>`).join('');
   const cards=[
-    {t:'Recovery — Services &amp; Treatments', d:'Treatment prices, RRP, duration, eligible rooms &amp; therapists, clinical (ClinicTerrain) menu &amp; packages.', a:`<button onclick="openServicesMgr()" class="set-mgr-btn">Open →</button>`},
+    {t:'Recovery — Services &amp; Treatments', d:'Treatment prices, RRP, duration, eligible rooms &amp; therapists, clinical (Human+) menu &amp; packages.', a:`<button onclick="openServicesMgr()" class="set-mgr-btn">Open →</button>`},
     {t:'Fuel — Café Menu &amp; Add-ons', d:'Drinks, food, RRP / cost / price, plus sizes, milks &amp; add-on rules.', a:`<button onclick="openMenuMgr()" class="set-mgr-btn">Open →</button>`},
     {t:'Supply — Brands &amp; Products', d:'Brands &amp; split %, products, per-size stock, pricing &amp; tax.', a:`<div class="set-mgr-actions"><button onclick="goToModule('supply')" class="set-mgr-btn">Open →</button><button onclick="openAddBrand()" class="set-mgr-btn alt">+ Brand</button></div>`},
     {t:'Rooms &amp; Recovery Chairs', d:'Set which services each room/chair can host, assigned staff &amp; type.', a:`<div class="set-room-list">${roomBtns||'<span style="color:#6b6b72;font-family:Space Mono,monospace;font-size:10px;">No rooms configured</span>'}</div>`},
@@ -5204,6 +5204,7 @@ function switchTab(t){
   const bc = document.getElementById('nav-breadcrumb');
   if(bc) bc.textContent = PAGE_NAMES[t]||t;
   if(t!=='supply') setTimeout(function(){ if(typeof _showBkAlertIfNeeded==='function') _showBkAlertIfNeeded(); },400);
+  if(t==='recovery'){ setTimeout(function(){ if(typeof renderClinicalServices==='function'){ renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); } },100); }
   if(t==='sales')   initSales();
   if(t==='pl')      renderPL();
   if(t==='settings') buildSettingsPanel();
@@ -6202,7 +6203,7 @@ function loadClinical(){
 function saveClinical(){ try{ localStorage.setItem('distrik_clinical', JSON.stringify(CLINICAL_SERVICES)); }catch(e){} }
 function buildClinicalSvcList(){
   const body=document.getElementById('svc-modal-body');
-  if(body) body.innerHTML=`<div class="svc-grid-hdr" style="grid-template-columns:1.6fr .8fr .9fr .9fr .9fr .5fr;"><div>Treatment Name</div><div>Dur (min)</div><div>RRP (IDR)</div><div>Cost (IDR)</div><div>Distrik Price</div><div></div></div><div id="clsvc-list"></div><div style="padding:12px 16px;"><button onclick="addClinicalSvc()" class="rf-add-row-btn">+ Add Treatment</button></div><div style="padding:0 16px 14px;font-family:'Space Mono',monospace;font-size:10px;color:#9a9a9e;">Clinical treatments are nurse-run (ClinicTerrain) and booked into a recovery chair.</div>`;
+  if(body) body.innerHTML=`<div class="svc-grid-hdr" style="grid-template-columns:1.6fr .8fr .9fr .9fr .9fr .5fr;"><div>Treatment Name</div><div>Dur (min)</div><div>RRP (IDR)</div><div>Cost (IDR)</div><div>Distrik Price</div><div></div></div><div id="clsvc-list"></div><div style="padding:12px 16px;"><button onclick="addClinicalSvc()" class="rf-add-row-btn">+ Add Treatment</button></div><div style="padding:0 16px 14px;font-family:'Space Mono',monospace;font-size:10px;color:#9a9a9e;">Clinical treatments are nurse-run (Human+) and booked into a recovery chair.</div><div style="padding:12px 16px 4px;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#0A0A0A;border-top:1px solid #f0f0f0;">Add-ons</div><div class="svc-grid-hdr" style="grid-template-columns:2fr 1fr .5fr;"><div>Add-on Name</div><div>Price (IDR)</div><div></div></div><div id="cladd-list"></div><div style="padding:12px 16px;"><button onclick="addClinicalAddon()" class="rf-add-row-btn">+ Add Add-on</button></div>`;
   const el=document.getElementById('clsvc-list'); if(!el) return;
   el.innerHTML=CLINICAL_SERVICES.map((svc,i)=>`
     <div class="svc-row" style="grid-template-columns:1.6fr .8fr .9fr .9fr .9fr .5fr;">
@@ -6212,6 +6213,13 @@ function buildClinicalSvcList(){
       <input class="svc-input" id="cl_cost_${i}"  value="${svc.cost}"  type="number" min="0" placeholder="Cost">
       <input class="svc-input" id="cl_price_${i}" value="${svc.price}" type="number" min="0" placeholder="Price">
       <button class="svc-del-btn" onclick="deleteClinicalSvc(${i})">✕</button>
+    </div>`).join('');
+  const addEl=document.getElementById('cladd-list'); if(!addEl) return;
+  addEl.innerHTML=CLINICAL_ADDONS.map((a,i)=>`
+    <div class="svc-row" style="grid-template-columns:2fr 1fr .5fr;">
+      <input class="svc-input" id="ca_name_${i}" value="${a.name}" placeholder="Add-on name">
+      <input class="svc-input" id="ca_price_${i}" value="${a.price}" type="number" min="0" placeholder="Price">
+      <button class="svc-del-btn" onclick="deleteClinicalAddon(${i})">✕</button>
     </div>`).join('');
 }
 function _clinicalFlushAll(){
@@ -6228,13 +6236,17 @@ function addClinicalSvc(){ _clinicalFlushAll(); CLINICAL_SERVICES.push({id:'cs'+
 function deleteClinicalSvc(i){ _clinicalFlushAll(); CLINICAL_SERVICES.splice(i,1); saveClinical(); buildClinicalSvcList(); }
 function saveClinicalSvc(){
   _clinicalFlushAll();
+  _addonFlushAll();
   saveClinical();
   closeServicesModal();
   if(typeof renderClinicalServices==='function') renderClinicalServices();
   const n=document.getElementById('notif');
   if(n){n.textContent='Clinical treatments saved ✓';n.classList.add('on');setTimeout(()=>n.classList.remove('on'),2000);}
 }
-window.buildClinicalSvcList=buildClinicalSvcList; window.addClinicalSvc=addClinicalSvc; window.deleteClinicalSvc=deleteClinicalSvc; window.saveClinicalSvc=saveClinicalSvc;
+function _addonFlushAll(){ CLINICAL_ADDONS.forEach((a,i)=>{ const v=id=>{const e=document.getElementById(id);return e?e.value:null;}; if(v('ca_name_'+i)!=null) a.name=v('ca_name_'+i)||a.name; a.price=parseInt(v('ca_price_'+i))||0; }); }
+function addClinicalAddon(){ _addonFlushAll(); CLINICAL_ADDONS.push({id:'ca'+Date.now(),name:'New Add-on',price:0}); buildClinicalSvcList(); }
+function deleteClinicalAddon(i){ _addonFlushAll(); CLINICAL_ADDONS.splice(i,1); buildClinicalSvcList(); }
+window.buildClinicalSvcList=buildClinicalSvcList; window.addClinicalSvc=addClinicalSvc; window.deleteClinicalSvc=deleteClinicalSvc; window.saveClinicalSvc=saveClinicalSvc; window.addClinicalAddon=addClinicalAddon; window.deleteClinicalAddon=deleteClinicalAddon;
 
 // ── ROOM CONFIG ───────────────────────────────────────────────────
 var configuringRoom = null;
@@ -9638,6 +9650,17 @@ var CLINICAL_SERVICES = [
   {id:'cs5', name:'Peptide Consultation',rrp:1000000, cost:0,      price:900000,  dur:30},
   {id:'cs6', name:'TRT Monitoring',      rrp:1200000, cost:400000, price:1100000, dur:30},
 ];
+var CLINICAL_ADDONS = [
+  {id:'ca1', name:'Master Antioxidant 600mg',        price:350000},
+  {id:'ca2', name:'Youth Renewal Factor 2ml',        price:750000},
+  {id:'ca3', name:'L-Carnitine 5ml',                 price:1500000},
+  {id:'ca4', name:'Cellular Coenzyme Support 100mg',  price:1500000},
+  {id:'ca5', name:'Cellular Coenzyme Support 250mg',  price:3750000},
+  {id:'ca6', name:'Vitamin C 3g + Collagen',         price:250000},
+  {id:'ca7', name:'Vitamin C 2g + Zinc 5ml',         price:230000},
+  {id:'ca8', name:'Magnesium 1ml',                   price:100000},
+  {id:'ca9', name:'Electrolytes / Saline 500ml',     price:100000},
+];
 var NURSE_WINDOW_SLOTS = ['Tue 09:30','Tue 11:00','Thu 10:00','Thu 12:30','Sat 09:30','Sat 12:00'];
 var clinSel=null, clinType=null, clinIntake=false, clinWindow=null, clinRoom=null, clinPay='card', clinDone=false, clinDoneHold=false;
 var clinEditingId=null, clinEditingDate=null;
@@ -9711,7 +9734,9 @@ function getRoomsToday(){
     var therapyRooms=allRooms.filter(function(r){return r.type==='therapy';}).slice(0,3);
     // Fill to 3 if ROOMS doesn't have enough
     while(therapyRooms.length<3) therapyRooms.push({name:'Therapy Room '+(therapyRooms.length+1),type:'therapy'});
-    var grows=(typeof grid!=='undefined'&&grid[dayName]&&grid[dayName]['Therapy'])||[];
+    var dk=clinKey();
+    var _dayData=(typeof dailyOverrides!=='undefined'&&dailyOverrides[dk])?dailyOverrides[dk]:((typeof grid!=='undefined'&&grid[dayName])||null);
+    var grows=(_dayData&&_dayData['Therapy'])||[];
     therapyRooms.forEach(function(room,ri){
       var row=grows[ri]||[];
       var sc=null,start=null,end=null;
@@ -9745,7 +9770,7 @@ function renderTodayBookings(){
   var localHtml=bks.slice().sort(function(a,b){return (a.start||a.time||'').localeCompare(b.start||b.time||'');}).map(function(b){
     var det = b.clinical ? (b.window||'Clinical') : (b.roomName||b.room||'');
     var isHold = b.status==='hold';
-    var badge = b.clinical ? (isHold?'<span class="clin-bk-hold">Hold · intake</span>':'<span class="clin-bk-tag">ClinicTerrain</span>') : '';
+    var badge = b.clinical ? (isHold?'<span class="clin-bk-hold">Hold · pending</span>':'<span class="clin-bk-tag">Human+</span>') : '';
     var svcName = b.serviceName||b.service||'';
     var id=(b.id||'').replace(/'/g,'');
     var pay='';
@@ -9793,7 +9818,11 @@ function _getPublicDb(){try{return firebase.apps.length?firebase.apps[0].firesto
 // ── Booking type helpers ─────────────────────────────────────────────
 var _bkReqs=[];
 function _onreqLabel(r){
-  if(r.type==='iv_therapy') return r.protocol||'IV Therapy';
+  if(r.type==='iv_therapy'){
+    var lbl=r.protocol||'IV Therapy';
+    if(r.addons&&r.addons.length) lbl+=' <span style="font-size:9px;opacity:.7">+ '+_escHtml(r.addons.join(', '))+'</span>';
+    return lbl;
+  }
   if(r.type==='blood_work'){ var p=r.package||''; return p?p.charAt(0).toUpperCase()+p.slice(1).toLowerCase()+' Blood Work':'Blood Work'; }
   return r.pathway||r.service||'Booking';
 }
@@ -9951,7 +9980,7 @@ function svcCard(s,type){
   var sel=(clinSel===s.id&&clinType===type);
   var meta = type==='clinical' ? (s.dur+' min · RRP '+clinFmt(s.rrp)+' · Cost '+clinFmt(s.cost))
                                : (s.duration+' min · '+((s.rooms||[]).length)+' room'+(((s.rooms||[]).length)!==1?'s':''));
-  var tags = type==='clinical' ? '<span class="clin-tag">ClinicTerrain</span><span class="clin-tag req">Intake req.</span>'
+  var tags = type==='clinical' ? '<span class="clin-tag">Human+</span>'
                                : '<span class="clin-tag">'+(s.commission?'Commission '+s.commission+'%':'No commission')+'</span>';
   return '<div class="clin-card'+(sel?' sel':'')+'" onclick="selectService(\''+s.id+'\',\''+type+'\')">'
     +'<div class="clin-card-top"><div class="clin-name">'+s.name+'</div><div class="clin-price">'+clinFmt(s.price)+'</div></div>'
@@ -9970,7 +9999,7 @@ function renderClinicalServices(){
     +'</div>'
     +'<div class="clin-acc-body'+(rOpen?' open':'')+'">'+rSvcs.map(function(s){return svcCard(s,'recovery');}).join('')+'</div>'
     +'<div class="clin-acc-hdr" onclick="toggleClinGroup(\'clinical\')">'
-      +'<span class="clin-acc-title">Clinical · ClinicTerrain</span>'
+      +'<span class="clin-acc-title">Clinical · Human+</span>'
       +'<span><span class="clin-acc-count">'+cSvcs.length+'</span><span class="clin-acc-arrow'+(cOpen?' open':'')+'">›</span></span>'
     +'</div>'
     +'<div class="clin-acc-body'+(cOpen?' open':'')+'">'+cSvcs.map(function(s){return svcCard(s,'clinical');}).join('')+'</div>';
@@ -10000,7 +10029,7 @@ function clinRoomsForService(){
     var isChair=room.type==='recovery';
     var info={id:room.id, name:room.name, color:room.color, type:room.type};
     if(clinType==='clinical'){
-      info.therapist='Nurse · ClinicTerrain'; info.time=null; info.eligible=true; info.note='external clinical calendar';
+      info.therapist='Nurse · Human+'; info.time=null; info.eligible=true; info.note='external clinical calendar';
     } else if(isChair){
       // recovery chairs are self-service / any staff — always available
       info.therapist=rost&&rost.therapist?rost.therapist:'Any staff'; info.time=rost?rost.time:null; info.eligible=true;
@@ -10125,7 +10154,7 @@ function renderClinicalBooking(){
   var roomLine;
   if(clinRoom){
     var rt=roomTherapist(clinRoom);
-    var who=clinType==='clinical'?'Nurse · ClinicTerrain':(rt?rt.therapist:'Any staff');
+    var who=clinType==='clinical'?'Nurse · Human+':(rt?rt.therapist:'Any staff');
     roomLine='<div class="clin-room-chosen"><div><div class="clin-rc-room">'+clinRoom+'</div><div class="clin-rc-who">'+who+'</div></div><div class="clin-rc-tick">✓</div></div>';
   } else {
     roomLine='<div class="clin-room-prompt">↑ Tap a '+(clinType==='clinical'?'recovery chair':'room')+' above to assign</div>';
@@ -10134,15 +10163,15 @@ function renderClinicalBooking(){
     var intakeBlock;
     if(clinIntake){
       intakeBlock='<div class="clin-intake done">'
-        +'<div class="clin-intake-h"><span>✓ Intake approved</span><span class="clin-intake-st">Approved</span></div>'
-        +'<div class="clin-intake-b">Intake complete &amp; nurse-approved — ready to confirm.</div>'
+        +'<div class="clin-intake-h"><span>✓ Booking Approved</span><span class="clin-intake-st">Approved</span></div>'
+        +'<div class="clin-intake-b">Human+ confirmed &mdash; ready to book the session.</div>'
         +'<button class="clin-intake-btn" style="background:#0A0A0A;margin-top:10px;" onclick="confirmClinical()">Confirm booking ✓</button>'
         +'</div>';
     } else {
       intakeBlock='<div class="clin-intake">'
-        +'<div class="clin-intake-h"><span>Intake form</span><span class="clin-intake-st">Pending</span></div>'
-        +'<div class="clin-intake-b">Send the patient their intake form. You can <b>save this as tentative</b> and confirm once it&rsquo;s returned &amp; nurse-approved.</div>'
-        +'<div style="display:flex;gap:6px;"><button class="clin-intake-btn" onclick="sendIntake()">Send intake form →</button><button class="clin-intake-btn" style="background:#0A0A0A;" onclick="approveIntake()">Mark approved ✓</button></div>'
+        +'<div class="clin-intake-h"><span>Human+ Contact</span><span class="clin-intake-st">Pending</span></div>'
+        +'<div class="clin-intake-b">Contact Human+ to schedule this patient&rsquo;s clinical session. Mark as <b>Booking Approved</b> once nurse-confirmed.</div>'
+        +'<div style="display:flex;gap:6px;"><button class="clin-intake-btn" onclick="sendIntake()">Contact Human+ &#x2192;</button><button class="clin-intake-btn" style="background:#0A0A0A;" onclick="approveIntake()">Booking Approved ✓</button></div>'
         +'</div>';
     }
     el.innerHTML=renderClinMiniCal()+roomGridDiv+dateBar
@@ -10202,13 +10231,13 @@ function sendIntake(){
   var email=clinEmail||'';
   var svc=clinSvc()?clinSvc().name:'?';
   var date=clinDate?clinDate.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}):'?';
-  var msg='Hi HUMAN+ — please send the intake form to '+name;
+  var msg='Hi HUMAN+ — please schedule a clinical session for '+name;
   if(wa) msg+=' (WA: +'+wa+')';
   if(email) msg+=' / '+email;
   msg+='. Service: '+svc+' on '+date+'. Thank you!';
   window.open('https://wa.me/6281237521662?text='+encodeURIComponent(msg),'_blank');
   var n=document.getElementById('notif');
-  if(n){n.textContent='Intake request sent to HUMAN+ ✓';n.classList.add('on');setTimeout(function(){n.classList.remove('on');},2500);}
+  if(n){n.textContent='Human+ contacted ✓';n.classList.add('on');setTimeout(function(){n.classList.remove('on');},2500);}
   renderClinicalBooking(); renderClinicalOrder();
 }
 function approveIntake(){ clinCaptureInputs(); clinIntake=true; renderClinicalBooking(); renderClinicalOrder(); }
@@ -10311,7 +10340,7 @@ function sendBookingEmail(rec, dateLabel, kind){
       date: dateLabel||'',
       time: rec.window||rec.start||'',
       location: rec.roomName||'',
-      with: rec.therapistName||(rec.clinical?'Nurse · ClinicTerrain':''),
+      with: rec.therapistName||(rec.clinical?'Nurse · Human+':''),
       price: 'IDR '+Math.round(rec.price||0).toLocaleString('id-ID'),
       message: (held
         ? 'Hi '+(rec.client||'')+', we’ve held your space for '+(rec.serviceName||'')+' on '+when+'. Please complete your intake form to confirm.'
@@ -10838,7 +10867,7 @@ window.showRoomCalendar=showRoomCalendar;
     </div>
     <div class="menu-mgr-tabs" style="border-bottom:1px solid #e8e8e8;">
       <button class="menu-mgr-tab active" id="svc-tab-single" onclick="switchSvcTab('single')">Recovery Options</button>
-      <button class="menu-mgr-tab" id="svc-tab-clinical" onclick="switchSvcTab('clinical')">Clinical · ClinicTerrain</button>
+      <button class="menu-mgr-tab" id="svc-tab-clinical" onclick="switchSvcTab('clinical')">Clinical · Human+</button>
       <button class="menu-mgr-tab" id="svc-tab-packages" onclick="switchSvcTab('packages')">Packages</button>
     </div>
     <div class="modal-body" style="padding:0;max-height:60vh;overflow-y:auto;" id="svc-modal-body">

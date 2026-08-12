@@ -233,6 +233,15 @@ footer{padding:40px 48px 28px;border-top:1px solid var(--line);display:flex;just
 }
 .bk-confirm-wa:hover{background:var(--r);color:var(--ink);border-color:var(--r)}
 
+/* ADD-ON ROWS */
+.bk-addon-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid rgba(242,242,240,.1);cursor:pointer;transition:opacity .2s;}
+.bk-addon-row:last-child{border-bottom:none}
+.bk-addon-row:hover{opacity:.75}
+.bk-addon-check{font-family:var(--mono);font-size:13px;color:rgba(242,242,240,.3);width:18px;flex-shrink:0;transition:color .2s;}
+.bk-addon-row.checked .bk-addon-check{color:var(--r)}
+.bk-addon-name{font-family:var(--mono);font-size:10px;letter-spacing:.04em;color:var(--ink);flex:1}
+.bk-addon-price{font-family:var(--mono);font-size:10px;color:var(--ink-d);white-space:nowrap}
+
 /* RESPONSIVE */
 @media(max-width:900px){
   nav{padding:18px 20px}
@@ -339,14 +348,14 @@ footer{padding:40px 48px 28px;border-top:1px solid var(--line);display:flex;just
 
   <!-- ENHANCEMENTS (collapsible) -->
   <div class="enhancements-block">
-    <button class="enh-toggle" onclick="toggleEnh(this)" aria-expanded="false">
+    <button class="enh-toggle" onclick="toggleEnh(this)" aria-expanded="true">
       <div class="enh-toggle-inner">
         <span class="enh-toggle-label">[ optional add-ons ]</span>
         <span class="enh-toggle-title">ENHANCEMENTS</span>
       </div>
-      <span class="enh-arrow">&#x2193;</span>
+      <span class="enh-arrow open">&#x2193;</span>
     </button>
-    <div class="enh-body" id="enh-body">
+    <div class="enh-body open" id="enh-body">
       <p class="enh-note">Add any of the following to your chosen protocol. Ask your HUMAN+ clinician about compatibility and recommendations.</p>
       <div class="pricing-table">
         <div class="price-row">
@@ -455,8 +464,11 @@ footer{padding:40px 48px 28px;border-top:1px solid var(--line);display:flex;just
         </div>
         <p style="font-family:var(--mono);font-size:9px;color:var(--ink-dd);letter-spacing:.04em;line-height:1.75">
           all prices exclude 11% vat. your human+ clinician may suggest adjustments based on your health profile.
-          enhancements can be added during your session.
         </p>
+        <div id="bk-addons-section" style="display:none;margin-top:20px;border-top:1px solid var(--rule);padding-top:16px;">
+          <label style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-d);display:block;margin-bottom:10px;">optional add-ons</label>
+          <div id="bk-addon-list"></div>
+        </div>
       </div>
 
       <!-- Step 2: Date & Time -->
@@ -533,18 +545,52 @@ function bkFdb(){
   return _fbDb;
 }
 
+// ── IV Add-ons ────────────────────────────────────────────────────────
+var IV_ADDONS=[
+  {id:'ca1',name:'Master Antioxidant 600mg',        price:350000},
+  {id:'ca2',name:'Youth Renewal Factor 2ml',        price:750000},
+  {id:'ca3',name:'L-Carnitine 5ml',                 price:1500000},
+  {id:'ca4',name:'Cellular Coenzyme Support 100mg',  price:1500000},
+  {id:'ca5',name:'Cellular Coenzyme Support 250mg',  price:3750000},
+  {id:'ca6',name:'Vitamin C 3g + Collagen',         price:250000},
+  {id:'ca7',name:'Vitamin C 2g + Zinc 5ml',         price:230000},
+  {id:'ca8',name:'Magnesium 1ml',                   price:100000},
+  {id:'ca9',name:'Electrolytes / Saline 500ml',     price:100000},
+];
+function bkFmtIDR(n){return 'IDR '+Math.round(n).toLocaleString('id-ID');}
+function bkToggleAddon(id){
+  var idx=bkState.addons.indexOf(id);
+  if(idx>-1) bkState.addons.splice(idx,1); else bkState.addons.push(id);
+  var el=document.getElementById('bk-addon-'+id);
+  if(el) el.classList.toggle('checked',bkState.addons.indexOf(id)>-1);
+  updateBkSum();
+}
+function bkRenderAddons(){
+  var wrap=document.getElementById('bk-addon-list');
+  if(!wrap) return;
+  wrap.innerHTML=IV_ADDONS.map(function(a){
+    var checked=bkState.addons.indexOf(a.id)>-1;
+    return '<div id="bk-addon-'+a.id+'" class="bk-addon-row'+(checked?' checked':'')+'" onclick="bkToggleAddon(\''+a.id+'\')">'
+      +'<span class="bk-addon-check">'+(checked?'&#x2713;':'+')+'</span>'
+      +'<span class="bk-addon-name">'+a.name+'</span>'
+      +'<span class="bk-addon-price">'+bkFmtIDR(a.price)+'</span>'
+    +'</div>';
+  }).join('');
+}
+
 // ── Booking state ─────────────────────────────────────────────────────
-var bkState={step:1,protocol:'',date:null,time:null,name:'',phone:''};
+var bkState={step:1,protocol:'',date:null,time:null,name:'',phone:'',addons:[]};
 var _calState={year:0,month:0};
 var IV_SLOTS=['9am','10am','11am','12pm','1pm','2pm','3pm','4pm','5pm','6pm'];
 
 function openBk(){
-  bkState={step:1,protocol:'',date:null,time:null,name:'',phone:''};
+  bkState={step:1,protocol:'',date:null,time:null,name:'',phone:'',addons:[]};
   _calState={year:0,month:0};
   ['bk-name','bk-phone'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
   var sel=document.getElementById('bk-protocol');if(sel)sel.value='';
   var dd=document.getElementById('bk-date-display');if(dd){dd.textContent='select a date';dd.classList.add('empty');}
   var tw=document.getElementById('bk-time-wrap');if(tw)tw.innerHTML='<span style="font-family:var(--mono);font-size:9px;color:var(--ink-d);letter-spacing:.04em;grid-column:1/-1">select a date first</span>';
+  var as=document.getElementById('bk-addons-section');if(as)as.style.display='none';
   document.getElementById('bk-overlay').classList.add('open');
   document.body.style.overflow='hidden';
   bkGoStep(1);
@@ -580,6 +626,10 @@ function bkBack(){
 }
 function bkPickProtocol(v){
   bkState.protocol=v;
+  bkState.addons=[];
+  var as=document.getElementById('bk-addons-section');
+  if(as) as.style.display=v?'block':'none';
+  if(v) bkRenderAddons();
   updateBkNext();updateBkSum();
 }
 
@@ -730,6 +780,7 @@ function updateBkSum(){
   var el=document.getElementById('bk-sum-text');if(!el)return;
   var pts=[];
   if(bkState.protocol)pts.push(bkState.protocol);
+  if(bkState.addons&&bkState.addons.length)pts.push('+'+bkState.addons.length+' add-on'+(bkState.addons.length>1?'s':''));
   if(bkState.date)pts.push(bkState.date);
   if(bkState.time)pts.push(bkState.time);
   el.textContent=pts.join(' \xb7 ');
@@ -739,9 +790,11 @@ function updateBkSum(){
 function submitBk(){
   var btn=document.getElementById('bk-next-btn');
   if(btn){btn.disabled=true;btn.textContent='sending...';}
+  var addonNames=(bkState.addons||[]).map(function(id){var a=IV_ADDONS.find(function(x){return x.id===id;});return a?a.name:id;});
   var rec={
     type:'iv_therapy',
     protocol:bkState.protocol,
+    addons:addonNames,
     date:bkState.date,
     time:bkState.time,
     name:bkState.name.trim(),
@@ -751,10 +804,10 @@ function submitBk(){
   };
   bkFdb().collection('public_bookings').add(rec).then(function(){
     var de=document.getElementById('bk-conf-detail');
-    if(de)de.innerHTML=
-      rec.protocol+'<br>'+
-      rec.date+' at '+rec.time+'<br>'+
-      rec.name+' &middot; '+rec.phone;
+    if(de){
+      var addonLine=addonNames.length?'<br><span style="font-size:10px;opacity:.7">+ '+addonNames.join(', ')+'</span>':'';
+      de.innerHTML=rec.protocol+addonLine+'<br>'+rec.date+' at '+rec.time+'<br>'+rec.name+' &middot; '+rec.phone;
+    }
     bkGoStep(4);
   }).catch(function(e){
     if(btn){btn.disabled=false;btn.innerHTML='confirm &#x2192;';}
