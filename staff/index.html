@@ -9730,11 +9730,19 @@ function getRoomsToday(){
 }
 function roomTherapist(roomName){ var r=getRoomsToday().find(function(x){return x.room===roomName;}); return r&&r.therapist?r:null; }
 function todayBookings(){ try{ var dk=clinKey(); return (recoveryData[dk]&&recoveryData[dk].bookings)||[]; }catch(e){ return []; } }
-function todayBookingCount(){ var n=todayBookings().filter(function(b){return b.status!=='cancelled';}).length; return n+' booking'+(n!==1?'s':''); }
+function todayBookingCount(){
+  var local=todayBookings().filter(function(b){return b.status!=='cancelled';}).length;
+  var dk=clinKey();
+  var online=(_bkReqs||[]).filter(function(r){return r.date===dk;}).length;
+  var n=local+online;
+  return n+' booking'+(n!==1?'s':'');
+}
 function renderTodayBookings(){
   var bks=todayBookings().filter(function(b){return b.status!=='cancelled';});
-  if(!bks.length) return '<div class="clin-placeholder" style="padding:8px 0 0;text-align:left;">No bookings yet '+clinDateWord()+'.</div>';
-  return bks.slice().sort(function(a,b){return (a.start||a.time||'').localeCompare(b.start||b.time||'');}).map(function(b){
+  var dk=clinKey();
+  var online=(_bkReqs||[]).filter(function(r){return r.date===dk;});
+  if(!bks.length&&!online.length) return '<div class="clin-placeholder" style="padding:8px 0 0;text-align:left;">No bookings yet '+clinDateWord()+'.</div>';
+  var localHtml=bks.slice().sort(function(a,b){return (a.start||a.time||'').localeCompare(b.start||b.time||'');}).map(function(b){
     var det = b.clinical ? (b.window||'Clinical') : (b.roomName||b.room||'');
     var isHold = b.status==='hold';
     var badge = b.clinical ? (isHold?'<span class="clin-bk-hold">Hold · intake</span>':'<span class="clin-bk-tag">ClinicTerrain</span>') : '';
@@ -9756,6 +9764,23 @@ function renderTodayBookings(){
       +'<span class="clin-bk-det">'+det+' '+badge+'</span></div>'
       +acts+'</div>';
   }).join('');
+  var onlineHtml=online.slice().sort(function(a,b){return (a.time||'').localeCompare(b.time||'');}).map(function(r){
+    var id=_escHtml(r._id||'');
+    var label=_escHtml(_onreqLabel(r));
+    var client=_escHtml(r.name||'Guest')+(r.phone?' · '+_escHtml(r.phone):'');
+    return '<div class="clin-bk-row2" style="border-left:3px solid #7c3aed;background:#f5f3ff;">'
+      +'<div class="clin-bk-line">'
+      +'<span class="clin-bk-time">'+_escHtml(r.time||'—')+'</span>'
+      +'<span class="clin-bk-svc">'+label+'<em>'+client+'</em>'
+      +'<span style="display:inline-block;background:#7c3aed;color:#fff;font-family:\'Space Mono\',monospace;font-size:7px;letter-spacing:.14em;padding:2px 6px;text-transform:uppercase;margin-left:6px;vertical-align:middle;">TENTATIVE</span>'
+      +'</span></div>'
+      +'<div class="clin-bk-acts">'
+      +'<button class="clin-bk-act go" onclick="acceptOnlineBooking(\''+id+'\')">✓ Confirm</button>'
+      +'<button class="clin-bk-act" onclick="suggestAlternative(\''+id+'\')">Alt. Time</button>'
+      +'<button class="clin-bk-act danger" onclick="declineOnlineBooking(\''+id+'\')">✕ Decline</button>'
+      +'</div></div>';
+  }).join('');
+  return localHtml+onlineHtml;
 }
 
 function initRecovery(){ if(typeof loadClinical==='function') loadClinical(); clinSel=null;clinType=null;clinIntake=false;clinWindow=null;clinRoom=null;clinPay='card';clinDone=false;clinDoneHold=false;clinEditingId=null;clinEditingDate=null;clinOnline=false;clinPressure='';clinPayType='full';clinPatient='';clinEmail='';clinWhatsapp='';clinTime=''; clinDate=(typeof baliNow==='function'?baliNow():new Date()); clinViewYear=null;clinViewMonth=null; clinGroupOpen={recovery:true,clinical:true}; clinSyncDateUI(); renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); startBookingListener(); }
@@ -9854,9 +9879,11 @@ function renderOnlineRequests(reqs){
   if(!bar||!list) return;
   _bkReqs=reqs;
   _updateBkPill(reqs.length);
-  // Show alert modal if not on Supply tab
+  // Refresh recovery panel booking list so tentative holds appear in the date view
   var _activePanel=document.querySelector('.panel.on');
   var _activePanelId=_activePanel?_activePanel.id:'';
+  if(_activePanelId==='panel-recovery'&&typeof renderClinicalBooking==='function') renderClinicalBooking();
+  // Show alert modal if not on Supply tab
   if(reqs.length&&_activePanelId!=='panel-supply') _showBkAlertIfNeeded();
   if(!reqs.length){ bar.style.display='none'; return; }
   bar.style.display='';
