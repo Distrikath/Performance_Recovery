@@ -4,6 +4,25 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Distrik.Dashboard</title>
+<!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
+<script>
+window.DK_BUILD = 20260814001;  // bump this AND version.json on every deploy
+(function(){
+  try{
+    fetch('version.json?_='+Date.now(), {cache:'no-store'})
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(v){
+        if(v && v.build && Number(v.build) > window.DK_BUILD){
+          if(sessionStorage.getItem('__dk_uv') !== String(v.build)){
+            sessionStorage.setItem('__dk_uv', String(v.build));  // guard: reload at most once per new version
+            location.replace('index.html?v=' + v.build);
+          }
+        }
+      })
+      .catch(function(){});  // offline / no version file -> just run what we have
+  }catch(e){}
+})();
+</script>
 <!-- Type system: Archivo (display/UI) · Space Mono (labels/data) · Fraunces (editorial italic) -->
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&family=Fraunces:ital,opsz,wght@1,9..144,400;1,9..144,500&display=swap" rel="stylesheet">
 <style>body{margin:0;padding:0;background:#F5F5F5;font-family:'Archivo',sans-serif;min-height:100vh;-webkit-tap-highlight-color:transparent;}
@@ -3404,7 +3423,7 @@ function _performClearDay(allDays){
     });
     _gridDirty = true; // let saveAll() write this day's override
   }
-  buildGrid(); buildTS(); saveAll();
+  buildGrid(); buildTS(); saveAll(); if(typeof window.dkHardSave==='function') window.dkHardSave();
 }
 
 // ── TIMESHEETS ────────────────────────────────────────────────────────────────
@@ -4758,9 +4777,10 @@ function saveCfg(){
   buildGrid();
   buildSettingsBudget();
   saveAll();
+  var synced = (typeof window.dkHardSave==='function') ? window.dkHardSave() : false; // push settings to all devices now
 
   const n=document.getElementById('notif');
-  if(n){ n.textContent='Settings saved ✓'; n.classList.add('on'); setTimeout(()=>n.classList.remove('on'),2200); }
+  if(n){ n.textContent = synced ? 'Settings saved & synced to all devices ✓' : 'Settings saved ✓'; n.classList.add('on'); setTimeout(()=>n.classList.remove('on'),2200); }
 }
 
 function buildSettingsPanel(){
@@ -8617,8 +8637,9 @@ function saveDay(){
   dailyOverrides[dateKey] = JSON.parse(JSON.stringify(grid[DAYS[activeDay]]));
   _gridDirty = false;
   saveAll();
+  var synced = (typeof window.dkHardSave==='function') ? window.dkHardSave() : false; // push to all devices now
   const n=document.getElementById('notif');
-  if(n){n.textContent=DAYS[activeDay]+' '+dateKey+' saved ✓';n.classList.add('on');setTimeout(()=>n.classList.remove('on'),2500);}
+  if(n){n.textContent=DAYS[activeDay]+' '+dateKey+(synced?' saved & synced to all devices ✓':' saved ✓');n.classList.add('on');setTimeout(()=>n.classList.remove('on'),2500);}
 }
 
 let _copiedDayGrid=null,_copiedDayLabel='';
@@ -8635,7 +8656,7 @@ function pasteDay(){
   if(!confirm('Paste '+_copiedDayLabel+' roster onto '+DAYS[activeDay]+' '+toKey+'?\nThis will replace the current roster for this date.')) return;
   grid[DAYS[activeDay]] = JSON.parse(JSON.stringify(_copiedDayGrid));
   _gridDirty = true;
-  buildGrid(); buildTS(); saveAll();
+  buildGrid(); buildTS(); saveAll(); if(typeof window.dkHardSave==='function') window.dkHardSave();
   const n=document.getElementById('notif');
   if(n){n.textContent='Roster pasted to '+DAYS[activeDay]+' '+toKey+' ✓';n.classList.add('on');setTimeout(()=>n.classList.remove('on'),2500);}
 }
@@ -11411,8 +11432,12 @@ window.showRoomCalendar=showRoomCalendar;
   try{ firebase.initializeApp(cfg); db=firebase.firestore(); setPill("◌ Connecting…","#f59e0b"); }
   catch(e){ console.warn('[sync] init',e); setPill("⚠ Sync off","#FF2D2D"); return; }
 
-  localStorage.setItem=function(k,v){ nset(k,v); if(applying===0 && SYNC_KEYS.indexOf(k)>=0) sched(k); };
+  // Settings + roster (distrik_v1) do NOT auto-sync on every edit — they only go out on an explicit
+  // HARD SAVE (dkHardSave), and the newest hard-save wins. Everything else (sales, stock, bookings) auto-syncs.
+  localStorage.setItem=function(k,v){ nset(k,v); if(applying===0 && SYNC_KEYS.indexOf(k)>=0 && k!=='distrik_v1') sched(k); };
   function sched(k){ if(!ready) return; if(timers[k]) clearTimeout(timers[k]); timers[k]=setTimeout(function(){ push(k); },400); }
+  // HARD SAVE: push settings/roster to every device now. Stamps a fresh version so the newest hard-save wins.
+  window.dkHardSave = function(){ if(!ready){ return false; } push('distrik_v1'); return true; };
 
   function push(k){
     var val=localStorage.getItem(k); if(val==null) return;
