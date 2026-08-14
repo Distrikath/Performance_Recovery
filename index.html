@@ -2051,14 +2051,14 @@ function sha256Site(str){
       <button class="staff-modal-btn" id="staffEnterBtn" onclick="staffSiteLogin()">enter →</button>
       <div class="staff-modal-err" id="staffErr"></div>
       <div id="staffLinks" style="display:none;flex-direction:column;gap:10px;margin-top:16px;">
-        <button class="staff-modal-btn" onclick="window.location.href='staff/'">→ staff dashboard</button>
+        <button class="staff-modal-btn" onclick="window.location.href='staff/?v='+Date.now()">→ staff dashboard</button>
       </div>
     </div>
 
     <!-- Staff member: PIN login on dashboard -->
     <div id="sr-stf-form" style="display:none;">
       <p style="font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;color:var(--ink-d);line-height:1.9;margin-bottom:20px;">Select your name and enter your PIN on the next screen.</p>
-      <button class="staff-modal-btn" onclick="window.location.href='staff/#staff'">continue →</button>
+      <button class="staff-modal-btn" onclick="window.location.href='staff/?v='+Date.now()+'#staff'">continue →</button>
     </div>
 
     <button class="staff-modal-close" onclick="closeStaffModal()">close</button>
