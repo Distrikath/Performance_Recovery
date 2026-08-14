@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814002;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814003;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -11690,12 +11690,15 @@ window.rebuildFromLedger = function(docs){
   try{ if(typeof SUPPLY_SALES!=='undefined' && Array.isArray(SUPPLY_SALES)){ SUPPLY_SALES.length=0; supRows.forEach(function(x){ SUPPLY_SALES.push(x); }); } }catch(e){ console.warn('[ledger] SUPPLY_SALES',e); }
   // SAFETY NET: keep any LOCAL sale that hasn't reached the ledger yet (e.g. made offline before a
   // refresh) so a rebuild can never silently erase an unsynced sale — and re-queue it for upload so
-  // it self-heals to the cloud. Idempotent: once it lands in the ledger its id is in `lids` and it
-  // is neither re-kept nor re-written. No effect on the normal online path (local echo is in `lids`).
+  // it self-heals. SCOPED TO THE LAST 7 DAYS ONLY: the ledger is authoritative for older dates, so
+  // stale local data (old test junk from previous months) is NOT resurrected and STAYS deleted once
+  // removed from the cloud. Idempotent: once a sale lands in the ledger its id is in `lids` and it is
+  // neither re-kept nor re-written. No effect on the normal online path (local echo is in `lids`).
+  var _snCut='0000-00-00'; try{ var _scd=(typeof baliNow==='function'?baliNow():new Date()); _scd.setDate(_scd.getDate()-7); _snCut=_scd.toISOString().slice(0,10); }catch(e){}
   try{
-    if(typeof fuelData==='object'&&fuelData){ Object.keys(fuelData).forEach(function(d){ var day=fuelData[d]; if(!day||!day.transactions)return; day.transactions.forEach(function(t){ if(t&&t.id&&!lids[String(t.id)]){ if(!fd[d])fd[d]={revenue:0,transactions:[]}; fd[d].transactions.push(t); if(typeof ledgerWrite==='function') ledgerWrite('fuel',t.id,d,t.total,(t.serviceTax||0)+(t.tax||0),t.method,t,'completed'); } }); }); }
-    if(typeof supplyData==='object'&&supplyData){ Object.keys(supplyData).forEach(function(d){ var day=supplyData[d]; if(!day||!day.orders)return; day.orders.forEach(function(o){ if(o&&o.id&&!lids[String(o.id)]){ if(!sd[d])sd[d]={revenue:0,orders:[]}; sd[d].orders.push(o); if(typeof ledgerWrite==='function') ledgerWrite('supply',o.id,d,o.total,0,o.method,{order:o,rows:[]},'completed'); } }); }); }
-    if(typeof recoveryData==='object'&&recoveryData){ Object.keys(recoveryData).forEach(function(d){ var day=recoveryData[d]; if(!day||!day.bookings)return; day.bookings.forEach(function(b){ if(b&&b.id&&!lids[String(b.id)]){ if(!rd[d])rd[d]={revenue:0,bookings:[]}; rd[d].bookings.push(b); if(typeof ledgerWrite==='function') ledgerWrite('recovery',b.id,d,(typeof clinCollected==='function'?clinCollected(b):(b.price||0)),0,b.payMethod,b,b.status); } }); }); }
+    if(typeof fuelData==='object'&&fuelData){ Object.keys(fuelData).forEach(function(d){ if(d<_snCut)return; var day=fuelData[d]; if(!day||!day.transactions)return; day.transactions.forEach(function(t){ if(t&&t.id&&!lids[String(t.id)]){ if(!fd[d])fd[d]={revenue:0,transactions:[]}; fd[d].transactions.push(t); if(typeof ledgerWrite==='function') ledgerWrite('fuel',t.id,d,t.total,(t.serviceTax||0)+(t.tax||0),t.method,t,'completed'); } }); }); }
+    if(typeof supplyData==='object'&&supplyData){ Object.keys(supplyData).forEach(function(d){ if(d<_snCut)return; var day=supplyData[d]; if(!day||!day.orders)return; day.orders.forEach(function(o){ if(o&&o.id&&!lids[String(o.id)]){ if(!sd[d])sd[d]={revenue:0,orders:[]}; sd[d].orders.push(o); if(typeof ledgerWrite==='function') ledgerWrite('supply',o.id,d,o.total,0,o.method,{order:o,rows:[]},'completed'); } }); }); }
+    if(typeof recoveryData==='object'&&recoveryData){ Object.keys(recoveryData).forEach(function(d){ if(d<_snCut)return; var day=recoveryData[d]; if(!day||!day.bookings)return; day.bookings.forEach(function(b){ if(b&&b.id&&!lids[String(b.id)]){ if(!rd[d])rd[d]={revenue:0,bookings:[]}; rd[d].bookings.push(b); if(typeof ledgerWrite==='function') ledgerWrite('recovery',b.id,d,(typeof clinCollected==='function'?clinCollected(b):(b.price||0)),0,b.payMethod,b,b.status); } }); }); }
   }catch(e){ console.warn('[ledger] safety-net',e); }
   Object.keys(fd).forEach(function(d){ fd[d].revenue=(fd[d].transactions||[]).reduce(function(s,t){return s+((t&&t.total)||0);},0); });
   Object.keys(sd).forEach(function(d){ sd[d].revenue=(sd[d].orders||[]).reduce(function(s,o){return s+((o&&o.total)||0);},0); });
