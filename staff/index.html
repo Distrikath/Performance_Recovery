@@ -1624,6 +1624,48 @@ h1,
 #panel-recovery .rf-split-title{font-family:'Archivo',sans-serif !important;font-weight:700 !important;font-size:30px !important;letter-spacing:-.02em !important;color:#0A0A0A !important;text-transform:none !important;}
 .clin-nurse-banner{display:flex;align-items:center;gap:12px;padding:13px 18px;border-bottom:1px solid #e8e8e8;background:#fafafa;font-family:'Space Mono',monospace;font-size:11.5px;color:#56565b;}
 .clin-nurse-banner b{color:#0A0A0A;font-weight:700;}
+/* Online booking requests */
+.onreq-bar{border-bottom:2px solid #ddd6fe;padding:10px 14px 14px;background:#f5f3ff;}
+.onreq-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.onreq-title{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#7c3aed;}
+.onreq-badge{background:#7c3aed;color:#fff;border-radius:100px;font-family:'Space Mono',monospace;font-size:10px;padding:2px 9px;min-width:22px;text-align:center;}
+.onreq-refresh{margin-left:auto;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.08em;color:#7c3aed;background:#fff;border:1px solid #c4b5fd;border-radius:4px;padding:4px 10px;cursor:pointer;}
+.onreq-card{background:#fff;border:1px solid #e0d8f8;border-radius:6px;padding:10px 12px;display:flex;align-items:flex-start;gap:12px;margin-bottom:8px;}
+.onreq-card:last-child{margin-bottom:0;}
+.onreq-info{flex:1;display:flex;flex-direction:column;gap:3px;}
+.onreq-pathway{font-family:'Archivo',sans-serif;font-weight:700;font-size:14px;letter-spacing:-.01em;color:#0A0A0A;}
+.onreq-pathway span{font-family:'Space Mono',monospace;font-weight:400;font-size:10px;color:#6b6b72;margin-left:8px;}
+.onreq-meta{font-family:'Space Mono',monospace;font-size:10px;color:#56565b;letter-spacing:.04em;}
+.onreq-client{font-family:'Space Mono',monospace;font-size:11px;color:#0A0A0A;letter-spacing:.03em;}
+.onreq-ref{font-family:'Space Mono',monospace;font-size:9px;color:#c4b5fd;letter-spacing:.06em;}
+.onreq-actions{display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex-shrink:0;}
+.onreq-btn{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;border-radius:4px;padding:6px 12px;cursor:pointer;border:none;white-space:nowrap;text-decoration:none;display:inline-block;text-align:center;}
+.onreq-btn.accept{background:#7c3aed;color:#fff;}
+.onreq-btn.wa{background:#25D366;color:#fff;}
+.onreq-btn.suggest{background:#ede9fe;color:#7c3aed;border:1px solid #c4b5fd;}
+.onreq-btn.decline{background:#f5f5f5;color:#9a9a9e;border:1px solid #e0e0e0;}
+.bk-notif-pill{align-items:center;gap:5px;background:#7c3aed;color:#fff;border-radius:100px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:5px 13px;cursor:pointer;border:none;animation:bk-pulse 2s ease-in-out infinite;}
+@keyframes bk-pulse{0%,100%{box-shadow:0 0 0 0 rgba(124,58,237,.5);}70%{box-shadow:0 0 0 7px rgba(124,58,237,0);}}
+/* ── Booking Alert Modal ── */
+#bk-alert-overlay{display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.76);align-items:center;justify-content:center;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
+#bk-alert-overlay.on{display:flex;}
+.bk-alert-card{background:#fff;width:100%;max-width:460px;margin:20px;border-top:3px solid #7c3aed;padding:28px 28px 22px;position:relative;}
+.bk-alert-eyebrow{display:flex;align-items:center;gap:9px;margin-bottom:14px;}
+.bk-alert-dot{width:8px;height:8px;border-radius:50%;background:#7c3aed;animation:bk-pulse 2s ease-in-out infinite;flex-shrink:0;}
+.bk-alert-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:#7c3aed;}
+.bk-alert-count{margin-left:auto;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.1em;color:#9a9a9e;}
+.bk-alert-service{font-family:'Archivo',sans-serif;font-weight:700;font-size:20px;color:#0A0A0A;line-height:1.2;margin-bottom:4px;}
+.bk-alert-meta{font-family:'Space Mono',monospace;font-size:10px;color:#56565b;letter-spacing:.04em;margin-bottom:3px;}
+.bk-alert-client{font-family:'Space Mono',monospace;font-size:10px;color:#888;letter-spacing:.04em;margin-bottom:22px;}
+.bk-alert-more{font-size:12px;color:#9a9a9e;font-weight:400;}
+.bk-alert-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.bk-alert-btn-review{flex:1;padding:14px;background:#0A0A0A;border:none;color:#fff;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.22em;text-transform:uppercase;cursor:pointer;transition:background .2s;}
+.bk-alert-btn-review:hover{background:#FF2D2D;}
+.bk-alert-btn-later{padding:14px 18px;background:transparent;border:1px solid #d0d0d0;color:#555;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;transition:border-color .2s,color .2s;}
+.bk-alert-btn-later:hover{border-color:#888;color:#0A0A0A;}
+/* Mini-cal tentative hold dot */
+.clin-mc-day.has-hold{position:relative;}
+.clin-mc-day.has-hold::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:3px;height:3px;border-radius:50%;background:#7c3aed;}
 .clin-nb-dot{width:8px;height:8px;border-radius:50%;background:#FF2D2D;flex-shrink:0;}
 .clin-nb-tag{margin-left:auto;font-size:10px;letter-spacing:.1em;text-transform:uppercase;border:1px solid #0A0A0A;color:#0A0A0A;padding:5px 9px;white-space:nowrap;}
 .clin-datebar{display:flex;align-items:center;padding:11px 20px;border-bottom:1px solid #e8e8e8;background:#fff;}
@@ -1819,10 +1861,6 @@ h1,
   #panel-settings .col-hdrs{display:none !important;}
 }
 </style>
-<!-- ===== FIREBASE SYNC (added) ===== -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
 /* ===== MOBILE STACKING PASS (added) ===== */
 @media (max-width: 820px){
@@ -1892,6 +1930,24 @@ h1,
 <body>
 
 <!-- ═══ LOGIN SCREEN ═══ -->
+<!-- ── Booking Alert Modal (all panels except Supply) ── -->
+<div id="bk-alert-overlay">
+  <div class="bk-alert-card">
+    <div class="bk-alert-eyebrow">
+      <span class="bk-alert-dot"></span>
+      <span class="bk-alert-label">New Booking Request</span>
+      <span class="bk-alert-count" id="bk-alert-count"></span>
+    </div>
+    <div class="bk-alert-service" id="bk-alert-service"></div>
+    <div class="bk-alert-meta" id="bk-alert-meta"></div>
+    <div class="bk-alert-client" id="bk-alert-client"></div>
+    <div class="bk-alert-actions">
+      <button class="bk-alert-btn-review" onclick="bkAlertGoToReview()">Review &amp; Confirm &#x2192;</button>
+      <button class="bk-alert-btn-later" onclick="bkAlertDismiss()">Later</button>
+    </div>
+  </div>
+</div>
+
 <div class="login-screen" id="loginScreen">
   <div class="login-box">
     <div class="login-logo">DISTRIK</div>
@@ -1965,6 +2021,7 @@ h1,
   </div>
   <div style="margin-left:auto;display:flex;align-items:center;gap:8px;padding:0 16px;">
     <span id="nav-user-name" style="font-family:'Space Mono',monospace;font-size:10px;color:#777;letter-spacing:1px;"></span>
+    <button id="bk-notif-pill" class="bk-notif-pill" onclick="switchTab('recovery')" style="display:none">● <span id="bk-notif-count">0</span>&nbsp;Booking</button>
     <button onclick="showHome()" class="nav-action-btn">Home</button>
     <button onclick="doLogout()" class="nav-action-btn" style="border-color:#FF2D2D;color:#FF2D2D;">Sign Out</button>
   </div>
@@ -2186,11 +2243,17 @@ h1,
       <button onclick="openServicesMgr()" class="nav-action-btn">Services &amp; Treatments</button>
     </div>
   </div>
-  <div class="clin-nurse-banner">
-    <span class="clin-nb-dot"></span>
-    <span><b>Clinical bookings — nurse windows only.</b>&nbsp; Next: Tue · Thu · Sat · 09:00–14:00</span>
-    <span class="clin-nb-tag">Partner · ClinicTerrain</span>
+
+  <!-- Online Booking Requests -->
+  <div id="online-requests-bar" class="onreq-bar" style="display:none">
+    <div class="onreq-header">
+      <span class="onreq-title">● Website Requests</span>
+      <span class="onreq-badge" id="onreq-count">0</span>
+      <button class="onreq-refresh" onclick="if(_bkListener){_bkListener();_bkListener=null;_bkListenerReady=false;}startBookingListener()">↻ Refresh</button>
+    </div>
+    <div id="onreq-list"></div>
   </div>
+
   <div class="clin-datebar">
     <button onclick="clinChangeDate(-1)" class="clin-datebtn">‹ Prev</button>
     <div class="clin-date-center">
@@ -2291,10 +2354,10 @@ h1,
         <div class="receipt-empty">No items yet</div>
       </div>
       <div class="receipt-totals">
-        <div class="receipt-row"><span>Subtotal</span><span id="r-subtotal">IDR 0</span></div>
+        <div class="receipt-row"><span>Total</span><span id="r-subtotal">IDR 0</span></div>
         <div class="receipt-row"><span id="r-service-label">Service Charge 7%</span><span id="r-service-tax">IDR 0</span></div>
-        <div class="receipt-row"><span id="r-pbjt-label">PB1 / PBJT 10%</span><span id="r-tax">IDR 0</span></div>
-        <div class="receipt-row receipt-total"><span>Total</span><span id="r-total">IDR 0</span></div>
+        <div class="receipt-row"><span id="r-pbjt-label">PB1 10%</span><span id="r-tax">IDR 0</span></div>
+        <div class="receipt-row receipt-total"><span>Grand Total</span><span id="r-total">IDR 0</span></div>
       </div>
       <div class="receipt-payment">
         <div class="pay-method-label">Payment</div>
@@ -2651,6 +2714,25 @@ h1,
   </div>
 </div>
 
+<!-- ── CLEAR DAY CONFIRM ─────────────────────────────────── -->
+<div class="pl-modal" id="clearDayModal">
+  <div class="pl-modal-inner" style="max-width:360px">
+    <div style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:#FF2D2D;margin-bottom:10px;text-transform:uppercase">Clear day</div>
+    <div style="font-family:'Archivo',sans-serif;font-size:16px;font-weight:700;color:#f0f0f0;margin-bottom:6px">What do you want to clear?</div>
+    <div style="font-family:'Space Mono',monospace;font-size:9px;color:#555;letter-spacing:.5px;line-height:1.7;margin-bottom:20px">
+      <strong id="clearDayLabel" style="color:#ccc">Tuesday</strong> only — clears just this day this week<br>
+      All 7 days — clears all days for this week only
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="pl-ok" onclick="_performClearDay(false)" style="background:#333;flex:1">This day only</button>
+      <button class="pl-ok" onclick="_performClearDay(true)" style="background:#FF2D2D;flex:1">All 7 days</button>
+    </div>
+    <div style="margin-top:8px">
+      <button class="pl-cl" onclick="document.getElementById('clearDayModal').classList.remove('on')" style="width:100%;text-align:center">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── ROSTER PANEL ─────────────────────────────────────── -->
 <div class="panel on" id="panel-roster">
 <div class="rk-wrap">
@@ -2669,12 +2751,11 @@ h1,
         <button onclick="rosterChangeWeek(1)" title="Next week">›</button>
       </div>
       <div class="rk-actions">
-        <button id="saveDayBtn" onclick="saveDayLock()" title="Save this day and lock it in across all devices" style="background:#10b981;color:#fff;border:none;border-radius:4px;padding:8px 16px;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;letter-spacing:1px;cursor:pointer;">✓ Save &amp; Lock Day</button>
         <button class="rk-ghost" id="tsbtn" onclick="toggleTS()">Timesheets</button>
-        <button class="rk-ghost" onclick="saveAsTemplate()" title="Save this week as the default base template">Save template</button>
-        <button class="rk-ghost" onclick="loadTemplate()" title="Reset active day to base template">Reset day</button>
+        <button class="rk-ghost" onclick="saveDay()" title="Save this specific date's roster (only this day)">Save day</button>
+        <button class="rk-ghost" onclick="copyDay()" title="Copy this day's roster to paste elsewhere">Copy day</button>
+        <button class="rk-ghost" id="pasteDayBtn" onclick="pasteDay()" title="Paste copied roster to this date" style="display:none">Paste day</button>
         <button class="rk-ghost danger" onclick="clearDay()">Clear day</button>
-        <button class="rk-ghost" onclick="resetSaved()">Reset all</button>
       </div>
     </div>
   </div>
@@ -2700,8 +2781,8 @@ h1,
   <div class="ts-grid" id="tsGrid"></div>
 </div>
 
-<!-- Budget -->
-<div class="bud-wrap">
+<!-- Budget (hidden from roster; visible in Settings only) -->
+<div class="bud-wrap" style="display:none">
   <div class="bud-title">MONTHLY SALARY BUDGET · IDR</div>
   <div id="budGrid"></div>
 </div>
@@ -2730,14 +2811,10 @@ const TOTAL_SLOTS=32; // 6am–10pm, 30min each
 const SLOT_START=6;   // 6am
 
 const ZONES=[
-  // Reception & Fuel share one section (6 rows: 0-1=Fuel, 2-5=Reception)
-  {id:'FrontOfHouse', rows:6, start:6, end:22, col:'#FF2D2D', label:'Reception & Fuel',
-   subZones:[
-     {id:'Fuel',      rows:2, rowStart:0, col:'#FF2D2D', label:'Cafe / Fuel', min:'1 staff'},
-     {id:'Reception', rows:4, rowStart:2, col:'#3b82f6', label:'Reception',   min:'2 staff'},
-   ]},
-  {id:'Supply',    rows:2, start:8,  end:20, col:'#10b981', label:'Supply',  min:'1 staff'},
-  {id:'Therapy',   rows:3, start:10, end:22, col:'#8b5cf6', label:'Therapy', min:'3 rooms'},
+  {id:'Fuel',      rows:2, start:6,  end:20, col:'#FF2D2D', label:'Fuel',      min:'2 staff', rowLabels:['Fuel Open','Fuel Close']},
+  {id:'Reception', rows:4, start:10, end:22, col:'#3b82f6', label:'Reception', min:'2 staff', rowLabels:['Manager','Reception Open','Reception Close','Club Assistant']},
+  {id:'Supply',    rows:2, start:8,  end:20, col:'#10b981', label:'Supply',    min:'1 staff', rowLabels:['Supply','Supply Cover']},
+  {id:'Therapy',   rows:3, start:10, end:22, col:'#8b5cf6', label:'Therapy',   min:'3 rooms', rowLabels:['Room 1','Room 2','Room 3']},
 ];
 
 const STAFF=[
@@ -2760,21 +2837,16 @@ function emptyGrid(){
   return Object.fromEntries(DAYS.map(day=>{
     const entries = [];
     ZONES.forEach(z=>{
-      if(z.subZones){
-        // Add entries for each subZone (Fuel, Reception etc)
-        z.subZones.forEach(sub=>{
-          entries.push([sub.id, Array.from({length:sub.rows},()=>Array(TOTAL_SLOTS).fill(null))]);
-        });
-      } else {
-        entries.push([z.id, Array.from({length:z.rows},()=>Array(TOTAL_SLOTS).fill(null))]);
-      }
+      entries.push([z.id, Array.from({length:z.rows},()=>Array(TOTAL_SLOTS).fill(null))]);
     });
     return [day, Object.fromEntries(entries)];
   }));
 }
 
 let grid=emptyGrid();
-let gridSavedAt={}; // per-day hard-save timestamp: gridSavedAt[dayKey]=ms. Newest save of a day wins across devices.
+let dailyOverrides={}; // {'2026-08-08': {Therapy:[[...]], ...}} — per specific calendar date
+let _baseGrid=null; // snapshot of default weekly template (set after populateDefaults)
+let _gridDirty=false; // true only when user actually edits; prevents browsing from auto-saving
 let activeDay=0; // will be set to today on roster open
 let rosterWeekOffset=0; // 0=current week, 1=next week, -1=last week
 
@@ -2795,6 +2867,26 @@ function getRosterDateForDay(dayIdx, offset){
   const d = new Date(monday);
   d.setDate(monday.getDate() + dayIdx);
   return d;
+}
+
+// Returns 'YYYY-MM-DD' for a specific day index (0=Mon … 6=Sun) and week offset
+function getDateKey(dayIdx, weekOffset){
+  const di = (dayIdx !== undefined) ? dayIdx : activeDay;
+  const wo = (weekOffset !== undefined) ? weekOffset : rosterWeekOffset;
+  const d = getRosterDateForDay(di, wo);
+  return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);
+}
+// Fill grid from dailyOverrides (per-date) or base template; clears the dirty flag
+function loadGridFromData(){
+  _gridDirty = false;
+  DAYS.forEach((dayName, i) => {
+    const dateKey = getDateKey(i, rosterWeekOffset);
+    if(dailyOverrides[dateKey]){
+      grid[dayName] = JSON.parse(JSON.stringify(dailyOverrides[dateKey]));
+    } else {
+      grid[dayName] = _baseGrid ? JSON.parse(JSON.stringify(_baseGrid[dayName])) : emptyGrid()[dayName];
+    }
+  });
 }
 
 
@@ -2828,7 +2920,6 @@ function populateDefaults(){
 
     // SUPPLY
     shift(day,'Supply',0,'SD',10,18,14);                          // SD supply 10-6pm
-    if(day==='Thursday'||day==='Friday') shift(day,'Supply',1,'SE',12,16,14); // SE part-time supply cover
 
     // THERAPY (10am-10pm, 3 rooms — 4 therapists share across them)
     shift(day,'Therapy',0,'TA',10,18,14);                         // TA — Room 1
@@ -2908,6 +2999,7 @@ function applyBreakAt(zone,row,slotIdx){
   }
   if(!nearSid) return false;
   grid[day][zone][row][slotIdx]='Break:'+staffId(nearSid);
+  _gridDirty = true;
   return true;
 }
 function startDragFromGrid(e,zone,row,slotStart,slotEnd,sId){
@@ -2943,7 +3035,7 @@ function endDrag(){
 function dropOnSlot(zone,row,slotIdx){
   if(!dragging.active)return;
   const day=DAYS[activeDay];
-  // Find zone from leaf zones (handles subZones like Fuel, Reception)
+  // Find zone
   const z=getLeafZones().find(lz=>lz.id===zone);
   if(!z)return;
   const slotH=slotToH(slotIdx);
@@ -2952,7 +3044,7 @@ function dropOnSlot(zone,row,slotIdx){
   const sid=dragging.staffId;
 
   if(sid==='__break__'){
-    applyBreakAt(zone,row,slotIdx);
+    applyBreakAt(zone,row,slotIdx); // sets _gridDirty internally
     dragging.active=false; ghost.style.display='none';
     buildGrid(); buildTS(); buildBudget();
     return;
@@ -2976,6 +3068,7 @@ function dropOnSlot(zone,row,slotIdx){
   }
 
   dragging.active=false; ghost.style.display='none';
+  _gridDirty = true;
   buildGrid(); buildTS(); buildBudget();
 }
 
@@ -2990,18 +3083,20 @@ function clearSlot(zone,row,slotIdx){
     const cid=staffId(c);
     return cid===sid&&Math.abs(i-slotIdx)<=16?null:c;
   });
+  _gridDirty = true;
   buildGrid(); buildTS(); buildBudget();
 }
 
 // Click slot when staff selected from palette
 function clickSlot(zone,row,slotIdx){
   if(selectedStaff){
-    if(selectedStaff==='__break__'){ applyBreakAt(zone,row,slotIdx); buildGrid(); buildTS(); buildBudget(); return; }
+    if(selectedStaff==='__break__'){ applyBreakAt(zone,row,slotIdx); buildGrid(); buildTS(); buildBudget(); return; } // applyBreakAt sets dirty
     const day=DAYS[activeDay];
     const z=getLeafZones().find(z=>z.id===zone);
     const slotH=slotToH(slotIdx);
     if(z&&(slotH<z.start||slotH>=z.end))return;
     grid[day][zone][row][slotIdx]=selectedStaff;
+    _gridDirty = true;
     buildGrid(); buildTS(); buildBudget();
   }
 }
@@ -3020,6 +3115,7 @@ function clickBreakSlot(zone,row,slotIdx){
   }
   if(!nearSid)return;
   grid[day][zone][row][slotIdx]='Break:'+staffId(nearSid);
+  _gridDirty = true;
   buildGrid();
 }
 
@@ -3033,6 +3129,7 @@ function buildPalette(){
     chip.style.cssText=`background:#fff;border:1px solid #e0e0e0;color:#0A0A0A;border-radius:0;`;
     chip.innerHTML=`${s.name}<span class="chip-role">${s.role}</span>`;
     chip.draggable=true;
+    chip.addEventListener('dragstart',e=>e.preventDefault()); // prevent Safari native drag hijacking custom mouse drag
     chip.addEventListener('mousedown',e=>startDragFromPalette(e,s.id));
     chip.addEventListener('touchstart',e=>startDragFromPalette(e,s.id),{passive:false});
     // Also click to select
@@ -3050,6 +3147,7 @@ function buildPalette(){
   bchip.innerHTML=`Break`;
   bchip.title='Drag onto a shift (or tap, then tap a slot)';
   bchip.draggable=true;
+  bchip.addEventListener('dragstart',e=>e.preventDefault());
   bchip.addEventListener('mousedown',e=>startDragFromPalette(e,'__break__'));
   bchip.addEventListener('touchstart',e=>startDragFromPalette(e,'__break__'),{passive:false});
   bchip.addEventListener('click',()=>{
@@ -3099,16 +3197,30 @@ function buildTabs(){
       btn.style.color = i === activeDay ? '#fff' : '#FF2D2D';
       btn.title = 'Today';
     }
-    btn.onclick = () => { activeDay = i; buildTabs(); buildGrid(); buildTS(); };
+    btn.onclick = () => {
+      _autoSaveDirty(); // save current day's edits before switching
+      activeDay = i;
+      loadGridFromData(); // load the specific date's override (or template) for the new active day
+      buildTabs(); buildGrid(); buildTS();
+    };
     el.appendChild(btn);
   });
 }
 
 function rosterChangeWeek(dir){
+  _autoSaveDirty(); // save current day before switching weeks
   rosterWeekOffset += dir;
-  buildTabs();
-  buildGrid();
-  buildTS();
+  loadGridFromData();
+  buildTabs(); buildGrid(); buildTS();
+}
+
+// Auto-save dirty state as a daily override for the currently active date
+function _autoSaveDirty(){
+  if(!_gridDirty) return;
+  const dateKey = getDateKey(activeDay, rosterWeekOffset);
+  dailyOverrides[dateKey] = JSON.parse(JSON.stringify(grid[DAYS[activeDay]]));
+  _gridDirty = false;
+  saveAll();
 }
 
 
@@ -3117,30 +3229,13 @@ function rosterChangeWeek(dir){
 function syncZonesFromHours(){
   const isWe = (activeDay >= 4); // Fri-Sun group
   ZONE_HOURS.forEach(zh => {
-    // Check top-level zones
     const zone = ZONES.find(z => z.id === zh.id);
     if(zone){
-      zone.col = zh.col; zone.label = zh.label || zone.label;
-      zone.start = isWe ? zh.weOpen : zh.wdOpen;
+      zone.col   = zh.col;
+      zone.label = zh.label || zone.label;
+      zone.start = isWe ? zh.weOpen  : zh.wdOpen;
       zone.end   = isWe ? zh.weClose : zh.wdClose;
     }
-    // Check subZones (Fuel, Reception inside FrontOfHouse)
-    ZONES.forEach(z => {
-      if(z.subZones){
-        const sub = z.subZones.find(s => s.id === zh.id);
-        if(sub){
-          sub.col   = zh.col;
-          sub.label = zh.label || sub.label;
-          sub.start = isWe ? zh.weOpen  : zh.wdOpen;
-          sub.end   = isWe ? zh.weClose : zh.wdClose;
-        }
-        // FrontOfHouse span = min subZone start to max subZone end
-        if(z.id === 'FrontOfHouse' && z.subZones.length){
-          z.start = Math.min(...z.subZones.map(s=>s.start||6));
-          z.end   = Math.max(...z.subZones.map(s=>s.end||22));
-        }
-      }
-    });
   });
 }
 
@@ -3161,11 +3256,11 @@ function buildGrid(){
   }
   html+=`</div></div>`;
 
-  function renderZoneRows(zoneId, zoneCol, zoneStart, zoneEnd, numRows){
+  function renderZoneRows(zoneId, zoneCol, zoneStart, zoneEnd, numRows, rowLabels){
     if(!grid[day][zoneId]) grid[day][zoneId]=Array(numRows).fill(null).map(()=>[]);
     for(let row=0;row<numRows;row++){
       const rowSlots=grid[day][zoneId][row]||[];
-      const rowLabel = zoneId==='Therapy' ? `Room ${row+1}` : `Row ${row+1}`;
+      const rowLabel = (rowLabels&&rowLabels[row]) ? rowLabels[row] : `Row ${row+1}`;
       html+=`<div class="slot-row">
         <div class="row-label">${rowLabel}</div>
         <div class="slots" id="slots-${zoneId}-${row}" style="position:relative">`;
@@ -3181,32 +3276,14 @@ function buildGrid(){
   }
 
   ZONES.forEach(zone=>{
-    if(zone.subZones){
-      // ── GROUPED ZONE: one header, sub-labels, all rows ──
-      html+=`<div class="zone-header">
-        <div class="zone-label" style="border-color:#555">
-          <h4>${zone.label.toUpperCase()}</h4>
-          <p>${fmtH(zone.start)} — ${fmtH(zone.end)}</p>
-        </div>
-        <div class="zone-hours">${fmtH(zone.start)} — ${fmtH(zone.end)}</div>
-      </div>`;
-      zone.subZones.forEach(sub=>{
-        const s=sub.start!==undefined?sub.start:zone.start;
-        const e=sub.end!==undefined?sub.end:zone.end;
-        // sub-zone rows (no label)
-        renderZoneRows(sub.id, sub.col, s, e, sub.rows);
-      });
-    } else {
-      // ── NORMAL ZONE ──
-      html+=`<div class="zone-header">
-        <div class="zone-label" style="border-color:${zone.col}">
-          <h4>${zone.id.toUpperCase()}</h4>
-          <p>${fmtH(zone.start)} — ${fmtH(zone.end)} · ${zone.min}</p>
-        </div>
-        <div class="zone-hours">${fmtH(zone.start)} — ${fmtH(zone.end)}</div>
-      </div>`;
-      renderZoneRows(zone.id, zone.col, zone.start, zone.end, zone.rows);
-    }
+    html+=`<div class="zone-header">
+      <div class="zone-label" style="border-color:${zone.col}">
+        <h4>${zone.id.toUpperCase()}</h4>
+        <p>${fmtH(zone.start)} — ${fmtH(zone.end)} · ${zone.min}</p>
+      </div>
+      <div class="zone-hours">${fmtH(zone.start)} — ${fmtH(zone.end)}</div>
+    </div>`;
+    renderZoneRows(zone.id, zone.col, zone.start, zone.end, zone.rows, zone.rowLabels);
   });
 
   el.innerHTML=html;
@@ -3299,17 +3376,35 @@ document.addEventListener('mousemove',e=>{
   buildGrid();
 });
 document.addEventListener('mouseup',()=>{
-  if(resizing){resizing=null;document.body.style.cursor='';buildTS();}
+  if(resizing){resizing=null;document.body.style.cursor='';_gridDirty=true;buildTS();saveAll();}
 });
 
 // Clear day
 function clearDay(){
-  if(!confirm(`Clear all ${DAYS[activeDay]} slots?`)) return;
-  const day=DAYS[activeDay];
-  getLeafZones().forEach(zone=>{
-    grid[day][zone.id]=Array.from({length:zone.rows},()=>Array(TOTAL_SLOTS).fill(null));
-  });
-  buildGrid(); buildTS();
+  const m=document.getElementById('clearDayModal');
+  document.getElementById('clearDayLabel').textContent=DAYS[activeDay];
+  if(m) m.classList.add('on');
+}
+function _performClearDay(allDays){
+  const m=document.getElementById('clearDayModal');
+  if(m) m.classList.remove('on');
+  if(allDays){
+    // Clear every day of this specific week — write each date override independently
+    DAYS.forEach((day, i)=>{
+      getLeafZones().forEach(zone=>{
+        grid[day][zone.id]=Array.from({length:zone.rows},()=>Array(TOTAL_SLOTS).fill(null));
+      });
+      dailyOverrides[getDateKey(i, rosterWeekOffset)] = JSON.parse(JSON.stringify(grid[day]));
+    });
+    _gridDirty = false; // already written directly to dailyOverrides
+  } else {
+    const day=DAYS[activeDay];
+    getLeafZones().forEach(zone=>{
+      grid[day][zone.id]=Array.from({length:zone.rows},()=>Array(TOTAL_SLOTS).fill(null));
+    });
+    _gridDirty = true; // let saveAll() write this day's override
+  }
+  buildGrid(); buildTS(); saveAll();
 }
 
 // ── TIMESHEETS ────────────────────────────────────────────────────────────────
@@ -3324,13 +3419,7 @@ function toggleTS(){
 
 
 function getLeafZones(){
-  // Returns flat list of all zones that have grid rows (subZones expanded)
-  const result = [];
-  ZONES.forEach(z=>{
-    if(z.subZones) z.subZones.forEach(s=>result.push({...s, parentLabel:z.label}));
-    else result.push(z);
-  });
-  return result;
+  return ZONES.slice();
 }
 
 function buildTS(){
@@ -3415,9 +3504,15 @@ const LS_KEY = 'distrik_v1';
 
 function saveAll(){
   try{
+    // Only write to dailyOverrides when user actually edited (dirty flag prevents browse-only saves)
+    if(_gridDirty){
+      const dateKey = getDateKey(activeDay, rosterWeekOffset);
+      dailyOverrides[dateKey] = JSON.parse(JSON.stringify(grid[DAYS[activeDay]]));
+      _gridDirty = false;
+    }
     localStorage.setItem(LS_KEY, JSON.stringify({
-      grid,
-      gridSavedAt,
+      grid: _baseGrid || grid, // always save base template, not current week
+      dailyOverrides,
       plEntries,
       sData,
       roomBookings,
@@ -3431,30 +3526,35 @@ function saveAll(){
   } catch(e){ console.warn('Save failed:', e); }
 }
 
-// HARD SAVE: lock this day in. Stamps the day with the current time so the newest
-// save of that day wins on every device — a locked day can't be reverted by another computer.
-function saveDayLock(){
-  try{
-    var dayKey = DAYS[activeDay];
-    gridSavedAt[dayKey] = Date.now();
-    saveAll(); // persists locally + pushes to cloud (per-day authoritative merge)
-    var b=document.getElementById('saveDayBtn');
-    if(b){ var o=b.innerHTML; b.innerHTML='✓ Saved &amp; Locked'; b.style.background='#059669';
-      setTimeout(function(){ b.innerHTML=o; b.style.background='#10b981'; }, 1800); }
-  }catch(e){ console.warn('saveDayLock',e); }
-}
-window.saveDayLock=saveDayLock;
-
 function loadAll(){
   try{
     const raw = localStorage.getItem(LS_KEY);
     if(!raw) return false;
     const data = JSON.parse(raw);
-    if(data.grid){        Object.assign(grid, data.grid);
+    if(data.grid){
+      Object.assign(grid, data.grid);
       // Therapy is now 3 rooms (was 4) — trim any legacy 4th row
       try{ DAYS.forEach(d=>{ if(grid[d]&&grid[d]['Therapy']&&grid[d]['Therapy'].length>3) grid[d]['Therapy'].length=3; }); }catch(e){}
+      // data.grid IS the base template — keep _baseGrid in sync with it
+      _baseGrid = JSON.parse(JSON.stringify(grid));
     }
-    if(data.gridSavedAt){ Object.keys(data.gridSavedAt).forEach(function(d){ gridSavedAt[d]=Math.max(gridSavedAt[d]||0, data.gridSavedAt[d]||0); }); }
+    // Restore per-date overrides; migrate from legacy weeklyGrids format if present
+    if(data.dailyOverrides){
+      dailyOverrides = data.dailyOverrides;
+    } else if(data.weeklyGrids){
+      // One-time migration: expand week snapshots into per-date overrides
+      Object.entries(data.weeklyGrids).forEach(([mondayKey, weekSnap])=>{
+        DAYS.forEach((dayName, i)=>{
+          if(weekSnap && weekSnap[dayName]){
+            const [y,mo,d]=mondayKey.split('-').map(Number);
+            const dt=new Date(y,mo-1,d+i);
+            const dk=dt.getFullYear()+'-'+('0'+(dt.getMonth()+1)).slice(-2)+'-'+('0'+dt.getDate()).slice(-2);
+            dailyOverrides[dk]=weekSnap[dayName];
+          }
+        });
+      });
+    }
+    loadGridFromData(); // fill grid from per-date overrides (or template) for current week
     if(data.plEntries)    plEntries    = data.plEntries;
     if(data.sData)        Object.assign(sData, data.sData);
     if(data.recoveryData) Object.assign(recoveryData, data.recoveryData);
@@ -3468,14 +3568,21 @@ function loadAll(){
         if(zh) Object.assign(zh, saved);
       });
     }
-    // Restore STAFF names/colours/salaries
-    // Remove Fuel Staff 2 from any existing saved data
+    // Restore STAFF — replace the entire array so removals and reordering persist
     if(data.STAFF) data.STAFF = data.STAFF.filter(s=>s.id !== 'SB');
-        if(data.STAFF && Array.isArray(data.STAFF)){
-      data.STAFF.forEach(saved => {
-        const s = STAFF.find(st => st.id === saved.id);
-        if(s){ s.name=saved.name; s.abbr=saved.abbr; s.role=saved.role; s.col=saved.col; s.salary=saved.salary; }
-      });
+    if(data.STAFF && Array.isArray(data.STAFF) && data.STAFF.length){
+      STAFF.splice(0, STAFF.length, ...data.STAFF.map(saved => ({
+        id:    saved.id,
+        name:  saved.name  || 'Staff',
+        abbr:  saved.abbr  || (saved.name||'ST').slice(0,2).toUpperCase(),
+        role:  saved.role  || 'Staff',
+        col:   saved.col   || '#888',
+        salary:saved.salary|| 0,
+        group: saved.group || 'Operations',
+        pin:   saved.pin   || '1234'
+      })));
+      Object.keys(STAFF_MAP).forEach(k=>delete STAFF_MAP[k]);
+      STAFF.forEach(s=>STAFF_MAP[s.id]=s);
     }
     console.log('Restored from', data.savedAt);
     return true;
@@ -3492,11 +3599,7 @@ dropOnSlot = function(z,r,s){
   saveAll();
 };
 
-const _origClearDay = clearDay;
-clearDay = function(){
-  _origClearDay();
-  saveAll();
-};
+// clearDay now shows a modal; saveAll is called inside _performClearDay
 
 // Auto-save on P&L changes
 const _origRenderPL = renderPL;
@@ -3588,7 +3691,7 @@ function renderSales(){
     const r=recoveryData[k]; const f=fuelData[k]; const s=supplyData[k];
     if(r){ recRev+=r.revenue||0; recBk+=(r.bookings||[]).length; recCancel+=(r.cancellations||0);
       (r.bookings||[]).forEach(b=>{ recBookings.push({...b,date:k});
-        const tn=b.therapistName||((typeof getStaff==='function'&&b.therapist)?((getStaff(b.therapist)||{}).name):null)||(b.clinical?'Nurse · ClinicTerrain':null);
+        const tn=b.therapistName||((typeof getStaff==='function'&&b.therapist)?((getStaff(b.therapist)||{}).name):null)||(b.clinical?'Nurse · Human+':null);
         if(tn) therapistRev[tn]=(therapistRev[tn]||0)+b.price; }); }
     if(f){ fuelRev+=f.revenue||0; fuelTxn+=(f.transactions||[]).length;
       (f.transactions||[]).forEach(t=>{ fuelTxns.push({...t,date:k}); fuelCard+=t.total;
@@ -4588,43 +4691,52 @@ function cfgDelStaffIdx(idx){
     });
   });
   STAFF.splice(idx,1);
+  delete STAFF_MAP[sid];
   buildCfgStaff();
+  buildPalette();
+  saveAll();
+  const n=document.getElementById('notif');
+  if(n){ n.textContent='Staff removed ✓'; n.classList.add('on'); setTimeout(()=>n.classList.remove('on'),2000); }
 }
 function cfgDelStaff(prefix, idx){ cfgDelStaffIdx(idx); }
 
 function cfgAddStaff(type){
   const col = ['#e879f9','#fb923c','#a3e635','#38bdf8','#f472b6','#34d399'][Math.floor(Math.random()*6)];
   const isT = type==='th';
-  STAFF.push({
+  const newS = {
     id: (isT?'T':'S')+'new'+Date.now(),
     col, abbr: isT?'NT':'NS',
     name: isT?'New Therapist':'New Staff',
     role: isT?'Therapist':'Staff',
+    group: isT?'Therapy':'Operations',
     salary: 3900000
-  });
+  };
+  STAFF.push(newS);
+  STAFF_MAP[newS.id] = newS;
   buildCfgStaff();
 }
 
 function saveCfg(){
-  // Save staff from buildSettingsStaff IDs: stf_col_0, stf_name_0, stf_role_0, stf_sal_0
+  // Read staff from buildCfgStaff IDs: sfc{i} col, sfn{i} name, sfr{i} role, sfs{i} salary
   STAFF.forEach((s,i)=>{
-    const name   = document.getElementById(`stf_name_${i}`)?.value.trim();
-    const role   = document.getElementById(`stf_role_${i}`)?.value.trim();
-    const salary = parseInt(document.getElementById(`stf_sal_${i}`)?.value);
-    const col    = document.getElementById(`stf_col_${i}`)?.value;
+    const name   = document.getElementById(`sfn${i}`)?.value.trim();
+    const role   = document.getElementById(`sfr${i}`)?.value.trim();
+    const salary = parseInt(document.getElementById(`sfs${i}`)?.value);
+    const col    = document.getElementById(`sfc${i}`)?.value;
     if(name){ s.name=name; s.abbr=name.slice(0,2).toUpperCase(); }
     if(role)  s.role=role;
     if(!isNaN(salary)&&salary>0) s.salary=salary;
     if(col)   s.col=col;
+    STAFF_MAP[s.id] = s;
   });
 
-  // Save zone hours from buildSettingsZones IDs: zn_col_0, zn_wdo_0, zn_wdc_0, zn_weo_0, zn_wec_0
+  // Read zone hours from buildCfgZones IDs: zc{i} col, zwo{i}/zwc{i} weekday, zeo{i}/zec{i} weekend
   ZONE_HOURS.forEach((z,i)=>{
-    const col = document.getElementById(`zn_col_${i}`)?.value;
-    const wdo = parseFloat(document.getElementById(`zn_wdo_${i}`)?.value);
-    const wdc = parseFloat(document.getElementById(`zn_wdc_${i}`)?.value);
-    const weo = parseFloat(document.getElementById(`zn_weo_${i}`)?.value);
-    const wec = parseFloat(document.getElementById(`zn_wec_${i}`)?.value);
+    const col = document.getElementById(`zc${i}`)?.value;
+    const wdo = parseFloat(document.getElementById(`zwo${i}`)?.value);
+    const wdc = parseFloat(document.getElementById(`zwc${i}`)?.value);
+    const weo = parseFloat(document.getElementById(`zeo${i}`)?.value);
+    const wec = parseFloat(document.getElementById(`zec${i}`)?.value);
     if(col)       z.col=col;
     if(!isNaN(wdo)) z.wdOpen=wdo;
     if(!isNaN(wdc)) z.wdClose=wdc;
@@ -4709,7 +4821,7 @@ function buildSettingsTax(){
     +'<div><label style="'+lbl+'">Service Charge %</label><input id="tx-cafeService" type="number" step="0.5" value="'+P(TAX_CFG.cafeService)+'" style="'+inp+'"></div>'
     +'<div><label style="'+lbl+'">PBJT / PB1 %</label><input id="tx-cafePBJT" type="number" step="0.5" value="'+P(TAX_CFG.cafePBJT)+'" style="'+inp+'"></div>'
     +'</div>'
-    +'<div style="'+sub+'">Clinical · ClinicTerrain (agent)</div>'
+    +'<div style="'+sub+'">Clinical · Human+ (agent)</div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'
     +'<div><label style="'+lbl+'">Distrik Commission %</label><input id="tx-clinicCommission" type="number" step="1" value="'+P(TAX_CFG.clinicCommission)+'" style="'+inp+'"></div>'
     +'<div><label style="'+lbl+'">PPh 23 Withholding %</label><input id="tx-pph23" type="number" step="0.5" value="'+P(TAX_CFG.pph23)+'" style="'+inp+'"></div>'
@@ -4736,15 +4848,27 @@ function buildSettingsManagers(){
   const rooms=(typeof ROOMS!=='undefined'?ROOMS:[]);
   const roomBtns=rooms.map(r=>`<button onclick="openRoomConfig('${r.id}')" class="set-room-btn">${r.name}</button>`).join('');
   const cards=[
-    {t:'Recovery — Services &amp; Treatments', d:'Treatment prices, RRP, duration, eligible rooms &amp; therapists, clinical (ClinicTerrain) menu &amp; packages.', a:`<button onclick="openServicesMgr()" class="set-mgr-btn">Open →</button>`},
+    {t:'Recovery — Services &amp; Treatments', d:'Treatment prices, RRP, duration, eligible rooms &amp; therapists, clinical (Human+) menu &amp; packages.', a:`<button onclick="openServicesMgr()" class="set-mgr-btn">Open →</button>`},
     {t:'Fuel — Café Menu &amp; Add-ons', d:'Drinks, food, RRP / cost / price, plus sizes, milks &amp; add-on rules.', a:`<button onclick="openMenuMgr()" class="set-mgr-btn">Open →</button>`},
     {t:'Supply — Brands &amp; Products', d:'Brands &amp; split %, products, per-size stock, pricing &amp; tax.', a:`<div class="set-mgr-actions"><button onclick="goToModule('supply')" class="set-mgr-btn">Open →</button><button onclick="openAddBrand()" class="set-mgr-btn alt">+ Brand</button></div>`},
     {t:'Rooms &amp; Recovery Chairs', d:'Set which services each room/chair can host, assigned staff &amp; type.', a:`<div class="set-room-list">${roomBtns||'<span style="color:#6b6b72;font-family:Space Mono,monospace;font-size:10px;">No rooms configured</span>'}</div>`},
     {t:'Recruitment — Job Applications', d:'Review, rate &amp; action careers applications from the website (status, rating, notes).', a:`<button onclick="openApplications()" class="set-mgr-btn">Open →</button>`},
+    {t:'Payments — Xendit Deposit Link', d:'Paste your Xendit payment link URL here. Staff will see a WhatsApp button to send it to patients when taking a deposit.', a:`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><input id="set-xendit-url" type="url" placeholder="https://checkout.xendit.co/..." style="flex:1;min-width:200px;font-family:'Space Mono',monospace;font-size:10px;border:1px solid #d3d3ce;padding:8px 10px;background:#fafafa;color:#0A0A0A;" value="${(function(){try{return JSON.parse(localStorage.getItem('distrik_payments')||'{}').xenditLink||'';}catch(e){return '';}})()}"><button onclick="saveXenditLink()" class="set-mgr-btn">Save</button></div>`},
   ];
   el.innerHTML=cards.map(c=>`<div class="set-mgr-card"><div class="set-mgr-title">${c.t}</div><div class="set-mgr-desc">${c.d}</div>${c.a}</div>`).join('');
 }
 window.buildSettingsManagers=buildSettingsManagers;
+function getXenditLink(){ try{ return JSON.parse(localStorage.getItem('distrik_payments')||'{}').xenditLink||''; }catch(e){ return ''; } }
+function saveXenditLink(){
+  var el=document.getElementById('set-xendit-url'); if(!el) return;
+  var url=el.value.trim();
+  try{ var d=JSON.parse(localStorage.getItem('distrik_payments')||'{}'); d.xenditLink=url; localStorage.setItem('distrik_payments',JSON.stringify(d)); }catch(e){}
+  // Sync to Firestore so public pages (recovery.html, iv-therapy.html) can read it
+  var db=_getPublicDb();
+  if(db) db.collection('distrik_state').doc('distrik_payments').set({xenditLink:url,savedAt:new Date().toISOString()}).catch(function(){});
+  var n=document.getElementById('notif'); if(n){n.textContent='Xendit link saved ✓';n.classList.add('on');setTimeout(function(){n.classList.remove('on');},2000);}
+}
+window.saveXenditLink=saveXenditLink;
 
 function buildSettingsStaff(){
   const el = document.getElementById('settings-staff-list');
@@ -4824,7 +4948,9 @@ function buildSettingsZones(){
 function settingsAddStaff(){
   const colors = ['#e879f9','#fb923c','#a3e635','#38bdf8','#f472b6','#34d399'];
   const col = colors[STAFF.length % colors.length];
-  STAFF.push({id:'new'+Date.now(), col, group:'Operations', name:'New Staff', abbr:'NS', role:'Staff', salary:3900000});
+  const newS = {id:'new'+Date.now(), col, group:'Operations', name:'New Staff', abbr:'NS', role:'Staff', salary:3900000};
+  STAFF.push(newS);
+  STAFF_MAP[newS.id] = newS;
   buildSettingsStaff();
 }
 
@@ -4988,7 +5114,9 @@ function onLoginSuccess(){
   } catch(e){ console.warn('Session save failed:', e); }
   const ls = document.getElementById('loginScreen');
   if(ls) ls.style.display='none';
-  try { showHome(); } catch(e){ 
+  // Start booking listener globally on login so all panels can show alerts
+  setTimeout(function(){ if(typeof startBookingListener==='function') startBookingListener(); }, 1500);
+  try { showHome(); } catch(e){
     console.error('showHome error:', e); 
     // Fallback: force show homeScreen
     const hs = document.getElementById('homeScreen');
@@ -5087,6 +5215,8 @@ function switchTab(t){
   if(panel) panel.classList.add('on');
   const bc = document.getElementById('nav-breadcrumb');
   if(bc) bc.textContent = PAGE_NAMES[t]||t;
+  if(t!=='supply') setTimeout(function(){ if(typeof _showBkAlertIfNeeded==='function') _showBkAlertIfNeeded(); },400);
+  if(t==='recovery'){ setTimeout(function(){ if(typeof renderClinicalServices==='function'){ renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); } },100); }
   if(t==='sales')   initSales();
   if(t==='pl')      renderPL();
   if(t==='settings') buildSettingsPanel();
@@ -5097,6 +5227,7 @@ function switchTab(t){
     const _now = baliNow();
     const _day = _now.getDay();
     activeDay = _day === 0 ? 6 : _day - 1; // Mon=0..Sun=6
+    loadGridFromData(); // must run after rosterWeekOffset/activeDay reset so correct week loads
     buildTabs();
     buildGrid();
     buildTS();
@@ -5267,10 +5398,11 @@ document.addEventListener('DOMContentLoaded', function(){
   // ── Initialize roster ──
   grid = emptyGrid();
   populateDefaults();
-  loadAll();
+  _baseGrid = JSON.parse(JSON.stringify(grid)); // snapshot default template
+  loadAll(); // overrides grid with saved per-week data for current week
   buildPalette();
   buildTabs();
-  buildGrid();
+  _origBuildGrid();
   buildBudget();
 
   // ── Restore notification ──
@@ -6040,30 +6172,36 @@ function buildServicesList(){
         ${ROOMS.map(r=>`<option value="${r.id}" ${(svc.rooms||[]).includes(r.id)?'selected':''}>${r.name}</option>`).join('')}
       </select>
       <select class="svc-input" id="sv_therapists_${i}" multiple style="height:60px;">
-        ${STAFF.filter(s=>s.group==='Therapy'||s.group==='Management').map(s=>`<option value="${s.id}" ${(svc.therapists||[]).includes(s.id)?'selected':''}>${s.name}</option>`).join('')}
+        ${STAFF.map(s=>`<option value="${s.id}" ${(svc.therapists||[]).includes(s.id)?'selected':''}>${s.name}</option>`).join('')}
       </select>
       <button class="svc-del-btn" onclick="deleteService(${i})">✕</button>
     </div>`).join('');
 }
 
+function _servicesFlushAll(){
+  SERVICES.forEach((svc,i)=>{
+    const v=id=>{const e=document.getElementById(id);return e?e.value:null;};
+    if(v('sv_name_'+i)!=null) svc.name=v('sv_name_'+i)||svc.name;
+    svc.duration   = parseInt(v('sv_dur_'+i))||svc.duration;
+    svc.buffer     = parseInt(v('sv_buf_'+i))||0;
+    svc.price      = parseInt(v('sv_price_'+i))||0;
+    svc.commission = parseFloat(v('sv_comm_'+i))||0;
+    const sel=document.getElementById('sv_rooms_'+i);
+    if(sel) svc.rooms=[...sel.selectedOptions].map(o=>o.value);
+    const tsel=document.getElementById('sv_therapists_'+i);
+    if(tsel) svc.therapists=[...tsel.selectedOptions].map(o=>o.value);
+  });
+}
+
 function addService(){
+  _servicesFlushAll();
   SERVICES.push({id:'s'+Date.now(),name:'New Service',duration:60,buffer:15,price:0,commission:5,rooms:['room1','room2','room3']});
   buildServicesList();
 }
-function deleteService(i){ SERVICES.splice(i,1); buildServicesList(); }
+function deleteService(i){ _servicesFlushAll(); SERVICES.splice(i,1); saveRFToStorage(); buildServicesList(); }
 
 function saveServices(){
-  SERVICES.forEach((svc,i)=>{
-    svc.name     = document.getElementById(`sv_name_${i}`)?.value||svc.name;
-    svc.duration = parseInt(document.getElementById(`sv_dur_${i}`)?.value)||svc.duration;
-    svc.buffer   = parseInt(document.getElementById(`sv_buf_${i}`)?.value)||0;
-    svc.price    = parseInt(document.getElementById(`sv_price_${i}`)?.value)||0;
-    svc.commission = parseFloat(document.getElementById(`sv_comm_${i}`)?.value)||0;
-    const sel=document.getElementById(`sv_rooms_${i}`);
-    if(sel) svc.rooms=[...sel.selectedOptions].map(o=>o.value);
-    const tsel=document.getElementById(`sv_therapists_${i}`);
-    if(tsel) svc.therapists=[...tsel.selectedOptions].map(o=>o.value);
-  });
+  _servicesFlushAll();
   saveRFToStorage();
   closeServicesModal();
   const n=document.getElementById('notif');
@@ -6072,12 +6210,12 @@ function saveServices(){
 
 // ── CLINICAL · CLINICTERRAIN SERVICES ─────────────────────────────
 function loadClinical(){
-  try{ const raw=localStorage.getItem('distrik_clinical'); if(raw){ const d=JSON.parse(raw); if(Array.isArray(d)&&d.length) CLINICAL_SERVICES.splice(0,CLINICAL_SERVICES.length,...d); } }catch(e){}
+  try{ const raw=localStorage.getItem('distrik_clinical'); if(raw){ const d=JSON.parse(raw); if(Array.isArray(d)) CLINICAL_SERVICES.splice(0,CLINICAL_SERVICES.length,...d); } }catch(e){}
 }
 function saveClinical(){ try{ localStorage.setItem('distrik_clinical', JSON.stringify(CLINICAL_SERVICES)); }catch(e){} }
 function buildClinicalSvcList(){
   const body=document.getElementById('svc-modal-body');
-  if(body) body.innerHTML=`<div class="svc-grid-hdr" style="grid-template-columns:1.6fr .8fr .9fr .9fr .9fr .5fr;"><div>Treatment Name</div><div>Dur (min)</div><div>RRP (IDR)</div><div>Cost (IDR)</div><div>Distrik Price</div><div></div></div><div id="clsvc-list"></div><div style="padding:12px 16px;"><button onclick="addClinicalSvc()" class="rf-add-row-btn">+ Add Treatment</button></div><div style="padding:0 16px 14px;font-family:'Space Mono',monospace;font-size:10px;color:#9a9a9e;">Clinical treatments are nurse-run (ClinicTerrain) and booked into a recovery chair.</div>`;
+  if(body) body.innerHTML=`<div class="svc-grid-hdr" style="grid-template-columns:1.6fr .8fr .9fr .9fr .9fr .5fr;"><div>Treatment Name</div><div>Dur (min)</div><div>RRP (IDR)</div><div>Cost (IDR)</div><div>Distrik Price</div><div></div></div><div id="clsvc-list"></div><div style="padding:12px 16px;"><button onclick="addClinicalSvc()" class="rf-add-row-btn">+ Add Treatment</button></div><div style="padding:0 16px 14px;font-family:'Space Mono',monospace;font-size:10px;color:#9a9a9e;">Clinical treatments are nurse-run (Human+) and booked into a recovery chair.</div><div style="padding:12px 16px 4px;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#0A0A0A;border-top:1px solid #f0f0f0;">Add-ons</div><div class="svc-grid-hdr" style="grid-template-columns:2fr 1fr .5fr;"><div>Add-on Name</div><div>Price (IDR)</div><div></div></div><div id="cladd-list"></div><div style="padding:12px 16px;"><button onclick="addClinicalAddon()" class="rf-add-row-btn">+ Add Add-on</button></div>`;
   const el=document.getElementById('clsvc-list'); if(!el) return;
   el.innerHTML=CLINICAL_SERVICES.map((svc,i)=>`
     <div class="svc-row" style="grid-template-columns:1.6fr .8fr .9fr .9fr .9fr .5fr;">
@@ -6088,24 +6226,39 @@ function buildClinicalSvcList(){
       <input class="svc-input" id="cl_price_${i}" value="${svc.price}" type="number" min="0" placeholder="Price">
       <button class="svc-del-btn" onclick="deleteClinicalSvc(${i})">✕</button>
     </div>`).join('');
+  const addEl=document.getElementById('cladd-list'); if(!addEl) return;
+  addEl.innerHTML=CLINICAL_ADDONS.map((a,i)=>`
+    <div class="svc-row" style="grid-template-columns:2fr 1fr .5fr;">
+      <input class="svc-input" id="ca_name_${i}" value="${a.name}" placeholder="Add-on name">
+      <input class="svc-input" id="ca_price_${i}" value="${a.price}" type="number" min="0" placeholder="Price">
+      <button class="svc-del-btn" onclick="deleteClinicalAddon(${i})">✕</button>
+    </div>`).join('');
 }
-function addClinicalSvc(){ CLINICAL_SERVICES.push({id:'cs'+Date.now(),name:'New Treatment',rrp:0,cost:0,price:0,dur:30}); buildClinicalSvcList(); }
-function deleteClinicalSvc(i){ CLINICAL_SERVICES.splice(i,1); buildClinicalSvcList(); }
-function saveClinicalSvc(){
+function _clinicalFlushAll(){
   CLINICAL_SERVICES.forEach((svc,i)=>{
-    svc.name  = document.getElementById(`cl_name_${i}`)?.value||svc.name;
-    svc.dur   = parseInt(document.getElementById(`cl_dur_${i}`)?.value)||svc.dur;
-    svc.rrp   = parseInt(document.getElementById(`cl_rrp_${i}`)?.value)||0;
-    svc.cost  = parseInt(document.getElementById(`cl_cost_${i}`)?.value)||0;
-    svc.price = parseInt(document.getElementById(`cl_price_${i}`)?.value)||0;
+    const v=id=>{const e=document.getElementById(id);return e?e.value:null;};
+    if(v('cl_name_'+i)!=null) svc.name=v('cl_name_'+i)||svc.name;
+    svc.dur  = parseInt(v('cl_dur_'+i))||svc.dur;
+    svc.rrp  = parseInt(v('cl_rrp_'+i))||0;
+    svc.cost = parseInt(v('cl_cost_'+i))||0;
+    svc.price= parseInt(v('cl_price_'+i))||0;
   });
+}
+function addClinicalSvc(){ _clinicalFlushAll(); CLINICAL_SERVICES.push({id:'cs'+Date.now(),name:'New Treatment',rrp:0,cost:0,price:0,dur:30}); buildClinicalSvcList(); }
+function deleteClinicalSvc(i){ _clinicalFlushAll(); CLINICAL_SERVICES.splice(i,1); saveClinical(); buildClinicalSvcList(); }
+function saveClinicalSvc(){
+  _clinicalFlushAll();
+  _addonFlushAll();
   saveClinical();
   closeServicesModal();
   if(typeof renderClinicalServices==='function') renderClinicalServices();
   const n=document.getElementById('notif');
   if(n){n.textContent='Clinical treatments saved ✓';n.classList.add('on');setTimeout(()=>n.classList.remove('on'),2000);}
 }
-window.buildClinicalSvcList=buildClinicalSvcList; window.addClinicalSvc=addClinicalSvc; window.deleteClinicalSvc=deleteClinicalSvc; window.saveClinicalSvc=saveClinicalSvc;
+function _addonFlushAll(){ CLINICAL_ADDONS.forEach((a,i)=>{ const v=id=>{const e=document.getElementById(id);return e?e.value:null;}; if(v('ca_name_'+i)!=null) a.name=v('ca_name_'+i)||a.name; a.price=parseInt(v('ca_price_'+i))||0; }); }
+function addClinicalAddon(){ _addonFlushAll(); CLINICAL_ADDONS.push({id:'ca'+Date.now(),name:'New Add-on',price:0}); buildClinicalSvcList(); }
+function deleteClinicalAddon(i){ _addonFlushAll(); CLINICAL_ADDONS.splice(i,1); buildClinicalSvcList(); }
+window.buildClinicalSvcList=buildClinicalSvcList; window.addClinicalSvc=addClinicalSvc; window.deleteClinicalSvc=deleteClinicalSvc; window.saveClinicalSvc=saveClinicalSvc; window.addClinicalAddon=addClinicalAddon; window.deleteClinicalAddon=deleteClinicalAddon;
 
 // ── ROOM CONFIG ───────────────────────────────────────────────────
 var configuringRoom = null;
@@ -6452,14 +6605,14 @@ function updateReceipt(){
   // Totals
   const subtotal=cart.reduce((s,c)=>s+c.linePrice*c.qty,0);
   const serviceTax=Math.round(subtotal*TAX_CFG.cafeService); // 7% service charge (gratuity)
-  const tax=Math.round(subtotal*TAX_CFG.cafePBJT);            // 10% PBJT (regional F&B tax)
+  const tax=Math.round((subtotal+serviceTax)*TAX_CFG.cafePBJT); // 10% PBJT on subtotal+service charge
   const total=subtotal+serviceTax+tax;
   const fmt=n=>'IDR '+n.toLocaleString('id-ID');
   const s=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
   const lbl=(id,t)=>{const e=document.getElementById(id);if(e)e.textContent=t;};
   s('r-subtotal',   fmt(subtotal));
-  lbl('r-service-label','Service Charge '+(TAX_CFG.cafeService*100)+'%');
-  lbl('r-pbjt-label','PB1 / PBJT '+(TAX_CFG.cafePBJT*100)+'%');
+  lbl('r-service-label','Service Charge '+parseFloat((TAX_CFG.cafeService*100).toFixed(4))+'%');
+  lbl('r-pbjt-label','PB1 '+parseFloat((TAX_CFG.cafePBJT*100).toFixed(4))+'%');
   s('r-service-tax',fmt(serviceTax));
   s('r-tax',        fmt(tax));
   s('r-total',      fmt(total));
@@ -6485,7 +6638,7 @@ function processSale(){
   if(cart.length===0) return;
   const subtotal=cart.reduce((s,c)=>s+c.linePrice*c.qty,0);
   const serviceTax=Math.round(subtotal*TAX_CFG.cafeService); // 7% service charge
-  const tax=Math.round(subtotal*TAX_CFG.cafePBJT);            // 10% PBJT
+  const tax=Math.round((subtotal+serviceTax)*TAX_CFG.cafePBJT); // 10% PBJT on subtotal+service charge
   const total=subtotal+serviceTax+tax;
 
   // Record to fuelData
@@ -6533,18 +6686,19 @@ function buildMenuMgr(){
   const body=document.getElementById('mmgr-body'); if(!body) return;
   if(menuMgrTab==='items'){
     let html=`<div style="max-height:400px;overflow-y:auto;">
-      <div style="display:grid;grid-template-columns:1.5fr 1fr 80px 80px 80px 28px;gap:6px;font-family:'Space Mono',monospace;font-size:9px;color:#777;letter-spacing:1.5px;text-transform:uppercase;padding:6px 0 6px;border-bottom:2px solid #e8e8e8;margin:0 16px;">
-        <div>Name</div><div>Category</div><div>RRP</div><div>Cost</div><div>Price</div><div></div>
+      <div style="display:grid;grid-template-columns:1.2fr 0.8fr 1fr 70px 70px 70px 28px;gap:6px;font-family:'Space Mono',monospace;font-size:9px;color:#777;letter-spacing:1.5px;text-transform:uppercase;padding:6px 0 6px;border-bottom:2px solid #e8e8e8;margin:0 16px;">
+        <div>Name</div><div>Category</div><div>Description</div><div>RRP</div><div>Cost</div><div>Price</div><div></div>
       </div>`;
     MENU_ITEMS.forEach((item,i)=>{
-      html+=`<div style="display:grid;grid-template-columns:1.5fr 1fr 80px 80px 80px 28px;gap:6px;align-items:center;padding:5px 16px;border-bottom:1px solid #f5f5f5;">
+      html+=`<div style="display:grid;grid-template-columns:1.2fr 0.8fr 1fr 70px 70px 70px 28px;gap:6px;align-items:center;padding:5px 16px;border-bottom:1px solid #f5f5f5;">
         <input class="svc-input" id="mi_name_${i}" value="${item.name}" placeholder="Item name">
         <select class="svc-input" id="mi_cat_${i}">
           ${MENU_CATS.map(c=>`<option value="${c.id}" ${item.cat===c.id?'selected':''}>${c.name}</option>`).join('')}
         </select>
+        <input class="svc-input" id="mi_desc_${i}" value="${item.desc||''}" placeholder="e.g. Double shot">
         <input class="svc-input" id="mi_rrp_${i}" type="number" value="${item.rrp||''}" placeholder="RRP">
         <input class="svc-input" id="mi_cost_${i}" type="number" value="${item.cost||''}" placeholder="Cost">
-        <input class="svc-input" id="mi_price_${i}" type="number" value="${item.price}" placeholder="Our price">
+        <input class="svc-input" id="mi_price_${i}" type="number" value="${item.price}" placeholder="Price">
         <button class="svc-del-btn" onclick="delMenuItem(${i})">✕</button>
       </div>`;
     });
@@ -6579,32 +6733,40 @@ function buildMenuMgr(){
     body.innerHTML=html;
   }
 }
-function addMenuItem(){
-  MENU_ITEMS.push({id:'m'+Date.now(),cat:MENU_CATS[0]?.id||'coffee',name:'New Item',price:0,desc:''});
-  buildMenuMgr();
-}
-function delMenuItem(i){ MENU_ITEMS.splice(i,1); buildMenuMgr(); }
-function addOpt(key){ MENU_OPTS[key].push({id:'o'+Date.now(),name:'New Option',price:0}); buildMenuMgr(); }
-function delOpt(key,i){ MENU_OPTS[key].splice(i,1); buildMenuMgr(); }
-function saveMenuMgr(){
+function _menuFlushAll(){
   if(menuMgrTab==='items'){
     MENU_ITEMS.forEach((item,i)=>{
-      item.name  = document.getElementById(`mi_name_${i}`)?.value  || item.name;
-      item.cat   = document.getElementById(`mi_cat_${i}`)?.value   || item.cat;
-      item.rrp   = parseInt(document.getElementById(`mi_rrp_${i}`)?.value)  || 0;
-      item.cost  = parseInt(document.getElementById(`mi_cost_${i}`)?.value) || 0;
-      item.price = parseInt(document.getElementById(`mi_price_${i}`)?.value)|| 0;
+      const v=id=>{const e=document.getElementById(id);return e?e.value:null;};
+      const n=id=>{const e=document.getElementById(id);return parseInt((document.getElementById(id)||{}).value)||0;};
+      if(v('mi_name_'+i)!=null) item.name=v('mi_name_'+i)||item.name;
+      if(v('mi_cat_'+i))        item.cat=v('mi_cat_'+i);
+      if(v('mi_desc_'+i)!=null) item.desc=v('mi_desc_'+i);
+      item.rrp=n('mi_rrp_'+i); item.cost=n('mi_cost_'+i); item.price=n('mi_price_'+i);
     });
   } else {
     ['sizes','milks','addons','extras'].forEach(key=>{
       MENU_OPTS[key].forEach((opt,i)=>{
-        opt.name  = document.getElementById(`opt_${key}_name_${i}`)?.value  || opt.name;
-        opt.rrp   = parseInt(document.getElementById(`opt_${key}_rrp_${i}`)?.value)  || 0;
-        opt.cost  = parseInt(document.getElementById(`opt_${key}_cost_${i}`)?.value) || 0;
-        opt.price = parseInt(document.getElementById(`opt_${key}_price_${i}`)?.value)|| 0;
+        const v=id=>{const e=document.getElementById(id);return e?e.value:null;};
+        const n=id=>{return parseInt((document.getElementById(id)||{}).value)||0;};
+        if(v('opt_'+key+'_name_'+i)) opt.name=v('opt_'+key+'_name_'+i);
+        opt.rrp=n('opt_'+key+'_rrp_'+i); opt.cost=n('opt_'+key+'_cost_'+i); opt.price=n('opt_'+key+'_price_'+i);
       });
     });
   }
+}
+function _menuScrollBottom(){
+  setTimeout(()=>{const s=document.querySelector('#mmgr-body div[style*="overflow-y"]');if(s)s.scrollTop=s.scrollHeight;},30);
+}
+function addMenuItem(){
+  _menuFlushAll();
+  MENU_ITEMS.push({id:'m'+Date.now(),cat:MENU_CATS[0]?.id||'coffee',name:'',price:0,desc:''});
+  buildMenuMgr(); _menuScrollBottom();
+}
+function delMenuItem(i){ _menuFlushAll(); MENU_ITEMS.splice(i,1); buildMenuMgr(); }
+function addOpt(key){ _menuFlushAll(); MENU_OPTS[key].push({id:'o'+Date.now(),name:'',rrp:0,cost:0,price:0}); buildMenuMgr(); _menuScrollBottom(); }
+function delOpt(key,i){ _menuFlushAll(); MENU_OPTS[key].splice(i,1); buildMenuMgr(); }
+function saveMenuMgr(){
+  _menuFlushAll();
   saveMenuToStorage();
   document.getElementById('menuMgrModal').classList.remove('open');
   buildPosCats(); buildPosItems();
@@ -6732,11 +6894,10 @@ function buildPackagesList(){
     return `<div class="pkg-card" id="pkg-card-${pi}">
       <div class="pkg-card-hdr">
         <input class="pkg-name-input" id="pkg_name_${pi}" value="${pkg.name}" placeholder="Package name">
-        <span style="font-family:'Space Mono',monospace;font-size:10px;color:#777;">${totalMins} min total</span>
         <span style="font-family:'Space Mono',monospace;font-size:10px;color:#777;">Commission %</span>
         <input class="pkg-price-input" id="pkg_comm_${pi}" type="number" value="${pkg.commission||5}" style="width:60px;" placeholder="5">
         <input class="pkg-price-input" id="pkg_price_${pi}" type="number" value="${pkg.price}" placeholder="IDR">
-        <button onclick="deletePkg(${pi})" style="background:transparent;border:1px solid #eee;border-radius:2px;color:#ddd;font-size:11px;cursor:pointer;padding:4px 8px;transition:all .15s" onmouseover="this.style.borderColor='#FF2D2D';this.style.color='#FF2D2D'" onmouseout="this.style.borderColor='#eee';this.style.color='#ddd'">✕</button>
+        <button onclick="deletePkg(${pi})" style="background:#fff;border:1px solid #FF2D2D;border-radius:2px;color:#FF2D2D;font-size:10px;font-family:'Space Mono',monospace;cursor:pointer;padding:5px 12px;transition:all .15s;white-space:nowrap;" onmouseover="this.style.background='#FF2D2D';this.style.color='#fff'" onmouseout="this.style.background='#fff';this.style.color='#FF2D2D'">Delete</button>
       </div>
       <div style="padding:6px 14px 4px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:#BFC2C7;">Components</div>
       ${pkg.components.map((comp,ci)=>`
@@ -6773,30 +6934,37 @@ function buildPackagesList(){
   }).join('') + `<div style="padding:4px 16px 16px;"><button onclick="addPkg()" class="rf-add-row-btn">+ Add Package</button></div>`;
 }
 
+function _pkgFlushAll(){
+  PACKAGES.forEach((pkg,pi)=>{
+    const v=id=>{const e=document.getElementById(id);return e?e.value:null;};
+    if(v('pkg_name_'+pi)!=null)  pkg.name=v('pkg_name_'+pi)||pkg.name;
+    pkg.price      = parseInt(v('pkg_price_'+pi))||pkg.price;
+    pkg.commission = parseFloat(v('pkg_comm_'+pi))||pkg.commission;
+    pkg.components.forEach((comp,ci)=>{
+      if(v('pkg_comp_label_'+pi+'_'+ci)!=null) comp.label=v('pkg_comp_label_'+pi+'_'+ci)||comp.label;
+      comp.serviceId = v('pkg_comp_svc_'+pi+'_'+ci)||comp.serviceId;
+      comp.duration  = parseInt(v('pkg_comp_dur_'+pi+'_'+ci))||comp.duration;
+      comp.buffer    = parseInt(v('pkg_comp_buf_'+pi+'_'+ci))||0;
+    });
+    pkg.totalDuration=pkg.components.reduce((s,c)=>s+c.duration+(c.buffer||0),0);
+  });
+}
+
 function addPkg(){
+  _pkgFlushAll();
   PACKAGES.push({id:'pkg'+Date.now(),name:'New Package',description:'',components:[],totalDuration:0,price:0,commission:5,rooms:['room1','room2','room3']});
   buildPackagesList();
 }
-function deletePkg(i){ PACKAGES.splice(i,1); buildPackagesList(); }
+function deletePkg(i){ _pkgFlushAll(); PACKAGES.splice(i,1); saveRFToStorage(); buildPackagesList(); }
 function addPkgComp(pi){
+  _pkgFlushAll();
   PACKAGES[pi].components.push({serviceId:'',duration:30,buffer:10,label:'New Component'});
   buildPackagesList();
 }
-function deletePkgComp(pi,ci){ PACKAGES[pi].components.splice(ci,1); buildPackagesList(); }
+function deletePkgComp(pi,ci){ _pkgFlushAll(); PACKAGES[pi].components.splice(ci,1); saveRFToStorage(); buildPackagesList(); }
 
 function savePackages(){
-  PACKAGES.forEach((pkg,pi)=>{
-    pkg.name  = document.getElementById(`pkg_name_${pi}`)?.value||pkg.name;
-    pkg.price = parseInt(document.getElementById(`pkg_price_${pi}`)?.value)||0;
-    pkg.commission = parseFloat(document.getElementById(`pkg_comm_${pi}`)?.value)||5;
-    pkg.components.forEach((comp,ci)=>{
-      comp.label     = document.getElementById(`pkg_comp_label_${pi}_${ci}`)?.value||comp.label;
-      comp.serviceId = document.getElementById(`pkg_comp_svc_${pi}_${ci}`)?.value||'';
-      comp.duration  = parseInt(document.getElementById(`pkg_comp_dur_${pi}_${ci}`)?.value)||30;
-      comp.buffer    = parseInt(document.getElementById(`pkg_comp_buf_${pi}_${ci}`)?.value)||0;
-    });
-    pkg.totalDuration = pkg.components.reduce((s,c)=>s+c.duration+(c.buffer||0),0);
-  });
+  _pkgFlushAll();
   saveRFToStorage();
   closeServicesModal();
   // Rebuild service dropdown in booking form to include packages
@@ -6970,7 +7138,19 @@ function appsConnLabel(ok,msg){ var e=document.getElementById('apps-conn'); if(e
 function appsSetFilter(){ appsFilters.position=(document.getElementById('apps-f-position')||{}).value||''; appsFilters.status=(document.getElementById('apps-f-status')||{}).value||''; appsFilters.sort=(document.getElementById('apps-f-sort')||{}).value||''; loadApplications(); }
 async function loadApplications(){
   var listEl=document.getElementById('apps-list'); if(!listEl) return;
-  if(!appsConfigured()){ appsConnLabel(false,'NOT CONNECTED'); listEl.innerHTML='<div class="apps-empty">Not connected.<br>Add your API URL &amp; key in <b>Settings → Recruitment · Applications</b>, then deploy the backend (server.js).</div>'; var c0=document.getElementById('apps-count'); if(c0)c0.textContent=''; return; }
+  if(!appsConfigured()){
+    appsConnLabel(false,'LOCAL · add API in Settings to sync across devices');
+    try{ appsData=JSON.parse(localStorage.getItem('distrik_applications')||'[]'); }catch(e){ appsData=[]; }
+    var pos=appsFilters.position, stat=appsFilters.status, srt=appsFilters.sort;
+    var filtered=appsData.filter(function(a){ return (!pos||a.position===pos)&&(!stat||(a.status||'new')===stat); });
+    if(srt==='rating') filtered.sort(function(a,b){return (b.rating||0)-(a.rating||0);});
+    else if(srt==='status') filtered.sort(function(a,b){return (a.status||'').localeCompare(b.status||'');});
+    else filtered.sort(function(a,b){return new Date(b.appliedAt||0)-new Date(a.appliedAt||0);});
+    appsData=filtered;
+    var c0=document.getElementById('apps-count'); if(c0)c0.textContent=appsData.length+' application'+(appsData.length!==1?'s':'');
+    renderApplicationsList();
+    return;
+  }
   listEl.innerHTML='<div class="apps-empty">Loading…</div>';
   try{
     var data=await appsApiList(appsFilters);
@@ -7018,6 +7198,17 @@ function closeAppModal(){ var m=document.getElementById('appModal'); if(m)m.clas
 async function saveApplication(){
   if(!appsSelectedId) return;
   var notes=(document.getElementById('app-notes')||{}).value||'';
+  if(!appsConfigured()){
+    try{
+      var all=JSON.parse(localStorage.getItem('distrik_applications')||'[]');
+      var idx=all.findIndex(function(x){return x.id===appsSelectedId;});
+      if(idx>-1){all[idx].status=appsEditStatus;all[idx].rating=appsEditRating;all[idx].notes=notes;}
+      localStorage.setItem('distrik_applications',JSON.stringify(all));
+      var nn=document.getElementById('notif'); if(nn){nn.textContent='Application updated ✓';nn.classList.add('on');setTimeout(function(){nn.classList.remove('on');},2000);}
+      closeAppModal(); loadApplications();
+    }catch(e){alert('Save failed: '+e.message);}
+    return;
+  }
   try{ await appsApiUpdate(appsSelectedId,{status:appsEditStatus,rating:appsEditRating,notes:notes});
     var n=document.getElementById('notif'); if(n){n.textContent='Application updated ✓';n.classList.add('on');setTimeout(function(){n.classList.remove('on');},2000);}
     closeAppModal(); loadApplications();
@@ -7026,11 +7217,93 @@ async function saveApplication(){
 async function deleteApplication(){
   if(!appsSelectedId) return;
   if(!confirm('Delete this application permanently?')) return;
+  if(!appsConfigured()){
+    try{
+      var all=JSON.parse(localStorage.getItem('distrik_applications')||'[]');
+      all=all.filter(function(x){return x.id!==appsSelectedId;});
+      localStorage.setItem('distrik_applications',JSON.stringify(all));
+      closeAppModal(); loadApplications();
+    }catch(e){alert('Delete failed: '+e.message);}
+    return;
+  }
   try{ await appsApiDelete(appsSelectedId); closeAppModal(); loadApplications(); }catch(e){ alert('Delete failed: '+e.message); }
 }
 window.openApplications=openApplications; window.loadApplications=loadApplications; window.appsSetFilter=appsSetFilter;
 window.openApplication=openApplication; window.appsSetStatus=appsSetStatus; window.appsSetRating=appsSetRating;
 window.closeAppModal=closeAppModal; window.saveApplication=saveApplication; window.deleteApplication=deleteApplication;
+function openManualAdd(){
+  var modal=document.getElementById('maModal'); if(!modal) return;
+  modal.style.display='flex';
+  document.getElementById('ma-name').value='';
+  document.getElementById('ma-email').value='';
+  document.getElementById('ma-pos').value='';
+  document.getElementById('ma-date').value=new Date().toISOString().slice(0,10);
+  ['ma-q1','ma-q2','ma-q3','ma-q4','ma-q5','ma-q6','ma-q7'].forEach(function(id){ document.getElementById(id).value=''; });
+}
+function closeManualAdd(){ var m=document.getElementById('maModal'); if(m)m.style.display='none'; }
+function saveManualApp(){
+  var name=document.getElementById('ma-name').value.trim();
+  var email=document.getElementById('ma-email').value.trim();
+  var pos=document.getElementById('ma-pos').value;
+  if(!name){alert('Please enter a name.');return;}
+  if(!pos){alert('Please select a position.');return;}
+  var dateVal=document.getElementById('ma-date').value;
+  var app={
+    id:Date.now().toString(), name:name, email:email, position:pos,
+    appliedAt:dateVal?new Date(dateVal).toISOString():new Date().toISOString(),
+    answers:{
+      q1:document.getElementById('ma-q1').value.trim(),
+      q2:document.getElementById('ma-q2').value.trim(),
+      q3:document.getElementById('ma-q3').value.trim(),
+      q4:document.getElementById('ma-q4').value.trim(),
+      q5:document.getElementById('ma-q5').value.trim(),
+      q6:document.getElementById('ma-q6').value.trim(),
+      q7:document.getElementById('ma-q7').value.trim()
+    },
+    status:'new', rating:0, notes:'', manualEntry:true
+  };
+  if(typeof appsApiAdd==='function'){
+    appsApiAdd(app).then(function(){
+      var nn=document.getElementById('notif'); if(nn){nn.textContent=name+' added ✓';nn.classList.add('on');setTimeout(function(){nn.classList.remove('on');},2000);}
+      closeManualAdd(); openApplications();
+    }).catch(function(e){alert('Save failed: '+e.message);});
+  } else {
+    try{
+      var all=JSON.parse(localStorage.getItem('distrik_applications')||'[]');
+      all.push(app);
+      localStorage.setItem('distrik_applications',JSON.stringify(all));
+      var nn=document.getElementById('notif'); if(nn){nn.textContent=name+' added ✓';nn.classList.add('on');setTimeout(function(){nn.classList.remove('on');},2000);}
+      closeManualAdd(); openApplications();
+    }catch(e){alert('Save failed: '+e.message);}
+  }
+}
+function openImportCode(){ var m=document.getElementById('importCodeModal'); if(m){document.getElementById('ic-input').value='';m.style.display='flex';} }
+function closeImportCode(){ var m=document.getElementById('importCodeModal'); if(m)m.style.display='none'; }
+function doImportCode(){
+  var raw=(document.getElementById('ic-input')||{}).value.trim().replace(/\s+/g,'');
+  if(!raw){alert('Paste the import code from the email.');return;}
+  var app;
+  try{
+    app=JSON.parse(decodeURIComponent(escape(atob(raw))));
+    if(!app||!app.name||!app.id) throw new Error('invalid');
+  }catch(e){alert('Invalid import code. Paste the full DASHBOARD_IMPORT_CODE from the email.');return;}
+  if(!app.status)app.status='new'; if(!app.rating)app.rating=0; if(!app.notes)app.notes='';
+  var doNotify=function(name){
+    var nn=document.getElementById('notif'); if(nn){nn.textContent=name+"'s application imported ✓";nn.classList.add('on');setTimeout(function(){nn.classList.remove('on');},2200);}
+    closeImportCode(); openApplications();
+  };
+  if(typeof appsApiAdd==='function'){
+    appsApiAdd(app).then(function(){doNotify(app.name);}).catch(function(e){alert('Import failed: '+e.message);});
+  } else {
+    try{
+      var all=JSON.parse(localStorage.getItem('distrik_applications')||'[]');
+      if(!all.find(function(x){return x.id===app.id;})){ all.push(app); localStorage.setItem('distrik_applications',JSON.stringify(all)); }
+      doNotify(app.name);
+    }catch(e){alert('Import failed: '+e.message);}
+  }
+}
+window.openManualAdd=openManualAdd; window.closeManualAdd=closeManualAdd; window.saveManualApp=saveManualApp;
+window.openImportCode=openImportCode; window.closeImportCode=closeImportCode; window.doImportCode=doImportCode;
 
 function baliNow(){
   return new Date(new Date().toLocaleString('en-US', {timeZone: BALI_TZ}));
@@ -8338,11 +8611,47 @@ function loadSalesDataFromStorage(){
 // ── BASE ROSTER TEMPLATE ─────────────────────────────────────────
 const TEMPLATE_KEY = 'distrik_roster_template';
 
-function saveAsTemplate(){
-  if(!confirm('Save current week as the base template? This will be the default roster going forward.')) return;
-  localStorage.setItem(TEMPLATE_KEY, JSON.stringify(grid));
+// Save ONLY this specific date's roster — does not touch any other day or the template
+function saveDay(){
+  const dateKey = getDateKey(activeDay, rosterWeekOffset);
+  dailyOverrides[dateKey] = JSON.parse(JSON.stringify(grid[DAYS[activeDay]]));
+  _gridDirty = false;
+  saveAll();
   const n=document.getElementById('notif');
-  if(n){n.textContent='Base template saved ✓';n.classList.add('on');setTimeout(()=>n.classList.remove('on'),2500);}
+  if(n){n.textContent=DAYS[activeDay]+' '+dateKey+' saved ✓';n.classList.add('on');setTimeout(()=>n.classList.remove('on'),2500);}
+}
+
+let _copiedDayGrid=null,_copiedDayLabel='';
+function copyDay(){
+  _copiedDayGrid = JSON.parse(JSON.stringify(grid[DAYS[activeDay]]));
+  _copiedDayLabel = DAYS[activeDay]+' '+getDateKey(activeDay, rosterWeekOffset);
+  const pb=document.getElementById('pasteDayBtn');if(pb)pb.style.display='';
+  const n=document.getElementById('notif');
+  if(n){n.textContent=_copiedDayLabel+' copied — go to another day and press Paste day';n.classList.add('on');setTimeout(()=>n.classList.remove('on'),4000);}
+}
+function pasteDay(){
+  if(!_copiedDayGrid){return;}
+  const toKey=getDateKey(activeDay, rosterWeekOffset);
+  if(!confirm('Paste '+_copiedDayLabel+' roster onto '+DAYS[activeDay]+' '+toKey+'?\nThis will replace the current roster for this date.')) return;
+  grid[DAYS[activeDay]] = JSON.parse(JSON.stringify(_copiedDayGrid));
+  _gridDirty = true;
+  buildGrid(); buildTS(); saveAll();
+  const n=document.getElementById('notif');
+  if(n){n.textContent='Roster pasted to '+DAYS[activeDay]+' '+toKey+' ✓';n.classList.add('on');setTimeout(()=>n.classList.remove('on'),2500);}
+}
+
+function saveAsTemplate(){
+  if(!confirm('Save current week layout as the base template?\n\nThis sets what future weeks look like by default.\nIt will NOT change any weeks that already have saved data.')) return;
+  // Snapshot the FULL week from grid (Mon-Sun) as the new base template
+  // We reconstruct a full-week snapshot using the current grid (which loadGridFromData filled)
+  const fullWeek = {};
+  DAYS.forEach(dayName => { fullWeek[dayName] = JSON.parse(JSON.stringify(grid[dayName])); });
+  _baseGrid = fullWeek; // new base — applies to any future date with no dailyOverrides entry
+  localStorage.setItem(TEMPLATE_KEY, JSON.stringify(fullWeek));
+  _gridDirty = false; // template save does not create a date override
+  saveAll(); // persists _baseGrid as data.grid so new weeks inherit it
+  const n=document.getElementById('notif');
+  if(n){n.textContent='Base template saved ✓ — future weeks with no data will use this schedule';n.classList.add('on');setTimeout(()=>n.classList.remove('on'),3000);}
 }
 
 function loadTemplate(){
@@ -8636,10 +8945,11 @@ function downloadPLReport(period, which){
     const bpjsEmp=Math.round(payroll*0.04);
     const pph21  =Math.round(payroll*0.05);
     // Café revenue is stored GROSS (subtotal + service charge + PBJT). Derive the components.
-    const cafeDiv=1+TAX_CFG.cafeService+TAX_CFG.cafePBJT;
-    const fuelSubtotal=Math.round(fuelRev/cafeDiv);            // food/drink value ex tax & service charge
-    const pbjt   =Math.round(fuelSubtotal*TAX_CFG.cafePBJT);   // PBJT collected (pass-through to regency)
+    // PBJT base = subtotal + service charge, so divisor = (1+service)*(1+PBJT)
+    const cafeDiv=(1+TAX_CFG.cafeService)*(1+TAX_CFG.cafePBJT);
+    const fuelSubtotal=Math.round(fuelRev/cafeDiv);            // food/drink value ex service charge & PBJT
     const cafeServiceCharge=Math.round(fuelSubtotal*TAX_CFG.cafeService);
+    const pbjt   =Math.round((fuelSubtotal+cafeServiceCharge)*TAX_CFG.cafePBJT); // PBJT on subtotal+service
     const cafeRevenue=fuelRev-pbjt;                            // Distrik café turnover (subtotal + service charge)
     const operatingProfit=grossProfit-payroll-bpjsEmp;
     // ── Revenue-model split (agent vs principal) ──
@@ -9224,6 +9534,19 @@ function clearAllData(){
 }
 window.clearAllData = clearAllData;
 
+function clearRostersBefore(cutoffStr){
+  // cutoffStr e.g. '2026-08-01' — deletes all dailyOverrides with a date key strictly before this date
+  if(!cutoffStr) cutoffStr = '2026-08-01';
+  const keys = Object.keys(dailyOverrides).filter(k => k < cutoffStr);
+  if(keys.length === 0){ alert('No roster data found before ' + cutoffStr + '. Nothing to clear.'); return; }
+  if(!confirm('Clear all rostered days before ' + cutoffStr + '?\n\nThis will permanently delete ' + keys.length + ' day(s) of roster data:\n' + keys.slice(0,8).join('\n') + (keys.length>8?'\n…and '+(keys.length-8)+' more':'')+'\n\nThis cannot be undone.')) return;
+  keys.forEach(k => delete dailyOverrides[k]);
+  saveAll();
+  const n = document.getElementById('notif');
+  if(n){ n.textContent = keys.length + ' old roster day(s) cleared ✓'; n.classList.add('on'); setTimeout(()=>n.classList.remove('on'), 3000); }
+}
+window.clearRostersBefore = clearRostersBefore;
+
 function exportAllData(){
   const payload={
     _version:'distrik_backup_v1',
@@ -9339,10 +9662,23 @@ var CLINICAL_SERVICES = [
   {id:'cs5', name:'Peptide Consultation',rrp:1000000, cost:0,      price:900000,  dur:30},
   {id:'cs6', name:'TRT Monitoring',      rrp:1200000, cost:400000, price:1100000, dur:30},
 ];
+var CLINICAL_ADDONS = [
+  {id:'ca1', name:'Master Antioxidant 600mg',        price:350000},
+  {id:'ca2', name:'Youth Renewal Factor 2ml',        price:750000},
+  {id:'ca3', name:'L-Carnitine 5ml',                 price:1500000},
+  {id:'ca4', name:'Cellular Coenzyme Support 100mg',  price:1500000},
+  {id:'ca5', name:'Cellular Coenzyme Support 250mg',  price:3750000},
+  {id:'ca6', name:'Vitamin C 3g + Collagen',         price:250000},
+  {id:'ca7', name:'Vitamin C 2g + Zinc 5ml',         price:230000},
+  {id:'ca8', name:'Magnesium 1ml',                   price:100000},
+  {id:'ca9', name:'Electrolytes / Saline 500ml',     price:100000},
+];
 var NURSE_WINDOW_SLOTS = ['Tue 09:30','Tue 11:00','Thu 10:00','Thu 12:30','Sat 09:30','Sat 12:00'];
 var clinSel=null, clinType=null, clinIntake=false, clinWindow=null, clinRoom=null, clinPay='card', clinDone=false, clinDoneHold=false;
 var clinEditingId=null, clinEditingDate=null;
 var clinOnline=false; // online booking → take 50% deposit, balance on arrival
+var clinPressure=''; // 'light' | 'medium' | 'firm'
+var clinPayType='full'; // 'deposit' | 'full'
 var clinPatient='', clinEmail='', clinWhatsapp='', clinTime='';
 var clinDate=(typeof baliNow==='function'?baliNow():new Date());
 var clinGroupOpen={recovery:true,clinical:true};
@@ -9373,9 +9709,11 @@ function renderClinMiniCal(){
   var selY=clinDate.getFullYear(),selM=clinDate.getMonth(),selD=clinDate.getDate();
   var DOW=['M','T','W','T','F','S','S'];
   var bkDays={};
+  var holdDays={};
   try{
     var dk=vy+'-'+(vm<9?'0':'')+(vm+1);
     Object.keys(recoveryData||{}).forEach(function(k){ if(k.indexOf(dk)===0&&recoveryData[k]&&(recoveryData[k].bookings||[]).length) bkDays[parseInt(k.split('-')[2])]=true; });
+    (_bkReqs||[]).forEach(function(r){ if(r.date&&r.date.indexOf(dk)===0) holdDays[parseInt(r.date.split('-')[2])]=true; });
   }catch(e){}
   var h='<div class="clin-mini-cal"><div style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#56565b;margin-bottom:8px;">2 · Date</div><div class="clin-mc-hdr"><button class="clin-mc-nav" onclick="clinCalMonth(-1)">‹</button><span class="clin-mc-month">'+MONTHS[vm]+' '+vy+'</span><button class="clin-mc-nav" onclick="clinCalMonth(1)">›</button></div><div class="clin-mc-grid">';
   DOW.forEach(function(d){ h+='<span class="clin-mc-dow">'+d+'</span>'; });
@@ -9384,8 +9722,9 @@ function renderClinMiniCal(){
     var isSel=(vy===selY&&vm===selM&&day===selD);
     var isToday=(vy===ty&&vm===tm&&day===td);
     var hasBk=!!bkDays[day];
+    var hasHold=!!holdDays[day];
     var ds=vy+'-'+(vm<9?'0':'')+(vm+1)+'-'+(day<10?'0':'')+day;
-    var cls='clin-mc-day'+(isToday?' today':'')+(isSel?' sel':'')+(hasBk?' has-bk':'');
+    var cls='clin-mc-day'+(isToday?' today':'')+(isSel?' sel':'')+(hasBk?' has-bk':'')+(hasHold?' has-hold':'');
     h+='<button class="'+cls+'" onclick="clinSetDate(\''+ds+'\')">'+day+'</button>';
   }
   h+='</div></div>';
@@ -9397,21 +9736,40 @@ function clinFmt(n){ return 'IDR '+Math.round(n||0).toLocaleString('id-ID'); }
 function clinSetText(id,t){ var e=document.getElementById(id); if(e) e.textContent=t; }
 function clinSvc(){ if(!clinSel) return null; return (clinType==='clinical'?CLINICAL_SERVICES:SERVICES).find(function(x){return x.id===clinSel;}); }
 
-/* Who's in what room today — pulled from the Weekly Roster (Therapy zone) */
+/* Who's in what room today — cross-referenced against Roster + Room Settings */
 function getRoomsToday(){
   var out=[];
   try{
     var dayName=clinDayName();
     var allRooms=(typeof ROOMS!=='undefined'?ROOMS:[]);
-    // Exactly 3 therapy rooms
+    var dk=clinKey();
+    var _dayData=(typeof dailyOverrides!=='undefined'&&dailyOverrides[dk])?dailyOverrides[dk]:((typeof grid!=='undefined'&&grid[dayName])||null);
+
+    // Build set of staff IDs rostered in non-Therapy zones today — they cannot be therapy staff
+    var otherZoneStaff={};
+    ['Fuel','Reception','Supply'].forEach(function(zid){
+      var zrows=(_dayData&&_dayData[zid])||[];
+      zrows.forEach(function(row){ if(!Array.isArray(row)) return; row.forEach(function(cell){ if(cell&&!isBreakCell(cell)) otherZoneStaff[staffId(cell)]=zid; }); });
+    });
+
     var therapyRooms=allRooms.filter(function(r){return r.type==='therapy';}).slice(0,3);
-    // Fill to 3 if ROOMS doesn't have enough
     while(therapyRooms.length<3) therapyRooms.push({name:'Therapy Room '+(therapyRooms.length+1),type:'therapy'});
-    var grows=(typeof grid!=='undefined'&&grid[dayName]&&grid[dayName]['Therapy'])||[];
+    var grows=(_dayData&&_dayData['Therapy'])||[];
     therapyRooms.forEach(function(room,ri){
       var row=grows[ri]||[];
+      // room.staff from Settings defines who is eligible for this room; empty = any
+      var roomStaff=(room.staff&&room.staff.length)?room.staff:null;
       var sc=null,start=null,end=null;
-      row.forEach(function(cell,si){ if(cell&&!isBreakCell(cell)){ if(sc===null){sc=staffId(cell);start=si;} end=si+1; } });
+      row.forEach(function(cell,si){
+        if(cell&&!isBreakCell(cell)){
+          var sid=staffId(cell);
+          // Skip: this person is rostered in another zone today
+          if(otherZoneStaff[sid]) return;
+          // Skip: room has a staff list and this person isn't on it
+          if(roomStaff&&roomStaff.indexOf(sid)<0) return;
+          if(sc===null){sc=sid;start=si;} end=si+1;
+        }
+      });
       var st=(sc!==null&&typeof getStaff==='function')?getStaff(sc):null;
       out.push({room:room.name, therapist:st?st.name:null, therapistId:(sc!==null?sc:null), time:(sc!==null?tl(slotToH(start))+'–'+tl(slotToH(end)):null), startH:(sc!==null?slotToH(start):null), endH:(sc!==null?slotToH(end):null), type:'therapy'});
     });
@@ -9426,22 +9784,32 @@ function getRoomsToday(){
 }
 function roomTherapist(roomName){ var r=getRoomsToday().find(function(x){return x.room===roomName;}); return r&&r.therapist?r:null; }
 function todayBookings(){ try{ var dk=clinKey(); return (recoveryData[dk]&&recoveryData[dk].bookings)||[]; }catch(e){ return []; } }
-function todayBookingCount(){ var n=todayBookings().filter(function(b){return b.status!=='cancelled';}).length; return n+' booking'+(n!==1?'s':''); }
+function todayBookingCount(){
+  var local=todayBookings().filter(function(b){return b.status!=='cancelled';}).length;
+  var dk=clinKey();
+  var online=(_bkReqs||[]).filter(function(r){return r.date===dk;}).length;
+  var n=local+online;
+  return n+' booking'+(n!==1?'s':'');
+}
 function renderTodayBookings(){
   var bks=todayBookings().filter(function(b){return b.status!=='cancelled';});
-  if(!bks.length) return '<div class="clin-placeholder" style="padding:8px 0 0;text-align:left;">No bookings yet '+clinDateWord()+'.</div>';
-  return bks.slice().sort(function(a,b){return (a.start||a.time||'').localeCompare(b.start||b.time||'');}).map(function(b){
+  var dk=clinKey();
+  var online=(_bkReqs||[]).filter(function(r){return r.date===dk;});
+  if(!bks.length&&!online.length) return '<div class="clin-placeholder" style="padding:8px 0 0;text-align:left;">No bookings yet '+clinDateWord()+'.</div>';
+  var localHtml=bks.slice().sort(function(a,b){return (a.start||a.time||'').localeCompare(b.start||b.time||'');}).map(function(b){
     var det = b.clinical ? (b.window||'Clinical') : (b.roomName||b.room||'');
     var isHold = b.status==='hold';
-    var badge = b.clinical ? (isHold?'<span class="clin-bk-hold">Hold · intake</span>':'<span class="clin-bk-tag">ClinicTerrain</span>') : '';
+    var badge = b.clinical ? (isHold?'<span class="clin-bk-hold">Hold · pending</span>':'<span class="clin-bk-tag">Human+</span>') : '';
     var svcName = b.serviceName||b.service||'';
     var id=(b.id||'').replace(/'/g,'');
     var pay='';
     if(b.online){ pay = b.balancePaid
       ? '<span class="clin-bk-pay">Online · paid in full</span>'
       : '<span class="clin-bk-pay due">Online · deposit IDR '+(b.deposit||0).toLocaleString('id-ID')+' paid · balance IDR '+(b.balanceDue||0).toLocaleString('id-ID')+' on arrival</span>'; }
+    var _bDepLink=(b.online&&!b.depositPaid&&getXenditLink())?'<button class="clin-bk-act go" onclick="resendDepositLink(\''+id+'\')">Send deposit link &#x2192;</button>':'';
     var acts='<div class="clin-bk-acts">'
       +(isHold?'<button class="clin-bk-act go" onclick="clinConfirmHold(\''+id+'\')">Intake back · confirm ✓</button>':'')
+      +_bDepLink
       +((b.online&&!b.balancePaid)?'<button class="clin-bk-act go" onclick="clinCollectBalance(\''+id+'\')">Check in · collect balance</button>':'')
       +'<button class="clin-bk-act" onclick="clinEditBooking(\''+id+'\')">Edit / move</button>'
       +'<button class="clin-bk-act danger" onclick="clinCancelBooking(\''+id+'\')">Cancel</button>'
@@ -9452,16 +9820,209 @@ function renderTodayBookings(){
       +'<span class="clin-bk-det">'+det+' '+badge+'</span></div>'
       +acts+'</div>';
   }).join('');
+  var onlineHtml=online.slice().sort(function(a,b){return (a.time||'').localeCompare(b.time||'');}).map(function(r){
+    var id=_escHtml(r._id||'');
+    var label=_escHtml(_onreqLabel(r));
+    var client=_escHtml(r.name||'Guest')+(r.phone?' · '+_escHtml(r.phone):'');
+    return '<div class="clin-bk-row2" style="border-left:3px solid #7c3aed;background:#f5f3ff;">'
+      +'<div class="clin-bk-line">'
+      +'<span class="clin-bk-time">'+_escHtml(r.time||'—')+'</span>'
+      +'<span class="clin-bk-svc">'+label+'<em>'+client+'</em>'
+      +'<span style="display:inline-block;background:#7c3aed;color:#fff;font-family:\'Space Mono\',monospace;font-size:7px;letter-spacing:.14em;padding:2px 6px;text-transform:uppercase;margin-left:6px;vertical-align:middle;">TENTATIVE</span>'
+      +'</span></div>'
+      +'<div class="clin-bk-acts">'
+      +'<button class="clin-bk-act go" onclick="acceptOnlineBooking(\''+id+'\')">✓ Confirm</button>'
+      +'<button class="clin-bk-act" onclick="suggestAlternative(\''+id+'\')">Alt. Time</button>'
+      +'<button class="clin-bk-act danger" onclick="declineOnlineBooking(\''+id+'\')">✕ Decline</button>'
+      +'</div></div>';
+  }).join('');
+  return localHtml+onlineHtml;
 }
 
-function initRecovery(){ if(typeof loadClinical==='function') loadClinical(); clinSel=null;clinType=null;clinIntake=false;clinWindow=null;clinRoom=null;clinPay='card';clinDone=false;clinDoneHold=false;clinEditingId=null;clinEditingDate=null;clinOnline=false;clinPatient='';clinEmail='';clinWhatsapp='';clinTime=''; clinDate=(typeof baliNow==='function'?baliNow():new Date()); clinViewYear=null;clinViewMonth=null; clinGroupOpen={recovery:true,clinical:true}; clinSyncDateUI(); renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); }
+function initRecovery(){ if(typeof loadClinical==='function') loadClinical(); clinSel=null;clinType=null;clinIntake=false;clinWindow=null;clinRoom=null;clinPay='card';clinDone=false;clinDoneHold=false;clinEditingId=null;clinEditingDate=null;clinOnline=false;clinPressure='';clinPayType='full';clinPatient='';clinEmail='';clinWhatsapp='';clinTime=''; clinDate=(typeof baliNow==='function'?baliNow():new Date()); clinViewYear=null;clinViewMonth=null; clinGroupOpen={recovery:true,clinical:true}; clinSyncDateUI(); renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); startBookingListener(); }
 window.initRecovery=initRecovery;
+
+// ── Online Booking Requests (public_bookings Firestore collection) ──────
+function _escHtml(s){return(''+(s==null?'':s)).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function _getPublicDb(){try{return firebase.apps.length?firebase.apps[0].firestore():null;}catch(e){return null;}}
+
+// ── Booking type helpers ─────────────────────────────────────────────
+var _bkReqs=[];
+function _onreqLabel(r){
+  if(r.type==='iv_therapy'){
+    var lbl=r.protocol||'IV Therapy';
+    if(r.addons&&r.addons.length) lbl+=' <span style="font-size:9px;opacity:.7">+ '+_escHtml(r.addons.join(', '))+'</span>';
+    return lbl;
+  }
+  if(r.type==='blood_work'){ var p=r.package||''; return p?p.charAt(0).toUpperCase()+p.slice(1).toLowerCase()+' Blood Work':'Blood Work'; }
+  return r.pathway||r.service||'Booking';
+}
+function _onreqSub(r){
+  if(r.type==='blood_work'){ var pts=[]; if(r.gender)pts.push(r.gender); if(r.price)pts.push('IDR '+parseInt(r.price,10).toLocaleString('id-ID')); return pts.join(' · '); }
+  var pts=[]; if(r.duration)pts.push(r.duration+' min'); if(r.pressure)pts.push(r.pressure); if(r.price)pts.push(r.price); return pts.join(' · ');
+}
+function _onreqWaMsg(r,action,altTimes){
+  var n=r.name||'there', svc=_onreqLabel(r), dt=(r.date||'')+(r.time?' at '+r.time:'');
+  if(action==='confirm') return 'Hi '+n+' — DISTRIK here! Your '+svc+' booking on '+dt+' is confirmed. We’re looking forward to seeing you 🙏';
+  if(action==='decline') return 'Hi '+n+' — DISTRIK here. Unfortunately we’re unable to confirm your '+svc+' booking for '+dt+'. Please reach out to us to arrange an alternative time.';
+  if(action==='suggest') return 'Hi '+n+' — DISTRIK here. Your requested '+svc+' on '+(r.date||'')+' at '+(r.time||'')+' isn’t available. Could you do '+altTimes+' instead? Please let us know!';
+  return '';
+}
+
+function _updateBkPill(count){
+  var pill=document.getElementById('bk-notif-pill');
+  var span=document.getElementById('bk-notif-count');
+  if(!pill) return;
+  if(count>0){ pill.style.display='flex'; if(span) span.textContent=count+(count===1?'':'s'); }
+  else { pill.style.display='none'; }
+}
+
+function _showBkAlertIfNeeded(){
+  if(!_bkReqs||!_bkReqs.length) return;
+  var overlay=document.getElementById('bk-alert-overlay'); if(!overlay) return;
+  var r=_bkReqs[0];
+  var svcEl=document.getElementById('bk-alert-service');
+  var metaEl=document.getElementById('bk-alert-meta');
+  var clientEl=document.getElementById('bk-alert-client');
+  var countEl=document.getElementById('bk-alert-count');
+  if(svcEl) svcEl.textContent=_onreqLabel(r);
+  if(metaEl) metaEl.textContent=(r.date||'?')+' at '+(r.time||'?');
+  if(clientEl) clientEl.textContent=(r.name||'Guest')+(r.phone?' · '+r.phone:'');
+  if(countEl) countEl.textContent=_bkReqs.length>1?'+'+(_bkReqs.length-1)+' more pending':'1 pending';
+  overlay.classList.add('on');
+}
+function bkAlertDismiss(){
+  var overlay=document.getElementById('bk-alert-overlay'); if(overlay) overlay.classList.remove('on');
+}
+function bkAlertGoToReview(){
+  bkAlertDismiss();
+  switchTab('recovery');
+}
+window.bkAlertDismiss=bkAlertDismiss;
+window.bkAlertGoToReview=bkAlertGoToReview;
+window._showBkAlertIfNeeded=_showBkAlertIfNeeded;
+
+// ── Real-time listener ────────────────────────────────────────────────
+var _bkListenerReady=false,_bkListener=null;
+function startBookingListener(){
+  var db=_getPublicDb();
+  if(!db){ setTimeout(startBookingListener,3000); return; }
+  if(_bkListener) return;
+  if(window.Notification&&Notification.permission==='default') Notification.requestPermission();
+  _bkListenerReady=false;
+  // No orderBy — avoids requiring a composite Firestore index.
+  // Sort is done client-side below. Single-field index on 'status' is auto-created.
+  _bkListener=db.collection('public_bookings')
+    .where('status','==','tentative')
+    .limit(50)
+    .onSnapshot(function(snap){
+      var reqs=[];
+      snap.forEach(function(doc){ var d=doc.data(); d._id=doc.id; reqs.push(d); });
+      // Sort newest first client-side
+      reqs.sort(function(a,b){
+        function ms(r){ var t=r.submittedAt; if(!t)return 0; if(t.toMillis)return t.toMillis(); return (t.seconds||0)*1000; }
+        return ms(b)-ms(a);
+      });
+      renderOnlineRequests(reqs);
+      if(_bkListenerReady){
+        snap.docChanges().forEach(function(change){
+          if(change.type==='added'){
+            var r=change.doc.data();
+            if(window.Notification&&Notification.permission==='granted')
+              new Notification('New Booking — DISTRIK',{body:(r.name||'Guest')+' — '+_onreqLabel(r)+' on '+(r.date||'?')+' at '+(r.time||'?')});
+          }
+        });
+      }
+      _bkListenerReady=true;
+    },function(e){
+      console.warn('booking listener error:',e.message);
+      // Reset so the refresh button can retry
+      _bkListener=null;
+    });
+}
+window.startBookingListener=startBookingListener;
+window.loadOnlineRequests=function(){ startBookingListener(); };
+
+function renderOnlineRequests(reqs){
+  var bar=document.getElementById('online-requests-bar');
+  var list=document.getElementById('onreq-list');
+  var cnt=document.getElementById('onreq-count');
+  if(!bar||!list) return;
+  _bkReqs=reqs;
+  _updateBkPill(reqs.length);
+  // Refresh recovery panel booking list so tentative holds appear in the date view
+  var _activePanel=document.querySelector('.panel.on');
+  var _activePanelId=_activePanel?_activePanel.id:'';
+  if(_activePanelId==='panel-recovery'&&typeof renderClinicalBooking==='function') renderClinicalBooking();
+  // Show alert modal if not on Supply tab
+  if(reqs.length&&_activePanelId!=='panel-supply') _showBkAlertIfNeeded();
+  if(!reqs.length){ bar.style.display='none'; return; }
+  bar.style.display='';
+  if(cnt) cnt.textContent=reqs.length;
+  list.innerHTML=reqs.map(function(r){
+    var label=_escHtml(_onreqLabel(r));
+    var sub=_escHtml(_onreqSub(r));
+    var id=_escHtml(r._id);
+    return '<div class="onreq-card" data-id="'+id+'">'
+      +'<div class="onreq-info">'
+        +'<div class="onreq-pathway">'+label+(sub?'<span>'+sub+'</span>':'')+'</div>'
+        +'<div class="onreq-meta">'+_escHtml(r.date||'?')+' at '+_escHtml(r.time||'?')+'</div>'
+        +'<div class="onreq-client">'+_escHtml(r.name||'Unknown')+(r.phone?' &nbsp;&middot;&nbsp; '+_escHtml(r.phone):'')+'</div>'
+        +'<div class="onreq-ref">ref: '+id+'</div>'
+      +'</div>'
+      +'<div class="onreq-actions">'
+        +'<button class="onreq-btn accept" onclick="acceptOnlineBooking(\''+id+'\')">&#x2713; Confirm</button>'
+        +'<button class="onreq-btn suggest" onclick="suggestAlternative(\''+id+'\')">Alt. Time</button>'
+        +'<button class="onreq-btn decline" onclick="declineOnlineBooking(\''+id+'\')">&#x2715; Decline</button>'
+      +'</div>'
+    +'</div>';
+  }).join('');
+}
+
+function _onreqUpdateStatus(id,status,cb){
+  var db=_getPublicDb(); if(!db) return;
+  var update={status:status};
+  try{ update[status+'At']=firebase.firestore.FieldValue.serverTimestamp(); }catch(e){}
+  db.collection('public_bookings').doc(id).update(update)
+    .then(function(){ if(cb) cb(); })
+    .catch(function(e){ alert('Update failed: '+e.message); });
+}
+function _findReq(id){ for(var i=0;i<_bkReqs.length;i++){ if(_bkReqs[i]._id===id) return _bkReqs[i]; } return null; }
+
+function acceptOnlineBooking(id){
+  var r=_findReq(id); if(!r) return;
+  if(!confirm('Confirm booking for '+_escHtml(r.name||'this customer')+'?\n\nA WhatsApp confirmation will open for you to send.')) return;
+  _onreqUpdateStatus(id,'confirmed',function(){
+    var ph=(r.phone||'').replace(/\D/g,'');
+    if(ph) window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(_onreqWaMsg(r,'confirm')),'_blank');
+  });
+}
+function declineOnlineBooking(id){
+  var r=_findReq(id); if(!r) return;
+  if(!confirm('Decline booking for '+(r.name||'this customer')+'?\n\nA WhatsApp decline message will open for you to send.')) return;
+  _onreqUpdateStatus(id,'declined',function(){
+    var ph=(r.phone||'').replace(/\D/g,'');
+    if(ph) window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(_onreqWaMsg(r,'decline')),'_blank');
+  });
+}
+function suggestAlternative(id){
+  var r=_findReq(id); if(!r) return;
+  var alt=prompt('Suggest alternative times for '+_onreqLabel(r)+' (e.g. "10am or 2pm on '+r.date+'"):');
+  if(!alt||!alt.trim()) return;
+  var db=_getPublicDb(); if(!db) return;
+  db.collection('public_bookings').doc(id).update({note:'Alternatives suggested: '+alt.trim()}).catch(function(){});
+  var ph=(r.phone||'').replace(/\D/g,'');
+  if(ph) window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(_onreqWaMsg(r,'suggest',alt.trim())),'_blank');
+}
+window.acceptOnlineBooking=acceptOnlineBooking;
+window.declineOnlineBooking=declineOnlineBooking;
+window.suggestAlternative=suggestAlternative;
 
 function svcCard(s,type){
   var sel=(clinSel===s.id&&clinType===type);
   var meta = type==='clinical' ? (s.dur+' min · RRP '+clinFmt(s.rrp)+' · Cost '+clinFmt(s.cost))
                                : (s.duration+' min · '+((s.rooms||[]).length)+' room'+(((s.rooms||[]).length)!==1?'s':''));
-  var tags = type==='clinical' ? '<span class="clin-tag">ClinicTerrain</span><span class="clin-tag req">Intake req.</span>'
+  var tags = type==='clinical' ? '<span class="clin-tag">Human+</span>'
                                : '<span class="clin-tag">'+(s.commission?'Commission '+s.commission+'%':'No commission')+'</span>';
   return '<div class="clin-card'+(sel?' sel':'')+'" onclick="selectService(\''+s.id+'\',\''+type+'\')">'
     +'<div class="clin-card-top"><div class="clin-name">'+s.name+'</div><div class="clin-price">'+clinFmt(s.price)+'</div></div>'
@@ -9480,12 +10041,12 @@ function renderClinicalServices(){
     +'</div>'
     +'<div class="clin-acc-body'+(rOpen?' open':'')+'">'+rSvcs.map(function(s){return svcCard(s,'recovery');}).join('')+'</div>'
     +'<div class="clin-acc-hdr" onclick="toggleClinGroup(\'clinical\')">'
-      +'<span class="clin-acc-title">Clinical · ClinicTerrain</span>'
+      +'<span class="clin-acc-title">Clinical · Human+</span>'
       +'<span><span class="clin-acc-count">'+cSvcs.length+'</span><span class="clin-acc-arrow'+(cOpen?' open':'')+'">›</span></span>'
     +'</div>'
     +'<div class="clin-acc-body'+(cOpen?' open':'')+'">'+cSvcs.map(function(s){return svcCard(s,'clinical');}).join('')+'</div>';
 }
-function selectService(id,type){ clinSel=id;clinType=type;clinIntake=false;clinWindow=null;clinRoom=null;clinDone=false;clinOnline=false;clinPatient='';clinEmail='';clinWhatsapp='';clinTime=''; renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); }
+function selectService(id,type){ clinSel=id;clinType=type;clinIntake=false;clinWindow=null;clinRoom=null;clinDone=false;clinOnline=false;clinPressure='';clinPayType='full';clinPatient='';clinEmail='';clinWhatsapp='';clinTime=''; renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); }
 window.selectService=selectService;
 
 // Which rooms can the currently-selected service be booked in (with roster therapist + eligibility)
@@ -9510,7 +10071,7 @@ function clinRoomsForService(){
     var isChair=room.type==='recovery';
     var info={id:room.id, name:room.name, color:room.color, type:room.type};
     if(clinType==='clinical'){
-      info.therapist='Nurse · ClinicTerrain'; info.time=null; info.eligible=true; info.note='external clinical calendar';
+      info.therapist='Nurse · Human+'; info.time=null; info.eligible=true; info.note='external clinical calendar';
     } else if(isChair){
       // recovery chairs are self-service / any staff — always available
       info.therapist=rost&&rost.therapist?rost.therapist:'Any staff'; info.time=rost?rost.time:null; info.eligible=true;
@@ -9635,25 +10196,36 @@ function renderClinicalBooking(){
   var roomLine;
   if(clinRoom){
     var rt=roomTherapist(clinRoom);
-    var who=clinType==='clinical'?'Nurse · ClinicTerrain':(rt?rt.therapist:'Any staff');
+    var who=clinType==='clinical'?'Nurse · Human+':(rt?rt.therapist:'Any staff');
     roomLine='<div class="clin-room-chosen"><div><div class="clin-rc-room">'+clinRoom+'</div><div class="clin-rc-who">'+who+'</div></div><div class="clin-rc-tick">✓</div></div>';
   } else {
     roomLine='<div class="clin-room-prompt">↑ Tap a '+(clinType==='clinical'?'recovery chair':'room')+' above to assign</div>';
   }
   if(clinType==='clinical'){
-    var windows=NURSE_WINDOW_SLOTS.map(function(w){ return '<button class="clin-win'+(clinWindow===w?' sel':'')+'" onclick="selectWindow(\''+w+'\')">'+w+'</button>'; }).join('');
+    var intakeBlock;
+    if(clinIntake){
+      intakeBlock='<div class="clin-intake done">'
+        +'<div class="clin-intake-h"><span>✓ Booking Approved</span><span class="clin-intake-st">Approved</span></div>'
+        +'<div class="clin-intake-b">Human+ confirmed &mdash; ready to book the session.</div>'
+        +'<button class="clin-intake-btn" style="background:#0A0A0A;margin-top:10px;" onclick="confirmClinical()">Confirm booking ✓</button>'
+        +'</div>';
+    } else {
+      intakeBlock='<div class="clin-intake">'
+        +'<div class="clin-intake-h"><span>Human+ Contact</span><span class="clin-intake-st">Pending</span></div>'
+        +'<div class="clin-intake-b">Contact Human+ to schedule this patient&rsquo;s clinical session. Mark as <b>Booking Approved</b> once nurse-confirmed.</div>'
+        +'<div style="display:flex;gap:6px;"><button class="clin-intake-btn" onclick="sendIntake()">Contact Human+ &#x2192;</button><button class="clin-intake-btn" style="background:#0A0A0A;" onclick="approveIntake()">Booking Approved ✓</button></div>'
+        +'</div>';
+    }
     el.innerHTML=renderClinMiniCal()+roomGridDiv+dateBar
       +'<div style="padding:0 16px 16px;">'
       +'<div class="clin-bk-hdr" style="margin-top:12px;">'+s.name+'</div>'
       +'<div class="clin-field"><label>3 · Recovery chair</label>'+roomLine+'</div>'
-      +'<div class="clin-field"><label>4 · Nurse window <span style="text-transform:none;color:#9a9a9e">· external clinical calendar</span></label><div class="clin-windows">'+windows+'</div></div>'
-      +'<div style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#56565b;margin:18px 0 10px;padding-top:14px;border-top:1px solid #f0f0f0;">5 · Patient details</div>'
+      +'<div style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#56565b;margin:18px 0 10px;padding-top:14px;border-top:1px solid #f0f0f0;">4 · Patient details</div>'
       +contactBlock
-      +'<div class="clin-intake'+(clinIntake?' done':'')+'"><div class="clin-intake-h"><span>'+(clinIntake?'✓ Intake approved':'Intake form')+'</span><span class="clin-intake-st">'+(clinIntake?'Approved':'Pending')+'</span></div><div class="clin-intake-b">'+(clinIntake?'Intake complete &amp; nurse-approved — ready to confirm.':'Send the patient their intake form. You can <b>hold the space now</b> and confirm once it&rsquo;s returned &amp; nurse-approved.')+'</div>'+(clinIntake?'':'<div style="display:flex;gap:6px;"><button class="clin-intake-btn" onclick="sendIntake()">Send intake form →</button><button class="clin-intake-btn" style="background:#0A0A0A;" onclick="approveIntake()">Mark approved ✓</button></div>')+'</div>'
+      +intakeBlock
       +'<div class="clin-tagline"><span>Internal tag</span><span class="clin-tag">Clinical Partner</span></div>'
       +'</div>';
   } else {
-    var stepHdr='<div style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#56565b;margin:18px 0 10px;padding-top:14px;border-top:1px solid #f0f0f0;">5 · Client details</div>';
     var timeField;
     if(!clinRoom){
       timeField='<div class="clin-field"><label>4 · Time</label><div class="clin-placeholder" style="padding:8px 0;text-align:left;">Pick a room above first.</div></div>';
@@ -9668,40 +10240,70 @@ function renderClinicalBooking(){
           +'</div></div>';
       }
     }
+    var pressureSep='<div style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#56565b;margin:18px 0 10px;padding-top:14px;border-top:1px solid #f0f0f0;">5 · Pressure</div>';
+    var pressureBlock=pressureSep+'<div class="clin-windows">'
+      +[['light','Light · Gentle recovery'],['medium','Medium · Balanced pressure'],['firm','Firm · Deep tissue release']].map(function(p){ return '<button class="clin-win'+(clinPressure===p[0]?' sel':'')+'" onclick="clinSetPressure(\''+p[0]+'\')">'+p[1]+'</button>'; }).join('')
+      +'</div>';
+    var clientSep='<div style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#56565b;margin:18px 0 10px;padding-top:14px;border-top:1px solid #f0f0f0;">6 · Client details</div>';
+    var svcPrice=s.price||0, dep50=Math.round(svcPrice*0.5);
+    var paymentSep='<div style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#56565b;margin:18px 0 10px;padding-top:14px;border-top:1px solid #f0f0f0;">7 · Payment</div>';
+    var paymentBlock=paymentSep+'<div class="clin-windows">'
+      +'<button class="clin-win'+(clinPayType==='deposit'?' sel':'')+'" onclick="clinSetPayType(\'deposit\')">Deposit 50% · '+(typeof clinFmt==='function'?clinFmt(dep50):'IDR '+dep50)+'</button>'
+      +'<button class="clin-win'+(clinPayType==='full'?' sel':'')+'" onclick="clinSetPayType(\'full\')">Full · '+(typeof clinFmt==='function'?clinFmt(svcPrice):'IDR '+svcPrice)+'</button>'
+      +'</div>';
     el.innerHTML=renderClinMiniCal()+roomGridDiv+dateBar
       +'<div style="padding:0 16px 16px;">'
       +'<div class="clin-bk-hdr" style="margin-top:12px;">'+s.name+'</div>'
       +'<div class="clin-field"><label>3 · Room &amp; therapist</label>'+roomLine+'</div>'
       +timeField
-      +stepHdr
+      +pressureBlock
+      +clientSep
       +contactBlock
+      +paymentBlock
       +'</div>';
   }
   buildClinRoomGrid();
   clinRestoreInputs();
 }
 function selectRoom(rn){ clinCaptureInputs(); clinRoom=rn; renderClinicalBooking(); renderClinicalOrder(); }
-function sendIntake(){ clinCaptureInputs(); var n=document.getElementById('notif'); if(n){n.textContent='Intake form sent to patient ✓';n.classList.add('on');setTimeout(function(){n.classList.remove('on');},2200);} renderClinicalBooking(); renderClinicalOrder(); }
+function sendIntake(){
+  clinCaptureInputs();
+  var name=clinPatient||'(patient not entered)';
+  var wa=(clinWhatsapp||'').replace(/\D/g,'');
+  var email=clinEmail||'';
+  var svc=clinSvc()?clinSvc().name:'?';
+  var date=clinDate?clinDate.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}):'?';
+  var msg='Hi HUMAN+ — please schedule a clinical session for '+name;
+  if(wa) msg+=' (WA: +'+wa+')';
+  if(email) msg+=' / '+email;
+  msg+='. Service: '+svc+' on '+date+'. Thank you!';
+  window.open('https://wa.me/6281237521662?text='+encodeURIComponent(msg),'_blank');
+  var n=document.getElementById('notif');
+  if(n){n.textContent='Human+ contacted ✓';n.classList.add('on');setTimeout(function(){n.classList.remove('on');},2500);}
+  renderClinicalBooking(); renderClinicalOrder();
+}
 function approveIntake(){ clinCaptureInputs(); clinIntake=true; renderClinicalBooking(); renderClinicalOrder(); }
 function selectWindow(w){ clinCaptureInputs(); clinWindow=w; renderClinicalBooking(); renderClinicalOrder(); }
 window.selectRoom=selectRoom; window.sendIntake=sendIntake; window.approveIntake=approveIntake; window.selectWindow=selectWindow;
 
 function renderClinicalOrder(){
   var el=document.getElementById('clin-order-body'); if(!el) return;
-  if(clinDone){ var dMsg=clinDoneHold?'Space held':'Booking confirmed'; var dIco=clinDoneHold?'<span style="color:#FF2D2D;">●</span>':'✓'; var dSub=clinDoneHold?'<div style="font-family:Space Mono,monospace;font-size:11px;color:#56565b;margin-top:8px;line-height:1.5;">Intake pending. Confirm from the bookings list once it&rsquo;s returned &amp; approved.</div>':''; el.innerHTML='<div class="clin-confirm"><div class="clin-confirm-ico">'+dIco+'</div><div class="clin-confirm-msg">'+dMsg+'</div>'+dSub+'<button class="clin-intake-btn" style="background:#0A0A0A;margin-top:14px;" onclick="initRecovery()">New booking</button></div>'; clinSetText('clin-subtotal','—'); clinSetText('clin-tax','—'); clinSetText('clin-total','—'); var b=document.getElementById('clin-confirm-btn'); if(b){b.disabled=true;b.textContent=clinDoneHold?'Held':'Booked';} return; }
+  if(clinDone){ var dMsg=clinDoneHold?'Tentative — intake pending':'Booking confirmed'; var dIco=clinDoneHold?'<span style="color:#FF2D2D;">●</span>':'✓'; var dSub=clinDoneHold?'<div style="font-family:Space Mono,monospace;font-size:11px;color:#56565b;margin-top:8px;line-height:1.5;">Chair reserved. Confirm once intake is returned &amp; approved.</div>':''; el.innerHTML='<div class="clin-confirm"><div class="clin-confirm-ico">'+dIco+'</div><div class="clin-confirm-msg">'+dMsg+'</div>'+dSub+'<button class="clin-intake-btn" style="background:#0A0A0A;margin-top:14px;" onclick="initRecovery()">New booking</button></div>'; clinSetText('clin-subtotal','—'); clinSetText('clin-tax','—'); clinSetText('clin-total','—'); var b=document.getElementById('clin-confirm-btn'); if(b){b.disabled=true;b.textContent=clinDoneHold?'Tentative':'Confirmed';} return; }
   if(!clinSel){ el.innerHTML='<div class="receipt-empty" style="padding:24px;text-align:center;color:#9a9a9e;font-family:Space Mono,monospace;font-size:11px;">No service selected</div>'; updateClinicalTotals(0); return; }
   var s=clinSvc();
   var lines='<div class="clin-oline"><span>'+s.name+'</span><span>'+clinFmt(s.price)+'</span></div>';
   if(clinType==='clinical'){
     lines+=(clinRoom?'<div class="clin-oline sub"><span>Recovery chair</span><span>'+clinRoom+'</span></div>':'')
-      +(clinWindow?'<div class="clin-oline sub"><span>Nurse window</span><span>'+clinWindow+'</span></div>':'')
-      +'<div class="clin-oline sub"><span>Clinician</span><span>Nurse · ClinicTerrain</span></div>'
+      +'<div class="clin-oline sub"><span>Clinician</span><span>Nurse · Human+</span></div>'
       +'<div class="clin-oline sub"><span>Internal tag</span><span>Clinical Partner</span></div>';
   } else {
     var rt=clinRoom?roomTherapist(clinRoom):null;
+    var _svcP=(clinSvc()||{}).price||0;
     lines+=(clinRoom?'<div class="clin-oline sub"><span>Room</span><span>'+clinRoom+'</span></div>':'')
       +(rt?'<div class="clin-oline sub"><span>Therapist</span><span>'+rt.therapist+'</span></div>':'')
-      +(clinTime?'<div class="clin-oline sub"><span>Time</span><span>'+clinDate.toLocaleDateString('en-US',{weekday:'short'})+' '+clinTime+'</span></div>':'');
+      +(clinTime?'<div class="clin-oline sub"><span>Time</span><span>'+clinDate.toLocaleDateString('en-US',{weekday:'short'})+' '+clinTime+'</span></div>':'')
+      +(clinPressure?'<div class="clin-oline sub"><span>Pressure</span><span style="text-transform:capitalize;">'+clinPressure+'</span></div>':'')
+      +(clinPayType?'<div class="clin-oline sub"><span>Payment</span><span>'+(clinPayType==='deposit'?'Deposit 50% · '+(typeof clinFmt==='function'?clinFmt(Math.round(_svcP*0.5)):'IDR '+Math.round(_svcP*0.5)):'Full · '+(typeof clinFmt==='function'?clinFmt(_svcP):'IDR '+_svcP))+'</span></div>':'');
   }
   el.innerHTML=lines;
   var ob=document.getElementById('clin-online'); if(ob) ob.checked=clinOnline;
@@ -9713,22 +10315,47 @@ function updateClinicalTotals(base){
   var tax=0, total=base; // Recovery/spa & clinical: NON-PKP, no PBJT → no consumption tax
   clinSetText('clin-subtotal',clinFmt(base)); clinSetText('clin-tax',clinFmt(tax)); clinSetText('clin-total',clinFmt(total));
   var dep=Math.round(total*0.5), bal=total-dep;
+  var isDeposit=(clinPayType==='deposit')||clinOnline;
   var dl=document.getElementById('clin-deposit-lines');
-  if(dl) dl.innerHTML=(clinOnline&&clinSel)?('<div class="clin-deposit-line due"><span>Deposit due now (50%)</span><span>'+clinFmt(dep)+'</span></div><div class="clin-deposit-line bal"><span>Balance on arrival (50%)</span><span>'+clinFmt(bal)+'</span></div>'):'';
+  if(dl){
+    var depHtml=(isDeposit&&clinSel)?('<div class="clin-deposit-line due"><span>Deposit due now (50%)</span><span>'+clinFmt(dep)+'</span></div><div class="clin-deposit-line bal"><span>Balance on arrival (50%)</span><span>'+clinFmt(bal)+'</span></div>'):'';
+    if(isDeposit&&clinSel){
+      var xLink=getXenditLink();
+      if(xLink){
+        depHtml+='<button class="clin-intake-btn" style="margin-top:10px;background:#0A0A0A;" onclick="sendDepositLink()">Send deposit link via WhatsApp &#x2192;</button>';
+      }
+    }
+    dl.innerHTML=depHtml;
+  }
   var btn=document.getElementById('clin-confirm-btn'); if(!btn) return;
   var conflict = (typeof clinCurrentConflict==='function') && clinCurrentConflict();
-  var baseOk = (clinType==='clinical' ? (clinSel && clinRoom && clinWindow) : (clinSel && clinRoom && clinTime));
+  var baseOk = (clinType==='clinical' ? (clinSel && clinRoom) : (clinSel && clinRoom && clinTime));
   var ok = baseOk && !conflict;
   btn.disabled=!ok;
-  var depTxt = clinOnline ? ('Take 50% deposit · '+clinFmt(dep)) : null;
+  var depTxt = isDeposit ? ('Take 50% deposit · '+clinFmt(dep)) : null;
   var readyTxt = depTxt || (clinEditingId?'Update booking':'Confirm booking');
   if(!clinSel) btn.textContent='Select a service';
   else if(conflict) btn.textContent = (clinType==='clinical'?'Chair':'Room')+' busy at that time';
-  else if(clinType==='clinical') btn.textContent = !clinRoom?'Select a chair':(!clinWindow?'Select nurse window':(depTxt||(clinIntake?(clinEditingId?'Update booking':'Confirm booking'):'Hold space · intake pending')));
+  else if(clinType==='clinical') btn.textContent = !clinRoom?'Select a chair':(depTxt||(clinIntake?(clinEditingId?'Update booking':'Confirm booking'):'Save tentative · intake pending'));
   else btn.textContent = !clinRoom?'Select a room':(!clinTime?'Select a time':readyTxt);
 }
 function clinSetPay(m){ clinPay=m; ['clin-pay-card','clin-pay-qr'].forEach(function(id){ var b=document.getElementById(id); if(b) b.classList.toggle('active', id==='clin-pay-'+m); }); }
 window.clinSetPay=clinSetPay;
+function clinSetPressure(p){ clinPressure=p; renderClinicalBooking(); renderClinicalOrder(); }
+function clinSetPayType(t){ clinPayType=t; renderClinicalBooking(); renderClinicalOrder(); }
+window.clinSetPressure=clinSetPressure; window.clinSetPayType=clinSetPayType;
+function sendDepositLink(){
+  clinCaptureInputs();
+  var xLink=getXenditLink(); if(!xLink) return alert('No Xendit link set — add it in Settings → Payments.');
+  var ph=(clinWhatsapp||'').replace(/\D/g,''); if(!ph) return alert('Enter the patient\'s WhatsApp number first.');
+  var s=clinSvc(); if(!s) return;
+  var dep=Math.round(s.price*0.5);
+  var svcName=s.name||'your session';
+  var date=clinDate?clinDate.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}):'';
+  var msg='Hi '+(clinPatient||'there')+' — DISTRIK here. To confirm your '+svcName+(date?' on '+date:'')+', please pay your 50% deposit of IDR '+dep.toLocaleString('id-ID')+' via the link below.\n\n'+xLink+'\n\nOnce received we\'ll confirm your booking. See you soon 🙏';
+  window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(msg),'_blank');
+}
+window.sendDepositLink=sendDepositLink;
 // ── Double-booking guard ───────────────────────────────────────────
 // A room/chair is occupied for [start, start+duration+buffer). Held AND confirmed both block.
 function clinHasConflict(roomId, startHHMM, durationMin, excludeId){
@@ -9776,7 +10403,7 @@ function sendBookingEmail(rec, dateLabel, kind){
       date: dateLabel||'',
       time: rec.window||rec.start||'',
       location: rec.roomName||'',
-      with: rec.therapistName||(rec.clinical?'Nurse · ClinicTerrain':''),
+      with: rec.therapistName||(rec.clinical?'Nurse · Human+':''),
       price: 'IDR '+Math.round(rec.price||0).toLocaleString('id-ID'),
       message: (held
         ? 'Hi '+(rec.client||'')+', we’ve held your space for '+(rec.serviceName||'')+' on '+when+'. Please complete your intake form to confirm.'
@@ -9790,7 +10417,7 @@ function sendBookingEmail(rec, dateLabel, kind){
 
 function confirmClinical(){
   clinCaptureInputs();
-  var ok = clinType==='clinical' ? (clinSel && clinRoom && clinWindow) : (clinSel && clinRoom && clinTime);
+  var ok = clinType==='clinical' ? (clinSel && clinRoom) : (clinSel && clinRoom && clinTime);
   if(!ok) return;
   // block double-booking — held & confirmed both reserve the slot
   if(clinCurrentConflict()){ clinNotify((clinType==='clinical'?'That chair':'That room')+' is already booked at that time — pick another '+(clinType==='clinical'?'chair or window':'time or room')+'.'); return; }
@@ -9821,10 +10448,12 @@ function confirmClinical(){
     therapist:therapistId, therapistName:therapistName,
     start:startTime, time:startTime, duration:duration,
     client:patient, email:clinEmail||'', whatsapp:clinWhatsapp||'', phone:clinWhatsapp||'',
-    price:s.price, source:(clinOnline?'Online':'Walk-in'), status:(isHold?'hold':'confirmed'), payMethod:clinPay
+    price:s.price, pressure:clinPressure||null, payType:clinPayType||'full',
+    source:(clinOnline?'Online':'Walk-in'), status:(isHold?'hold':'confirmed'), payMethod:clinPay
   };
   if(clinType==='clinical'){ rec.clinical=true; rec.tag='ClinicTerrain'; rec.window=clinWindow; rec.intake=(clinIntake?'approved':'pending'); }
   if(clinOnline){ var _tot=s.price; rec.online=true; rec.deposit=Math.round(_tot*0.5); rec.balanceDue=_tot-Math.round(_tot*0.5); rec.balancePaid=false; }
+  else if(clinPayType==='deposit'){ rec.deposit=Math.round(s.price*0.5); rec.balanceDue=s.price-Math.round(s.price*0.5); rec.balancePaid=false; }
   try{
     // If editing an existing booking, remove the original first (reverse whatever revenue it contributed)
     if(clinEditingId){
@@ -9854,8 +10483,8 @@ function confirmClinical(){
 // Pre-tax revenue currently counted for a booking
 function clinCollected(b){
   if(!b) return 0;
-  if(b.status==='cancelled') return (b.online && b.forfeited) ? Math.round((b.price||0)*0.5) : 0;
-  if(b.online){ var dep=Math.round((b.price||0)*0.5); return dep + (b.balancePaid?((b.price||0)-dep):0); }
+  if(b.status==='cancelled') return ((b.online||b.payType==='deposit') && b.forfeited) ? Math.round((b.price||0)*0.5) : 0;
+  if(b.online||b.payType==='deposit'){ var dep=Math.round((b.price||0)*0.5); return dep + (b.balancePaid?((b.price||0)-dep):0); }
   if(b.status==='hold') return 0;
   return (b.price||0);
 }
@@ -9875,6 +10504,17 @@ function clinCollectBalance(id){
   }catch(e){ console.warn('collect balance',e); }
 }
 window.clinCollectBalance=clinCollectBalance;
+function resendDepositLink(id){
+  var xLink=getXenditLink(); if(!xLink) return alert('No Xendit link set — add it in Settings → Payments.');
+  var dk=clinKey(); var day=recoveryData&&recoveryData[dk]; if(!day||!day.bookings) return;
+  var b=day.bookings.find(function(x){return x.id===id;}); if(!b) return;
+  var ph=(b.whatsapp||b.phone||'').replace(/\D/g,''); if(!ph) return alert('No WhatsApp number on this booking.');
+  var dep=Math.round((b.price||0)*0.5);
+  var date=clinDate.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+  var msg='Hi '+(b.client||'there')+' — DISTRIK here. To confirm your '+(b.serviceName||'session')+' on '+date+', please pay your 50% deposit of IDR '+dep.toLocaleString('id-ID')+' via the link below.\n\n'+xLink+'\n\nOnce received we\'ll confirm your booking. See you soon 🙏';
+  window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(msg),'_blank');
+}
+window.resendDepositLink=resendDepositLink;
 // Hours from now until a booking starts (Bali time)
 function clinHoursUntil(b){
   try{
@@ -10202,6 +10842,8 @@ window.showRoomCalendar=showRoomCalendar;
     <!-- Danger zone: wipe seed / fake transactional data for a clean launch -->
     <div class="set-danger-zone">
       <div class="set-danger-label">Pre-launch reset</div>
+      <button onclick="clearRostersBefore('2026-08-01')" class="set-act danger">⚠ Clear All Roster Days Before 1 Aug 2026</button>
+      <div class="set-danger-note" style="margin-bottom:12px">Deletes all per-date roster overrides saved before 1 August 2026. The base template and all data from 1 Aug onwards are kept. Cannot be undone.</div>
       <button onclick="clearAllData()" class="set-act danger">⚠ Clear All Sales &amp; Booking Data</button>
       <div class="set-danger-note">Resets all sales, café, supply, P&amp;L and bookings to zero. Keeps your roster, staff, services, menu, tax &amp; API setup. Cannot be undone — export a backup first.</div>
     </div>
@@ -10229,6 +10871,8 @@ window.showRoomCalendar=showRoomCalendar;
       <select id="apps-f-status" onchange="appsSetFilter()"><option value="">All statuses</option><option value="new">New</option><option value="reviewing">Reviewing</option><option value="interview">Interview</option><option value="hired">Hired</option><option value="rejected">Rejected</option></select>
       <select id="apps-f-sort" onchange="appsSetFilter()"><option value="">Newest first</option><option value="rating">Top rated</option><option value="status">By status</option></select>
       <span class="apps-count" id="apps-count"></span>
+      <button onclick="openImportCode()" style="margin-left:6px;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.05em;padding:7px 12px;border:1px solid #0A0A0A;background:#fff;color:#0A0A0A;cursor:pointer;">&#8595; Import Code</button>
+      <button onclick="openManualAdd()" style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.05em;padding:7px 12px;border:1px solid #0A0A0A;background:#0A0A0A;color:#fff;cursor:pointer;">+ Add Manually</button>
     </div>
     <div id="apps-list" class="apps-list"></div>
   </div>
@@ -10297,7 +10941,7 @@ window.showRoomCalendar=showRoomCalendar;
     </div>
     <div class="menu-mgr-tabs" style="border-bottom:1px solid #e8e8e8;">
       <button class="menu-mgr-tab active" id="svc-tab-single" onclick="switchSvcTab('single')">Recovery Options</button>
-      <button class="menu-mgr-tab" id="svc-tab-clinical" onclick="switchSvcTab('clinical')">Clinical · ClinicTerrain</button>
+      <button class="menu-mgr-tab" id="svc-tab-clinical" onclick="switchSvcTab('clinical')">Clinical · Human+</button>
       <button class="menu-mgr-tab" id="svc-tab-packages" onclick="switchSvcTab('packages')">Packages</button>
     </div>
     <div class="modal-body" style="padding:0;max-height:60vh;overflow-y:auto;" id="svc-modal-body">
@@ -10699,6 +11343,10 @@ window.showRoomCalendar=showRoomCalendar;
     </div>
   </div>
 </div>
+<!-- Firebase loaded here (bottom of body) so it never blocks the page from rendering -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <!-- ============================================================
      DISTRIK · FIRESTORE SYNC v2 (server-ts, robust multi-device)
      ============================================================ -->
@@ -10748,22 +11396,28 @@ window.showRoomCalendar=showRoomCalendar;
       Object.keys(co).forEach(function(f){keys[f]=1;});
       Object.keys(keys).forEach(function(f){
         if(tf.indexOf(f)>=0){ res[f]=(lo[f]!==undefined)?lo[f]:(f==='SUPPLY_SALES'?[]:{}); return; } // transactions: keep local
+        // STAFF: union-merge by id so locally-added staff survive a cloud pull
+        if(f==='STAFF' && Array.isArray(lo[f]) && Array.isArray(co[f])){
+          var byId={};
+          (co[f]||[]).forEach(function(s){ if(s&&s.id) byId[s.id]=s; });
+          (lo[f]||[]).forEach(function(s){ if(s&&s.id) byId[s.id]=s; }); // local version of each entry wins
+          var localIds=(lo[f]||[]).map(function(s){ return s&&s.id; });
+          var cloudOnly=(co[f]||[]).filter(function(s){ return s&&s.id&&localIds.indexOf(s.id)<0; });
+          res[f]=(lo[f]||[]).map(function(s){ return (s&&s.id)?byId[s.id]:s; }).concat(cloudOnly);
+          return;
+        }
+        // dailyOverrides: merge by date key — local dates always win so a stale device can't revert roster edits
+        if(f==='dailyOverrides'){
+          var doOut=Object.assign({},co[f]||{});
+          Object.keys(lo[f]||{}).forEach(function(d){ doOut[d]=(lo[f])[d]; });
+          res[f]=doOut; return;
+        }
+        // grid (base weekly template): local always wins — stale device must not revert template edits
+        if(f==='grid'){ res[f]=lo[f]!==undefined?lo[f]:co[f]; return; }
         var lJson=JSON.stringify(lo[f]);
         if(lJson===JSON.stringify(ba[f])){ res[f]=(co[f]!==undefined)?co[f]:lo[f]; }  // I didn't change this field -> take theirs
         else { res[f]=lo[f]; }                                                        // I changed it -> keep mine
       });
-      // ROSTER per-day merge: the newest SAVED version of each day wins (a locked day can't be reverted)
-      if(k==='distrik_v1'){
-        var lg=lo.grid||{}, cg=co.grid||{}, lsa=lo.gridSavedAt||{}, csa=co.gridSavedAt||{};
-        var mg={}, msa={}, days={};
-        Object.keys(lg).forEach(function(d){days[d]=1;}); Object.keys(cg).forEach(function(d){days[d]=1;});
-        Object.keys(days).forEach(function(d){
-          var lt=lsa[d]||0, ct=csa[d]||0;
-          if(ct>lt){ mg[d]=cg[d]; msa[d]=ct; }                       // their save of this day is newer -> take it
-          else { mg[d]=(lg[d]!==undefined)?lg[d]:cg[d]; msa[d]=lt||ct; } // mine is newer or a tie -> keep mine
-        });
-        res.grid=mg; res.gridSavedAt=msa;
-      }
       return JSON.stringify(res);
     }catch(e){ console.warn('[sync] merge3',k,e); return cloudVal; }
   }
@@ -10828,7 +11482,7 @@ window.showRoomCalendar=showRoomCalendar;
       if(home&&home.classList.contains('on')&&typeof showHome==='function') showHome();
       else if(id==='panel-sales'&&typeof renderSales==='function') renderSales();
       else if(id==='panel-pl'&&typeof renderPL==='function') renderPL();
-      else if(id==='panel-roster'){ if(typeof syncZonesFromHours==='function')syncZonesFromHours(); if(typeof buildPalette==='function')buildPalette(); if(typeof buildGrid==='function')buildGrid(); if(typeof buildTS==='function')buildTS(); if(typeof buildBudget==='function')buildBudget(); }
+      else if(id==='panel-roster'){ if(typeof syncZonesFromHours==='function')syncZonesFromHours(); if(typeof buildPalette==='function')buildPalette(); if(typeof loadGridFromData==='function')loadGridFromData(); if(typeof buildGrid==='function')buildGrid(); if(typeof buildTS==='function')buildTS(); if(typeof buildBudget==='function')buildBudget(); }
       else if(id==='panel-booking'){ if(typeof buildRoomGrid==='function')buildRoomGrid(); if(typeof updateRFSummary==='function')updateRFSummary(); if(typeof updateRFStaffBar==='function')updateRFStaffBar(); }
       else if(id==='panel-recovery'){ if(typeof buildClinRoomGrid==='function')buildClinRoomGrid(); if(typeof renderClinicalBooking==='function')renderClinicalBooking(); }
       else if(id==='panel-fuel'){ if(typeof buildPosItems==='function')buildPosItems(); }
@@ -10848,7 +11502,7 @@ window.showRoomCalendar=showRoomCalendar;
     try{
       if(k==='distrik_v1'){ var a=JSON.parse(L),b=JSON.parse(R); var o=Object.assign({},pl?a:b); o.fuelData=mDate(a.fuelData,b.fuelData,'transactions'); o.supplyData=mDate(a.supplyData,b.supplyData,'orders'); o.recoveryData=mDate(a.recoveryData,b.recoveryData,'bookings'); return JSON.stringify(o); }
       if(k==='distrik_supply'){ var a=JSON.parse(L),b=JSON.parse(R); var o=Object.assign({},pl?a:b); o.SUPPLY_SALES=mById(a.SUPPLY_SALES,b.SUPPLY_SALES); return JSON.stringify(o); }
-      if(k==='distrik_rf'){ var a=JSON.parse(L),b=JSON.parse(R); var o=Object.assign({},pl?a:b); var ds={}; Object.keys(a.bookings||{}).forEach(function(d){ds[d]=1;}); Object.keys(b.bookings||{}).forEach(function(d){ds[d]=1;}); var bk={}; Object.keys(ds).forEach(function(d){ bk[d]=mById((a.bookings||{})[d],(b.bookings||{})[d]); }); o.bookings=bk; return JSON.stringify(o); }
+      if(k==='distrik_rf'){ var a=JSON.parse(L),b=JSON.parse(R); var o=Object.assign({},pl?a:b); var ds={}; Object.keys(a.bookings||{}).forEach(function(d){ds[d]=1;}); Object.keys(b.bookings||{}).forEach(function(d){ds[d]=1;}); var bk={}; Object.keys(ds).forEach(function(d){ bk[d]=mById((a.bookings||{})[d],(b.bookings||{})[d]); }); o.bookings=bk; if(a.SERVICES)o.SERVICES=a.SERVICES; if(a.PACKAGES)o.PACKAGES=a.PACKAGES; if(a.ROOMS)o.ROOMS=a.ROOMS; return JSON.stringify(o); }
     }catch(e){ console.warn('[sync] merge',k,e); }
     return R;
   }
@@ -10946,6 +11600,9 @@ window.showRoomCalendar=showRoomCalendar;
   };
   window.appsApiDelete = async function(id){
     await fdb().collection(COL).doc(String(id)).delete(); return { success:true };
+  };
+  window.appsApiAdd = async function(app){
+    await fdb().collection(COL).doc(String(app.id)).set(app); return { success:true };
   };
   console.log('[apps] using Firestore collection', COL);
 })();
@@ -11097,7 +11754,6 @@ window.exportXeroCSV = function(){
       if(typeof firebase==='undefined'||!firebase.firestore) return;
       var dk=dayKey(); if(!dk) return;
       var last=null; try{ last=localStorage.getItem('distrik_last_backup'); }catch(e){}
-      if(!force && last===dk) return;
       var blob={};
       ['distrik_v1','distrik_rf','distrik_supply','distrik_menu','distrik_clinical','distrik_tax','distrik_roster_template','distrik_pins'].forEach(function(k){
         try{ var v=localStorage.getItem(k); if(v) blob[k]=v; }catch(e){}
@@ -11189,23 +11845,40 @@ window.waReceipt = function(number, text){
 window.buildReceiptText = function(sale){
   function fmt(n){ return 'IDR '+Math.round(n||0).toLocaleString('id-ID'); }
   var channel = (sale.kind==='fuel') ? 'Fuel | Café' : 'Supply';
-  var div = '------------------------';
+  var div = '────────────────────────';
   var lines=[
-    '*DISTRIK*',
-    '',
-    channel,
-    '',
-    div,
-    '',
-    'Total Paid',
-    '*'+fmt(sale.total)+'*',
+    '*DISTRIK* — ' + channel,
+    sale.date + (sale.time ? ' · ' + sale.time : ''),
     '',
     div,
-    '',
-    'Thank you for visiting DISTRIK.',
-    '',
-    'See you again soon.'
+    ''
   ];
+  // Items
+  if(sale.items && sale.items.length){
+    sale.items.forEach(function(it){
+      var qty = (it.qty && it.qty > 1) ? it.qty + '× ' : '';
+      lines.push(qty + it.name + '   ' + fmt(it.price * (it.qty||1)));
+    });
+    lines.push('');
+  }
+  lines.push(div);
+  lines.push('');
+  lines.push('Total               ' + fmt(sale.subtotal));
+  if(sale.serviceTax){
+    lines.push('Service Charge 7%   ' + fmt(sale.serviceTax));
+  }
+  if(sale.tax){
+    lines.push('PB1 10%             ' + fmt(sale.tax));
+  }
+  lines.push('');
+  lines.push('*Grand Total        ' + fmt(sale.total) + '*');
+  lines.push('');
+  lines.push('Payment: ' + (sale.method||'—').toUpperCase());
+  lines.push('');
+  lines.push(div);
+  lines.push('');
+  lines.push('Thank you for visiting DISTRIK.');
+  lines.push('See you again soon.');
   return lines.join('\n');
 };
 
@@ -11254,7 +11927,7 @@ window.injectWaCapture = function(confirmId, sale){
         if(day&&day[field]&&day[field].length>before){
           var it=day[field][day[field].length-1];
           window.injectWaCapture(kind==='fuel'?'receipt-confirm':'sup-confirm',
-            {kind:kind, id:it.id, total:it.total, method:it.method, date:key, items:it.items, time:it.time});
+            {kind:kind, id:it.id, total:it.total, subtotal:it.subtotal, serviceTax:it.serviceTax, tax:it.tax, method:it.method, date:key, items:it.items, time:it.time});
         }
       }catch(e){ console.warn('[wa] wrap',e); }
       return r;
@@ -11398,3 +12071,49 @@ window.injectWaCapture = function(confirmId, sale){
   };
 })();
 </script>
+
+
+
+<!-- Manual Add Modal -->
+<div class="modal-overlay" id="maModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+  <div class="modal-box" style="max-width:620px;width:100%;background:#fff;border-radius:2px;overflow:hidden;">
+    <div class="modal-hdr"><h2 class="modal-title">Add Application Manually</h2><button onclick="closeManualAdd()" class="modal-close">✕</button></div>
+    <div class="modal-body" style="padding:18px;max-height:68vh;overflow-y:auto;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+        <div><div class="app-q-label">Full Name *</div><input id="ma-name" placeholder="Applicant name" style="width:100%;border:1px solid #e0e0e0;padding:9px;font-family:'Space Mono',monospace;font-size:12px;box-sizing:border-box;"></div>
+        <div><div class="app-q-label">Email</div><input id="ma-email" type="email" placeholder="email@example.com" style="width:100%;border:1px solid #e0e0e0;padding:9px;font-family:'Space Mono',monospace;font-size:12px;box-sizing:border-box;"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">
+        <div><div class="app-q-label">Position *</div><select id="ma-pos" style="width:100%;border:1px solid #e0e0e0;padding:9px;font-family:'Space Mono',monospace;font-size:12px;box-sizing:border-box;"><option value="">Select position…</option><option>Second in Charge</option><option>Reception</option><option>Fuel Bar / Reception</option><option>Supply</option><option>Head Physiotherapy</option><option>Physiotherapy</option><option>Sports Massage</option><option>All Rounder</option></select></div>
+        <div><div class="app-q-label">Date Applied</div><input id="ma-date" type="date" style="width:100%;border:1px solid #e0e0e0;padding:9px;font-family:'Space Mono',monospace;font-size:12px;box-sizing:border-box;"></div>
+      </div>
+      <div class="app-q-label" style="margin-bottom:10px;">Answers (fill in what you have)</div>
+      <div class="app-q"><div class="app-q-label">Q1 · Position &amp; why</div><textarea id="ma-q1" rows="2" style="width:100%;border:1px solid #e0e0e0;padding:9px;font-family:'Space Mono',monospace;font-size:12px;box-sizing:border-box;resize:vertical;"></textarea></div>
+      <div class="app-q"><div class="app-q-label">Q2 · Why a good fit</div><textarea id="ma-q2" rows="2" style="width:100%;border:1px solid #e0e0e0;padding:9px;font-family:'Space Mono',monospace;font-size:12px;box-sizing:border-box;resize:vertical;"></textarea></div>
+      <div class="app-q"><div class="app-q-label">Q3 · Previous experience</div><textarea id="ma-q3" rows="2" style="width:100%;border:1px solid #e0e0e0;padding:9px;font-family:'Space Mono',monospace;font-size:12px;box-sizing:border-box;resize:vertical;"></textarea></div>
+      <div class="app-q"><div class="app-q-label">Q4 · Interest in DISTRIK</div><textarea id="ma-q4" rows="2" style="width:100%;border:1px solid #e0e0e0;padding:9px;font-family:'Space Mono',monospace;font-size:12px;box-sizing:border-box;resize:vertical;"></textarea></div>
+      <div class="app-q"><div class="app-q-label">Q5 · Career goals</div><textarea id="ma-q5" rows="2" style="width:100%;border:1px solid #e0e0e0;padding:9px;font-family:'Space Mono',monospace;font-size:12px;box-sizing:border-box;resize:vertical;"></textarea></div>
+      <div class="app-q"><div class="app-q-label">Q6 · Availability</div><textarea id="ma-q6" rows="2" style="width:100%;border:1px solid #e0e0e0;padding:9px;font-family:'Space Mono',monospace;font-size:12px;box-sizing:border-box;resize:vertical;"></textarea></div>
+      <div class="app-q"><div class="app-q-label">Q7 · Anything else (optional)</div><textarea id="ma-q7" rows="2" style="width:100%;border:1px solid #e0e0e0;padding:9px;font-family:'Space Mono',monospace;font-size:12px;box-sizing:border-box;resize:vertical;"></textarea></div>
+    </div>
+    <div class="modal-footer" style="padding:14px 18px;border-top:1px solid #e8e8e8;display:flex;gap:10px;">
+      <button onclick="saveManualApp()" class="rf-primary-btn">Save Application</button>
+      <button onclick="closeManualAdd()" class="nav-action-btn">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Import Code Modal -->
+<div class="modal-overlay" id="importCodeModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+  <div class="modal-box" style="max-width:520px;width:100%;background:#fff;border-radius:2px;overflow:hidden;">
+    <div class="modal-hdr"><h2 class="modal-title">Import Application from Email</h2><button onclick="closeImportCode()" class="modal-close">✕</button></div>
+    <div class="modal-body" style="padding:18px;">
+      <p style="font-family:'Space Mono',monospace;font-size:11px;color:#56565b;line-height:1.7;margin-bottom:14px;">Open the Formspree email, copy the entire <b>DASHBOARD_IMPORT_CODE</b> value, and paste it below.</p>
+      <textarea id="ic-input" rows="5" placeholder="Paste import code here…" style="width:100%;border:1px solid #e0e0e0;padding:10px;font-family:'Space Mono',monospace;font-size:11px;box-sizing:border-box;resize:vertical;"></textarea>
+    </div>
+    <div class="modal-footer" style="padding:14px 18px;border-top:1px solid #e8e8e8;display:flex;gap:10px;">
+      <button onclick="doImportCode()" class="rf-primary-btn">Import</button>
+      <button onclick="closeImportCode()" class="nav-action-btn">Cancel</button>
+    </div>
+  </div>
+</div>
