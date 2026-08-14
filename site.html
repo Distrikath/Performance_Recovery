@@ -6,7 +6,7 @@
 <title>Distrik. — Performance Recovery, Bali</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,700;0,800;0,900;1,900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -24,7 +24,7 @@ html{background:var(--b);scroll-behavior:smooth}
 body{
   background:var(--b);color:var(--ink);
   font-family:'Inter',-apple-system,system-ui,sans-serif;
-  font-weight:400;overflow-x:clip;cursor:none;
+  font-weight:400;overflow-x:clip;
   -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
 }
 img{display:block;max-width:100%}
@@ -47,11 +47,6 @@ img{display:block;max-width:100%}
   100%{transform:translate(0,0)}
 }
 
-/* CURSOR */
-.cur{position:fixed;width:6px;height:6px;background:var(--ink);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .25s,height .25s,background .3s;mix-blend-mode:difference}
-.cur-ring{position:fixed;width:32px;height:32px;border:1px solid rgba(242,242,240,.4);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:width .5s cubic-bezier(.16,1,.3,1),height .5s cubic-bezier(.16,1,.3,1),border-color .4s;mix-blend-mode:difference}
-body.h .cur{width:12px;height:12px;background:var(--r)}
-body.h .cur-ring{width:54px;height:54px;border-color:var(--r)}
 
 /* ═══════════════════════════════════════
    NAVIGATION — Logo / Menu Button / Notify Me
@@ -70,7 +65,7 @@ nav{
 }
 .nav-logo span{color:var(--r);mix-blend-mode:normal}
 .menu-btn{
-  background:none;border:none;cursor:none;
+  background:none;border:none;cursor:pointer;
   font-family:var(--mono);font-weight:400;color:var(--ink);
   font-size:11px;letter-spacing:.28em;text-transform:lowercase;
   justify-self:center;
@@ -222,14 +217,13 @@ nav{
 
 .hero-mark{
   font-size:clamp(96px,22vw,320px);
-  font-weight:500;letter-spacing:-.058em;line-height:.84;
+  font-weight:900;font-style:italic;letter-spacing:-.02em;line-height:.84;
   color:var(--ink);
   display:flex;align-items:baseline;
   opacity:0;
   animation:markIn 1.4s cubic-bezier(.16,1,.3,1) 2.3s forwards;
   will-change:transform,opacity;
 }
-.hero-mark .dot{color:var(--r)}
 @keyframes markIn{
   0%{opacity:0;transform:translateY(60px)}
   100%{opacity:1;transform:translateY(0)}
@@ -381,7 +375,7 @@ nav{
   border-bottom:1px solid var(--line);
 }
 .menu-close{
-  background:none;border:none;cursor:none;
+  background:none;border:none;cursor:pointer;
   font-family:var(--mono);font-weight:400;color:var(--ink);
   font-size:11px;letter-spacing:.28em;text-transform:lowercase;
   justify-self:center;
@@ -537,7 +531,7 @@ nav{
   letter-spacing:.05em;
   outline:none;
   transition:border-color .3s;
-  cursor:none;
+  cursor:pointer;
   width:100%;
   -webkit-appearance:none;-moz-appearance:none;appearance:none;
   border-radius:0;
@@ -553,12 +547,12 @@ nav{
   padding-right:48px;
 }
 .field input[type="date"]::-webkit-calendar-picker-indicator{
-  filter:invert(.5);cursor:none;
+  filter:invert(.5);cursor:pointer;
 }
 .submit-btn{
   margin-top:16px;
   background:var(--r);color:var(--ink);
-  border:none;cursor:none;
+  border:none;cursor:pointer;
   font-family:var(--mono);font-weight:400;
   font-size:13px;letter-spacing:.3em;text-transform:lowercase;
   padding:24px;
@@ -676,7 +670,7 @@ footer{
   position:absolute;top:24px;right:28px;z-index:2;
   width:36px;height:36px;
   background:none;border:1px solid rgba(242,242,240,.2);border-radius:50%;
-  cursor:none;
+  cursor:pointer;
   display:flex;align-items:center;justify-content:center;
   transition:border-color .3s,background .3s;
   opacity:0;
@@ -741,7 +735,7 @@ footer{
   letter-spacing:.06em;
   outline:none;
   transition:border-color .35s;
-  cursor:none;
+  cursor:pointer;
   width:100%;
   -webkit-appearance:none;-moz-appearance:none;appearance:none;
   border-radius:0;
@@ -755,7 +749,7 @@ footer{
   background-position:right 4px center;
   padding-right:40px;
 }
-.field input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(.4);cursor:none}
+.field input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(.4);cursor:pointer}
 
 .protocol-desc{
   display:none;
@@ -781,7 +775,7 @@ footer{
   margin-top:32px;
   background:transparent;color:var(--ink);
   border:1px solid rgba(242,242,240,.2);
-  cursor:none;
+  cursor:pointer;
   font-family:var(--mono);font-weight:400;
   font-size:11px;letter-spacing:.35em;text-transform:lowercase;
   padding:20px;
@@ -829,11 +823,121 @@ footer{
   animation:pulse 2s ease-in-out infinite;
 }
 
+/* ── BOOKING FORM — stepped layout ────────────────────────── */
+.bk-steps-row{
+  display:flex;border-bottom:1px solid var(--line);
+  padding-bottom:28px;margin-bottom:48px;
+}
+.bk-step{
+  flex:1;display:flex;flex-direction:column;gap:5px;
+  padding-right:10px;
+}
+.bk-step:not(:last-child){
+  border-right:1px solid var(--line);margin-right:10px;
+}
+.bk-step-num{
+  font-family:var(--mono);font-size:9px;letter-spacing:.4em;
+  color:var(--r);text-transform:lowercase;
+}
+.bk-step-txt{
+  font-family:var(--mono);font-size:8.5px;letter-spacing:.18em;
+  color:var(--ink-d);text-transform:lowercase;line-height:1.5;
+}
+.bk-section{margin-bottom:40px}
+.bk-section-head{
+  font-family:var(--mono);font-size:9px;letter-spacing:.4em;
+  color:var(--r);text-transform:lowercase;margin-bottom:16px;
+}
+.bk-focus-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:8px;
+}
+.bk-focus-card{
+  border:1px solid var(--line);padding:16px 10px 14px;
+  cursor:pointer;transition:border-color .2s,background .2s;
+  text-align:left;background:transparent;
+}
+.bk-focus-card:hover{border-color:rgba(242,242,240,.28)}
+.bk-focus-card.sel{border-color:var(--r);background:rgba(255,45,45,.04)}
+.bk-fcard-num{
+  font-family:var(--mono);font-size:8px;color:var(--r);
+  letter-spacing:.35em;margin-bottom:8px;
+}
+.bk-fcard-name{
+  font-family:var(--mono);font-size:9px;color:var(--ink);
+  letter-spacing:.18em;text-transform:uppercase;line-height:1.35;
+}
+.bk-chips{display:flex;gap:8px;flex-wrap:wrap}
+.bk-chip{
+  border:1px solid var(--line);padding:11px 18px;
+  cursor:pointer;background:transparent;
+  font-family:var(--mono);font-size:10px;color:var(--ink);
+  letter-spacing:.18em;text-transform:lowercase;
+  transition:border-color .2s,background .2s;
+}
+.bk-chip:hover{border-color:rgba(242,242,240,.28)}
+.bk-chip.sel{border-color:var(--r);background:rgba(255,45,45,.04)}
+.bk-chip-price{
+  font-size:8.5px;color:var(--ink-dd);margin-left:6px;letter-spacing:.1em;
+}
+.bk-input-field{display:flex;flex-direction:column;gap:14px}
+.bk-input-field label{
+  font-family:var(--mono);font-size:9px;letter-spacing:.38em;
+  color:var(--ink-d);text-transform:lowercase;
+}
+.bk-input-field input{
+  font-family:var(--mono);font-size:13px;color:var(--ink);
+  background:transparent;border:none;
+  border-bottom:1px solid var(--line-mid);
+  padding:6px 0 14px;letter-spacing:.06em;
+  outline:none;transition:border-color .35s;
+  width:100%;cursor:pointer;
+}
+.bk-input-field input:focus{border-color:var(--r)}
+.bk-input-field input::placeholder{color:var(--ink-dd)}
+.bk-deposit-note{
+  font-family:var(--mono);font-size:9px;letter-spacing:.18em;
+  color:var(--ink-dd);text-transform:lowercase;
+  margin-top:14px;line-height:1.9;
+}
+.bk-focus-descs{
+  margin-top:72px;
+  border-top:1px solid var(--line);
+  padding-top:52px;margin-bottom:72px;
+}
+.bk-fd-eyebrow{
+  font-family:var(--mono);font-size:9px;letter-spacing:.42em;
+  color:var(--ink-dd);text-transform:lowercase;margin-bottom:40px;
+}
+.bk-fd-item{margin-bottom:52px}
+.bk-fd-item-label{
+  font-family:var(--mono);font-size:9px;letter-spacing:.4em;
+  color:var(--r);text-transform:lowercase;margin-bottom:6px;
+}
+.bk-fd-item-name{
+  font-family:var(--display);font-weight:900;
+  font-size:clamp(22px,3.5vw,40px);color:var(--ink);
+  text-transform:uppercase;letter-spacing:-.03em;
+  line-height:1;margin-bottom:16px;
+}
+.bk-fd-item-body{
+  font-family:var(--mono);font-size:11px;color:var(--ink-d);
+  line-height:1.9;letter-spacing:.03em;max-width:520px;
+}
+.bk-fd-item-tags{
+  display:flex;flex-wrap:wrap;gap:6px;margin-top:16px;
+}
+.bk-fd-tag{
+  font-family:var(--mono);font-size:8px;letter-spacing:.22em;
+  color:var(--ink-d);border:1px solid var(--line);
+  padding:4px 10px;text-transform:lowercase;
+}
+
 @media (max-width:900px){
   .initiate-inner{padding:100px 24px 60px}
-  .initiate-title{font-size:clamp(36px,11vw,56px)}
-  .initiate-sub{margin-bottom:60px}
   .modal-livedata{grid-template-columns:1fr;gap:32px}
+  .bk-focus-grid{grid-template-columns:repeat(2,1fr)}
+  .bk-steps-row{flex-wrap:wrap;gap:14px;padding-bottom:20px;margin-bottom:36px}
+  .bk-step{flex:0 0 calc(50% - 14px);border-right:none!important;margin-right:0!important}
 }
 
 
@@ -1029,13 +1133,58 @@ footer.contact-strip{
   }
 }
 
+/* ── STAFF ACCESS MODAL ── */
+.staff-modal{
+  display:none;position:fixed;inset:0;z-index:9999;
+  background:rgba(10,10,10,.92);
+  align-items:center;justify-content:center;padding:24px;
+}
+.staff-modal.open{display:flex}
+.staff-box{
+  width:100%;max-width:300px;
+  border:1px solid rgba(242,242,240,.1);
+  background:#111;padding:32px 28px;
+}
+.staff-modal-title{
+  font-family:var(--mono);font-size:8px;letter-spacing:.38em;
+  color:var(--ink-d);text-transform:uppercase;margin-bottom:24px;
+}
+.staff-modal input{
+  width:100%;background:transparent;border:none;
+  border-bottom:1px solid rgba(242,242,240,.15);
+  padding:10px 0;color:var(--ink);
+  font-family:var(--mono);font-size:13px;letter-spacing:.06em;
+  outline:none;transition:border-color .3s;
+  -webkit-appearance:none;border-radius:0;margin-bottom:20px;
+}
+.staff-modal input:focus{border-bottom-color:rgba(242,242,240,.5)}
+.staff-modal input.err{border-bottom-color:var(--r)!important}
+.staff-modal-btn{
+  width:100%;background:transparent;
+  border:1px solid rgba(242,242,240,.2);
+  color:var(--ink);font-family:var(--mono);
+  font-size:9px;letter-spacing:.3em;text-transform:uppercase;
+  padding:12px;cursor:pointer;transition:border-color .3s,color .3s;
+  margin-bottom:8px;
+}
+.staff-modal-btn:hover{border-color:var(--r);color:var(--r)}
+.staff-modal-err{
+  font-family:var(--mono);font-size:8px;letter-spacing:.2em;
+  color:var(--r);margin-top:10px;min-height:14px;
+}
+.staff-modal-close{
+  display:block;margin-top:16px;width:100%;background:transparent;
+  border:none;font-family:var(--mono);font-size:8px;letter-spacing:.2em;
+  color:rgba(242,242,240,.2);text-transform:uppercase;
+  cursor:pointer;padding:6px 0;transition:color .3s;
+}
+.staff-modal-close:hover{color:rgba(242,242,240,.5)}
+
 </style>
 </head>
 <body>
 
 <div class="grain"></div>
-<div class="cur"></div>
-<div class="cur-ring"></div>
 
 <!-- ═══ FILM REEL ═══ -->
 <div class="film" id="film">
@@ -1078,7 +1227,7 @@ footer.contact-strip{
     <span>bali, indonesia</span>
   </div>
   <div class="hero-bottom">
-    <div class="hero-mark" id="heroMark">Distrik<span class="dot">.</span></div>
+    <div class="hero-mark" id="heroMark">DISTRIK.</div>
     <div class="hero-tag" id="heroTag">performance recovery <span class="sep">—</span> bali</div>
     <div class="hero-sub" id="heroSub">
       <span><strong>canggu, bali</strong> &nbsp;— &nbsp;8.63°s / 115.15°e</span>
@@ -1128,10 +1277,8 @@ footer.contact-strip{
     <div class="ld-block">
       <div class="ld-label">[ status ]</div>
       <div class="ld-status"><span class="ld-dot"></span>operational</div>
-      <div class="ld-sub" style="margin-top:22px">opening</div>
-      <div class="ld-value">17.08.2026</div>
-      <div class="ld-sub" style="margin-top:22px">countdown</div>
-      <div class="ld-value" id="countdown">—d —h —m —s</div>
+      <div class="ld-sub" style="margin-top:22px">since</div>
+      <div class="ld-value">22.08.2026</div>
     </div>
   </div>
 
@@ -1151,8 +1298,7 @@ footer.contact-strip{
     </div>
     <div class="cs-block">
       <div class="cs-label">[ contact ]</div>
-      <div class="cs-value"><a href="tel:+61433322447">mobile &nbsp;+61 433 322 447</a></div>
-      <div class="cs-meta">new business whatsapp — coming soon</div>
+      <div class="cs-value"><a href="https://wa.me/6281994801516" target="_blank">whatsapp &nbsp;+62 819 9480 1516 ↗</a></div>
     </div>
   </div>
   <div class="cs-bottom">
@@ -1168,42 +1314,139 @@ footer.contact-strip{
     <span></span><span></span>
   </button>
   <div class="initiate-inner">
-    <div class="initiate-eyebrow">[ booking aperture / 001 ]</div>
-    <h2 class="initiate-title">initiate <span>session</span></h2>
-    <p class="initiate-sub">— enter the protocol</p>
 
-    <form class="initiate-form" onsubmit="event.preventDefault();this.querySelector('.submit-btn').textContent='— request received';">
-      <div class="field">
-        <label>name</label>
-        <input type="text" placeholder="" required>
+    <!-- ── Step overview row ── -->
+    <div class="bk-steps-row">
+      <div class="bk-step">
+        <div class="bk-step-num">01</div>
+        <div class="bk-step-txt">choose your<br>focus</div>
       </div>
-      <div class="field">
-        <label>email</label>
-        <input type="email" placeholder="" required>
+      <div class="bk-step">
+        <div class="bk-step-num">02</div>
+        <div class="bk-step-txt">choose your<br>time</div>
       </div>
-      <div class="field">
-        <label>protocol</label>
-        <select id="protocolSelect" required>
-          <option value="" disabled selected>—</option>
-          <option value="targeted">targeted · 30 min · IDR 400k</option>
-          <option value="reset">reset · 45 min · IDR 550k</option>
-          <option value="performance">performance · 60 min · IDR 650k</option>
-          <option value="full-system">full system · 90 min · IDR 950k</option>
-          <option value="signature">signature · 90 min · IDR 950k</option>
-          <option value="compression">compression recovery · 30 min · IDR 400k</option>
-        </select>
-        <div class="protocol-desc" id="protocolDesc">
-          <div class="pd-name" id="pdName"></div>
-          <div class="pd-body" id="pdBody"></div>
-          <div class="pd-price" id="pdPrice"></div>
+      <div class="bk-step">
+        <div class="bk-step-num">03</div>
+        <div class="bk-step-txt">choose your<br>pressure</div>
+      </div>
+      <div class="bk-step">
+        <div class="bk-step-num">04</div>
+        <div class="bk-step-txt">your<br>name</div>
+      </div>
+      <div class="bk-step">
+        <div class="bk-step-num">05</div>
+        <div class="bk-step-txt">whatsapp<br>or email</div>
+      </div>
+    </div>
+
+    <!-- ── 01 Focus ── -->
+    <div class="bk-section">
+      <div class="bk-section-head">[ 01 / choose your focus ]</div>
+      <div class="bk-focus-grid">
+        <button class="bk-focus-card" onclick="bkPickFocus(this,'RECOVER')">
+          <div class="bk-fcard-num">01</div>
+          <div class="bk-fcard-name">recover</div>
+        </button>
+        <button class="bk-focus-card" onclick="bkPickFocus(this,'PERFORM')">
+          <div class="bk-fcard-num">02</div>
+          <div class="bk-fcard-name">perform</div>
+        </button>
+        <button class="bk-focus-card" onclick="bkPickFocus(this,'MOVE')">
+          <div class="bk-fcard-num">03</div>
+          <div class="bk-fcard-name">move</div>
+        </button>
+        <button class="bk-focus-card" onclick="bkPickFocus(this,'COMPRESSION')">
+          <div class="bk-fcard-num">04</div>
+          <div class="bk-fcard-name">compression<br>boots</div>
+        </button>
+      </div>
+    </div>
+
+    <!-- ── 02 Time ── -->
+    <div class="bk-section">
+      <div class="bk-section-head">[ 02 / choose your time ]</div>
+      <div class="bk-chips" id="bkDurChips">
+        <button class="bk-chip" onclick="bkPickDur(this,30,'IDR 400K')">30 min <span class="bk-chip-price">IDR 400K</span></button>
+        <button class="bk-chip" onclick="bkPickDur(this,45,'IDR 550K')">45 min <span class="bk-chip-price">IDR 550K</span></button>
+        <button class="bk-chip" onclick="bkPickDur(this,60,'IDR 650K')">60 min <span class="bk-chip-price">IDR 650K</span></button>
+        <button class="bk-chip" onclick="bkPickDur(this,90,'IDR 950K')">90 min <span class="bk-chip-price">IDR 950K</span></button>
+      </div>
+    </div>
+
+    <!-- ── 03 Pressure ── -->
+    <div class="bk-section">
+      <div class="bk-section-head">[ 03 / choose your pressure ]</div>
+      <div class="bk-chips" id="bkPressureChips">
+        <button class="bk-chip" onclick="bkPickPressure(this,'light')">light</button>
+        <button class="bk-chip" onclick="bkPickPressure(this,'medium')">medium</button>
+        <button class="bk-chip" onclick="bkPickPressure(this,'hard')">hard</button>
+      </div>
+    </div>
+
+    <!-- ── 04 Name ── -->
+    <div class="bk-section">
+      <div class="bk-section-head">[ 04 / your name ]</div>
+      <div class="bk-input-field">
+        <input type="text" id="bkName" placeholder="full name" autocomplete="off">
+      </div>
+    </div>
+
+    <!-- ── 05 Contact ── -->
+    <div class="bk-section">
+      <div class="bk-section-head">[ 05 / contact ]</div>
+      <div class="bk-input-field">
+        <label>whatsapp (preferred) or email</label>
+        <input type="text" id="bkContact" placeholder="+62 · 08 · or email address" autocomplete="off">
+      </div>
+    </div>
+
+    <!-- ── Submit ── -->
+    <button class="submit-btn" id="bkSubmitBtn" onclick="submitBkForm()">confirm session →</button>
+    <div class="bk-deposit-note">
+      50% deposit required to confirm your session<br>
+      payment gateway coming soon — we'll be in touch to complete your booking
+    </div>
+
+    <!-- ── Focus descriptions ── -->
+    <div class="bk-focus-descs">
+      <div class="bk-fd-eyebrow">[ what each focus means ]</div>
+
+      <div class="bk-fd-item">
+        <div class="bk-fd-item-label">[ 01 / recover ]</div>
+        <div class="bk-fd-item-name">recover</div>
+        <div class="bk-fd-item-body">A system reset after the effort. Slow, deliberate techniques reduce accumulated tension, calm the nervous system and restore natural movement. Long flowing strokes, sustained compressions, myofascial release, assisted mobility and restorative stretching help the body absorb training — not just survive it — leaving you lighter, looser and ready for tomorrow.</div>
+        <div class="bk-fd-item-tags">
+          <span class="bk-fd-tag">post-training</span><span class="bk-fd-tag">muscle fatigue</span><span class="bk-fd-tag">heavy legs</span><span class="bk-fd-tag">travel recovery</span><span class="bk-fd-tag">stress reduction</span><span class="bk-fd-tag">better sleep</span>
         </div>
       </div>
-      <div class="field">
-        <label>preferred date</label>
-        <input type="date" required>
+
+      <div class="bk-fd-item">
+        <div class="bk-fd-item-label">[ 02 / perform ]</div>
+        <div class="bk-fd-item-name">perform</div>
+        <div class="bk-fd-item-body">An engine tune before the work begins. Pulse-driven, rhythmic techniques increase circulation, reduce stiffness and prepare the body to move with speed, strength and precision. Dynamic compressions, sweeping strokes, joint mobilisation and targeted activation leave muscles awake, responsive and ready to perform.</div>
+        <div class="bk-fd-item-tags">
+          <span class="bk-fd-tag">pre-workout</span><span class="bk-fd-tag">competition</span><span class="bk-fd-tag">hyrox</span><span class="bk-fd-tag">running</span><span class="bk-fd-tag">strength training</span><span class="bk-fd-tag">surfing</span>
+        </div>
       </div>
-      <button type="submit" class="submit-btn">submit request →</button>
-    </form>
+
+      <div class="bk-fd-item">
+        <div class="bk-fd-item-label">[ 03 / move ]</div>
+        <div class="bk-fd-item-name">move</div>
+        <div class="bk-fd-item-body">Movement without restriction. Designed to restore quality of motion, reduce compensations and improve how your body moves every day. Focused release, joint mobilisation, assisted stretching and movement-based techniques create lasting freedom through every stride, lift and rotation.</div>
+        <div class="bk-fd-item-tags">
+          <span class="bk-fd-tag">mobility</span><span class="bk-fd-tag">flexibility</span><span class="bk-fd-tag">injury prevention</span><span class="bk-fd-tag">desk workers</span><span class="bk-fd-tag">joint stiffness</span><span class="bk-fd-tag">functional movement</span>
+        </div>
+      </div>
+
+      <div class="bk-fd-item">
+        <div class="bk-fd-item-label">[ 04 / compression boots ]</div>
+        <div class="bk-fd-item-name">compression boots</div>
+        <div class="bk-fd-item-body">Rhythmic air compression designed to accelerate recovery without slowing you down. Graduated pressure gently moves from the feet upward, encouraging circulation, reducing post-exercise heaviness and supporting the body's natural recovery process. A simple, effortless reset that leaves your legs feeling lighter, fresher and ready for what's next.</div>
+        <div class="bk-fd-item-tags">
+          <span class="bk-fd-tag">post-training</span><span class="bk-fd-tag">heavy legs</span><span class="bk-fd-tag">running</span><span class="bk-fd-tag">hyrox</span><span class="bk-fd-tag">cycling</span><span class="bk-fd-tag">travel recovery</span>
+        </div>
+      </div>
+    </div>
 
     <div class="modal-livedata">
       <div class="ld-block">
@@ -1220,7 +1463,7 @@ footer.contact-strip{
         <div class="ld-label">[ status ]</div>
         <div class="ld-status"><span class="ld-dot"></span>operational</div>
         <div class="ld-sub" style="margin-top:18px">opening</div>
-        <div class="ld-value">17.08.2026</div>
+        <div class="ld-value">22.08.2026</div>
       </div>
     </div>
   </div>
@@ -1266,7 +1509,12 @@ footer.contact-strip{
           contact
           <span class="menu-item-arrow">→</span>
         </a>
-        <a href="staff/" class="menu-item" style="opacity:0.25;font-size:0.75em;margin-top:8px;">
+        <a href="apply.html" class="menu-item">
+          <span class="menu-item-num">06</span>
+          work with us
+          <span class="menu-item-arrow">→</span>
+        </a>
+        <a class="menu-item" onclick="openStaffModal()" style="cursor:pointer;margin-top:16px;opacity:0.5;font-size:0.82em;">
           <span class="menu-item-num">—</span>
           staff access
           <span class="menu-item-arrow">→</span>
@@ -1296,16 +1544,6 @@ footer.contact-strip{
 <script src="https://d3js.org/d3.v7.min.js"></script>
 <script src="https://unpkg.com/topojson-client@3/dist/topojson-client.min.js"></script>
 <script>
-/* ─── CURSOR ─── */
-const cur=document.querySelector('.cur'),ring=document.querySelector('.cur-ring');
-let mx=innerWidth/2,my=innerHeight/2,rx=mx,ry=my;
-document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px'});
-(function r(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(r)})();
-document.querySelectorAll('a,button,.menu-item,input,select,.submit-btn').forEach(el=>{
-  el.addEventListener('mouseenter',()=>document.body.classList.add('h'));
-  el.addEventListener('mouseleave',()=>document.body.classList.remove('h'));
-});
-
 /* ─── FILM REEL — montage choreography ─── */
 const frames = document.querySelectorAll('.film-frame');
 const flash = null;
@@ -1583,7 +1821,7 @@ document.addEventListener('keydown', e => {
   window.addEventListener('resize', setSize);
 })();
 
-/* ─── LIVE TIME (WITA = UTC+8) + COUNTDOWN TO 17.08.2026 ─── */
+/* ─── LIVE TIME (WITA = UTC+8) + COUNTDOWN TO 22.08.2026 ─── */
 function updateLiveTime(){
   const els = [document.getElementById('liveTime'), document.getElementById('liveTimeMain')].filter(Boolean);
   if(!els.length) return;
@@ -1599,22 +1837,6 @@ function updateLiveTime(){
 }
 updateLiveTime();
 setInterval(updateLiveTime, 1000);
-
-// Countdown to opening: August 1, 2026 00:00 WITA (which is July 31 2026 16:00 UTC)
-const OPENING = Date.UTC(2026, 6, 31, 16, 0, 0); // month is 0-indexed: 6 = July
-function updateCountdown(){
-  const el = document.getElementById('countdown');
-  if(!el) return;
-  const now = Date.now();
-  let diff = Math.max(0, OPENING - now);
-  const d = Math.floor(diff / 86400000); diff -= d * 86400000;
-  const h = Math.floor(diff / 3600000);  diff -= h * 3600000;
-  const m = Math.floor(diff / 60000);    diff -= m * 60000;
-  const s = Math.floor(diff / 1000);
-  el.textContent = `${String(d).padStart(3,'0')}d ${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
-}
-updateCountdown();
-setInterval(updateCountdown, 1000);
 
 /* ─── Hero text parallax fade on scroll ─── */
 const heroMark = document.getElementById('heroMark');
@@ -1678,61 +1900,168 @@ document.querySelectorAll('.menu-item').forEach(item => {
   }
 });
 
-/* ─── PROTOCOL DESCRIPTIONS ─── */
-const protocolData = {
-  'targeted': {
-    name: '30 min — targeted',
-    body: 'Focused recovery treatment for specific areas of tension, soreness or fatigue.',
-    price: 'IDR 400,000'
-  },
-  'reset': {
-    name: '45 min — reset',
-    body: 'A full-body recovery session designed to reduce fatigue, release tension and restore movement.\n\nCombining assisted mobility, stretching and targeted recovery techniques to improve range of motion, recovery and overall performance.',
-    price: 'IDR 550,000'
-  },
-  'performance': {
-    name: '60 min — performance',
-    body: 'A deeper recovery treatment focused on training fatigue, body maintenance and performance recovery.\n\nMay include assisted mobility, electronic recovery stimulation and targeted muscle release techniques.',
-    price: 'IDR 650,000'
-  },
-  'full-system': {
-    name: '90 min — full system',
-    body: 'An extended full-body recovery session combining recovery treatment, mobility work and nervous system reset.\n\nMay include electronic recovery stimulation, assisted mobility and recovery gun therapy.',
-    price: 'IDR 950,000'
-  },
-  'signature': {
-    name: '90 min — signature',
-    body: '60 min performance session\n+ 30 min compression recovery',
-    price: 'IDR 950,000'
-  },
-  'compression': {
-    name: '30 min — compression recovery',
-    body: 'Guided compression recovery session designed to improve circulation, reduce soreness and accelerate recovery.',
-    price: 'IDR 400,000'
-  }
+/* ─── BOOKING FORM ─── */
+var _bkState = { focus:null, duration:null, price:null, pressure:null };
+var _BK_DURS = {
+  RECOVER:     [{m:30,p:'IDR 400K'},{m:45,p:'IDR 550K'},{m:60,p:'IDR 650K'},{m:90,p:'IDR 950K'}],
+  PERFORM:     [{m:30,p:'IDR 400K'},{m:45,p:'IDR 550K'},{m:60,p:'IDR 650K'},{m:90,p:'IDR 950K'}],
+  MOVE:        [{m:30,p:'IDR 400K'},{m:45,p:'IDR 550K'},{m:60,p:'IDR 650K'},{m:90,p:'IDR 950K'}],
+  COMPRESSION: [{m:20,p:'IDR 200K'},{m:40,p:'IDR 400K'}]
 };
 
-const protocolSelect = document.getElementById('protocolSelect');
-const protocolDesc = document.getElementById('protocolDesc');
-const pdName = document.getElementById('pdName');
-const pdBody = document.getElementById('pdBody');
-const pdPrice = document.getElementById('pdPrice');
-
-if(protocolSelect){
-  protocolSelect.addEventListener('change', function(){
-    const data = protocolData[this.value];
-    if(data){
-      pdName.textContent = data.name;
-      pdBody.innerHTML = data.body.replace(/\n/g, '<br>');
-      pdPrice.textContent = data.price;
-      protocolDesc.classList.add('visible');
-    } else {
-      protocolDesc.classList.remove('visible');
-    }
+function bkPickFocus(el, f){
+  _bkState.focus=f; _bkState.duration=null; _bkState.price=null;
+  document.querySelectorAll('.bk-focus-card').forEach(e=>e.classList.remove('sel'));
+  el.classList.add('sel');
+  // Rebuild duration chips for the selected focus
+  var wrap=document.getElementById('bkDurChips'); if(!wrap)return;
+  wrap.innerHTML='';
+  (_BK_DURS[f]||_BK_DURS.RECOVER).forEach(function(d){
+    var b=document.createElement('button');
+    b.className='bk-chip';
+    b.innerHTML=d.m+' min <span class="bk-chip-price">'+d.p+'</span>';
+    b.onclick=(function(el2,dm,dp){return function(){bkPickDur(el2,dm,dp);};})(b,d.m,d.p);
+    wrap.appendChild(b);
   });
 }
 
+function bkPickDur(el, mins, price){
+  _bkState.duration=mins; _bkState.price=price;
+  document.querySelectorAll('#bkDurChips .bk-chip').forEach(e=>e.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function bkPickPressure(el, p){
+  _bkState.pressure=p;
+  document.querySelectorAll('#bkPressureChips .bk-chip').forEach(e=>e.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function submitBkForm(){
+  var name=(document.getElementById('bkName')||{}).value||'';
+  var contact=(document.getElementById('bkContact')||{}).value||'';
+  if(!_bkState.focus){alert('please choose your focus');return;}
+  if(!_bkState.duration){alert('please choose your time');return;}
+  if(!_bkState.pressure){alert('please choose your pressure');return;}
+  if(!name.trim()){alert('please enter your name');return;}
+  if(!contact.trim()){alert('please enter your whatsapp or email');return;}
+  var btn=document.getElementById('bkSubmitBtn');
+  if(btn){btn.textContent='— request received. we\'ll be in touch shortly';btn.style.pointerEvents='none';}
+}
+
+/* ── STAFF ACCESS MODAL ── */
+const STAFF_HASH = 'ceb62a48b1460cc387bd0d76774ff19ee96de1f20d0e8ec4e282e3f991545f85'; // D1strik2026!
+
+function openStaffModal(){
+  document.getElementById('staffModal').classList.add('open');
+  setTimeout(()=>{ const p=document.getElementById('staffPwd'); if(p) p.focus(); }, 80);
+}
+function closeStaffModal(){
+  const modal=document.getElementById('staffModal');
+  const input=document.getElementById('staffPwd');
+  modal.classList.remove('open');
+  if(input){ input.value=''; input.classList.remove('err'); input.style.display=''; }
+  const btn=document.getElementById('staffEnterBtn'); if(btn) btn.style.display='';
+  const err=document.getElementById('staffErr'); if(err) err.textContent='';
+  const links=document.getElementById('staffLinks'); if(links) links.style.display='none';
+  setStaffRole('manager');
+}
+function setStaffRole(role){
+  const isMgr=role==='manager';
+  document.getElementById('sr-mgr-form').style.display=isMgr?'':'none';
+  document.getElementById('sr-stf-form').style.display=isMgr?'none':'';
+  document.getElementById('sr-mgr').style.background=isMgr?'#1a1a1a':'transparent';
+  document.getElementById('sr-mgr').style.color=isMgr?'var(--ink)':'rgba(242,242,240,.35)';
+  document.getElementById('sr-stf').style.background=isMgr?'transparent':'#1a1a1a';
+  document.getElementById('sr-stf').style.color=isMgr?'rgba(242,242,240,.35)':'var(--ink)';
+}
+function staffSiteLogin(){
+  const input=document.getElementById('staffPwd');
+  const err=document.getElementById('staffErr');
+  if(!input) return;
+  const h=sha256Site(input.value);
+  if(h===STAFF_HASH){
+    try{
+      localStorage.setItem('distrik_session_v4', JSON.stringify({
+        id:'admin',name:'Manager',col:'#FF2D2D',role:'Admin',type:'admin',
+        expires: Date.now()+8*60*60*1000
+      }));
+    }catch(e){}
+    input.style.display='none';
+    const btn=document.getElementById('staffEnterBtn'); if(btn) btn.style.display='none';
+    const links=document.getElementById('staffLinks'); if(links) links.style.display='flex';
+  } else {
+    input.classList.add('err');
+    if(err) err.textContent='incorrect password';
+    input.value=''; input.focus();
+  }
+}
+function sha256Site(str){
+  function rightRotate(v,a){return(v>>>a)|(v<<(32-a))}
+  var mathPow=Math.pow,maxWord=mathPow(2,32),i,j,result='';
+  var words=[],asciiBitLength=str.length*8;
+  var hash=sha256Site.h=sha256Site.h||[];var k=sha256Site.k=sha256Site.k||[];var primeCounter=k.length;
+  var isComposite={};
+  for(var candidate=2;primeCounter<64;candidate++){
+    if(!isComposite[candidate]){
+      for(i=0;i<313;i+=candidate)isComposite[i]=candidate;
+      hash[primeCounter]=mathPow(candidate,.5)*maxWord|0;
+      k[primeCounter++]=mathPow(candidate,1/3)*maxWord|0;
+    }
+  }
+  str+='\x80';
+  while(str.length%64-56)str+='\x00';
+  for(i=0;i<str.length;i++){j=str.charCodeAt(i);if(j>>8)return;words[i>>2]|=j<<((3-i)%4*8);}
+  words[words.length]=((asciiBitLength/maxWord)|0);words[words.length]=asciiBitLength;
+  for(j=0;j<words.length;){
+    var w=words.slice(j,j+=16),oldHash=hash.slice(0);hash=hash.slice(0,8);
+    for(i=0;i<64;i++){
+      var w15=w[i-15],w2=w[i-2],a=hash[0],e=hash[4];
+      var temp1=hash[7]+(rightRotate(e,6)^rightRotate(e,11)^rightRotate(e,25))+((e&hash[5])^((~e)&hash[6]))+k[i]+(w[i]=i<16?w[i]:(w[i-16]+(rightRotate(w15,7)^rightRotate(w15,18)^(w15>>>3))+w[i-7]+(rightRotate(w2,17)^rightRotate(w2,19)^(w2>>>10)))|0);
+      var temp2=(rightRotate(a,2)^rightRotate(a,13)^rightRotate(a,22))+((a&hash[1])^(a&hash[2])^(hash[1]&hash[2]));
+      hash=[temp1+temp2|0].concat(hash);hash[4]=hash[4]+temp1|0;hash.length=8;
+    }
+    hash=hash.map(function(v,i){return(v+oldHash[i])|0});
+  }
+  hash.forEach(function(e){for(var i=3;i+1;i--){var b=(e>>(i*8))&255;result+=((b<16)?0:'')+b.toString(16);}});
+  return result;
+}
+
 </script>
+
+<!-- ── STAFF ACCESS MODAL ── -->
+<div class="staff-modal" id="staffModal">
+  <div class="staff-box">
+    <div class="staff-modal-title">[ staff access ]</div>
+
+    <!-- Role selector -->
+    <div style="display:flex;gap:0;margin-bottom:24px;border:1px solid rgba(242,242,240,.12);border-radius:1px;overflow:hidden;">
+      <button id="sr-mgr" onclick="setStaffRole('manager')"
+        style="flex:1;padding:9px;background:#1a1a1a;border:none;font-family:var(--mono);font-size:8px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink);cursor:pointer;">Manager</button>
+      <button id="sr-stf" onclick="setStaffRole('staff')"
+        style="flex:1;padding:9px;background:transparent;border:none;border-left:1px solid rgba(242,242,240,.12);font-family:var(--mono);font-size:8px;letter-spacing:.22em;text-transform:uppercase;color:rgba(242,242,240,.35);cursor:pointer;">Staff Member</button>
+    </div>
+
+    <!-- Manager: password -->
+    <div id="sr-mgr-form">
+      <input type="password" id="staffPwd" placeholder="password"
+             onkeydown="if(event.key==='Enter')staffSiteLogin()">
+      <button class="staff-modal-btn" id="staffEnterBtn" onclick="staffSiteLogin()">enter →</button>
+      <div class="staff-modal-err" id="staffErr"></div>
+      <div id="staffLinks" style="display:none;flex-direction:column;gap:10px;margin-top:16px;">
+        <button class="staff-modal-btn" onclick="window.location.href='staff/'">→ staff dashboard</button>
+      </div>
+    </div>
+
+    <!-- Staff member: PIN login on dashboard -->
+    <div id="sr-stf-form" style="display:none;">
+      <p style="font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;color:var(--ink-d);line-height:1.9;margin-bottom:20px;">Select your name and enter your PIN on the next screen.</p>
+      <button class="staff-modal-btn" onclick="window.location.href='staff/#staff'">continue →</button>
+    </div>
+
+    <button class="staff-modal-close" onclick="closeStaffModal()">close</button>
+  </div>
+</div>
 
 </body>
 </html>
