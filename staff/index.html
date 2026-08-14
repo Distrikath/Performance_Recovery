@@ -11383,41 +11383,20 @@ window.showRoomCalendar=showRoomCalendar;
   // Prevents one device's stale config from clobbering another's edits: each field only changes on the
   // device that actually edited it. "base" = the config as it stood at our last sync (the common ancestor).
   var BASE='__base_';
-  function setBase(k,val){ try{ if(isConfigBlob(k)) nset(BASE+k, stripTx(k,val)); }catch(e){} }
+  // config content WITHOUT the version timestamp — for detecting real edits + tracking the base
+  function cfgContent(k,val){ try{ var o=JSON.parse(stripTx(k,val)); delete o._cfgTs; return JSON.stringify(o); }catch(e){ return stripTx(k,val); } }
+  function setBase(k,val){ try{ if(isConfigBlob(k)) nset(BASE+k, cfgContent(k,val)); }catch(e){} }
   function mergeConfig3(k, localVal, cloudVal){
     var tf=txFields(k); if(!tf.length) return cloudVal;
     try{
       var lo=localVal?JSON.parse(localVal):{};
       var co=cloudVal?JSON.parse(cloudVal):{};
-      var baseRaw=localStorage.getItem(BASE+k);
-      var ba=baseRaw?JSON.parse(baseRaw):lo;   // no base yet (first sync) -> treat local as ancestor => pull cloud
-      var res={}, keys={};
-      Object.keys(lo).forEach(function(f){keys[f]=1;});
-      Object.keys(co).forEach(function(f){keys[f]=1;});
-      Object.keys(keys).forEach(function(f){
-        if(tf.indexOf(f)>=0){ res[f]=(lo[f]!==undefined)?lo[f]:(f==='SUPPLY_SALES'?[]:{}); return; } // transactions: keep local
-        // STAFF: union-merge by id so locally-added staff survive a cloud pull
-        if(f==='STAFF' && Array.isArray(lo[f]) && Array.isArray(co[f])){
-          var byId={};
-          (co[f]||[]).forEach(function(s){ if(s&&s.id) byId[s.id]=s; });
-          (lo[f]||[]).forEach(function(s){ if(s&&s.id) byId[s.id]=s; }); // local version of each entry wins
-          var localIds=(lo[f]||[]).map(function(s){ return s&&s.id; });
-          var cloudOnly=(co[f]||[]).filter(function(s){ return s&&s.id&&localIds.indexOf(s.id)<0; });
-          res[f]=(lo[f]||[]).map(function(s){ return (s&&s.id)?byId[s.id]:s; }).concat(cloudOnly);
-          return;
-        }
-        // dailyOverrides: merge by date key — local dates always win so a stale device can't revert roster edits
-        if(f==='dailyOverrides'){
-          var doOut=Object.assign({},co[f]||{});
-          Object.keys(lo[f]||{}).forEach(function(d){ doOut[d]=(lo[f])[d]; });
-          res[f]=doOut; return;
-        }
-        // grid (base weekly template): local always wins — stale device must not revert template edits
-        if(f==='grid'){ res[f]=lo[f]!==undefined?lo[f]:co[f]; return; }
-        var lJson=JSON.stringify(lo[f]);
-        if(lJson===JSON.stringify(ba[f])){ res[f]=(co[f]!==undefined)?co[f]:lo[f]; }  // I didn't change this field -> take theirs
-        else { res[f]=lo[f]; }                                                        // I changed it -> keep mine
-      });
+      // NEWEST EDIT WINS: whichever config was edited most recently (higher _cfgTs) wins as a whole.
+      // A stale device's old push has an older _cfgTs, so it can never overwrite newer staff/roster/settings.
+      var lt=+lo._cfgTs||0, ct=+co._cfgTs||0;
+      var res = (ct>lt) ? Object.assign({},co) : Object.assign({},lo);
+      // always keep LOCAL transactions (they're stripped from the cloud copy anyway)
+      tf.forEach(function(f){ res[f]=(lo[f]!==undefined)?lo[f]:(f==='SUPPLY_SALES'?[]:{}); });
       return JSON.stringify(res);
     }catch(e){ console.warn('[sync] merge3',k,e); return cloudVal; }
   }
@@ -11440,17 +11419,18 @@ window.showRoomCalendar=showRoomCalendar;
     var meta={ ts: firebase.firestore.FieldValue.serverTimestamp(), by:(typeof currentUser!=='undefined'&&currentUser&&currentUser.name)||'?' };
     // CONFIG blobs: read-merge-write so we only change the fields WE edited — never clobber another device's config.
     if(isConfigBlob(k)){
-      var out0=stripTx(k,val);
-      if(out0===localStorage.getItem(BASE+k)){ return; } // nothing changed vs the cloud we last saw
+      if(cfgContent(k,val)===localStorage.getItem(BASE+k)){ return; } // no real config change since last sync
+      // real edit -> stamp a version timestamp so the newest edit wins on every device
+      try{ var _pv=JSON.parse(val); _pv._cfgTs=Date.now(); val=JSON.stringify(_pv); nset(k,val); }catch(e){}
       setPill("↑ Syncing…","#f59e0b");
       db.collection(COLL).doc(k).get().then(function(snap){
         var cloud=(snap.exists && snap.data() && typeof snap.data().value==='string')?snap.data().value:null;
-        var merged=(cloud!=null)?mergeConfig3(k, val, cloud):val;  // our changed fields win; cloud's other changes kept
+        var merged=(cloud!=null)?mergeConfig3(k, val, cloud):val;  // newest edit wins
         var finalOut=stripTx(k, merged);
         db.collection(COLL).doc(k).set({value:finalOut, ts:meta.ts, by:meta.by}).then(function(){
           nset(SV+k,svHash(k,merged)); setBase(k, finalOut);
-          if(merged!==localStorage.getItem(k)){ applying++; nset(k,merged); nset(SV+k,svHash(k,merged)); applying--; rerender(); } // adopt cloud's other-field changes locally
-          setPill("✓ Synced","#10b981"); console.log('[sync] pushed',k,'(config-merge)');
+          if(merged!==localStorage.getItem(k)){ applying++; nset(k,merged); nset(SV+k,svHash(k,merged)); applying--; rerender(); }
+          setPill("✓ Synced","#10b981"); console.log('[sync] pushed',k,'(newest-wins)');
         }).catch(function(e){ console.warn('[sync] push fail',k,e); setPill("⚠ Sync error","#FF2D2D"); });
       }).catch(function(e){ console.warn('[sync] push read',k,e); setPill("⚠ Sync error","#FF2D2D"); });
       return;
