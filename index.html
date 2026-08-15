@@ -1955,8 +1955,10 @@ function submitBkForm(){
 const STAFF_HASH = 'ceb62a48b1460cc387bd0d76774ff19ee96de1f20d0e8ec4e282e3f991545f85'; // D1strik2026!
 
 function openStaffModal(){
-  document.getElementById('staffModal').classList.add('open');
-  setTimeout(()=>{ const p=document.getElementById('staffPwd'); if(p) p.focus(); }, 80);
+  // Go straight to the ONE dashboard login (staff name dropdown by default, Manager tab for admin/POS).
+  // Clear any stale session so "staff access" always lands on a clean login screen.
+  try{ localStorage.removeItem('distrik_session_v4'); }catch(e){}
+  window.location.href = 'staff/?v=' + Date.now();
 }
 function closeStaffModal(){
   const modal=document.getElementById('staffModal');
