@@ -558,6 +558,18 @@ function bkAuth(){
   return _fbAuthP;
 }
 try{ bkAuth(); }catch(e){}
+// Load the admin's hard-saved roster (distrik_v1) from the cloud so availability reflects who's rostered.
+var _bkRosterCache=null;
+function bkLoadRoster(){
+  return bkAuth().then(function(db){ return db.collection('distrik_state').doc('distrik_v1').get(); })
+    .then(function(doc){
+      try{ _bkRosterCache = doc.exists ? JSON.parse(doc.data().value||'{}') : {}; }catch(e){ _bkRosterCache={}; }
+      // if a date was already chosen before the roster arrived, refresh its availability now
+      try{ if(bkState && bkState.date) bkPickDay(bkState.date); }catch(e){}
+      return _bkRosterCache;
+    }).catch(function(){ _bkRosterCache={}; });
+}
+try{ bkLoadRoster(); }catch(e){}
 
 // ── IV Add-ons ────────────────────────────────────────────────────────
 var IV_ADDONS=[
@@ -703,8 +715,8 @@ var IV_CAPACITY=4; // number of IV therapy chairs
 // Read which 30-min slot indices have a therapist working in `zone` on `dateStr`
 // Returns an object keyed by slot index, or null if no roster data (fallback: show all)
 function getRosterWorkedSlots(dateStr, zone){
-  var data={};
-  try{ data=JSON.parse(localStorage.getItem('distrik_v1')||'{}'); }catch(e){ return null; }
+  var data=_bkRosterCache;         // read the admin's hard-saved roster from the CLOUD (loaded by bkLoadRoster)
+  if(!data) return null;           // not loaded yet → graceful fallback (show all times)
   var pts=dateStr.split('-');
   var dow=new Date(parseInt(pts[0]),parseInt(pts[1])-1,parseInt(pts[2])).getDay();
   var dayIdx=dow===0?6:dow-1; // Mon=0..Sun=6

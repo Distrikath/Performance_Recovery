@@ -1236,11 +1236,10 @@ function renderBkTimes(){
     });
   }
   if(_bkRosterCache){doRender(_bkRosterCache,_bkRfCache||{});return;}
-  var db=bkFdb();
-  Promise.all([
+  bkAuth().then(function(db){ return Promise.all([
     db.collection('distrik_state').doc('distrik_v1').get(),
     db.collection('distrik_state').doc('distrik_rf').get()
-  ]).then(function(results){
+  ]); }).then(function(results){
     try{_bkRosterCache=results[0].exists?JSON.parse(results[0].data().value||'{}'):{};}catch(e){_bkRosterCache={};}
     try{_bkRfCache=results[1].exists?JSON.parse(results[1].data().value||'{}'):{};} catch(e){_bkRfCache={};}
     doRender(_bkRosterCache,_bkRfCache);
