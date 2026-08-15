@@ -469,6 +469,7 @@ footer{padding:40px 48px 28px;border-top:1px solid var(--line);display:flex;just
         <div id="bk-addons-section" style="display:none;margin-top:20px;border-top:1px solid var(--rule);padding-top:16px;">
           <label style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-d);display:block;margin-bottom:10px;">optional add-ons</label>
           <div id="bk-addon-list"></div>
+          <div id="bk-total-box" style="margin-top:18px;padding-top:16px;border-top:1px solid var(--rule);"></div>
         </div>
       </div>
 
@@ -571,6 +572,25 @@ var IV_ADDONS=[
   {id:'ca9',name:'Electrolytes / Saline 500ml',     price:100000},
 ];
 function bkFmtIDR(n){return 'IDR '+Math.round(n).toLocaleString('id-ID');}
+// IV protocol prices — must match the pricing table / select options above. Add-on prices are in IV_ADDONS.
+var IV_PROTO_PRICE={'ALL IN':2100000,'JETLAG':2050000,'HANGOVER CURE':1500000,'THE BIOHACKER':3100000,'BALI BELLY FIX':1890000,'THE AFTERMATH':1600000,'THE FLU FIXER':1200000,'SKIN GLOW':1800000,'PMS & MENSTRUAL SUPPORT':1100000,'HAPPY PREGNANCY':1500000};
+function bkSubtotal(){
+  var t=IV_PROTO_PRICE[bkState.protocol]||0;
+  (bkState.addons||[]).forEach(function(id){ var a=IV_ADDONS.find(function(x){return x.id===id;}); if(a) t+=a.price; });
+  return t;
+}
+function bkVat(){ return Math.round(bkSubtotal()*0.11); }
+function bkTotalDue(){ return bkSubtotal()+bkVat(); }
+function bkRenderTotal(){
+  var box=document.getElementById('bk-total-box'); if(!box) return;
+  if(!bkState.protocol){ box.innerHTML=''; return; }
+  var sub=bkSubtotal(), vat=bkVat(), tot=sub+vat;
+  var row='display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--ink-d);margin-bottom:6px;';
+  box.innerHTML=
+    '<div style="'+row+'"><span>subtotal</span><span>'+bkFmtIDR(sub)+'</span></div>'
+    +'<div style="'+row+'"><span>vat (11%)</span><span>'+bkFmtIDR(vat)+'</span></div>'
+    +'<div style="display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--ink);text-transform:uppercase;margin-top:8px;padding-top:10px;border-top:1px solid var(--rule);"><span>total due</span><span>'+bkFmtIDR(tot)+'</span></div>';
+}
 function bkToggleAddon(id){
   var idx=bkState.addons.indexOf(id);
   if(idx>-1) bkState.addons.splice(idx,1); else bkState.addons.push(id);
@@ -790,12 +810,14 @@ function updateBkNext(){
   btn.innerHTML=s===3?'confirm &#x2192;':'next &#x2192;';
 }
 function updateBkSum(){
+  try{ bkRenderTotal(); }catch(e){}
   var el=document.getElementById('bk-sum-text');if(!el)return;
   var pts=[];
   if(bkState.protocol)pts.push(bkState.protocol);
   if(bkState.addons&&bkState.addons.length)pts.push('+'+bkState.addons.length+' add-on'+(bkState.addons.length>1?'s':''));
   if(bkState.date)pts.push(bkState.date);
   if(bkState.time)pts.push(bkState.time);
+  if(bkState.protocol)pts.push(bkFmtIDR(bkTotalDue())+' due');
   el.textContent=pts.join(' \xb7 ');
 }
 
@@ -804,10 +826,12 @@ function submitBk(){
   var btn=document.getElementById('bk-next-btn');
   if(btn){btn.disabled=true;btn.textContent='sending...';}
   var addonNames=(bkState.addons||[]).map(function(id){var a=IV_ADDONS.find(function(x){return x.id===id;});return a?a.name:id;});
+  var _sub=bkSubtotal(), _vat=bkVat(), _tot=_sub+_vat;
   var rec={
     type:'iv_therapy',
     protocol:bkState.protocol,
     addons:addonNames,
+    subtotal:_sub, vat:_vat, total:_tot,
     date:bkState.date,
     time:bkState.time,
     name:bkState.name.trim(),
@@ -819,7 +843,9 @@ function submitBk(){
     var de=document.getElementById('bk-conf-detail');
     if(de){
       var addonLine=addonNames.length?'<br><span style="font-size:10px;opacity:.7">+ '+addonNames.join(', ')+'</span>':'';
-      de.innerHTML=rec.protocol+addonLine+'<br>'+rec.date+' at '+rec.time+'<br>'+rec.name+' &middot; '+rec.phone;
+      de.innerHTML=rec.protocol+addonLine+'<br>'+rec.date+' at '+rec.time+'<br>'+rec.name+' &middot; '+rec.phone
+        +'<br><br><span style="color:var(--ink);font-size:12px;letter-spacing:.06em;">total due &mdash; '+bkFmtIDR(_tot)+'</span>'
+        +'<br><span style="font-size:9px;opacity:.6;">incl. 11% vat &middot; payable at the clinic</span>';
     }
     bkGoStep(4);
   }).catch(function(e){
