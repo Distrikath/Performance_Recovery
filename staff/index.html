@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814006;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814008;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -9878,6 +9878,7 @@ function renderTodayBookings(){
       +(isHold?'<button class="clin-bk-act go" onclick="clinConfirmHold(\''+id+'\')">Intake back · confirm ✓</button>':'')
       +_bDepLink
       +((b.online&&!b.balancePaid)?'<button class="clin-bk-act go" onclick="clinCollectBalance(\''+id+'\')">Check in · collect balance</button>':'')
+      +(((b.phone||b.whatsapp)&&b.status!=='cancelled'&&!isHold)?'<button class="clin-bk-act" onclick="clinSendReminder(\''+id+'\')">Send reminder</button>':'')
       +'<button class="clin-bk-act" onclick="clinEditBooking(\''+id+'\')">Edit / move</button>'
       +'<button class="clin-bk-act danger" onclick="clinCancelBooking(\''+id+'\')">Cancel</button>'
       +'</div>';
@@ -9906,6 +9907,19 @@ function renderTodayBookings(){
   return localHtml+onlineHtml;
 }
 
+function clinSendReminder(id){
+  try{
+    var dk=clinKey(); var day=recoveryData&&recoveryData[dk]; if(!day||!day.bookings) return;
+    var b=day.bookings.find(function(x){return x.id===id;}); if(!b) return;
+    var ph=String(b.phone||b.whatsapp||'').replace(/\D/g,''); if(!ph){ alert('No WhatsApp number on this booking.'); return; }
+    var svc=b.serviceName||b.service||'your session';
+    var when=(typeof clinDateWord==='function'?clinDateWord():'')+' at '+(b.start||b.time||'');
+    var bal=(b.online&&!b.balancePaid&&b.balanceDue)?('\n\nBalance due on arrival: IDR '+(b.balanceDue||0).toLocaleString('id-ID')+'.'):'';
+    var msg='Hi '+(b.client||'there')+' — a friendly reminder from DISTRIK about your '+svc+' '+when+'.'+bal+'\n\nSee you at the Canggu lab 🙏';
+    window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(msg),'_blank');
+  }catch(e){ console.warn('clinSendReminder',e); }
+}
+window.clinSendReminder=clinSendReminder;
 function initRecovery(){ if(typeof loadClinical==='function') loadClinical(); clinSel=null;clinType=null;clinIntake=false;clinWindow=null;clinRoom=null;clinPay='card';clinDone=false;clinDoneHold=false;clinEditingId=null;clinEditingDate=null;clinOnline=false;clinPressure='';clinPayType='full';clinPatient='';clinEmail='';clinWhatsapp='';clinTime=''; clinDate=(typeof baliNow==='function'?baliNow():new Date()); clinViewYear=null;clinViewMonth=null; clinGroupOpen={recovery:true,clinical:true}; clinSyncDateUI(); renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); startBookingListener(); }
 window.initRecovery=initRecovery;
 
@@ -9944,10 +9958,13 @@ function _updateBkPill(count){
   else { pill.style.display='none'; }
 }
 
+var _bkDismissed={};  // booking ids the user has already been alerted about / pressed "later" on
 function _showBkAlertIfNeeded(){
   if(!_bkReqs||!_bkReqs.length) return;
   var overlay=document.getElementById('bk-alert-overlay'); if(!overlay) return;
-  var r=_bkReqs[0];
+  // only pop for a booking we haven't already shown/dismissed — stops the endless re-nag
+  var r=null; for(var _i=0;_i<_bkReqs.length;_i++){ if(!_bkDismissed[_bkReqs[_i]._id]){ r=_bkReqs[_i]; break; } }
+  if(!r) return;
   var svcEl=document.getElementById('bk-alert-service');
   var metaEl=document.getElementById('bk-alert-meta');
   var clientEl=document.getElementById('bk-alert-client');
@@ -9959,6 +9976,9 @@ function _showBkAlertIfNeeded(){
   overlay.classList.add('on');
 }
 function bkAlertDismiss(){
+  // "later" — silence every currently-pending booking so the popup stops. The Recovery panel + the
+  // online-requests bar still list them, so nothing is lost; the modal just won't nag again.
+  (_bkReqs||[]).forEach(function(r){ if(r&&r._id) _bkDismissed[r._id]=1; });
   var overlay=document.getElementById('bk-alert-overlay'); if(overlay) overlay.classList.remove('on');
 }
 function bkAlertGoToReview(){
@@ -10058,11 +10078,39 @@ function _findReq(id){ for(var i=0;i<_bkReqs.length;i++){ if(_bkReqs[i]._id===id
 
 function acceptOnlineBooking(id){
   var r=_findReq(id); if(!r) return;
-  if(!confirm('Confirm booking for '+_escHtml(r.name||'this customer')+'?\n\nA WhatsApp confirmation will open for you to send.')) return;
-  _onreqUpdateStatus(id,'confirmed',function(){
-    var ph=(r.phone||'').replace(/\D/g,'');
-    if(ph) window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(_onreqWaMsg(r,'confirm')),'_blank');
-  });
+  if(!confirm('Confirm booking for '+_escHtml(r.name||'this customer')+'?\n\nThis adds it to the Recovery schedule and opens a WhatsApp confirmation to send.')) return;
+  try{
+    // Recovery/therapy online bookings land on the Recovery schedule. IV & blood are partner-billed → status only.
+    if(r.type!=='iv_therapy' && r.type!=='blood_work' && typeof recoveryData!=='undefined'){
+      var _pn=(function(){ if(typeof r.priceNum==='number'&&r.priceNum) return r.priceNum; var m=String(r.price||'').match(/([\d.,]+)\s*([km])?/i); if(!m) return 0; var n=parseFloat(m[1].replace(/,/g,'')); var u=(m[2]||'').toLowerCase(); if(u==='k')n*=1000; else if(u==='m')n*=1000000; return Math.round(n||0); })();
+      var _dep=(typeof r.deposit==='number'&&r.deposit)?r.deposit:Math.round(_pn/2);
+      var _st=(function(){ var t=String(r.time||'').match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i); if(!t) return r.time||''; var hh=parseInt(t[1]); var mm=t[2]||'00'; var ap=(t[3]||'').toLowerCase(); if(ap==='pm'&&hh!==12)hh+=12; if(ap==='am'&&hh===12)hh=0; return ('0'+hh).slice(-2)+':'+mm; })();
+      var _thName=(function(){ try{ return (typeof getStaff==='function'&&r.therapist)?((getStaff(r.therapist)||{}).name||null):null; }catch(e){ return null; } })();
+      var rec={
+        id:(typeof genId==='function'?genId():'obk_'+Date.now()),
+        service:r.pathway||'recovery', serviceName:String(_onreqLabel(r)).replace(/<[^>]+>/g,''),
+        room:null, roomName:'',
+        therapist:r.therapist||null, therapistName:_thName,
+        start:_st, time:_st, duration:r.duration||60,
+        client:r.name||'Guest', email:r.email||'', whatsapp:r.phone||'', phone:r.phone||'',
+        price:_pn, pressure:r.pressure||null, payType:'deposit',
+        source:'Online', status:'confirmed', payMethod:'online',
+        online:true, deposit:_dep, balanceDue:Math.max(0,_pn-_dep), balancePaid:false, depositPaid:true,
+        onlineRef:r.ref||id, date:r.date
+      };
+      if(!recoveryData[r.date]) recoveryData[r.date]={revenue:0,bookings:[]};
+      if(!recoveryData[r.date].bookings) recoveryData[r.date].bookings=[];
+      recoveryData[r.date].bookings.push(rec);
+      recoveryData[r.date].revenue=(recoveryData[r.date].revenue||0)+((typeof clinCollected==='function')?clinCollected(rec):_dep);
+      if(typeof ledgerWrite==='function') ledgerWrite('recovery', rec.id, r.date, ((typeof clinCollected==='function')?clinCollected(rec):_dep), 0, 'online', rec, 'confirmed');
+      if(typeof clientUpsert==='function' && r.phone) clientUpsert({name:r.name, whatsapp:r.phone, email:r.email, source:'recovery', consent:true});
+      if(typeof saveAll==='function') saveAll();
+      try{ if(typeof buildClinRoomGrid==='function') buildClinRoomGrid(); if(typeof renderClinicalBooking==='function') renderClinicalBooking(); }catch(e){}
+    }
+  }catch(e){ console.warn('acceptOnlineBooking',e); }
+  _bkDismissed[id]=1;
+  // No WhatsApp on confirm — the customer just booked. Send a reminder the day before instead (Send reminder button).
+  _onreqUpdateStatus(id,'confirmed');
 }
 function declineOnlineBooking(id){
   var r=_findReq(id); if(!r) return;
