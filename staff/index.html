@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814005;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814006;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -5156,7 +5156,7 @@ function onLoginSuccess(){
     document.body.classList.toggle('role-readonly', !_isAdmin);
     if(!document.getElementById('roleCSS')){
       var _st=document.createElement('style'); _st.id='roleCSS';
-      _st.textContent='.role-readonly .admin-only{display:none!important;}';
+      _st.textContent='.role-readonly .admin-only{display:none!important;} .role-readonly #rosterGrid{pointer-events:none!important;}';
       document.head.appendChild(_st);
     }
   }catch(e){}
