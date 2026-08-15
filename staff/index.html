@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814003;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814004;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -2771,16 +2771,16 @@ h1,
       </div>
       <div class="rk-actions">
         <button class="rk-ghost" id="tsbtn" onclick="toggleTS()">Timesheets</button>
-        <button class="rk-ghost" onclick="saveDay()" title="Save this specific date's roster (only this day)">Save day</button>
-        <button class="rk-ghost" onclick="copyDay()" title="Copy this day's roster to paste elsewhere">Copy day</button>
-        <button class="rk-ghost" id="pasteDayBtn" onclick="pasteDay()" title="Paste copied roster to this date" style="display:none">Paste day</button>
-        <button class="rk-ghost danger" onclick="clearDay()">Clear day</button>
+        <button class="rk-ghost admin-only" onclick="saveDay()" title="Save this specific date's roster (only this day)">Save day</button>
+        <button class="rk-ghost admin-only" onclick="copyDay()" title="Copy this day's roster to paste elsewhere">Copy day</button>
+        <button class="rk-ghost admin-only" id="pasteDayBtn" onclick="pasteDay()" title="Paste copied roster to this date" style="display:none">Paste day</button>
+        <button class="rk-ghost danger admin-only" onclick="clearDay()">Clear day</button>
       </div>
     </div>
   </div>
 
   <!-- Staff palette -->
-  <div class="rk-palette">
+  <div class="rk-palette admin-only">
     <div class="rk-palette-lbl">Staff <span>· drag onto the grid or tap a slot</span></div>
     <div class="palette-grid" id="palette"></div>
   </div>
@@ -5059,6 +5059,14 @@ function saveSettings(){
 
 var ADMIN_PASSWORD = 'D1strik2026!';
 
+// POS TILL ACCOUNTS — password logins with LIMITED access. They ring sales/bookings (which go to the
+// shared ledger) and can VIEW the roster + sales, but they can NEVER edit config (roster/services/settings)
+// — the admin-only config lock in the sync module enforces that. Admin can change these passwords later.
+var POS_ACCOUNTS = [
+  {pw:'Fuel2026!',   access:'pos_fr',  name:'Fuel / Recovery', role:'POS · Fuel / Recovery', col:'#06b6d4'},
+  {pw:'Supply2026!', access:'pos_sup', name:'Supply',          role:'POS · Supply',          col:'#10b981'}
+];
+
 // Staff accounts — PIN set here, staff can't change it yet (Settings later)
 // PINs default to 1234 — manager changes them in Settings
 var STAFF_ACCOUNTS = null; // built from STAFF array on first load
@@ -5105,11 +5113,18 @@ function doLogin(){
   if(isAdmin){
     const pw = document.getElementById('admin-pw').value;
     if(pw === ADMIN_PASSWORD){
-      currentUser = {id:'admin', name:'Manager', col:'#FF2D2D', role:'Admin', type:'admin'};
+      currentUser = {id:'admin', name:'Manager', col:'#FF2D2D', role:'Admin', type:'admin', access:'admin'};
       onLoginSuccess();
     } else {
-      err.classList.add('on');
-      document.getElementById('admin-pw').value='';
+      // same box also accepts the two POS till passwords → limited, config-locked logins
+      var _pos = POS_ACCOUNTS.find(function(a){ return pw === a.pw; });
+      if(_pos){
+        currentUser = {id:_pos.access, name:_pos.name, col:_pos.col, role:_pos.role, type:'pos', access:_pos.access};
+        onLoginSuccess();
+      } else {
+        err.classList.add('on');
+        document.getElementById('admin-pw').value='';
+      }
     }
   } else {
     buildStaffAccounts();
@@ -5117,7 +5132,7 @@ function doLogin(){
     const pin = document.getElementById('staff-pin').value;
     const account = STAFF_ACCOUNTS.find(s=>s.id===id);
     if(account && pin === account.pin){
-      currentUser = {...account, type:'staff'};
+      currentUser = {...account, type:'staff', access:'staff'};
       onLoginSuccess();
     } else {
       err.classList.add('on');
@@ -5132,6 +5147,17 @@ function onLoginSuccess(){
       ...currentUser, expires: Date.now() + 8*60*60*1000
     }));
   } catch(e){ console.warn('Session save failed:', e); }
+  // ROLE-BASED UI: only Admin edits config. Non-admin logins get a read-only body class that
+  // hides every control marked `admin-only` (roster Save/Copy/Paste/Clear + the drag palette, etc.).
+  try{
+    var _isAdmin = !!(currentUser && currentUser.access==='admin');
+    document.body.classList.toggle('role-readonly', !_isAdmin);
+    if(!document.getElementById('roleCSS')){
+      var _st=document.createElement('style'); _st.id='roleCSS';
+      _st.textContent='.role-readonly .admin-only{display:none!important;}';
+      document.head.appendChild(_st);
+    }
+  }catch(e){}
   const ls = document.getElementById('loginScreen');
   if(ls) ls.style.display='none';
   // Start booking listener globally on login so all panels can show alerts
@@ -5159,18 +5185,20 @@ function doLogout(){
 }
 
 // ── HOME DASHBOARD ────────────────────────────────────────────────
+// access: which login levels see this tile. 'admin' = office (full), 'pos_fr' = Fuel/Recovery till,
+// 'pos_sup' = Supply till, 'staff' = individual staff (read-only roster + my account).
 const HOME_TILES = [
-  {id:'sales',   icon:'', name:'Sales',         desc:'Daily revenue\nRecovery · Fuel · Supply', col:'#6366f1', admin:true,  staff:false},
-  {id:'booking', icon:'', name:'Recovery',       desc:'Bookings & rooms\nRecovery sessions',     col:'#8b5cf6', admin:true,  staff:true},
-  {id:'fuel',    icon:'', name:'Fuel',           desc:'Café POS\nCoffee · drinks · food',        col:'#06b6d4', admin:true,  staff:true},
-  {id:'supply',  icon:'', name:'Supply',         desc:'Inventory & sales\nBrand management',    col:'#10b981', admin:true,  staff:true},
-  {id:'pl',      icon:'', name:'P & L',          desc:'Profit & loss\nFinancial overview',      col:'#f5c842', admin:true,  staff:false},
-  {id:'settings',icon:'',  name:'Settings',       desc:'Staff · Zones\nHours & config',          col:'#FF2D2D', admin:true,  staff:false},
-  {id:'roster',  icon:'', name:'Weekly Roster',  desc:'Drag & drop\nShift management',          col:'#3b82f6', admin:true,  staff:true},
+  {id:'sales',   icon:'', name:'Sales',         desc:'Daily revenue\nRecovery · Fuel · Supply', col:'#6366f1', access:['admin','pos_fr','pos_sup']},
+  {id:'booking', icon:'', name:'Recovery',       desc:'Bookings & rooms\nRecovery sessions',     col:'#8b5cf6', access:['admin','pos_fr']},
+  {id:'fuel',    icon:'', name:'Fuel',           desc:'Café POS\nCoffee · drinks · food',        col:'#06b6d4', access:['admin','pos_fr']},
+  {id:'supply',  icon:'', name:'Supply',         desc:'Inventory & sales\nBrand management',    col:'#10b981', access:['admin','pos_sup']},
+  {id:'pl',      icon:'', name:'P & L',          desc:'Profit & loss\nFinancial overview',      col:'#f5c842', access:['admin']},
+  {id:'settings',icon:'',  name:'Settings',       desc:'Staff · Zones\nHours & config',          col:'#FF2D2D', access:['admin']},
+  {id:'roster',  icon:'', name:'Weekly Roster',  desc:'Drag & drop\nShift management',          col:'#3b82f6', access:['admin','pos_fr','pos_sup','staff']},
 ];
 
 // Staff also get a personal tile
-const STAFF_TILE = {id:'myaccount', icon:'', name:'My Account', desc:'Roster · Commissions\nPayslips', col:'#14b8a6', admin:false, staff:true};
+const STAFF_TILE = {id:'myaccount', icon:'', name:'My Account', desc:'My shifts\n& details', col:'#14b8a6', access:['staff']};
 
 function showHome(){
   // Hide all panels
@@ -5205,8 +5233,9 @@ function showHome(){
   // Build tiles
   const homeGridEl = document.getElementById('homeGrid');
   if(!homeGridEl){ console.error('homeGrid not found'); return; }
+  const acc = currentUser?.access || 'staff';
   const tiles = [...HOME_TILES, STAFF_TILE].filter(t =>
-    isAdmin ? t.admin : t.staff
+    (t.access || ['admin']).includes(acc)   // any tile without an access list is admin-only by default
   );
 
   const idxEl=document.getElementById('home-idx');
@@ -5229,7 +5258,21 @@ const PAGE_NAMES = {
   myaccount:'My Account'
 };
 
+// Access control: which login levels may open each module. Enforced on every navigation path
+// (home tiles, top-nav tabs, direct opens) so a POS/staff login can never reach a restricted screen.
+const ACCESS_MAP = {
+  sales:['admin','pos_fr','pos_sup'], booking:['admin','pos_fr'], recovery:['admin','pos_fr'],
+  fuel:['admin','pos_fr'], supply:['admin','pos_sup'], pl:['admin'], settings:['admin'],
+  roster:['admin','pos_fr','pos_sup','staff'], clients:['admin'], myaccount:['staff']
+};
+function canAccess(id){
+  var acc = (currentUser && currentUser.access) || 'staff';
+  var allow = ACCESS_MAP[id] || ['admin'];   // unknown/unlisted → admin-only
+  return allow.indexOf(acc) >= 0;
+}
+
 function switchTab(t){
+  if(!canAccess(t)){ try{ showHome(); }catch(e){} return; }   // block restricted top-nav tabs
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
   const panel = document.getElementById('panel-'+t);
   if(panel) panel.classList.add('on');
@@ -5256,6 +5299,7 @@ function switchTab(t){
 }
 
 function goToModule(id){
+  if(!canAccess(id)){ return; }   // block restricted modules from any entry point
   document.getElementById('homeScreen').classList.remove('on');
   const tb=document.getElementById('topNav');
   if(tb) tb.style.display='flex';
@@ -11445,6 +11489,14 @@ window.showRoomCalendar=showRoomCalendar;
   window.dkHardSave = function(){ if(!ready){ return false; } push('distrik_v1'); return true; };
 
   function push(k){
+    // ── CONFIG IS ADMIN-ONLY ──────────────────────────────────────────────────────────────────────
+    // Only the Admin (office) login may write CONFIG (roster, services, menu, settings, staff, PINs) to
+    // the cloud. POS tills and staff are read-only for config: they PULL it and add SALES/BOOKINGS via the
+    // separate `ledger` collection (ledgerWrite, unaffected by this gate). This is what makes the roster &
+    // services "hard-wired from admin only" — no POS/staff device can ever overwrite or revert them.
+    if(typeof currentUser==='undefined' || !currentUser || currentUser.type!=='admin'){
+      try{ setPill("● Read-only","#8b8b8b"); }catch(e){} return;
+    }
     var val=localStorage.getItem(k); if(val==null) return;
     var meta={ ts: firebase.firestore.FieldValue.serverTimestamp(), by:(typeof currentUser!=='undefined'&&currentUser&&currentUser.name)||'?' };
     // CONFIG blobs: read-merge-write so we only change the fields WE edited — never clobber another device's config.
@@ -11678,6 +11730,7 @@ window.ledgerUpdate = function(id, patch){
 window.rebuildFromLedger = function(docs){
   var fd={}, sd={}, rd={}, supRows=[];
   var lids={}; (docs||[]).forEach(function(r){ if(r&&r.id!=null) lids[String(r.id)]=1; });
+  window._lastLedgerIds = lids;  // latest known ledger ids — used by the 30s safety flush
   (docs||[]).forEach(function(r){
     if(!r) return; var date=r.bizDate||''; if(!date) return;
     var det={}; try{ det=r.detail?JSON.parse(r.detail):{}; }catch(e){}
@@ -11730,6 +11783,32 @@ window.rebuildFromLedger = function(docs){
   if(typeof firebase!=='undefined' && firebase.auth){
     firebase.auth().onAuthStateChanged(function(u){ if(u) loadLedger(); });
   }
+  // 30-SECOND SAFETY FLUSH: re-queue any recent local sale (last 7 days) not yet in the ledger, so
+  // nothing is ever lost across a wifi drop. Idempotent (same id → merge, no duplicates). Signed-in only.
+  window.flushUnsyncedSales = function(){
+    try{
+      var lids = window._lastLedgerIds || {};
+      var cut='0000-00-00'; try{ var _d=(typeof baliNow==='function'?baliNow():new Date()); _d.setDate(_d.getDate()-7); cut=_d.toISOString().slice(0,10); }catch(e){}
+      var n=0;
+      function scan(store, field, kind){
+        if(typeof store!=='object'||!store) return;
+        Object.keys(store).forEach(function(day){ if(day<cut) return;
+          var arr=(store[day]||{})[field]||[];
+          arr.forEach(function(it){ if(it&&it.id&&!lids[String(it.id)]&&typeof ledgerWrite==='function'){
+            if(kind==='fuel') ledgerWrite('fuel',it.id,day,it.total,(it.serviceTax||0)+(it.tax||0),it.method,it,'completed');
+            else if(kind==='supply') ledgerWrite('supply',it.id,day,it.total,0,it.method,{order:it,rows:[]},'completed');
+            else if(kind==='recovery') ledgerWrite('recovery',it.id,day,(typeof clinCollected==='function'?clinCollected(it):(it.price||0)),0,it.payMethod,it,it.status);
+            n++;
+          }});
+        });
+      }
+      if(typeof fuelData!=='undefined')     scan(fuelData,'transactions','fuel');
+      if(typeof supplyData!=='undefined')   scan(supplyData,'orders','supply');
+      if(typeof recoveryData!=='undefined') scan(recoveryData,'bookings','recovery');
+      if(n) console.log('[ledger] 30s flush re-queued',n,'unsynced sale(s)');
+    }catch(e){ console.warn('[ledger] flush',e); }
+  };
+  setInterval(function(){ try{ if(typeof firebase!=='undefined'&&firebase.auth&&firebase.auth().currentUser) window.flushUnsyncedSales(); }catch(e){} }, 30000);
 })();
 </script>
 
