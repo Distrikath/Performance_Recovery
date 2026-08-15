@@ -416,6 +416,7 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
 </style>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 </head>
 <body>
 
@@ -841,7 +842,7 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
           <div class="bk-confirm-ref" id="bk-ref-text"></div>
           <div class="bk-confirm-title">request sent.</div>
           <div class="bk-confirm-detail" id="bk-conf-detail"></div>
-          <div class="bk-confirm-deposit">50% deposit required &mdash; payment gateway coming soon</div>
+          <div class="bk-confirm-deposit" id="bk-confirm-deposit">50% deposit required &mdash; payment gateway coming soon</div>
           <div class="bk-confirm-note">we'll confirm your session via whatsapp within a few hours.<br>see you at the canggu lab.</div>
           <button class="bk-next" style="margin-top:32px" onclick="closeBk()">done &#x2192;</button>
         </div>
@@ -857,12 +858,25 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
 
 <script>
 // ── Firebase ──────────────────────────────────────────────────────────
-var _fbApp=null,_fbDb=null;
+var _fbApp=null,_fbDb=null,_fbAuthP=null;
 function bkFdb(){
   if(!_fbApp){var c={apiKey:'AIzaSyC9amKPhl2s_-7qN_Ej0VV7nDkJ7BIXMRc',authDomain:'distrikath80361.firebaseapp.com',projectId:'distrikath80361',storageBucket:'distrikath80361.firebasestorage.app',messagingSenderId:'1039015029135',appId:'1:1039015029135:web:db7583ff1131aed86d03fa'};_fbApp=firebase.apps.length?firebase.app():firebase.initializeApp(c);}
   if(!_fbDb)_fbDb=_fbApp.firestore();
   return _fbDb;
 }
+// Firestore rules require an authenticated user; this is a public page, so sign in anonymously.
+// Returns a promise that resolves to the db once auth is ready — Firestore ops should await it.
+function bkAuth(){
+  var db=bkFdb();
+  if(!_fbAuthP){
+    _fbAuthP = (_fbApp.auth ? _fbApp.auth().signInAnonymously() : Promise.resolve())
+      .then(function(){ return db; })
+      .catch(function(e){ console.warn('[bk] anon auth', e&&e.code); return db; });
+  }
+  return _fbAuthP;
+}
+// kick auth off immediately so it's ready long before the customer submits
+try{ bkAuth(); }catch(e){}
 
 // ── Focus Detail ──────────────────────────────────────────────────────
 var FD={
@@ -1275,12 +1289,24 @@ function updateBkSum(){
   if(bkState.pressure&&bkState.pressure!=='n/a')pts.push(bkState.pressure);
   el.textContent=pts.join(' · ');
 }
+// Parse a price label like "IDR 400K" / "IDR 1.2M" into a whole number (400000 / 1200000)
+function bkPriceNum(p){
+  if(typeof p==='number') return Math.round(p);
+  if(!p) return 0;
+  var m=String(p).match(/([\d.,]+)\s*([km])?/i);
+  if(!m) return 0;
+  var n=parseFloat(m[1].replace(/,/g,''));
+  var u=(m[2]||'').toLowerCase();
+  if(u==='k') n*=1000; else if(u==='m') n*=1000000;
+  return Math.round(n||0);
+}
 function submitBk(){
   var btn=document.getElementById('bk-next-btn');
   if(btn){btn.disabled=true;btn.textContent='sending...';}
   var ts=Date.now(),rnd='DR-'+ts.toString(36).slice(-4).toUpperCase();
-  var rec={ref:rnd,pathway:bkState.pathway,duration:bkState.duration,price:bkState.price,pressure:bkState.pressure,date:bkState.date,time:bkState.time,therapist:bkState.therapist||null,name:bkState.name.trim(),phone:bkState.phone.trim(),status:'tentative',submittedAt:firebase.firestore.FieldValue.serverTimestamp()};
-  bkFdb().collection('public_bookings').add(rec).then(function(){showBkConfirm(rnd,rec);}).catch(function(e){
+  var _pn=bkPriceNum(bkState.price);
+  var rec={ref:rnd,pathway:bkState.pathway,duration:bkState.duration,price:bkState.price,priceNum:_pn,deposit:Math.round(_pn/2),pressure:bkState.pressure,date:bkState.date,time:bkState.time,therapist:bkState.therapist||null,name:bkState.name.trim(),phone:bkState.phone.trim(),status:'tentative',paymentStatus:'unpaid',submittedAt:firebase.firestore.FieldValue.serverTimestamp()};
+  bkAuth().then(function(db){ return db.collection('public_bookings').add(rec); }).then(function(){showBkConfirm(rnd,rec);}).catch(function(e){
     if(btn){btn.disabled=false;btn.textContent='confirm →';}
     alert('Booking error: '+e.message+'\n\nPlease WhatsApp us directly: +62 819 9480 1516');
   });
@@ -1293,20 +1319,27 @@ function showBkConfirm(ref,rec){
     de.innerHTML=rec.pathway+' · '+rec.duration+' min'+(rec.pressure&&rec.pressure!=='n/a'?' · '+rec.pressure:'')+'<br>'+rec.date+' at '+rec.time+'<br>therapist: '+tn+'<br>'+rec.name+' · '+rec.phone;
   }
   bkGoStep(6);
-  // Fetch Xendit link from Firestore to display deposit button
+  // Show pay-now options (50% deposit OR pay in full) using the Xendit link from Firestore
   var depEl=document.getElementById('bk-confirm-deposit');
-  bkFdb().collection('distrik_state').doc('distrik_payments').get().then(function(doc){
+  var priceNum=rec.priceNum||bkPriceNum(rec.price);
+  var half=priceNum?Math.round(priceNum/2):0;
+  bkAuth().then(function(db){ return db.collection('distrik_state').doc('distrik_payments').get(); }).then(function(doc){
     var link=doc.exists?(doc.data().xenditLink||''):'';
-    var half=rec.price?Math.round(rec.price/2):null;
-    if(depEl){
-      if(link){
-        depEl.innerHTML='<a href="'+link+'" target="_blank" rel="noopener" class="bk-deposit-link">pay 50% deposit &rarr;</a>'+(half?'<span class="bk-deposit-amt">IDR '+half.toLocaleString()+'</span>':'');
-      } else {
-        depEl.textContent='our team will send your deposit link via WhatsApp.';
-      }
+    if(!depEl) return;
+    if(link && priceNum){
+      var bs='display:flex;justify-content:space-between;align-items:center;gap:16px;width:100%;padding:15px 18px;margin-top:10px;text-decoration:none;font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;box-sizing:border-box;';
+      depEl.innerHTML=
+        '<div style="font-family:var(--mono);font-size:9px;letter-spacing:.05em;color:var(--ink-d);text-transform:none;margin-bottom:2px;">secure your booking — pay now via Xendit:</div>'
+        +'<a href="'+link+'" target="_blank" rel="noopener" style="'+bs+'background:var(--r);color:#fff;"><span>pay 50% deposit</span><span>IDR '+half.toLocaleString()+'</span></a>'
+        +'<a href="'+link+'" target="_blank" rel="noopener" style="'+bs+'background:transparent;border:1px solid rgba(242,242,240,.25);color:var(--ink);"><span>or pay in full</span><span>IDR '+priceNum.toLocaleString()+'</span></a>'
+        +'<div style="font-family:var(--mono);font-size:8px;letter-spacing:.05em;color:var(--ink-d);text-transform:none;margin-top:10px;line-height:1.7;">enter the amount shown on the Xendit page. any balance is paid on arrival.</div>';
+    } else if(link){
+      depEl.innerHTML='<a href="'+link+'" target="_blank" rel="noopener" class="bk-deposit-link">pay deposit &rarr;</a>';
+    } else {
+      depEl.textContent='our team will send your payment link via WhatsApp.';
     }
   }).catch(function(){
-    if(depEl) depEl.textContent='our team will send your deposit link via WhatsApp.';
+    if(depEl) depEl.textContent='our team will send your payment link via WhatsApp.';
   });
 }
 

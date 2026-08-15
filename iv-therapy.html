@@ -271,6 +271,7 @@ footer{padding:40px 48px 28px;border-top:1px solid var(--line);display:flex;just
 </style>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 </head>
 <body>
 
@@ -544,6 +545,18 @@ function bkFdb(){
   if(!_fbDb)_fbDb=_fbApp.firestore();
   return _fbDb;
 }
+// Firestore rules require an authenticated user; this is a public page, so sign in anonymously.
+var _fbAuthP=null;
+function bkAuth(){
+  var db=bkFdb();
+  if(!_fbAuthP){
+    _fbAuthP = (_fbApp.auth ? _fbApp.auth().signInAnonymously() : Promise.resolve())
+      .then(function(){ return db; })
+      .catch(function(e){ console.warn('[bk] anon auth', e&&e.code); return db; });
+  }
+  return _fbAuthP;
+}
+try{ bkAuth(); }catch(e){}
 
 // ── IV Add-ons ────────────────────────────────────────────────────────
 var IV_ADDONS=[
@@ -722,7 +735,7 @@ function bkPickDay(ds){
 
   renderTimes({_loading:true});
   try{
-    bkFdb().collection('public_bookings').where('date','==',ds).get()
+    bkAuth().then(function(db){ return db.collection('public_bookings').where('date','==',ds).get(); })
       .then(function(snap){
         var counts={};
         snap.forEach(function(doc){
@@ -802,7 +815,7 @@ function submitBk(){
     status:'tentative',
     submittedAt:firebase.firestore.FieldValue.serverTimestamp()
   };
-  bkFdb().collection('public_bookings').add(rec).then(function(){
+  bkAuth().then(function(db){ return db.collection('public_bookings').add(rec); }).then(function(){
     var de=document.getElementById('bk-conf-detail');
     if(de){
       var addonLine=addonNames.length?'<br><span style="font-size:10px;opacity:.7">+ '+addonNames.join(', ')+'</span>':'';
