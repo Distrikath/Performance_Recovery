@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814004;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814005;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -5098,8 +5098,10 @@ function setLoginType(type){
 }
 
 function populateStaffSelect(){
+  STAFF_ACCOUNTS = null;            // always rebuild from the CURRENT (synced) staff list, not the cached defaults
   buildStaffAccounts();
   const sel = document.getElementById('staff-select');
+  if(!sel) return;
   sel.innerHTML = STAFF_ACCOUNTS.map(s =>
     `<option value="${s.id}">${s.name} — ${s.role}</option>`
   ).join('');
@@ -11539,6 +11541,10 @@ window.showRoomCalendar=showRoomCalendar;
       if(typeof loadMenuFromStorage==='function') loadMenuFromStorage();
       if(typeof loadClinical==='function') loadClinical();
       if(typeof loadSalesDataFromStorage==='function') loadSalesDataFromStorage();
+      // if the login screen is up, refresh the staff dropdown so newly-synced staff appear immediately
+      try{ var _lg=document.getElementById('loginScreen');
+        if(_lg && _lg.style.display!=='none' && typeof populateStaffSelect==='function') populateStaffSelect();
+      }catch(e){}
       var open=document.querySelector('.panel.on'), id=open?open.id:'';
       var home=document.getElementById('homeScreen');
       if(home&&home.classList.contains('on')&&typeof showHome==='function') showHome();
