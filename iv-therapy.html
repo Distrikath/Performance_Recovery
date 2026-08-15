@@ -746,6 +746,16 @@ function slotRostered(timeStr, worked){
   var si=(h-6)*2;
   return !!(worked[si]||worked[si+1]);
 }
+// 24-HOUR NOTICE: an IV/blood slot is bookable only if it starts at least 24h from now (Bali time).
+function bkIVSlotOk(timeStr){
+  if(!bkState.date) return true;
+  var m=timeStr.match(/^(\d+)(am|pm)$/i); if(!m) return true;
+  var h=parseInt(m[1]); if(m[2].toLowerCase()==='pm'&&h!==12)h+=12; if(m[2].toLowerCase()==='am'&&h===12)h=0;
+  var dp=bkState.date.split('-');
+  var sd=new Date(parseInt(dp[0]),parseInt(dp[1])-1,parseInt(dp[2]),h,0,0,0);
+  var nowBali; try{ nowBali=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Makassar'})); }catch(e){ nowBali=new Date(); }
+  return sd >= new Date(nowBali.getTime()+24*60*60*1000);
+}
 
 function bkPickDay(ds){
   bkState.date=ds;bkState.time=null;
@@ -789,6 +799,7 @@ function renderTimes(counts,worked){
   wrap.innerHTML='';
   IV_SLOTS.forEach(function(t){
     if(!slotRostered(t,worked)) return; // no therapist rostered at this hour
+    if(!bkIVSlotOk(t)) return;          // under 24h notice — not bookable
     var booked=(counts&&counts[t])||0;
     var full=booked>=IV_CAPACITY;
     var btn=document.createElement('button');

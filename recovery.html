@@ -991,14 +991,14 @@ function pickPressure(el,p){
   updateBkNext();updateBkSum();
 }
 function bkInitCal(){
-  var t=new Date();t.setDate(t.getDate()+1);
+  var t=new Date();   // recovery is bookable same-day (1-hour notice), so start on the current month
   _calState={year:t.getFullYear(),month:t.getMonth()};
   bkRenderCal();
 }
 function bkRenderCal(){
   var cal=document.getElementById('bk-cal');if(!cal)return;
   var today=new Date();today.setHours(0,0,0,0);
-  var minD=new Date(today);minD.setDate(minD.getDate()+1);
+  var minD=new Date(today);   // recovery allows same-day booking (times filtered to 1-hour notice)
   var y=_calState.year,mo=_calState.month;
   var firstDow=new Date(y,mo,1).getDay();
   var dInMo=new Date(y,mo+1,0).getDate();
@@ -1071,6 +1071,12 @@ function _bkGetAvailSlots(rData,dateStr,durMins,pathway,rooms){
   var dow=new Date(dateStr+'T12:00:00').getDay();
   var dayName=_DAY_NAMES[dow];
   var isCompression=(pathway==='COMPRESSION');
+
+  // 1-HOUR NOTICE: hide any slot starting within the next hour (Bali time) — for same-day bookings.
+  var _nowBali; try{ _nowBali=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Makassar'})); }catch(e){ _nowBali=new Date(); }
+  var _minStart=new Date(_nowBali.getTime()+60*60*1000);
+  var _dp=dateStr.split('-');
+  function slotOk(si){ var hh=SLOT_START+si*0.5; var sd=new Date(parseInt(_dp[0]),parseInt(_dp[1])-1,parseInt(_dp[2]),Math.floor(hh),(hh%1?30:0),0,0); return sd>=_minStart; }
 
   // Rule 1: hard-locked business hours
   var bh=_bkBusinessHours(pathway,dow);
@@ -1166,31 +1172,15 @@ function _bkGetAvailSlots(rData,dateStr,durMins,pathway,rooms){
   var durSlots=Math.ceil(durMins/30);
 
   if(isCompression){
-    // Compression is performed by FOH (Operations/Management) staff in Reception/Fuel zones.
-    // Therapists never appear for compression — they work in Therapy rooms, not recovery chairs.
-    var fohRows=(zoneRows('Reception')||[]).concat(zoneRows('Fuel')||[]);
+    // Compression is done ONLY by staff NOMINATED to the recovery chairs (Settings → Rooms & Recovery Chairs)
+    // AND rostered/working that day. Café/reception staff are NOT auto-included.
+    // roomAllowlist here = the recovery-chair staff allowlist (built above for the 'recovery' room type).
+    var FOH = roomAllowlist ? Object.keys(roomAllowlist).filter(function(id){return validStaff[id];}) : [];
+    // a nominated chair staffer may be rostered in any zone that day — check them all
+    var fohRows=[].concat(zoneRows('Reception')||[], zoneRows('Fuel')||[], zoneRows('Therapy')||[], zoneRows('Supply')||[]);
     if(fohRows.length===0)fohRows=null;
-    var FOH=[];
-    if(rData&&rData.STAFF){
-      rData.STAFF.forEach(function(s){
-        if((s.group==='Operations'||s.group==='Management')&&s.id){
-          if(!roomAllowlist||roomAllowlist[s.id])FOH.push(s.id);
-        }
-      });
-    }
-    // Also include any staff actually in the FOH zone rows who exist in STAFF and pass room filter
-    if(fohRows){
-      fohRows.forEach(function(row){
-        if(!row)return;
-        row.forEach(function(c){
-          if(c&&!_bkIsBreak(c)){
-            var sid=_bkStaffId(c);
-            if(FOH.indexOf(sid)<0&&validStaff[sid]&&(!roomAllowlist||roomAllowlist[sid]))FOH.push(sid);
-          }
-        });
-      });
-    }
     for(var si=siMin;si+durSlots<=siMax;si++){
+      if(!slotOk(si))continue;
       var h=SLOT_START+si*0.5,h12=Math.floor(h)%12||12,mn=h%1?30:0,ap=Math.floor(h)>=12?'pm':'am';
       var lbl=h12+(mn?':30':':00')+ap;
       var avail=checkRows(fohRows,FOH,si,durSlots);
@@ -1200,6 +1190,7 @@ function _bkGetAvailSlots(rData,dateStr,durMins,pathway,rooms){
     var therapyRows=zoneRows('Therapy');
     var THERS=buildThers(therapyRows);
     for(var si=siMin;si+durSlots<=siMax;si++){
+      if(!slotOk(si))continue;
       var h=SLOT_START+si*0.5,h12=Math.floor(h)%12||12,mn=h%1?30:0,ap=Math.floor(h)>=12?'pm':'am';
       var lbl=h12+(mn?':30':':00')+ap;
       var avail=checkRows(therapyRows,THERS,si,durSlots);
