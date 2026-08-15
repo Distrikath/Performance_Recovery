@@ -495,11 +495,11 @@ footer{padding:40px 48px 28px;border-top:1px solid var(--line);display:flex;just
       <div class="bk-step" id="bks4">
         <div class="bk-confirm-wrap">
           <div class="bk-confirm-check">&#x2713;</div>
-          <div class="bk-confirm-title">request sent.</div>
+          <div class="bk-confirm-title">booking confirmed.</div>
           <div class="bk-confirm-detail" id="bk-conf-detail"></div>
           <div class="bk-confirm-note">
-            your appointment request has been sent to DISTRIK.<br>
-            we'll confirm via whatsapp within a few hours.
+            your blood work appointment is locked in.<br>
+            see you at the canggu lab.
           </div>
           <a class="bk-confirm-wa" href="https://wa.me/6281994801516" target="_blank">contact Distrik. on whatsapp &#x2192;</a>
           <br>
@@ -598,14 +598,14 @@ function bkPickPackage(v){
 
 // ── Calendar ──────────────────────────────────────────────────────────
 function bkInitCal(){
-  var t=new Date();t.setDate(t.getDate()+1);
+  var t=new Date();
   _calState={year:t.getFullYear(),month:t.getMonth()};
   bkRenderCal();
 }
 function bkRenderCal(){
   var cal=document.getElementById('bk-cal');if(!cal)return;
   var today=new Date();today.setHours(0,0,0,0);
-  var minD=new Date(today);minD.setDate(minD.getDate()+1);
+  var minD=new Date(today);
   var y=_calState.year,mo=_calState.month;
   var firstDow=new Date(y,mo,1).getDay();
   var dInMo=new Date(y,mo+1,0).getDate();
@@ -753,7 +753,7 @@ function submitBk(){
     time:bkState.time,
     name:bkState.name.trim(),
     phone:bkState.phone.trim(),
-    status:'tentative',
+    status:'confirmed',
     submittedAt:firebase.firestore.FieldValue.serverTimestamp()
   };
   bkFdb().collection('public_bookings').add(rec).then(function(){
