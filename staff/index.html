@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814009;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814011;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -3529,6 +3529,9 @@ function saveAll(){
       dailyOverrides[dateKey] = JSON.parse(JSON.stringify(grid[DAYS[activeDay]]));
       _gridDirty = false;
     }
+    // Preserve the config version stamp so an ordinary local save never resets it to zero
+    // (that reset is what let the cloud's older copy win the newest-edit merge and revert your edits).
+    var _prevCfgTs; try{ _prevCfgTs=JSON.parse(localStorage.getItem(LS_KEY)||'{}')._cfgTs; }catch(e){}
     localStorage.setItem(LS_KEY, JSON.stringify({
       grid: _baseGrid || grid, // always save base template, not current week
       dailyOverrides,
@@ -3540,6 +3543,7 @@ function saveAll(){
       fuelData,
       supplyData,
       STAFF: STAFF.map(s=>({id:s.id,name:s.name,abbr:s.abbr,role:s.role,col:s.col,salary:s.salary,group:s.group||'Operations',pin:s.pin||'1234'})),
+      _cfgTs: _prevCfgTs,
       savedAt: new Date().toISOString()
     }));
   } catch(e){ console.warn('Save failed:', e); }
@@ -4992,8 +4996,9 @@ function settingsRemoveStaff(idx){
   if(typeof buildSettingsBudget==='function') buildSettingsBudget();
   buildPalette();
   saveAll();
+  var _hs = (typeof window.dkHardSave==='function') ? window.dkHardSave() : false;  // hard-save so the removal sticks across devices + logout
   const n=document.getElementById('notif');
-  if(n){ n.textContent='Staff removed ✓'; n.classList.add('on'); setTimeout(()=>n.classList.remove('on'),2000); }
+  if(n){ n.textContent = _hs ? 'Staff removed & synced ✓' : 'Staff removed ✓'; n.classList.add('on'); setTimeout(()=>n.classList.remove('on'),2500); }
 }
 
 function saveSettings(){
@@ -5044,9 +5049,11 @@ function saveSettings(){
   if(typeof buildSettingsBudget==='function') buildSettingsBudget();
   buildSettingsStaff();
   saveAll();
+  // HARD SAVE — push staff/zones/hours to the cloud so the edit is authoritative on every device and survives logout.
+  var _hs = (typeof window.dkHardSave==='function') ? window.dkHardSave() : false;
 
   const n=document.getElementById('notif');
-  if(n){ n.textContent='Saved ✓'; n.classList.add('on'); setTimeout(()=>n.classList.remove('on'),2000); }
+  if(n){ n.textContent = _hs ? 'Saved & synced to all devices ✓' : 'Saved ✓'; n.classList.add('on'); setTimeout(()=>n.classList.remove('on'),2500); }
   } catch(err) {
     alert('Settings save error: ' + err.message);
     console.error('saveSettings error:', err);
@@ -9952,7 +9959,7 @@ var _bkReqs=[];
 function _onreqLabel(r){
   if(r.type==='iv_therapy'){
     var lbl=r.protocol||'IV Therapy';
-    if(r.addons&&r.addons.length) lbl+=' <span style="font-size:9px;opacity:.7">+ '+_escHtml(r.addons.join(', '))+'</span>';
+    if(r.addons&&r.addons.length) lbl+=' + '+r.addons.join(', ');   // plain text — was raw HTML that showed as literal <span>
     return lbl;
   }
   if(r.type==='blood_work'){ var p=r.package||''; return p?p.charAt(0).toUpperCase()+p.slice(1).toLowerCase()+' Blood Work':'Blood Work'; }
@@ -10124,6 +10131,35 @@ function acceptOnlineBooking(id){
       recoveryData[r.date].revenue=(recoveryData[r.date].revenue||0)+((typeof clinCollected==='function')?clinCollected(rec):_dep);
       if(typeof ledgerWrite==='function') ledgerWrite('recovery', rec.id, r.date, ((typeof clinCollected==='function')?clinCollected(rec):_dep), 0, 'online', rec, 'confirmed');
       if(typeof clientUpsert==='function' && r.phone) clientUpsert({name:r.name, whatsapp:r.phone, email:r.email, source:'recovery', consent:true});
+      if(typeof saveAll==='function') saveAll();
+      try{ if(typeof buildClinRoomGrid==='function') buildClinRoomGrid(); if(typeof renderClinicalBooking==='function') renderClinicalBooking(); }catch(e){}
+    } else if(r.type==='iv_therapy' && typeof recoveryData!=='undefined'){
+      // IV THERAPY → block a Recovery Chair. Partner-billed (HELIX), so NO Distrik revenue (ledger amount 0).
+      var _ivSt=(function(){ var t=String(r.time||'').match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i); if(!t) return r.time||''; var hh=parseInt(t[1]); var mm=t[2]||'00'; var ap=(t[3]||'').toLowerCase(); if(ap==='pm'&&hh!==12)hh+=12; if(ap==='am'&&hh===12)hh=0; return ('0'+hh).slice(-2)+':'+mm; })();
+      var _ivDur=r.duration||60;
+      var _toMin=function(hhmm){ var m=String(hhmm||'').match(/(\d{1,2}):(\d{2})/); return m?parseInt(m[1])*60+parseInt(m[2]):0; };
+      var _s0=_toMin(_ivSt), _e0=_s0+_ivDur;
+      var _dayBk=(recoveryData[r.date]&&recoveryData[r.date].bookings)||[];
+      var _chairId=['rec1','rec2'].find(function(cid){ return !_dayBk.some(function(b){ if(b.room!==cid||b.status==='cancelled') return false; var bs=_toMin(b.start||b.time), be=bs+(b.duration||60); return _s0<be && _e0>bs; }); }) || 'rec1';
+      var _chairName=(typeof ROOMS!=='undefined'?((ROOMS.find(function(x){return x.id===_chairId;})||{}).name):null)||'Recovery Chair';
+      var ivRec={
+        id:(typeof genId==='function'?genId():'ivbk_'+Date.now()),
+        service:'iv', serviceName:String(_onreqLabel(r)),
+        room:_chairId, roomName:_chairName,
+        therapist:null, therapistName:null,
+        start:_ivSt, time:_ivSt, duration:_ivDur,
+        client:r.name||'Guest', email:r.email||'', whatsapp:r.phone||'', phone:r.phone||'',
+        price:0, ivTotal:(typeof r.total==='number'?r.total:0), payType:'partner',
+        source:'Online', status:'confirmed', payMethod:'partner',
+        clinical:true, tag:'HELIX · IV', partner:true, online:true, balancePaid:true, deposit:0, balanceDue:0,
+        onlineRef:r.ref||id, date:r.date
+      };
+      if(!recoveryData[r.date]) recoveryData[r.date]={revenue:0,bookings:[]};
+      if(!recoveryData[r.date].bookings) recoveryData[r.date].bookings=[];
+      recoveryData[r.date].bookings.push(ivRec);
+      // partner-billed → 0 Distrik revenue; ledger amount 0 so it syncs + blocks the chair, without counting as income
+      if(typeof ledgerWrite==='function') ledgerWrite('recovery', ivRec.id, r.date, 0, 0, 'partner', ivRec, 'confirmed');
+      if(typeof clientUpsert==='function' && r.phone) clientUpsert({name:r.name, whatsapp:r.phone, email:r.email, source:'iv', consent:true});
       if(typeof saveAll==='function') saveAll();
       try{ if(typeof buildClinRoomGrid==='function') buildClinRoomGrid(); if(typeof renderClinicalBooking==='function') renderClinicalBooking(); }catch(e){}
     }
