@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814013;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814014;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -5603,6 +5603,7 @@ function loadRFFromStorage(){
 
 function saveRFToStorage(){
   try{ localStorage.setItem('distrik_rf', JSON.stringify({bookings,SERVICES,PACKAGES,ROOMS})); }catch(e){}
+  try{ if(typeof window.dkHardSave==='function') window.dkHardSave(['distrik_rf']); }catch(e){}  // hard-save so therapies/packages/rooms stick across devices + logout
 }
 
 // ── TAB SWITCHING ─────────────────────────────────────────────────
@@ -11732,7 +11733,11 @@ window.showRoomCalendar=showRoomCalendar;
     try{
       if(k==='distrik_v1'){ var a=JSON.parse(L),b=JSON.parse(R); var o=Object.assign({},pl?a:b); o.fuelData=mDate(a.fuelData,b.fuelData,'transactions'); o.supplyData=mDate(a.supplyData,b.supplyData,'orders'); o.recoveryData=mDate(a.recoveryData,b.recoveryData,'bookings'); return JSON.stringify(o); }
       if(k==='distrik_supply'){ var a=JSON.parse(L),b=JSON.parse(R); var o=Object.assign({},pl?a:b); o.SUPPLY_SALES=mById(a.SUPPLY_SALES,b.SUPPLY_SALES); return JSON.stringify(o); }
-      if(k==='distrik_rf'){ var a=JSON.parse(L),b=JSON.parse(R); var o=Object.assign({},pl?a:b); var ds={}; Object.keys(a.bookings||{}).forEach(function(d){ds[d]=1;}); Object.keys(b.bookings||{}).forEach(function(d){ds[d]=1;}); var bk={}; Object.keys(ds).forEach(function(d){ bk[d]=mById((a.bookings||{})[d],(b.bookings||{})[d]); }); o.bookings=bk; if(a.SERVICES)o.SERVICES=a.SERVICES; if(a.PACKAGES)o.PACKAGES=a.PACKAGES; if(a.ROOMS)o.ROOMS=a.ROOMS; return JSON.stringify(o); }
+      if(k==='distrik_rf'){ var a=JSON.parse(L),b=JSON.parse(R); var o=Object.assign({},pl?a:b); var ds={}; Object.keys(a.bookings||{}).forEach(function(d){ds[d]=1;}); Object.keys(b.bookings||{}).forEach(function(d){ds[d]=1;}); var bk={}; Object.keys(ds).forEach(function(d){ bk[d]=mById((a.bookings||{})[d],(b.bookings||{})[d]); }); o.bookings=bk;
+        // SERVICES/PACKAGES/ROOMS: newest edit wins (by _cfgTs) so the admin's therapy changes propagate to every device. (WAS "local always wins" — a device with old therapies never adopted the correct ones.)
+        var _at=+a._cfgTs||0, _bt=+b._cfgTs||0, _nw=(_bt>_at)?b:a;
+        if(_nw.SERVICES)o.SERVICES=_nw.SERVICES; if(_nw.PACKAGES)o.PACKAGES=_nw.PACKAGES; if(_nw.ROOMS)o.ROOMS=_nw.ROOMS; o._cfgTs=Math.max(_at,_bt);
+        return JSON.stringify(o); }
     }catch(e){ console.warn('[sync] merge',k,e); }
     return R;
   }
