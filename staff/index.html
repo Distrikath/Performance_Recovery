@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814008;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814009;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -9569,6 +9569,23 @@ function injectTestSale(){
 }
 
 
+// Delete every sale/booking record from the cloud `ledger` collection (in batches). Returns a promise.
+// Without this, clearing local data alone is undone the moment any device rebuilds from the ledger.
+function _clearCloudLedger(){
+  return new Promise(function(resolve){
+    try{
+      if(typeof firebase==='undefined' || !firebase.firestore){ return resolve(); }
+      var db=firebase.firestore();
+      db.collection('ledger').get().then(function(snap){
+        if(snap.empty) return resolve();
+        var commits=[], batch=db.batch(), n=0;
+        snap.forEach(function(doc){ batch.delete(doc.ref); n++; if(n%400===0){ commits.push(batch.commit()); batch=db.batch(); } });
+        commits.push(batch.commit());
+        Promise.all(commits).then(function(){ resolve(); }).catch(function(e){ console.warn('[clear] ledger',e); resolve(); });
+      }).catch(function(e){ console.warn('[clear] ledger get',e); resolve(); });
+    }catch(e){ resolve(); }
+  });
+}
 function clearAllData(){
   if(!confirm('Clear ALL sales & booking data?\n\nThis resets to zero:\n• Sales totals (Recovery, Fuel, Supply)\n• Café & Supply transactions\n• P&L ledger entries\n• Recovery & room bookings\n\nIt KEEPS your roster, staff, services, menu, tax & API setup.\n\nThis cannot be undone.')) return;
   if(!confirm('Are you sure? Last chance.\n\nTip: click Cancel and use "↓ Export Backup" first if you have not already.')) return;
@@ -9591,9 +9608,12 @@ function clearAllData(){
     try{ saveRFToStorage(); }catch(e){}
     try{ saveSupplyToStorage(); }catch(e){}
     const n=document.getElementById('notif');
-    if(n){ n.textContent='All sales & booking data cleared ✓'; n.classList.add('on'); }
-    // Reload so every panel re-renders from the now-empty data
-    setTimeout(()=>location.reload(), 700);
+    if(n){ n.textContent='Clearing sales from the cloud…'; n.classList.add('on'); }
+    // ALSO wipe the cloud ledger, or every device rebuilds the sales right back (why the reset "didn't work").
+    _clearCloudLedger().then(function(){
+      if(n) n.textContent='All sales & booking data cleared ✓';
+      setTimeout(function(){ location.reload(); }, 700);
+    });
   }catch(err){
     console.error('clearAllData error:', err);
     alert('Something went wrong clearing data. Nothing was changed if you see this before the reload.');
