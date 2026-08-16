@@ -283,6 +283,7 @@ footer{padding:40px 48px 28px;border-top:1px solid var(--line);display:flex;just
 </style>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 </head>
 <body>
 
@@ -529,6 +530,29 @@ function bkFdb(){
   if(!_fbDb)_fbDb=_fbApp.firestore();
   return _fbDb;
 }
+// Firestore rules require an authenticated user; this is a public page, so sign in anonymously.
+var _fbAuthP=null;
+function bkAuth(){
+  var db=bkFdb();
+  if(!_fbAuthP){
+    _fbAuthP = (_fbApp.auth ? _fbApp.auth().signInAnonymously() : Promise.resolve())
+      .then(function(){ return db; })
+      .catch(function(e){ console.warn('[bk] anon auth', e&&e.code); return db; });
+  }
+  return _fbAuthP;
+}
+try{ bkAuth(); }catch(e){}
+// Load the admin's hard-saved roster (distrik_v1) from the cloud so availability reflects who's rostered.
+var _bkRosterCache=null;
+function bkLoadRoster(){
+  return bkAuth().then(function(db){ return db.collection('distrik_state').doc('distrik_v1').get(); })
+    .then(function(doc){
+      try{ _bkRosterCache = doc.exists ? JSON.parse(doc.data().value||'{}') : {}; }catch(e){ _bkRosterCache={}; }
+      try{ if(bkState && bkState.date) bkPickDay(bkState.date); }catch(e){}
+      return _bkRosterCache;
+    }).catch(function(){ _bkRosterCache={}; });
+}
+try{ bkLoadRoster(); }catch(e){}
 
 // ── Booking state ─────────────────────────────────────────────────────
 var bkState={step:1,package:'',gender:'',price:0,date:null,time:null,name:'',phone:''};
@@ -631,8 +655,8 @@ function bkCalNext(){_calState.month++;if(_calState.month>11){_calState.month=0;
 var BW_CAPACITY=1; // blood work room 3 — one appointment per slot
 
 function getRosterWorkedSlots(dateStr,zone){
-  var data={};
-  try{ data=JSON.parse(localStorage.getItem('distrik_v1')||'{}'); }catch(e){ return null; }
+  var data=_bkRosterCache;      // read the admin's hard-saved roster from the CLOUD (loaded by bkLoadRoster)
+  if(!data) return null;        // not loaded yet → graceful fallback (show all)
   var pts=dateStr.split('-');
   var dow=new Date(parseInt(pts[0]),parseInt(pts[1])-1,parseInt(pts[2])).getDay();
   var dayIdx=dow===0?6:dow-1;
@@ -676,7 +700,7 @@ function bkPickDay(ds){
   }
   renderTimes({_loading:true});
   try{
-    bkFdb().collection('public_bookings').where('date','==',ds).get()
+    bkAuth().then(function(db){ return db.collection('public_bookings').where('date','==',ds).get(); })
       .then(function(snap){
         var counts={};
         snap.forEach(function(doc){
@@ -756,7 +780,7 @@ function submitBk(){
     status:'tentative',
     submittedAt:firebase.firestore.FieldValue.serverTimestamp()
   };
-  bkFdb().collection('public_bookings').add(rec).then(function(){
+  bkAuth().then(function(db){ return db.collection('public_bookings').add(rec); }).then(function(){
     var de=document.getElementById('bk-conf-detail');
     if(de)de.innerHTML=
       rec.package+' &mdash; '+rec.gender+'<br>'+
