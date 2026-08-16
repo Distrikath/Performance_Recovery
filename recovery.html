@@ -653,44 +653,44 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
     <div class="rc-therapy" onclick="showFocusDetail('RECOVER')">
       <div class="rc-therapy-num">01</div>
       <div class="rc-therapy-name">RECOVER</div>
-      <p class="rc-therapy-desc">Sports massage designed to reduce delayed onset muscle soreness and accelerate recovery between training sessions. A targeted protocol for the athlete who needs to be ready again, fast.</p>
+      <p class="rc-therapy-desc"><strong style="color:var(--r);font-weight:700;">For when you're sore.</strong><br>Post-training bodywork designed to reduce muscle soreness, fatigue and tension. Your therapist will focus on the areas that have worked hardest, using sports massage and targeted recovery techniques to help you feel fresher and ready for your next session.</p>
       <div class="rc-therapy-tags">
         <span class="rc-therapy-tag">sports massage</span>
         <span class="rc-therapy-tag">DOMS relief</span>
-        <span class="rc-therapy-tag">active recovery</span>
-        <span class="rc-therapy-tag">soreness reduction</span>
+        <span class="rc-therapy-tag">muscle soreness</span>
+        <span class="rc-therapy-tag">post-training recovery</span>
       </div>
     </div>
     <div class="rc-therapy" onclick="showFocusDetail('PERFORM')">
       <div class="rc-therapy-num">02</div>
       <div class="rc-therapy-name">PERFORM</div>
-      <p class="rc-therapy-desc">Pre-performance preparation for the body and mind. Dynamic tissue work and activation sequencing to prime your neuromuscular system before training, competition, or anything that demands your best.</p>
+      <p class="rc-therapy-desc"><strong style="color:var(--r);font-weight:700;">For when you train hard.</strong><br>Sports-focused bodywork tailored to your training, performance and recovery needs. Your therapist will use targeted massage, deeper tissue work and movement-based techniques to address muscle tension, problem areas and the physical demands of your sport or training.</p>
       <div class="rc-therapy-tags">
-        <span class="rc-therapy-tag">pre-performance</span>
-        <span class="rc-therapy-tag">activation</span>
-        <span class="rc-therapy-tag">neuromuscular prep</span>
-        <span class="rc-therapy-tag">competition ready</span>
+        <span class="rc-therapy-tag">sports massage</span>
+        <span class="rc-therapy-tag">deep tissue</span>
+        <span class="rc-therapy-tag">muscle tension</span>
+        <span class="rc-therapy-tag">performance recovery</span>
       </div>
     </div>
     <div class="rc-therapy" onclick="showFocusDetail('MOVE')">
       <div class="rc-therapy-num">03</div>
       <div class="rc-therapy-name">MOVE</div>
-      <p class="rc-therapy-desc">Mobility-focused soft tissue therapy to improve range of motion, reduce restriction, and restore functional movement patterns. For anyone who sits, surfs, trains, or just wants to move better.</p>
+      <p class="rc-therapy-desc"><strong style="color:var(--r);font-weight:700;">For when you feel tight or restricted.</strong><br>Stretch and release-focused bodywork designed to help you move more freely. Your therapist will combine soft tissue release, assisted stretching and mobility techniques to target tight areas, improve range of motion and reduce restriction.</p>
       <div class="rc-therapy-tags">
+        <span class="rc-therapy-tag">assisted stretching</span>
         <span class="rc-therapy-tag">mobility</span>
-        <span class="rc-therapy-tag">flexibility</span>
         <span class="rc-therapy-tag">tissue release</span>
-        <span class="rc-therapy-tag">movement patterns</span>
+        <span class="rc-therapy-tag">range of motion</span>
       </div>
     </div>
     <div class="rc-therapy" onclick="showFocusDetail('COMPRESSION')">
       <div class="rc-therapy-num">04</div>
       <div class="rc-therapy-name">COMPRESSION</div>
-      <p class="rc-therapy-desc">Pneumatic compression therapy using rhythmic air pressure to accelerate lymphatic drainage, reduce swelling, and flush metabolic waste. Passive recovery at its most effective.</p>
+      <p class="rc-therapy-desc"><strong style="color:var(--r);font-weight:700;">For when your legs need a reset.</strong><br>A passive recovery session using pneumatic compression boots that rhythmically inflate and release around the legs. Designed to support circulation and recovery while helping tired, heavy legs feel lighter and fresher.</p>
       <div class="rc-therapy-tags">
         <span class="rc-therapy-tag">compression boots</span>
-        <span class="rc-therapy-tag">lymphatic drainage</span>
-        <span class="rc-therapy-tag">swelling reduction</span>
+        <span class="rc-therapy-tag">tired legs</span>
+        <span class="rc-therapy-tag">circulation</span>
         <span class="rc-therapy-tag">passive recovery</span>
       </div>
     </div>
@@ -751,22 +751,22 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
           <button class="bk-card" id="bkc-RECOVER" onclick="pickPathway(this,'RECOVER')">
             <span class="bk-card-num">01</span>
             <span class="bk-card-name">RECOVER</span>
-            <span class="bk-card-sub">Sports massage + deep tissue</span>
+            <span class="bk-card-sub">For when you're sore.</span>
           </button>
           <button class="bk-card" id="bkc-PERFORM" onclick="pickPathway(this,'PERFORM')">
             <span class="bk-card-num">02</span>
             <span class="bk-card-name">PERFORM</span>
-            <span class="bk-card-sub">Performance prep + activation</span>
+            <span class="bk-card-sub">For when you train hard.</span>
           </button>
           <button class="bk-card" id="bkc-MOVE" onclick="pickPathway(this,'MOVE')">
             <span class="bk-card-num">03</span>
             <span class="bk-card-name">MOVE</span>
-            <span class="bk-card-sub">Stretch therapy + mobility</span>
+            <span class="bk-card-sub">For when you feel tight or restricted.</span>
           </button>
           <button class="bk-card" id="bkc-COMPRESSION" onclick="pickPathway(this,'COMPRESSION')">
             <span class="bk-card-num">04</span>
             <span class="bk-card-name">COMPRESSION</span>
-            <span class="bk-card-sub">NormaTec compression boots</span>
+            <span class="bk-card-sub">For when your legs need a reset.</span>
           </button>
         </div>
       </div>
@@ -880,14 +880,15 @@ try{ bkAuth(); }catch(e){}
 
 // ── Focus Detail ──────────────────────────────────────────────────────
 var FD={
-  RECOVER:{num:'01',name:'RECOVER',concept:'A system reset after the effort. Slow, deliberate techniques reduce accumulated tension, calm the nervous system and restore natural movement. Long flowing strokes, sustained compressions, myofascial release, assisted mobility and restorative stretching help the body absorb training—not just survive it—leaving you lighter, looser and ready for tomorrow.',designed:['Post-training recovery','Muscle fatigue','Heavy legs','Travel recovery','Stress reduction','Better sleep','General restoration'],pressure:['Light','Medium','Firm'],vibe:['Restorative','Grounding','Calming','Recharging','Restoring']},
-  PERFORM:{num:'02',name:'PERFORM',concept:'An engine tune before the work begins. Pulse-driven, rhythmic techniques increase circulation, reduce stiffness and prepare the body to move with speed, strength and precision. Dynamic compressions, sweeping strokes, joint mobilisation and targeted activation leave muscles awake, responsive and ready to perform.',designed:['Pre-workout preparation','Competition','HYROX','Running','Strength training','Surfing','Performance readiness'],pressure:['Light','Medium','Firm'],vibe:['Energising','Activating','Priming','Powerful','Performance-focused']},
-  MOVE:{num:'03',name:'MOVE',concept:'Movement without restriction. Designed to restore quality of motion, reduce compensations and improve how your body moves every day. Focused release, joint mobilisation, assisted stretching and movement-based techniques create lasting freedom through every stride, lift and rotation.',designed:['Mobility improvement','Flexibility','Injury prevention','Desk workers','Functional movement','Joint stiffness','Everyday performance'],pressure:['Light','Medium','Firm'],vibe:['Fluid','Balanced','Mobile','Functional','Free']},
-  COMPRESSION:{num:'04',name:'COMPRESSION BOOTS',concept:'Rhythmic air compression designed to accelerate recovery without slowing you down. Graduated pressure gently moves from the feet upward, encouraging circulation, reducing post-exercise heaviness and supporting the body\'s natural recovery process. A simple, effortless reset that leaves your legs feeling lighter, fresher and ready for what\'s next.',designed:['Post-training recovery','Heavy legs','Running','HYROX','Cycling','Travel recovery','Swelling reduction','Recovery between training sessions'],pressure:['Light','Medium','Firm'],vibe:['Refreshing','Restorative','Lightening','Rejuvenating','Effortless']}
+  RECOVER:{num:'01',name:'RECOVER',tagline:'For when you’re sore.',concept:'Post-training bodywork designed to reduce muscle soreness, fatigue and tension. Your therapist will focus on the areas that have worked hardest, using sports massage and targeted recovery techniques to help you feel fresher and ready for your next session.',designed:['Sports massage','DOMS relief','Muscle soreness','Post-training recovery','Muscle fatigue','Heavy legs'],pressure:['Light','Medium','Firm'],vibe:['Restorative','Grounding','Calming','Recharging','Restoring']},
+  PERFORM:{num:'02',name:'PERFORM',tagline:'For when you train hard.',concept:'Sports-focused bodywork tailored to your training, performance and recovery needs. Your therapist will use targeted massage, deeper tissue work and movement-based techniques to address muscle tension, problem areas and the physical demands of your sport or training.',designed:['Sports massage','Deep tissue','Muscle tension','Performance recovery','Competition','Strength training'],pressure:['Light','Medium','Firm'],vibe:['Energising','Activating','Priming','Powerful','Performance-focused']},
+  MOVE:{num:'03',name:'MOVE',tagline:'For when you feel tight or restricted.',concept:'Stretch and release-focused bodywork designed to help you move more freely. Your therapist will combine soft tissue release, assisted stretching and mobility techniques to target tight areas, improve range of motion and reduce restriction.',designed:['Assisted stretching','Mobility','Tissue release','Range of motion','Joint stiffness','Desk workers'],pressure:['Light','Medium','Firm'],vibe:['Fluid','Balanced','Mobile','Functional','Free']},
+  COMPRESSION:{num:'04',name:'COMPRESSION',tagline:'For when your legs need a reset.',concept:'A passive recovery session using pneumatic compression boots that rhythmically inflate and release around the legs. Designed to support circulation and recovery while helping tired, heavy legs feel lighter and fresher.',designed:['Compression boots','Tired legs','Circulation','Passive recovery','Heavy legs','Swelling reduction'],pressure:['Light','Medium','Firm'],vibe:['Refreshing','Restorative','Lightening','Rejuvenating','Effortless']}
 };
 function showFocusDetail(k){
   var d=FD[k];if(!d)return;
   var html='<div class="fd-num">'+d.num+'</div><div class="fd-name">'+d.name+'</div>'+
+    (d.tagline?'<p style="font-family:var(--mono);font-size:12px;color:var(--r);letter-spacing:.04em;margin:6px 0 4px;">'+d.tagline+'</p>':'')+
     '<span class="fd-section-label">concept</span><p class="fd-concept">'+d.concept+'</p>'+
     '<span class="fd-section-label">designed for</span><div class="fd-tag-list">'+d.designed.map(function(t){return '<span class="fd-tag">'+t+'</span>';}).join('')+'</div>'+
     '<span class="fd-section-label">pressure</span><div class="fd-tag-list">'+d.pressure.map(function(t){return '<span class="fd-tag">'+t+'</span>';}).join('')+'</div>'+
