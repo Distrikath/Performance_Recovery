@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814014;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814015;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -5048,9 +5048,12 @@ function saveSettings(){
   if(typeof buildBudget==='function') buildBudget();
   if(typeof buildSettingsBudget==='function') buildSettingsBudget();
   buildSettingsStaff();
+  // Keep the distrik_pins store in agreement with the PINs just set, and force the login accounts to rebuild with them.
+  try{ var _p={}; STAFF.forEach(function(s){ if(s.pin) _p[s.id]=s.pin; }); localStorage.setItem('distrik_pins', JSON.stringify(_p)); }catch(e){}
+  STAFF_ACCOUNTS = null;   // rebuild login accounts so new PINs work immediately on this device too
   saveAll();
-  // HARD SAVE — push staff/zones/hours to the cloud so the edit is authoritative on every device and survives logout.
-  var _hs = (typeof window.dkHardSave==='function') ? window.dkHardSave() : false;
+  // HARD SAVE — push staff/zones/hours + PINs to the cloud so the edit is authoritative on every device and survives logout.
+  var _hs = (typeof window.dkHardSave==='function') ? window.dkHardSave(['distrik_v1','distrik_pins']) : false;
 
   const n=document.getElementById('notif');
   if(n){ n.textContent = _hs ? 'Saved & synced to all devices ✓' : 'Saved ✓'; n.classList.add('on'); setTimeout(()=>n.classList.remove('on'),2500); }
@@ -5087,7 +5090,7 @@ function buildStaffAccounts(){
     name: s.name,
     col: s.col,
     role: s.role,
-    pin: pins[s.id] || '1234',
+    pin: s.pin || pins[s.id] || '1234',   // prefer the PIN set in Settings (travels inside synced distrik_v1); fall back to distrik_pins, then default
     type: 'staff'
   }));
 }
