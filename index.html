@@ -1581,7 +1581,7 @@ function fastFlicker(){
 }
 
 /* Phase 2: slow cinematic rotation — only valid frame indices */
-const slowFrames = [0, 3, 8, 9, 5, 6];
+const slowFrames = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];  // slow cinematic cycle through ALL 10 frames
 let slowIdx = 0;
 
 function slowRotate(){
@@ -1593,15 +1593,13 @@ function slowRotate(){
     }
   });
   showFrame(next, true);
-  setTimeout(slowRotate, 8000);
+  setTimeout(slowRotate, 6000);
 }
 
-// Show frame 0 immediately, start flicker once it's rendered
-showFrame(0, false);
-// Pre-load frames 1-3 in the background right away so flicker has content
-[1,2,3].forEach(i => { if(frames[i]&&frames[i].dataset.src) frames[i].src=frames[i].dataset.src; });
-// Begin flicker after a short beat
-setTimeout(fastFlicker, 400);
+// No flicker — show the first frame immediately with a slow Ken Burns, then gently rotate through ALL frames.
+// Each frame lazy-loads just before it's shown, so nothing competes with the initial page load.
+showFrame(0, true);
+setTimeout(slowRotate, 6000);
 
 /* ─── MENU DRAWER ─── */
 const drawer = document.getElementById('menuDrawer');
