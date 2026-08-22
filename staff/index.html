@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814015;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814017;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -2309,7 +2309,7 @@ h1,
             <button class="pay-btn" id="clin-pay-qr" onclick="clinSetPay('qr')">QR</button>
           </div>
         </div>
-        <button class="pos-pay-btn" id="clin-confirm-btn" onclick="confirmClinical()" disabled>Select a service</button>
+        <button class="pos-pay-btn" id="clin-confirm-btn" onclick="payClinical()" disabled>Select a service</button>
       </div>
     </div>
   </div>
@@ -2385,7 +2385,7 @@ h1,
           <button class="pay-btn"        id="pay-qr"     onclick="setPayMethod('qr')">QR</button>
         </div>
       </div>
-      <button onclick="processSale()" class="pos-pay-btn" id="pos-pay-btn">Pay Now</button>
+      <button onclick="payFuel()" class="pos-pay-btn" id="pos-pay-btn">Pay Now</button>
       <div class="receipt-confirm" id="receipt-confirm" style="display:none;flex-direction:column;">
         <div class="confirm-icon">✓</div>
         <div class="confirm-msg">Sale Complete</div>
@@ -2451,7 +2451,7 @@ h1,
               <button class="pay-btn"        id="sup-pay-qr"     onclick="supSetPay('qr')">QR</button>
             </div>
           </div>
-          <button onclick="supProcessSale()" class="pos-pay-btn" id="sup-pay-btn">Pay Now</button>
+          <button onclick="paySupply()" class="pos-pay-btn" id="sup-pay-btn">Pay Now</button>
           <div id="sup-confirm" style="display:none;position:absolute;inset:0;background:#fff;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;">
             <div style="font-size:40px;color:#10b981;margin-bottom:8px;">✓</div>
             <div style="font-family:'Archivo',sans-serif;font-weight:700;font-size:24px;letter-spacing:3px;color:#0A0A0A;margin-bottom:4px;">Sale Complete</div>
@@ -6764,11 +6764,12 @@ function buildMenuMgr(){
   const body=document.getElementById('mmgr-body'); if(!body) return;
   if(menuMgrTab==='items'){
     let html=`<div style="max-height:400px;overflow-y:auto;">
-      <div style="display:grid;grid-template-columns:1.2fr 0.8fr 1fr 70px 70px 70px 28px;gap:6px;font-family:'Space Mono',monospace;font-size:9px;color:#777;letter-spacing:1.5px;text-transform:uppercase;padding:6px 0 6px;border-bottom:2px solid #e8e8e8;margin:0 16px;">
-        <div>Name</div><div>Category</div><div>Description</div><div>RRP</div><div>Cost</div><div>Price</div><div></div>
+      <div style="display:grid;grid-template-columns:20px 1.2fr 0.8fr 1fr 70px 70px 70px 28px;gap:6px;font-family:'Space Mono',monospace;font-size:9px;color:#777;letter-spacing:1.5px;text-transform:uppercase;padding:6px 0 6px;border-bottom:2px solid #e8e8e8;margin:0 16px;">
+        <div></div><div>Name</div><div>Category</div><div>Description</div><div>RRP</div><div>Cost</div><div>Price</div><div></div>
       </div>`;
     MENU_ITEMS.forEach((item,i)=>{
-      html+=`<div style="display:grid;grid-template-columns:1.2fr 0.8fr 1fr 70px 70px 70px 28px;gap:6px;align-items:center;padding:5px 16px;border-bottom:1px solid #f5f5f5;">
+      html+=`<div class="mi-row" ondragover="event.preventDefault()" ondrop="menuDrop(${i})" style="display:grid;grid-template-columns:20px 1.2fr 0.8fr 1fr 70px 70px 70px 28px;gap:6px;align-items:center;padding:5px 16px;border-bottom:1px solid #f5f5f5;">
+        <span class="mi-drag" draggable="true" ondragstart="menuDragStart(${i})" title="Drag to reorder" style="cursor:grab;color:#c0c0c0;font-size:15px;text-align:center;user-select:none;line-height:1;">⠿</span>
         <input class="svc-input" id="mi_name_${i}" value="${item.name}" placeholder="Item name">
         <select class="svc-input" id="mi_cat_${i}">
           ${MENU_CATS.map(c=>`<option value="${c.id}" ${item.cat===c.id?'selected':''}>${c.name}</option>`).join('')}
@@ -6841,6 +6842,11 @@ function addMenuItem(){
   buildMenuMgr(); _menuScrollBottom();
 }
 function delMenuItem(i){ _menuFlushAll(); MENU_ITEMS.splice(i,1); buildMenuMgr(); }
+// Drag-to-reorder menu items. Flush current edits first so nothing typed is lost, then move + save (syncs order to the till).
+var menuDragSrc=null;
+function menuDragStart(i){ _menuFlushAll(); menuDragSrc=i; }
+function menuDrop(i){ if(menuDragSrc===null||menuDragSrc===i){ menuDragSrc=null; return; } var m=MENU_ITEMS.splice(menuDragSrc,1)[0]; MENU_ITEMS.splice(i,0,m); menuDragSrc=null; saveMenuToStorage(); buildMenuMgr(); }
+window.menuDragStart=menuDragStart; window.menuDrop=menuDrop;
 function addOpt(key){ _menuFlushAll(); MENU_OPTS[key].push({id:'o'+Date.now(),name:'',rrp:0,cost:0,price:0}); buildMenuMgr(); _menuScrollBottom(); }
 function delOpt(key,i){ _menuFlushAll(); MENU_OPTS[key].splice(i,1); buildMenuMgr(); }
 function saveMenuMgr(){
@@ -7561,7 +7567,7 @@ function renderSupplyPOS(){
           <button class="pay-btn"        id="sup-pay-qr"     onclick="supSetPay('qr')">QR</button>
         </div>
       </div>
-      <button onclick="supProcessSale()" class="pos-pay-btn" id="sup-pay-btn">Pay Now</button>
+      <button onclick="paySupply()" class="pos-pay-btn" id="sup-pay-btn">Pay Now</button>
       <div id="sup-confirm" style="display:none;position:absolute;inset:0;background:#fff;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;">
         <div style="font-size:40px;color:#10b981;margin-bottom:8px;">✓</div>
         <div style="font-family:'Archivo',sans-serif;font-weight:700;font-size:24px;letter-spacing:3px;color:#0A0A0A;margin-bottom:4px;">Sale Complete</div>
@@ -10418,7 +10424,7 @@ function renderClinicalBooking(){
       intakeBlock='<div class="clin-intake done">'
         +'<div class="clin-intake-h"><span>✓ Booking Approved</span><span class="clin-intake-st">Approved</span></div>'
         +'<div class="clin-intake-b">Human+ confirmed &mdash; ready to book the session.</div>'
-        +'<button class="clin-intake-btn" style="background:#0A0A0A;margin-top:10px;" onclick="confirmClinical()">Confirm booking ✓</button>'
+        +'<button class="clin-intake-btn" style="background:#0A0A0A;margin-top:10px;" onclick="payClinical()">Confirm booking ✓</button>'
         +'</div>';
     } else {
       intakeBlock='<div class="clin-intake">'
@@ -12395,3 +12401,56 @@ window.injectWaCapture = function(confirmId, sale){
     </div>
   </div>
 </div>
+
+<!-- ═══ PAYMENT CONFIRM · safety-net popup (Recovery deposit / Fuel / Supply) ═══ -->
+<div id="payConfirmModal" style="display:none;position:fixed;inset:0;z-index:99999;align-items:center;justify-content:center;background:rgba(10,10,10,.72);">
+  <div style="background:#fff;color:#0A0A0A;width:min(360px,90vw);border-radius:6px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.45);font-family:'Space Mono',monospace;">
+    <div style="padding:22px 22px 14px;">
+      <div id="pcm-title" style="font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#999;">Confirm payment</div>
+      <div id="pcm-amount" style="font-family:'Inter',sans-serif;font-weight:800;font-size:26px;margin:10px 0 4px;line-height:1.2;">IDR 0</div>
+      <div id="pcm-method" style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#FF2D2D;"></div>
+    </div>
+    <div style="display:flex;border-top:1px solid #eee;">
+      <button onclick="payConfirmCancel()" style="flex:1;padding:15px;border:none;background:#fff;cursor:pointer;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#777;border-right:1px solid #eee;">Cancel</button>
+      <button onclick="payConfirmOk()" style="flex:1;padding:15px;border:none;background:#0A0A0A;color:#fff;cursor:pointer;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;">Confirm</button>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var _cb=null;
+  window.payConfirm=function(title, amountStr, methodStr, cb){
+    _cb=cb;
+    var t=document.getElementById('pcm-title'); if(t) t.textContent=title||'Confirm payment';
+    var a=document.getElementById('pcm-amount'); if(a) a.textContent=amountStr||'';
+    var m=document.getElementById('pcm-method'); if(m) m.textContent=methodStr?('via '+String(methodStr).toUpperCase()):'';
+    var mod=document.getElementById('payConfirmModal'); if(mod) mod.style.display='flex';
+  };
+  window.payConfirmCancel=function(){ var mod=document.getElementById('payConfirmModal'); if(mod) mod.style.display='none'; _cb=null; };
+  window.payConfirmOk=function(){ var cb=_cb; _cb=null; var mod=document.getElementById('payConfirmModal'); if(mod) mod.style.display='none'; if(typeof cb==='function') cb(); };
+
+  // FUEL — confirm before recording the café sale
+  window.payFuel=function(){
+    if(typeof cart==='undefined'||!cart.length) return;
+    var subtotal=cart.reduce(function(s,c){return s+c.linePrice*c.qty;},0);
+    var serviceTax=Math.round(subtotal*TAX_CFG.cafeService);
+    var tax=Math.round((subtotal+serviceTax)*TAX_CFG.cafePBJT);
+    var total=subtotal+serviceTax+tax;
+    payConfirm('Confirm Fuel sale','IDR '+total.toLocaleString('id-ID'), posPayMethod, processSale);
+  };
+  // SUPPLY — confirm before recording the retail sale
+  window.paySupply=function(){
+    if(typeof supCart==='undefined'||!supCart.length) return;
+    var total=supCart.reduce(function(s,c){return s+c.total;},0);
+    payConfirm('Confirm Supply sale','IDR '+total.toLocaleString('id-ID'), supPosPayMethod, supProcessSale);
+  };
+  // RECOVERY — confirm before taking deposit / confirming the booking
+  window.payClinical=function(){
+    var btn=document.getElementById('clin-confirm-btn');
+    if(!btn||btn.disabled) return;
+    var label=(btn.textContent||'Confirm booking').trim();
+    var takingPayment=/deposit|IDR/i.test(label);
+    payConfirm(label, '', takingPayment?clinPay:'', confirmClinical);
+  };
+})();
+</script>
