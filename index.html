@@ -1701,7 +1701,12 @@ function initGlobe(){
     }
   }
 
-  function animate(){
+  var globeVisible=true, _lastTs=0;
+  try{ if('IntersectionObserver' in window){ new IntersectionObserver(function(es){ es.forEach(function(e){ var was=globeVisible; globeVisible=e.isIntersecting; if(globeVisible && !was) requestAnimationFrame(animate); }); },{threshold:0.01}).observe(canvas); } }catch(e){}
+  function animate(ts){
+    if(!globeVisible) return;                                  // pause when scrolled away — zero CPU when not visible
+    if(ts && _lastTs && ts-_lastTs < 33){ requestAnimationFrame(animate); return; }  // cap ~30fps
+    _lastTs=ts||0;
     if(!userInteracting){
       const now = Date.now(), el = (now-phaseStart)/1000;
       if(phase==='spin'){
@@ -1804,7 +1809,7 @@ function initGlobe(){
   /* ── Load world & generate land dots ── */
   d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(world=>{
     const land = topojson.feature(world, world.objects.land);
-    const STEP = 1.5;
+    const STEP = 3;   // coarser dot grid — ~4x less compute + fewer dots per frame (was 1.5)
     for(let lat=-90; lat<=90; lat+=STEP){
       for(let lng=-180; lng<=180; lng+=STEP){
         if(d3.geoContains(land, [lng, lat])) landDots.push([lng, lat]);
@@ -1832,7 +1837,7 @@ function initGlobe(){
   }
   var el=document.getElementById('globe-section')||document.getElementById('globe-canvas');
   if(el && 'IntersectionObserver' in window){
-    var io=new IntersectionObserver(function(ents){ ents.forEach(function(e){ if(e.isIntersecting){ loadGlobe(); io.disconnect(); } }); }, {rootMargin:'300px'});
+    var io=new IntersectionObserver(function(ents){ ents.forEach(function(e){ if(e.isIntersecting){ loadGlobe(); io.disconnect(); } }); }, {threshold:0.25});
     io.observe(el);
   } else {
     if(window.requestIdleCallback) requestIdleCallback(loadGlobe,{timeout:4000}); else setTimeout(loadGlobe,3000);
