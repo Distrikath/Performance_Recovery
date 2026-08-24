@@ -1533,8 +1533,7 @@ footer.contact-strip{
 
 
 
-<script src="https://d3js.org/d3.v7.min.js"></script>
-<script src="https://unpkg.com/topojson-client@3/dist/topojson-client.min.js"></script>
+<!-- globe libraries lazy-loaded on scroll (see globe loader) — kept off the critical path -->
 <script>
 
 /* ─── FILM REEL — montage choreography ─── */
@@ -1615,7 +1614,7 @@ document.addEventListener('keydown', e => {
 });
 
 /* ─── GLOBE ─── */
-(function initGlobe(){
+function initGlobe(){
   const BALI = [115.1493111, -8.6320667];
   const TARGET_ROT = [-115.1493111, 8.6320667, 0];
   const section = document.getElementById('globe-section');
@@ -1815,6 +1814,29 @@ document.addEventListener('keydown', e => {
   }).catch(()=>animate());
 
   window.addEventListener('resize', setSize);
+}
+/* Lazy-load the globe libs + init ONLY when the globe scrolls near the viewport — keeps d3/topojson/world-map off the initial page load (from fast jsdelivr). */
+(function(){
+  var started=false;
+  function loadGlobe(){
+    if(started) return; started=true;
+    var s1=document.createElement('script');
+    s1.src='https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js';
+    s1.onload=function(){
+      var s2=document.createElement('script');
+      s2.src='https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js';
+      s2.onload=function(){ try{ initGlobe(); }catch(e){ console.warn('globe init',e); } };
+      document.head.appendChild(s2);
+    };
+    document.head.appendChild(s1);
+  }
+  var el=document.getElementById('globe-section')||document.getElementById('globe-canvas');
+  if(el && 'IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(ents){ ents.forEach(function(e){ if(e.isIntersecting){ loadGlobe(); io.disconnect(); } }); }, {rootMargin:'300px'});
+    io.observe(el);
+  } else {
+    if(window.requestIdleCallback) requestIdleCallback(loadGlobe,{timeout:4000}); else setTimeout(loadGlobe,3000);
+  }
 })();
 
 /* ─── LIVE TIME (WITA = UTC+8) + COUNTDOWN TO 22.08.2026 ─── */
