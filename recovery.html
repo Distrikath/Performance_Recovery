@@ -998,6 +998,7 @@ function bkInitCal(){
 }
 function bkRenderCal(){
   var cal=document.getElementById('bk-cal');if(!cal)return;
+  if(!_bkRosterCache)_bkPreloadRoster();   // load roster so days with no staffed availability get greyed
   var today=new Date();today.setHours(0,0,0,0);
   var minD=new Date(today);   // recovery allows same-day booking (times filtered to 1-hour notice)
   var y=_calState.year,mo=_calState.month;
@@ -1015,8 +1016,8 @@ function bkRenderCal(){
   for(var d=1;d<=dInMo;d++){
     var dt=new Date(y,mo,d);dt.setHours(0,0,0,0);
     var ds=y+'-'+('0'+(mo+1)).slice(-2)+'-'+('0'+d).slice(-2);
-    var dayHours=_bkBusinessHours(bkState.pathway,dt.getDay());
-    html+='<button class="bk-cal-day'+(bkState.date===ds?' sel':'')+'"'+((dt<minD||!dayHours)?' disabled':'')+' onclick="bkPickDay(\''+ds+'\')">'+d+'</button>';
+    var dayOpen=_bkDayOpen(bkState.pathway,ds);
+    html+='<button class="bk-cal-day'+(bkState.date===ds?' sel':'')+'"'+((dt<minD||!dayOpen)?' disabled':'')+' onclick="bkPickDay(\''+ds+'\')">'+d+'</button>';
   }
   cal.innerHTML=html+'</div>';
 }
@@ -1053,17 +1054,24 @@ var _DAY_NAMES=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Sat
 // Rule 1 hard-lock: returns {start,end} hours or null (closed) based on pathway and day-of-week
 // Recovery (RECOVER/RELEASE): Tue-Thu 10-22, Fri-Sun 8-20, Mon closed
 // Compression/IV/Bloods: Thu 10-22, Fri-Sun 8-20, Mon-Wed closed
-function _bkBusinessHours(pathway,dow){
-  var isComp=(pathway==='COMPRESSION');
-  if(dow===1)return null; // Monday closed for all
-  if(isComp){
-    if(dow>=2&&dow<=3)return null; // Tue-Wed closed for Compression
-    if(dow===4)return{start:10,end:22};
-    return{start:8,end:20}; // Fri-Sun
-  } else {
-    if(dow>=2&&dow<=4)return{start:10,end:22}; // Tue-Thu
-    return{start:8,end:20}; // Fri-Sun
-  }
+var _bkRosterLoading=false;
+// Preload roster + rooms so the calendar can grey days that have no staffed availability. Re-renders the calendar once loaded.
+function _bkPreloadRoster(){
+  if(_bkRosterCache||_bkRosterLoading)return;
+  _bkRosterLoading=true;
+  bkAuth().then(function(db){return Promise.all([db.collection('distrik_state').doc('distrik_v1').get(),db.collection('distrik_state').doc('distrik_rf').get()]);}).then(function(r){
+    try{_bkRosterCache=r[0].exists?JSON.parse(r[0].data().value||'{}'):{};}catch(e){_bkRosterCache={};}
+    try{_bkRfCache=r[1].exists?JSON.parse(r[1].data().value||'{}'):{};}catch(e){_bkRfCache={};}
+    _bkRosterLoading=false; try{bkRenderCal();}catch(e){}
+  }).catch(function(){_bkRosterCache=_bkRosterCache||{};_bkRfCache=_bkRfCache||{};_bkRosterLoading=false;try{bkRenderCal();}catch(e){}});
+}
+// A day is open iff someone nominated to run this pathway is rostered that day (with a free chair/room). No hard-coded hours.
+function _bkDayOpen(pathway,dateStr){
+  if(!_bkRosterCache)return true; // roster not loaded yet — allow the day; the times step still filters, and we re-render when it loads
+  try{
+    var rooms=(_bkRfCache&&_bkRfCache.ROOMS)||[];
+    return _bkGetAvailSlots(_bkRosterCache,dateStr,(pathway==='COMPRESSION'?20:30),pathway,rooms).length>0;
+  }catch(e){return true;}
 }
 function _bkIsBreak(c){return typeof c==='string'&&c.startsWith('Break:');}
 function _bkStaffId(c){return c?(_bkIsBreak(c)?c.slice(6):c):null;}
@@ -1079,11 +1087,9 @@ function _bkGetAvailSlots(rData,dateStr,durMins,pathway,rooms){
   var _dp=dateStr.split('-');
   function slotOk(si){ var hh=SLOT_START+si*0.5; var sd=new Date(parseInt(_dp[0]),parseInt(_dp[1])-1,parseInt(_dp[2]),Math.floor(hh),(hh%1?30:0),0,0); return sd>=_minStart; }
 
-  // Rule 1: hard-locked business hours
-  var bh=_bkBusinessHours(pathway,dow);
-  if(!bh)return []; // closed day
-  var siMin=Math.max(0,Math.round((bh.start-SLOT_START)*2));
-  var siMax=Math.min(TOTAL_BK,Math.round((bh.end-SLOT_START)*2));
+  // Availability is driven ENTIRELY by the roster + who's nominated to run the session — NO hard-coded hours.
+  // Scan the full possible day window; the per-slot roster checks below filter to actual staffed times.
+  var siMin=0, siMax=TOTAL_BK;
 
   function zoneRows(zoneId){
     var dayData=(rData&&rData.dailyOverrides&&rData.dailyOverrides[dateStr])||null;
