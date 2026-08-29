@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814017;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814019;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -7436,6 +7436,16 @@ function initSupply(){
   supUpdateReceipt();
 }
 
+window.SUPPLY_IMG = window.SUPPLY_IMG || {};   // synced product photos, keyed by item id — kept OUT of the 1MB config blob, delivered to every device (POS/iPad) via per-item docs
+function applySupplyImages(){
+  try{ SUPPLY_ITEMS.forEach(function(it){ if(it&&it.id&&window.SUPPLY_IMG[it.id]&&window.SUPPLY_IMG[it.id].length) it.images=window.SUPPLY_IMG[it.id]; }); }catch(e){}
+}
+window.applySupplyImages=applySupplyImages;
+// repaint whichever Supply view is on screen once photos arrive from the cloud
+window.dkRerenderSupply=function(){
+  try{ if(typeof supView!=='undefined' && supView==='pos' && typeof buildSupPOSItems==='function') buildSupPOSItems(); }catch(e){}
+  try{ if(typeof supView!=='undefined' && supView==='inventory' && typeof renderSupplyInventory==='function' && typeof supInvBrand!=='undefined') renderSupplyInventory(supInvBrand); }catch(e){}
+};
 function loadSupplyFromStorage(){
   try{
     const raw = localStorage.getItem('distrik_supply');
@@ -7446,10 +7456,14 @@ function loadSupplyFromStorage(){
       if(d.SUPPLY_SALES) SUPPLY_SALES.splice(0,SUPPLY_SALES.length,...d.SUPPLY_SALES);
     }
   }catch(e){}
+  applySupplyImages();   // re-attach synced photos onto the freshly-loaded items (config carries no photos)
 }
 function saveSupplyToStorage(){
   try{ localStorage.setItem('distrik_supply', JSON.stringify({BRANDS,SUPPLY_ITEMS,SUPPLY_SALES})); }catch(e){}
-  try{ if(typeof window.dkHardSave==='function') window.dkHardSave(['distrik_supply']); }catch(e){}  // hard-save so brands/stock stick across devices + logout
+  // mirror this device's photos into the synced cache so a config rebuild can't drop them
+  try{ SUPPLY_ITEMS.forEach(function(it){ if(it&&it.id){ var im=(it.images||[]).filter(Boolean); if(im.length) window.SUPPLY_IMG[it.id]=im; } }); }catch(e){}
+  try{ if(typeof window.dkHardSave==='function') window.dkHardSave(['distrik_supply']); }catch(e){}       // config (no photos) → cloud, tiny
+  try{ if(typeof window.dkPushSupplyImages==='function') window.dkPushSupplyImages(); }catch(e){}          // photos → per-item docs so the iPad sees them
 }
 
 // ── TABS & NAV ────────────────────────────────────────────────────
@@ -8841,15 +8855,15 @@ function handleImgUpload(event){
     const img = new Image();
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      const max = 400;
+      const max = 360;   // crisp POS thumbnail — good quality, small file (synced per-item to every device)
       let w = img.width, h = img.height;
       if(w > max || h > max){
         if(w > h){ h = Math.round(h * max/w); w = max; }
         else      { w = Math.round(w * max/h); h = max; }
       }
       canvas.width = w; canvas.height = h;
-      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      editingItemImages[currentImgSlot] = canvas.toDataURL('image/jpeg', 0.85);
+      var _cx=canvas.getContext('2d'); _cx.imageSmoothingEnabled=true; _cx.imageSmoothingQuality='high'; _cx.drawImage(img, 0, 0, w, h);
+      editingItemImages[currentImgSlot] = canvas.toDataURL('image/jpeg', 0.78);
       renderImgSlots();
     };
     img.src = e.target.result;
@@ -11591,9 +11605,13 @@ window.showRoomCalendar=showRoomCalendar;
   // copy locally (offline safety); only the CLOUD copy is stripped of transactional arrays.
   function txFields(k){ return k==='distrik_v1'?['fuelData','supplyData','recoveryData']:(k==='distrik_supply'?['SUPPLY_SALES']:[]); }
   function isConfigBlob(k){ return k==='distrik_v1'||k==='distrik_supply'; }
-  function stripTx(k,val){ var tf=txFields(k); if(!tf.length||val==null) return val; try{ var o=JSON.parse(val); tf.forEach(function(f){ o[f]=(f==='SUPPLY_SALES')?[]:{}; }); return JSON.stringify(o); }catch(e){ return val; } }
+  // Supply product photos (base64 in item.images) are HUGE and must never enter the 1MB config doc.
+  // Strip them before every cloud push (keep them LOCAL per device) so the synced blob stays tiny → thousands of items fit.
+  function _stripSupplyImgs(o){ try{ if(o&&o.SUPPLY_ITEMS) o.SUPPLY_ITEMS=o.SUPPLY_ITEMS.map(function(it){ if(it&&it.images){ var c=Object.assign({},it); delete c.images; return c; } return it; }); }catch(e){} return o; }
+  function _restoreSupplyImgs(localVal,o){ try{ var lo=localVal?JSON.parse(localVal):null; if(lo&&lo.SUPPLY_ITEMS&&o&&o.SUPPLY_ITEMS){ var m={}; lo.SUPPLY_ITEMS.forEach(function(it){ if(it&&it.id&&it.images&&it.images.length) m[it.id]=it.images; }); o.SUPPLY_ITEMS.forEach(function(it){ if(it&&it.id&&m[it.id]&&!(it.images&&it.images.length)) it.images=m[it.id]; }); } }catch(e){} return o; }
+  function stripTx(k,val){ var tf=txFields(k); if(!tf.length||val==null) return val; try{ var o=JSON.parse(val); tf.forEach(function(f){ o[f]=(f==='SUPPLY_SALES')?[]:{}; }); if(k==='distrik_supply') _stripSupplyImgs(o); return JSON.stringify(o); }catch(e){ return val; } }
   // cloud config + LOCAL transactions (so pulling config never wipes locally-held sales)
-  function mergeConfig(k,localVal,cloudVal){ var tf=txFields(k); if(!tf.length) return cloudVal; try{ var lo=localVal?JSON.parse(localVal):{}; var co=cloudVal?JSON.parse(cloudVal):{}; tf.forEach(function(f){ co[f]=(lo[f]!==undefined)?lo[f]:(f==='SUPPLY_SALES'?[]:{}); }); return JSON.stringify(co); }catch(e){ return cloudVal; } }
+  function mergeConfig(k,localVal,cloudVal){ var tf=txFields(k); if(!tf.length) return cloudVal; try{ var lo=localVal?JSON.parse(localVal):{}; var co=cloudVal?JSON.parse(cloudVal):{}; tf.forEach(function(f){ co[f]=(lo[f]!==undefined)?lo[f]:(f==='SUPPLY_SALES'?[]:{}); }); if(k==='distrik_supply') _restoreSupplyImgs(localVal,co); return JSON.stringify(co); }catch(e){ return cloudVal; } }
   // hash of the cloud-equivalent (stripped) value — so dirty-detection compares config-vs-config, ignoring transactions
   function svHash(k,v){ return hash(stripTx(k,v)); }
   // ---- FIELD-LEVEL 3-WAY MERGE for config (STAFF, roster, zones, brands…) ----
@@ -11614,6 +11632,7 @@ window.showRoomCalendar=showRoomCalendar;
       var res = (ct>lt) ? Object.assign({},co) : Object.assign({},lo);
       // always keep LOCAL transactions (they're stripped from the cloud copy anyway)
       tf.forEach(function(f){ res[f]=(lo[f]!==undefined)?lo[f]:(f==='SUPPLY_SALES'?[]:{}); });
+      if(k==='distrik_supply') _restoreSupplyImgs(localVal,res);   // keep this device's product photos (never synced)
       return JSON.stringify(res);
     }catch(e){ console.warn('[sync] merge3',k,e); return cloudVal; }
   }
@@ -11751,6 +11770,37 @@ window.showRoomCalendar=showRoomCalendar;
     return R;
   }
   function txnCount(k,val){ try{ var o=JSON.parse(val); if(k==='distrik_supply') return (o.SUPPLY_SALES||[]).length; if(k==='distrik_rf'){ var n=0,bk=o.bookings||{}; Object.keys(bk).forEach(function(d){ n+=(bk[d]||[]).length; }); return n; } if(k==='distrik_v1'){ var n=0; [['fuelData','transactions'],['supplyData','orders'],['recoveryData','bookings']].forEach(function(p){ var dd=o[p[0]]||{}; Object.keys(dd).forEach(function(d){ n+=((dd[d]||{})[p[1]]||[]).length; }); }); return n; } }catch(e){} return 0; }
+  // ── SUPPLY PHOTOS synced per-item (so the POS/iPad shows stock photos) without ever bloating the 1MB config doc ──
+  var _supImgSeen={}; try{ _supImgSeen=JSON.parse(localStorage.getItem('distrik_supply_imghash')||'{}'); }catch(e){}
+  function _supImgHash(imgs){ var s=(imgs||[]).join('|'),h=0; for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))|0;} return h+':'+s.length; }
+  window.dkPushSupplyImages=function(){
+    if(!ready||!db) return;
+    if(typeof currentUser==='undefined'||!currentUser||currentUser.type!=='admin') return; // only admin manages stock photos
+    var items=(window.SUPPLY_ITEMS||[]); if(!items.length) return;
+    var batch=db.batch(), n=0, next=Object.assign({},_supImgSeen), touched=false;
+    items.forEach(function(it){
+      if(!it||!it.id) return;
+      var imgs=(it.images||[]).filter(Boolean);
+      var h=imgs.length?_supImgHash(imgs):'';
+      if(h===_supImgSeen[it.id]) return;                                    // unchanged — skip re-upload
+      var ref=db.collection('supply_img').doc(String(it.id));
+      if(imgs.length) batch.set(ref,{images:imgs, ts:firebase.firestore.FieldValue.serverTimestamp()});
+      else batch.delete(ref);                                                // photos cleared → drop the doc
+      next[it.id]=h; n++; touched=true;
+      if(n>=25){ try{batch.commit();}catch(e){} batch=db.batch(); n=0; }       // small batches so total payload stays well under Firestore's write limit
+    });
+    if(touched){ (n>0?batch.commit():Promise.resolve()).then(function(){ _supImgSeen=next; nset('distrik_supply_imghash',JSON.stringify(next)); setPill('✓ Photos synced','#10b981'); }).catch(function(e){ console.warn('[supply_img] push',e); setPill('⚠ Photo sync error','#FF2D2D'); }); }
+  };
+  function subscribeSupplyImages(){
+    db.collection('supply_img').onSnapshot(function(snap){
+      var chg=false; window.SUPPLY_IMG=window.SUPPLY_IMG||{};
+      snap.docChanges().forEach(function(c){
+        if(c.type==='removed'){ if(window.SUPPLY_IMG[c.doc.id]){ delete window.SUPPLY_IMG[c.doc.id]; chg=true; } }
+        else { var d=c.doc.data(); if(d&&d.images){ window.SUPPLY_IMG[c.doc.id]=d.images; chg=true; } }
+      });
+      if(chg){ try{ if(typeof window.applySupplyImages==='function') window.applySupplyImages(); if(typeof window.dkRerenderSupply==='function') window.dkRerenderSupply(); }catch(e){} }
+    }, function(e){ console.warn('[supply_img] sub',e); });
+  }
   function subscribe(){
     db.collection(COLL).onSnapshot(function(snap){
       var changed=false;
@@ -11779,6 +11829,7 @@ window.showRoomCalendar=showRoomCalendar;
       });
       if(changed){ rerender(); setPill("✓ Synced","#10b981"); }
     }, function(e){ console.warn('[sync] snap',e); setPill("⚠ Offline","#FF2D2D"); });
+    subscribeSupplyImages();   // live-pull product photos to every device (esp. the POS/iPad)
   }
 
   function reconcile(){
