@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814019;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814021;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -5201,9 +5201,9 @@ function doLogout(){
 // 'pos_sup' = Supply till, 'staff' = individual staff (read-only roster + my account).
 const HOME_TILES = [
   {id:'sales',   icon:'', name:'Sales',         desc:'Daily revenue\nRecovery · Fuel · Supply', col:'#6366f1', access:['admin','pos_fr','pos_sup']},
-  {id:'booking', icon:'', name:'Recovery',       desc:'Bookings & rooms\nRecovery sessions',     col:'#8b5cf6', access:['admin','pos_fr']},
-  {id:'fuel',    icon:'', name:'Fuel',           desc:'Café POS\nCoffee · drinks · food',        col:'#06b6d4', access:['admin','pos_fr']},
-  {id:'supply',  icon:'', name:'Supply',         desc:'Inventory & sales\nBrand management',    col:'#10b981', access:['admin','pos_sup']},
+  {id:'booking', icon:'', name:'Recovery',       desc:'Bookings & rooms\nRecovery sessions',     col:'#8b5cf6', access:['admin','pos_fr','pos_sup']},
+  {id:'fuel',    icon:'', name:'Fuel',           desc:'Café POS\nCoffee · drinks · food',        col:'#06b6d4', access:['admin','pos_fr','pos_sup']},
+  {id:'supply',  icon:'', name:'Supply',         desc:'Inventory & sales\nBrand management',    col:'#10b981', access:['admin','pos_fr','pos_sup']},
   {id:'pl',      icon:'', name:'P & L',          desc:'Profit & loss\nFinancial overview',      col:'#f5c842', access:['admin']},
   {id:'settings',icon:'',  name:'Settings',       desc:'Staff · Zones\nHours & config',          col:'#FF2D2D', access:['admin']},
   {id:'roster',  icon:'', name:'Weekly Roster',  desc:'Drag & drop\nShift management',          col:'#3b82f6', access:['admin','pos_fr','pos_sup','staff']},
@@ -5273,8 +5273,9 @@ const PAGE_NAMES = {
 // Access control: which login levels may open each module. Enforced on every navigation path
 // (home tiles, top-nav tabs, direct opens) so a POS/staff login can never reach a restricted screen.
 const ACCESS_MAP = {
-  sales:['admin','pos_fr','pos_sup'], booking:['admin','pos_fr'], recovery:['admin','pos_fr'],
-  fuel:['admin','pos_fr'], supply:['admin','pos_sup'], pl:['admin'], settings:['admin'],
+  // Either till can ring ANY sale (Fuel + Supply + Recovery bookings) — flexibility by login, not device. Config stays admin-only.
+  sales:['admin','pos_fr','pos_sup'], booking:['admin','pos_fr','pos_sup'], recovery:['admin','pos_fr','pos_sup'],
+  fuel:['admin','pos_fr','pos_sup'], supply:['admin','pos_fr','pos_sup'], pl:['admin'], settings:['admin'],
   roster:['admin','pos_fr','pos_sup','staff'], clients:['admin'], myaccount:['staff']
 };
 function canAccess(id){
@@ -11833,7 +11834,12 @@ window.showRoomCalendar=showRoomCalendar;
   }
 
   function reconcile(){
+    var _rcDone=false;
+    // Flaky-connection guard: if the first read hasn't come back in 9s (Bali wifi / QUIC retries), go live anyway.
+    // subscribe()'s onSnapshot keeps retrying on its own and flips to "✓ Synced" the moment the link is up.
+    var _rcTo=setTimeout(function(){ if(_rcDone)return; _rcDone=true; console.warn('[sync] reconcile slow — going live, will reconnect'); ready=true; setPill("◌ Reconnecting…","#f59e0b"); subscribe(); }, 9000);
     db.collection(COLL).get().then(function(snap){
+      if(_rcDone)return; _rcDone=true; clearTimeout(_rcTo);
       var remote={}; snap.forEach(function(dd){ remote[dd.id]=dd.data(); });
       var changed=false;
       SYNC_KEYS.forEach(function(k){
@@ -11861,7 +11867,7 @@ window.showRoomCalendar=showRoomCalendar;
       if(changed) rerender();
       ready=true; setPill("✓ Synced","#10b981");
       subscribe();
-    }).catch(function(e){ console.warn('[sync] reconcile',e); setPill("⚠ Sync error","#FF2D2D"); ready=true; subscribe(); });
+    }).catch(function(e){ if(_rcDone)return; _rcDone=true; clearTimeout(_rcTo); console.warn('[sync] reconcile',e); setPill("⚠ Sync error","#FF2D2D"); ready=true; subscribe(); });
   }
 
   pill.addEventListener('click',function(){ if(!ready) return; setPill("◌ Checking…","#f59e0b"); reconcile(); });
