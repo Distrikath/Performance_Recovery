@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814021;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814022;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -3520,6 +3520,24 @@ function buildBudget(){
 
 // ── LOCAL STORAGE PERSISTENCE ─────────────────────────────────────
 const LS_KEY = 'distrik_v1';
+// ── DISCOUNTS: admin-set promo rules {id,pct,channel:'recovery'|'fuel'|'supply'|'all',reason,from,to} — auto-applied at the till within the date window ──
+var DISCOUNTS = [];
+function activeDiscount(channel){
+  try{
+    var t=(typeof baliNow==='function'?baliNow():new Date());
+    var ymd=t.getFullYear()+'-'+('0'+(t.getMonth()+1)).slice(-2)+'-'+('0'+t.getDate()).slice(-2);
+    var best=null;
+    (DISCOUNTS||[]).forEach(function(d){
+      if(!d) return; var p=parseFloat(d.pct); if(!p||p<=0) return;
+      var ch=d.channel||'all'; if(ch!=='all' && ch!==channel) return;
+      if(d.from && ymd<d.from) return;
+      if(d.to && ymd>d.to) return;
+      if(!best || p>parseFloat(best.pct)) best=d;   // biggest active discount wins
+    });
+    return best; // {pct,reason,channel,from,to} or null
+  }catch(e){ return null; }
+}
+window.activeDiscount=activeDiscount;
 
 function saveAll(){
   try{
@@ -3542,6 +3560,7 @@ function saveAll(){
       recoveryData,
       fuelData,
       supplyData,
+      DISCOUNTS,
       STAFF: STAFF.map(s=>({id:s.id,name:s.name,abbr:s.abbr,role:s.role,col:s.col,salary:s.salary,group:s.group||'Operations',pin:s.pin||'1234'})),
       _cfgTs: _prevCfgTs,
       savedAt: new Date().toISOString()
@@ -3583,6 +3602,7 @@ function loadAll(){
     if(data.recoveryData) Object.assign(recoveryData, data.recoveryData);
     if(data.fuelData)     Object.assign(fuelData,     data.fuelData);
     if(data.supplyData)   Object.assign(supplyData,   data.supplyData);
+    if(data.DISCOUNTS)    DISCOUNTS = data.DISCOUNTS;
     if(data.roomBookings) roomBookings = data.roomBookings;
     // Restore ZONE_HOURS (zone operating hours from settings)
     if(data.ZONE_HOURS && Array.isArray(data.ZONE_HOURS)){
@@ -4877,6 +4897,7 @@ function buildSettingsManagers(){
     {t:'Supply — Brands &amp; Products', d:'Brands &amp; split %, products, per-size stock, pricing &amp; tax.', a:`<div class="set-mgr-actions"><button onclick="goToModule('supply')" class="set-mgr-btn">Open →</button><button onclick="openAddBrand()" class="set-mgr-btn alt">+ Brand</button></div>`},
     {t:'Rooms &amp; Recovery Chairs', d:'Set which services each room/chair can host, assigned staff &amp; type.', a:`<div class="set-room-list">${roomBtns||'<span style="color:#6b6b72;font-family:Space Mono,monospace;font-size:10px;">No rooms configured</span>'}</div>`},
     {t:'Recruitment — Job Applications', d:'Review, rate &amp; action careers applications from the website (status, rating, notes).', a:`<button onclick="openApplications()" class="set-mgr-btn">Open →</button>`},
+    {t:'Discounts &amp; Promotions', d:'Set a % discount per channel (Recovery / Fuel / Supply / All) with a reason &amp; date range — auto-applied at the till during the promo window.', a:`<button onclick="openDiscountsMgr()" class="set-mgr-btn">Open →</button>`},
     {t:'Payments — Xendit Deposit Link', d:'Paste your Xendit payment link URL here. Staff will see a WhatsApp button to send it to patients when taking a deposit.', a:`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><input id="set-xendit-url" type="url" placeholder="https://checkout.xendit.co/..." style="flex:1;min-width:200px;font-family:'Space Mono',monospace;font-size:10px;border:1px solid #d3d3ce;padding:8px 10px;background:#fafafa;color:#0A0A0A;" value="${(function(){try{return JSON.parse(localStorage.getItem('distrik_payments')||'{}').xenditLink||'';}catch(e){return '';}})()}"><button onclick="saveXenditLink()" class="set-mgr-btn">Save</button></div>`},
   ];
   el.innerHTML=cards.map(c=>`<div class="set-mgr-card"><div class="set-mgr-title">${c.t}</div><div class="set-mgr-desc">${c.d}</div>${c.a}</div>`).join('');
@@ -6715,7 +6736,10 @@ function setPayMethod(m){
 
 function processSale(){
   if(cart.length===0) return;
-  const subtotal=cart.reduce((s,c)=>s+c.linePrice*c.qty,0);
+  const gross=cart.reduce((s,c)=>s+c.linePrice*c.qty,0);
+  const _d=activeDiscount('fuel'); const discPct=_d?parseFloat(_d.pct):0; const discReason=_d?(_d.reason||''):'';
+  const discAmt=discPct?Math.round(gross*discPct/100):0;
+  const subtotal=gross-discAmt;                                      // discount applied before tax
   const serviceTax=Math.round(subtotal*TAX_CFG.cafeService); // 7% service charge
   const tax=Math.round((subtotal+serviceTax)*TAX_CFG.cafePBJT); // 10% PBJT on subtotal+service charge
   const total=subtotal+serviceTax+tax;
@@ -6725,7 +6749,7 @@ function processSale(){
   if(!fuelData[key]) fuelData[key]={revenue:0,transactions:[]};
   var _ftx={
     id:genId(), items:cart.map(c=>({name:c.item.name+(c.size?.name?" "+c.size.name:""),cat:c.item.cat||"",qty:c.qty,price:c.linePrice})),
-    subtotal, serviceTax, tax, total, method:posPayMethod,
+    gross, discPct, discAmt, discReason, subtotal, serviceTax, tax, total, method:posPayMethod,
     time:baliTimeStr()
   };
   fuelData[key].transactions.push(_ftx);
@@ -6739,7 +6763,7 @@ function processSale(){
     confirm.style.display='flex';
     confirm.style.position='absolute';
     confirm.style.flexDirection='column';
-    document.getElementById('confirm-total').textContent='IDR '+total.toLocaleString('id-ID')+' · '+posPayMethod;
+    document.getElementById('confirm-total').textContent='IDR '+total.toLocaleString('id-ID')+' · '+posPayMethod+(discAmt?'  ('+discPct+'% off − IDR '+discAmt.toLocaleString('id-ID')+')':'');
   }
   saveMenuToStorage();
   saveRFToStorage();
@@ -7690,7 +7714,10 @@ function supSetPay(m){
 function supProcessSale(){
   if(supCart.length===0) return;
   const dateKey = todayKey();
-  const total = supCart.reduce((s,c)=>s+c.total,0);
+  const gross = supCart.reduce((s,c)=>s+c.total,0);
+  const _d=activeDiscount('supply'); const discPct=_d?parseFloat(_d.pct):0; const discReason=_d?(_d.reason||''):'';
+  const discAmt=discPct?Math.round(gross*discPct/100):0;
+  const total = gross-discAmt;                                    // promo discount comes off the sale price
   const _supRows = []; // capture the exact SUPPLY_SALES line items for a complete ledger record
 
   supCart.forEach(c=>{
@@ -7719,7 +7746,7 @@ function supProcessSale(){
   if(!supplyData[dateKey]) supplyData[dateKey]={revenue:0,orders:[]};
   var _sord={
     id:genId(), items:supCart.map(c=>({name:c.item.name,qty:1,price:c.total})),
-    total, method:supPosPayMethod, time:baliTimeStr()
+    gross, discPct, discAmt, discReason, total, method:supPosPayMethod, time:baliTimeStr()
   };
   supplyData[dateKey].orders.push(_sord);
   supplyData[dateKey].revenue = (supplyData[dateKey].orders||[]).reduce((s,o)=>s+o.total,0);
@@ -7729,7 +7756,7 @@ function supProcessSale(){
   const conf = document.getElementById('sup-confirm');
   const right = document.querySelector('.sup-split-right');
   if(conf&&right){ conf.style.display='flex'; conf.style.flexDirection='column'; conf.style.position='absolute'; }
-  document.getElementById('sup-confirm-total').textContent = 'IDR '+total.toLocaleString('id-ID')+' · '+supPosPayMethod;
+  document.getElementById('sup-confirm-total').textContent = 'IDR '+total.toLocaleString('id-ID')+' · '+supPosPayMethod+(discAmt?'  ('+discPct+'% off − IDR '+discAmt.toLocaleString('id-ID')+')':'');
 }
 
 function supNewSale(){
@@ -10544,8 +10571,11 @@ function renderClinicalOrder(){
 function clinToggleOnline(v){ clinCaptureInputs(); clinOnline=!!v; renderClinicalOrder(); }
 window.clinToggleOnline=clinToggleOnline;
 function updateClinicalTotals(base){
+  // apply an active Recovery promo (not to Human+ clinical) so the shown total + deposit + button reflect it
+  var _dsc=(clinType!=='clinical')?activeDiscount('recovery'):null; var _dp=_dsc?parseFloat(_dsc.pct):0;
+  if(_dp) base=Math.round(base*(1-_dp/100));
   var tax=0, total=base; // Recovery/spa & clinical: NON-PKP, no PBJT → no consumption tax
-  clinSetText('clin-subtotal',clinFmt(base)); clinSetText('clin-tax',clinFmt(tax)); clinSetText('clin-total',clinFmt(total));
+  clinSetText('clin-subtotal', _dp?(clinFmt(total)+'  ('+_dp+'% off)'):clinFmt(base)); clinSetText('clin-tax',clinFmt(tax)); clinSetText('clin-total',clinFmt(total));
   var dep=Math.round(total*0.5), bal=total-dep;
   var isDeposit=(clinPayType==='deposit')||clinOnline;
   var dl=document.getElementById('clin-deposit-lines');
@@ -10655,6 +10685,10 @@ function confirmClinical(){
   if(clinCurrentConflict()){ clinNotify((clinType==='clinical'?'That chair':'That room')+' is already booked at that time — pick another '+(clinType==='clinical'?'chair or window':'time or room')+'.'); return; }
   var isHold = (clinType==='clinical' && !clinIntake && !clinOnline); // clinical w/o intake AND no online deposit = held space
   var s=clinSvc();
+  // Recovery promo discount — applies to recovery sessions only, NOT Human+ clinical (partner commission)
+  var _rvDsc=(clinType!=='clinical')?activeDiscount('recovery'):null;
+  var _rvPct=_rvDsc?parseFloat(_rvDsc.pct):0;
+  var _price=(_rvPct && s && s.price)?Math.round(s.price*(1-_rvPct/100)):(s?s.price:0);
   var patient=clinPatient||'Walk-in';
   var dateKey=clinKey();
   // resolve room id from the chosen room name
@@ -10680,12 +10714,12 @@ function confirmClinical(){
     therapist:therapistId, therapistName:therapistName,
     start:startTime, time:startTime, duration:duration,
     client:patient, email:clinEmail||'', whatsapp:clinWhatsapp||'', phone:clinWhatsapp||'',
-    price:s.price, pressure:clinPressure||null, payType:clinPayType||'full',
+    price:_price, gross:(s?s.price:0), discPct:_rvPct, discReason:(_rvDsc?(_rvDsc.reason||''):''), pressure:clinPressure||null, payType:clinPayType||'full',
     source:(clinOnline?'Online':'Walk-in'), status:(isHold?'hold':'confirmed'), payMethod:clinPay
   };
   if(clinType==='clinical'){ rec.clinical=true; rec.tag='ClinicTerrain'; rec.window=clinWindow; rec.intake=(clinIntake?'approved':'pending'); }
-  if(clinOnline){ var _tot=s.price; rec.online=true; rec.deposit=Math.round(_tot*0.5); rec.balanceDue=_tot-Math.round(_tot*0.5); rec.balancePaid=false; }
-  else if(clinPayType==='deposit'){ rec.deposit=Math.round(s.price*0.5); rec.balanceDue=s.price-Math.round(s.price*0.5); rec.balancePaid=false; }
+  if(clinOnline){ var _tot=_price; rec.online=true; rec.deposit=Math.round(_tot*0.5); rec.balanceDue=_tot-Math.round(_tot*0.5); rec.balancePaid=false; }
+  else if(clinPayType==='deposit'){ rec.deposit=Math.round(_price*0.5); rec.balanceDue=_price-Math.round(_price*0.5); rec.balancePaid=false; }
   try{
     // If editing an existing booking, remove the original first (reverse whatever revenue it contributed)
     if(clinEditingId){
@@ -12489,17 +12523,21 @@ window.injectWaCapture = function(confirmId, sale){
   // FUEL — confirm before recording the café sale
   window.payFuel=function(){
     if(typeof cart==='undefined'||!cart.length) return;
-    var subtotal=cart.reduce(function(s,c){return s+c.linePrice*c.qty;},0);
-    var serviceTax=Math.round(subtotal*TAX_CFG.cafeService);
-    var tax=Math.round((subtotal+serviceTax)*TAX_CFG.cafePBJT);
-    var total=subtotal+serviceTax+tax;
-    payConfirm('Confirm Fuel sale','IDR '+total.toLocaleString('id-ID'), posPayMethod, processSale);
+    var gross=cart.reduce(function(s,c){return s+c.linePrice*c.qty;},0);
+    var _d=(typeof activeDiscount==='function')?activeDiscount('fuel'):null; var dp=_d?parseFloat(_d.pct):0;
+    var da=dp?Math.round(gross*dp/100):0; var sub=gross-da;
+    var serviceTax=Math.round(sub*TAX_CFG.cafeService);
+    var tax=Math.round((sub+serviceTax)*TAX_CFG.cafePBJT);
+    var total=sub+serviceTax+tax;
+    payConfirm(da?('Confirm Fuel sale — '+dp+'% OFF'):'Confirm Fuel sale','IDR '+total.toLocaleString('id-ID'), posPayMethod, processSale);
   };
   // SUPPLY — confirm before recording the retail sale
   window.paySupply=function(){
     if(typeof supCart==='undefined'||!supCart.length) return;
-    var total=supCart.reduce(function(s,c){return s+c.total;},0);
-    payConfirm('Confirm Supply sale','IDR '+total.toLocaleString('id-ID'), supPosPayMethod, supProcessSale);
+    var gross=supCart.reduce(function(s,c){return s+c.total;},0);
+    var _d=(typeof activeDiscount==='function')?activeDiscount('supply'):null; var dp=_d?parseFloat(_d.pct):0;
+    var da=dp?Math.round(gross*dp/100):0; var total=gross-da;
+    payConfirm(da?('Confirm Supply sale — '+dp+'% OFF'):'Confirm Supply sale','IDR '+total.toLocaleString('id-ID'), supPosPayMethod, supProcessSale);
   };
   // RECOVERY — confirm before taking deposit / confirming the booking
   window.payClinical=function(){
@@ -12508,6 +12546,75 @@ window.injectWaCapture = function(confirmId, sale){
     var label=(btn.textContent||'Confirm booking').trim();
     var takingPayment=/deposit|IDR/i.test(label);
     payConfirm(label, '', takingPayment?clinPay:'', confirmClinical);
+  };
+})();
+</script>
+
+<!-- ═══ DISCOUNTS & PROMOTIONS MANAGER (admin) ═══ -->
+<div id="discMgrModal" style="display:none;position:fixed;inset:0;z-index:99998;align-items:center;justify-content:center;background:rgba(10,10,10,.6);">
+  <div style="background:#fff;color:#0A0A0A;width:min(760px,95vw);max-height:88vh;overflow:auto;border-radius:6px;font-family:'Space Mono',monospace;box-shadow:0 20px 60px rgba(0,0,0,.4);">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid #eee;">
+      <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:17px;letter-spacing:1px;">Discounts &amp; Promotions</div>
+      <button onclick="closeDiscountsMgr()" style="border:none;background:none;font-size:20px;cursor:pointer;color:#999;">&times;</button>
+    </div>
+    <div style="padding:10px 20px 0;font-size:10px;color:#888;line-height:1.6;">Auto-applied at the till for the chosen channel during the date range. Leave dates blank for no limit. Biggest active discount wins.</div>
+    <div id="disc-list" style="padding:14px 20px;"></div>
+    <div style="padding:0 20px 8px;"><button onclick="discAddRow()" class="set-mgr-btn" style="background:#0A0A0A;color:#fff;border:none;padding:9px 15px;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;">+ Add discount</button></div>
+    <div style="display:flex;gap:10px;padding:16px 20px;border-top:1px solid #eee;">
+      <button onclick="saveDiscounts()" style="flex:1;padding:12px;border:none;background:#0A0A0A;color:#fff;cursor:pointer;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;">Save</button>
+      <button onclick="closeDiscountsMgr()" style="flex:1;padding:12px;border:1px solid #e0e0e0;background:#fff;color:#777;cursor:pointer;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;">Cancel</button>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var _ist='font-family:Space Mono,monospace;font-size:11px;border:1px solid #d3d3ce;padding:7px 8px;background:#fafafa;color:#0A0A0A;width:100%;box-sizing:border-box;';
+  function esc(s){ return String(s==null?'':s).replace(/"/g,'&quot;'); }
+  function _discFlush(){
+    (window.DISCOUNTS||[]).forEach(function(d,i){
+      var g=function(id){var e=document.getElementById(id);return e?e.value:undefined;};
+      var v;
+      v=g('disc_pct_'+i); if(v!==undefined) d.pct=parseFloat(v)||0;
+      v=g('disc_ch_'+i);  if(v!==undefined) d.channel=v;
+      v=g('disc_rs_'+i);  if(v!==undefined) d.reason=v;
+      v=g('disc_fr_'+i);  if(v!==undefined) d.from=v;
+      v=g('disc_to_'+i);  if(v!==undefined) d.to=v;
+    });
+  }
+  window.discBuildList=function(){
+    var el=document.getElementById('disc-list'); if(!el) return;
+    var rows=(window.DISCOUNTS||[]);
+    var cols='grid-template-columns:66px 1fr 1.3fr 130px 130px 26px;';
+    var head='<div style="display:grid;'+cols+'gap:8px;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#999;padding-bottom:8px;border-bottom:1px solid #eee;margin-bottom:10px;"><div>% Off</div><div>Channel</div><div>Reason</div><div>From</div><div>To</div><div></div></div>';
+    var body=rows.map(function(d,i){
+      var chOpts=['all','recovery','fuel','supply'].map(function(c){return '<option value="'+c+'"'+((d.channel||'all')===c?' selected':'')+'>'+c.charAt(0).toUpperCase()+c.slice(1)+'</option>';}).join('');
+      return '<div style="display:grid;'+cols+'gap:8px;align-items:center;margin-bottom:8px;">'
+        +'<input type="number" min="0" max="100" id="disc_pct_'+i+'" value="'+esc(d.pct)+'" style="'+_ist+'">'
+        +'<select id="disc_ch_'+i+'" style="'+_ist+'">'+chOpts+'</select>'
+        +'<input id="disc_rs_'+i+'" value="'+esc(d.reason)+'" placeholder="e.g. Opening week" style="'+_ist+'">'
+        +'<input type="date" id="disc_fr_'+i+'" value="'+esc(d.from)+'" style="'+_ist+'">'
+        +'<input type="date" id="disc_to_'+i+'" value="'+esc(d.to)+'" style="'+_ist+'">'
+        +'<button onclick="discDelRow('+i+')" style="border:none;background:none;color:#FF2D2D;cursor:pointer;font-size:15px;">&times;</button>'
+        +'</div>';
+    }).join('');
+    el.innerHTML=head+(body||'<div style="color:#999;font-size:11px;padding:10px 0;">No discounts yet — add one below.</div>');
+  };
+  window.openDiscountsMgr=function(){
+    if(typeof currentUser==='undefined'||!currentUser||currentUser.type!=='admin'){ alert('Discounts are admin-only.'); return; }
+    if(!window.DISCOUNTS) window.DISCOUNTS=[];
+    discBuildList(); document.getElementById('discMgrModal').style.display='flex';
+  };
+  window.closeDiscountsMgr=function(){ var m=document.getElementById('discMgrModal'); if(m) m.style.display='none'; };
+  window.discAddRow=function(){ _discFlush(); if(!window.DISCOUNTS) window.DISCOUNTS=[]; window.DISCOUNTS.push({id:'d'+Date.now(),pct:10,channel:'all',reason:'',from:'',to:''}); discBuildList(); };
+  window.discDelRow=function(i){ _discFlush(); window.DISCOUNTS.splice(i,1); discBuildList(); };
+  window.saveDiscounts=function(){
+    _discFlush();
+    window.DISCOUNTS=(window.DISCOUNTS||[]).filter(function(d){ return d && parseFloat(d.pct)>0; });
+    try{ DISCOUNTS=window.DISCOUNTS; }catch(e){}
+    if(typeof saveAll==='function') saveAll();
+    if(typeof window.dkHardSave==='function') window.dkHardSave(['distrik_v1']);
+    var n=document.getElementById('notif'); if(n){ n.textContent='Discounts saved & synced ✓'; n.classList.add('on'); setTimeout(function(){n.classList.remove('on');},2200); }
+    closeDiscountsMgr();
   };
 })();
 </script>
