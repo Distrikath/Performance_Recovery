@@ -833,6 +833,14 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
           <input type="tel" id="bk-phone" placeholder="+62 ..." autocomplete="tel" oninput="bkState.phone=this.value;updateBkNext()">
           <div class="bk-field-note">we'll send your booking confirmation and session details here.</div>
         </div>
+        <div class="bk-field" style="margin-top:18px;">
+          <label>promo code (optional)</label>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="bk-promo" placeholder="enter code" autocapitalize="characters" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter'){event.preventDefault();bkApplyPromo();}" style="flex:1;">
+            <button type="button" onclick="bkApplyPromo()" style="white-space:nowrap;padding:0 22px;font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:lowercase;background:var(--ink);color:var(--b);border:none;cursor:pointer;">apply</button>
+          </div>
+          <div class="bk-field-note" id="bk-promo-msg"></div>
+        </div>
       </div>
 
       <!-- Step 6: Confirmation -->
@@ -903,7 +911,7 @@ function closeFd(){
 }
 
 // ── Booking ───────────────────────────────────────────────────────────
-var bkState={step:1,pathway:null,duration:null,price:null,pressure:null,date:null,time:null,therapist:'',name:'',phone:''};
+var bkState={step:1,pathway:null,duration:null,price:null,pressure:null,date:null,time:null,therapist:'',name:'',phone:'',promo:null};
 var BK_DURS={RECOVER:[{m:30,p:'IDR 400K'},{m:45,p:'IDR 550K'},{m:60,p:'IDR 650K'},{m:90,p:'IDR 900K'}],PERFORM:[{m:30,p:'IDR 400K'},{m:45,p:'IDR 550K'},{m:60,p:'IDR 650K'},{m:90,p:'IDR 900K'}],MOVE:[{m:30,p:'IDR 400K'},{m:45,p:'IDR 550K'},{m:60,p:'IDR 650K'},{m:90,p:'IDR 900K'}],COMPRESSION:[{m:20,p:'IDR 200K'},{m:40,p:'IDR 400K'}]};
 var THER_NAMES={};
 var _calState={year:0,month:0};
@@ -1297,12 +1305,42 @@ function bkPriceNum(p){
   if(u==='k') n*=1000; else if(u==='m') n*=1000000;
   return Math.round(n||0);
 }
+// Validate a customer promo code against the discounts that ride in the synced config (distrik_v1 → _bkRosterCache.DISCOUNTS)
+function bkFindPromo(code){
+  try{
+    if(!code) return null; var c=String(code).trim().toUpperCase(); if(!c) return null;
+    var ds=(_bkRosterCache&&_bkRosterCache.DISCOUNTS)||[];
+    // check the promo against the SESSION date they're booking (so a code for the 9th works even if booked earlier)
+    var t=new Date(); var ymd=bkState.date||(t.getFullYear()+'-'+('0'+(t.getMonth()+1)).slice(-2)+'-'+('0'+t.getDate()).slice(-2));
+    var hit=null;
+    ds.forEach(function(d){
+      if(!d||!d.code) return; if(String(d.code).trim().toUpperCase()!==c) return;
+      var p=parseFloat(d.pct); if(!p||p<=0) return;
+      var ch=d.channel||'all'; if(ch!=='all'&&ch!=='recovery') return;
+      if(d.from && ymd<d.from) return; if(d.to && ymd>d.to) return;
+      if(d.item && String(d.item).indexOf('rec:')===0){ var pr=String(d.item).split(':'); if(bkState.pathway!==pr[1] || String(bkState.duration)!==String(pr[2])) return; } // targets one recovery session
+      hit=d;
+    });
+    return hit;
+  }catch(e){ return null; }
+}
+function bkApplyPromo(){
+  var el=document.getElementById('bk-promo'), msg=document.getElementById('bk-promo-msg');
+  var code=(el?el.value:'').trim();
+  if(!code){ bkState.promo=null; if(msg) msg.textContent=''; return; }
+  if(!_bkRosterCache){ if(typeof _bkPreloadRoster==='function') _bkPreloadRoster(); if(msg){ msg.style.color='var(--ink-d)'; msg.textContent='checking…'; } setTimeout(bkApplyPromo,900); return; }
+  var d=bkFindPromo(code);
+  if(!d){ bkState.promo=null; if(msg){ msg.style.color='var(--r)'; msg.textContent='invalid or expired code'; } }
+  else { bkState.promo=d; if(msg){ msg.style.color='#10b981'; msg.textContent='✓ '+d.pct+'% off applied'+(parseFloat(d.pct)>=100?' — free session':''); } }
+}
 function submitBk(){
   var btn=document.getElementById('bk-next-btn');
   if(btn){btn.disabled=true;btn.textContent='sending...';}
   var ts=Date.now(),rnd='DR-'+ts.toString(36).slice(-4).toUpperCase();
   var _pn=bkPriceNum(bkState.price);
-  var rec={ref:rnd,pathway:bkState.pathway,duration:bkState.duration,price:bkState.price,priceNum:_pn,deposit:Math.round(_pn/2),pressure:bkState.pressure,date:bkState.date,time:bkState.time,therapist:bkState.therapist||null,name:bkState.name.trim(),phone:bkState.phone.trim(),status:'tentative',paymentStatus:'unpaid',submittedAt:firebase.firestore.FieldValue.serverTimestamp()};
+  var _pr=bkState.promo, _ppct=_pr?parseFloat(_pr.pct):0;
+  if(_ppct){ _pn=Math.max(0,Math.round(_pn*(1-_ppct/100))); }   // apply customer promo to the price
+  var rec={ref:rnd,pathway:bkState.pathway,duration:bkState.duration,price:bkState.price,priceNum:_pn,deposit:Math.round(_pn/2),discPct:_ppct,discCode:(_pr?(_pr.code||''):''),discReason:(_pr?(_pr.reason||''):''),pressure:bkState.pressure,date:bkState.date,time:bkState.time,therapist:bkState.therapist||null,name:bkState.name.trim(),phone:bkState.phone.trim(),status:'tentative',paymentStatus:'unpaid',submittedAt:firebase.firestore.FieldValue.serverTimestamp()};
   bkAuth().then(function(db){ return db.collection('public_bookings').add(rec); }).then(function(){showBkConfirm(rnd,rec);}).catch(function(e){
     if(btn){btn.disabled=false;btn.textContent='confirm →';}
     alert('Booking error: '+e.message+'\n\nPlease WhatsApp us directly: +62 819 9480 1516');
@@ -1318,8 +1356,9 @@ function showBkConfirm(ref,rec){
   bkGoStep(6);
   // Show pay-now options (50% deposit OR pay in full) using the Xendit link from Firestore
   var depEl=document.getElementById('bk-confirm-deposit');
-  var priceNum=rec.priceNum||bkPriceNum(rec.price);
+  var priceNum=(rec.priceNum!=null)?rec.priceNum:bkPriceNum(rec.price);
   var half=priceNum?Math.round(priceNum/2):0;
+  if(!priceNum){ if(depEl) depEl.innerHTML='<div style="color:#10b981;letter-spacing:.08em;line-height:1.8;">&#10003; No payment needed — free with code '+(rec.discCode||'')+'.<br>see you at the lab.</div>'; return; }
   bkAuth().then(function(db){ return db.collection('distrik_state').doc('distrik_payments').get(); }).then(function(doc){
     var link=doc.exists?(doc.data().xenditLink||''):'';
     if(!depEl) return;
