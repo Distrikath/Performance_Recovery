@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814030;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814031;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -9693,6 +9693,36 @@ function _clearCloudLedger(){
     }catch(e){ resolve(); }
   });
 }
+function clearTodaySales(){
+  var d=todayKey();
+  var fx=((fuelData[d]||{}).transactions||[]).length, sx=((supplyData[d]||{}).orders||[]).length;
+  if(fx+sx===0){ alert('No Fuel or Supply sales recorded today ('+d+').'); return; }
+  if(!confirm('Delete TODAY\'S sales only ('+d+')?\n\n• '+fx+' Fuel / Café transactions\n• '+sx+' Supply orders\n\nRecovery bookings are NOT touched — cancel those individually.\nThis cannot be undone.')) return;
+  try{
+    var ids=[];
+    ((fuelData[d]||{}).transactions||[]).forEach(function(t){ if(t&&t.id) ids.push(String(t.id)); });
+    ((supplyData[d]||{}).orders||[]).forEach(function(o){ if(o&&o.id) ids.push(String(o.id)); });
+    fuelData[d]={revenue:0,transactions:[]};
+    supplyData[d]={revenue:0,orders:[]};
+    if(typeof SUPPLY_SALES!=='undefined' && Array.isArray(SUPPLY_SALES)){ for(var i=SUPPLY_SALES.length-1;i>=0;i--){ if(SUPPLY_SALES[i]&&SUPPLY_SALES[i].date===d) SUPPLY_SALES.splice(i,1); } }
+    try{ saveAll(); }catch(e){}
+    try{ saveSupplyToStorage(); }catch(e){}
+    var n=document.getElementById('notif'); if(n){ n.textContent='Clearing today’s sales…'; n.classList.add('on'); }
+    var done=function(){ if(n) n.textContent='Today’s Fuel & Supply sales cleared ✓'; setTimeout(function(){ location.reload(); }, 800); };
+    if(typeof firebase!=='undefined' && firebase.firestore){
+      var db=firebase.firestore(); var b=db.batch(), c=0, commits=[];
+      ids.forEach(function(id){ b.delete(db.collection('ledger').doc(id)); c++; if(c%400===0){ commits.push(b.commit()); b=db.batch(); } });
+      commits.push(b.commit());
+      Promise.all(commits).then(function(){
+        db.collection('ledger').where('bizDate','==',d).get().then(function(snap){
+          var b2=db.batch(), m=0; snap.forEach(function(doc){ var k=(doc.data()||{}).kind; if(k==='fuel'||k==='supply'){ b2.delete(doc.ref); m++; } });
+          (m?b2.commit():Promise.resolve()).then(done).catch(done);
+        }).catch(done);
+      }).catch(done);
+    } else { done(); }
+  }catch(e){ console.error('clearTodaySales',e); alert('Something went wrong clearing today’s sales.'); }
+}
+window.clearTodaySales=clearTodaySales;
 function clearAllData(){
   if(!confirm('Clear ALL sales & booking data?\n\nThis resets to zero:\n• Sales totals (Recovery, Fuel, Supply)\n• Café & Supply transactions\n• P&L ledger entries\n• Recovery & room bookings\n\nIt KEEPS your roster, staff, services, menu, tax & API setup.\n\nThis cannot be undone.')) return;
   if(!confirm('Are you sure? Last chance.\n\nTip: click Cancel and use "↓ Export Backup" first if you have not already.')) return;
@@ -11161,6 +11191,7 @@ window.showRoomCalendar=showRoomCalendar;
       <div class="set-danger-label">Pre-launch reset</div>
       <button onclick="clearRostersBefore('2026-08-01')" class="set-act danger">⚠ Clear All Roster Days Before 1 Aug 2026</button>
       <div class="set-danger-note" style="margin-bottom:12px">Deletes all per-date roster overrides saved before 1 August 2026. The base template and all data from 1 Aug onwards are kept. Cannot be undone.</div>
+      <button onclick="clearTodaySales()" class="set-act danger">⚠ Clear TODAY’s Fuel &amp; Supply Sales</button>
       <button onclick="clearAllData()" class="set-act danger">⚠ Clear All Sales &amp; Booking Data</button>
       <div class="set-danger-note">Resets all sales, café, supply, P&amp;L and bookings to zero. Keeps your roster, staff, services, menu, tax &amp; API setup. Cannot be undone — export a backup first.</div>
     </div>
