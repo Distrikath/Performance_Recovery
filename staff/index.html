@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814024;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814025;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -2385,6 +2385,11 @@ h1,
           <button class="pay-btn"        id="pay-qr"     onclick="setPayMethod('qr')">QR</button>
         </div>
       </div>
+      <div style="display:flex;gap:6px;margin-bottom:6px;">
+        <input id="fuel-code" placeholder="Promo code (optional)" onkeydown="if(event.key==='Enter')applyFuelCode()" style="flex:1;font-family:'Space Mono',monospace;font-size:10px;border:1px solid #d3d3ce;padding:8px;text-transform:uppercase;background:#fafafa;color:#0A0A0A;">
+        <button onclick="applyFuelCode()" style="padding:8px 12px;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;background:#0A0A0A;color:#fff;border:none;cursor:pointer;">Apply</button>
+      </div>
+      <div id="fuel-code-msg" style="font-family:'Space Mono',monospace;font-size:9px;min-height:12px;margin-bottom:6px;"></div>
       <button onclick="payFuel()" class="pos-pay-btn" id="pos-pay-btn">Pay Now</button>
       <div class="receipt-confirm" id="receipt-confirm" style="display:none;flex-direction:column;">
         <div class="confirm-icon">✓</div>
@@ -2451,7 +2456,12 @@ h1,
               <button class="pay-btn"        id="sup-pay-qr"     onclick="supSetPay('qr')">QR</button>
             </div>
           </div>
-          <button onclick="paySupply()" class="pos-pay-btn" id="sup-pay-btn">Pay Now</button>
+          <div style="display:flex;gap:6px;margin-bottom:6px;">
+        <input id="sup-code" placeholder="Promo code (optional)" onkeydown="if(event.key==='Enter')applySupCode()" style="flex:1;font-family:'Space Mono',monospace;font-size:10px;border:1px solid #d3d3ce;padding:8px;text-transform:uppercase;background:#fafafa;color:#0A0A0A;">
+        <button onclick="applySupCode()" style="padding:8px 12px;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;background:#0A0A0A;color:#fff;border:none;cursor:pointer;">Apply</button>
+      </div>
+      <div id="sup-code-msg" style="font-family:'Space Mono',monospace;font-size:9px;min-height:12px;margin-bottom:6px;"></div>
+      <button onclick="paySupply()" class="pos-pay-btn" id="sup-pay-btn">Pay Now</button>
           <div id="sup-confirm" style="display:none;position:absolute;inset:0;background:#fff;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;">
             <div style="font-size:40px;color:#10b981;margin-bottom:8px;">✓</div>
             <div style="font-family:'Archivo',sans-serif;font-weight:700;font-size:24px;letter-spacing:3px;color:#0A0A0A;margin-bottom:4px;">Sale Complete</div>
@@ -3522,22 +3532,38 @@ function buildBudget(){
 const LS_KEY = 'distrik_v1';
 // ── DISCOUNTS: admin-set promo rules {id,pct,channel:'recovery'|'fuel'|'supply'|'all',reason,from,to} — auto-applied at the till within the date window ──
 var DISCOUNTS = [];
+function _discYmd(){ var t=(typeof baliNow==='function'?baliNow():new Date()); return t.getFullYear()+'-'+('0'+(t.getMonth()+1)).slice(-2)+'-'+('0'+t.getDate()).slice(-2); }
+function _discInWindow(d){ var ymd=_discYmd(); if(d.from && ymd<d.from) return false; if(d.to && ymd>d.to) return false; return true; }
+// AUTO discount for a channel = a rule with NO code (codes are entered at the till). Item-targeted rules need a code too.
 function activeDiscount(channel){
   try{
-    var t=(typeof baliNow==='function'?baliNow():new Date());
-    var ymd=t.getFullYear()+'-'+('0'+(t.getMonth()+1)).slice(-2)+'-'+('0'+t.getDate()).slice(-2);
     var best=null;
     (DISCOUNTS||[]).forEach(function(d){
       if(!d) return; var p=parseFloat(d.pct); if(!p||p<=0) return;
+      if(d.code && String(d.code).trim()) return;                 // coded → checkout only, not auto
       var ch=d.channel||'all'; if(ch!=='all' && ch!==channel) return;
-      if(d.from && ymd<d.from) return;
-      if(d.to && ymd>d.to) return;
-      if(!best || p>parseFloat(best.pct)) best=d;   // biggest active discount wins
+      if(!_discInWindow(d)) return;
+      if(!best || p>parseFloat(best.pct)) best=d;                  // biggest active auto-discount wins
     });
-    return best; // {pct,reason,channel,from,to} or null
+    return best;
   }catch(e){ return null; }
 }
-window.activeDiscount=activeDiscount;
+// CODE lookup at the till: find an active discount whose code matches (channel-scoped). May carry an `item` id to target one product.
+function findDiscountByCode(code, channel){
+  try{
+    if(!code) return null; var c=String(code).trim().toUpperCase(); if(!c) return null;
+    var hit=null;
+    (DISCOUNTS||[]).forEach(function(d){
+      if(!d||!d.code) return; if(String(d.code).trim().toUpperCase()!==c) return;
+      var p=parseFloat(d.pct); if(!p||p<=0) return;
+      var ch=d.channel||'all'; if(ch!=='all' && channel && ch!==channel) return;
+      if(!_discInWindow(d)) return;
+      hit=d;
+    });
+    return hit; // {pct,reason,channel,from,to,code,item} or null
+  }catch(e){ return null; }
+}
+window.activeDiscount=activeDiscount; window.findDiscountByCode=findDiscountByCode;
 
 function saveAll(){
   try{
@@ -6737,8 +6763,10 @@ function setPayMethod(m){
 function processSale(){
   if(cart.length===0) return;
   const gross=cart.reduce((s,c)=>s+c.linePrice*c.qty,0);
-  const _d=activeDiscount('fuel'); const discPct=_d?parseFloat(_d.pct):0; const discReason=_d?(_d.reason||''):'';
-  const discAmt=discPct?Math.round(gross*discPct/100):0;
+  const _code=window._fuelCode||null; const _eff=_code||activeDiscount('fuel'); // an applied code overrides the auto promo
+  const discPct=_eff?parseFloat(_eff.pct):0; const discReason=_eff?(_eff.reason||_eff.code||''):''; const discCode=_code?(_code.code||''):''; const discItem=_code?(_code.item||''):'';
+  let discAmt=0;
+  if(discPct){ if(discItem){ let _ln=cart.filter(c=>c.item&&c.item.id===discItem).reduce((s,c)=>s+c.linePrice*c.qty,0); discAmt=Math.round(_ln*discPct/100); } else { discAmt=Math.round(gross*discPct/100); } }
   const subtotal=gross-discAmt;                                      // discount applied before tax
   const serviceTax=Math.round(subtotal*TAX_CFG.cafeService); // 7% service charge
   const tax=Math.round((subtotal+serviceTax)*TAX_CFG.cafePBJT); // 10% PBJT on subtotal+service charge
@@ -6749,7 +6777,7 @@ function processSale(){
   if(!fuelData[key]) fuelData[key]={revenue:0,transactions:[]};
   var _ftx={
     id:genId(), items:cart.map(c=>({name:c.item.name+(c.size?.name?" "+c.size.name:""),cat:c.item.cat||"",qty:c.qty,price:c.linePrice})),
-    gross, discPct, discAmt, discReason, subtotal, serviceTax, tax, total, method:posPayMethod,
+    gross, discPct, discAmt, discReason, discCode, subtotal, serviceTax, tax, total, method:posPayMethod,
     time:baliTimeStr()
   };
   fuelData[key].transactions.push(_ftx);
@@ -6772,6 +6800,7 @@ function processSale(){
 
 function newSale(){
   cart=[];
+  window._fuelCode=null; var _fc=document.getElementById('fuel-code'); if(_fc)_fc.value=''; var _fm=document.getElementById('fuel-code-msg'); if(_fm)_fm.textContent='';
   const confirm=document.getElementById('receipt-confirm');
   if(confirm) confirm.style.display='none';
   updateReceipt();
@@ -7606,6 +7635,11 @@ function renderSupplyPOS(){
           <button class="pay-btn"        id="sup-pay-qr"     onclick="supSetPay('qr')">QR</button>
         </div>
       </div>
+      <div style="display:flex;gap:6px;margin-bottom:6px;">
+        <input id="sup-code" placeholder="Promo code (optional)" onkeydown="if(event.key==='Enter')applySupCode()" style="flex:1;font-family:'Space Mono',monospace;font-size:10px;border:1px solid #d3d3ce;padding:8px;text-transform:uppercase;background:#fafafa;color:#0A0A0A;">
+        <button onclick="applySupCode()" style="padding:8px 12px;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;background:#0A0A0A;color:#fff;border:none;cursor:pointer;">Apply</button>
+      </div>
+      <div id="sup-code-msg" style="font-family:'Space Mono',monospace;font-size:9px;min-height:12px;margin-bottom:6px;"></div>
       <button onclick="paySupply()" class="pos-pay-btn" id="sup-pay-btn">Pay Now</button>
       <div id="sup-confirm" style="display:none;position:absolute;inset:0;background:#fff;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;">
         <div style="font-size:40px;color:#10b981;margin-bottom:8px;">✓</div>
@@ -7715,8 +7749,10 @@ function supProcessSale(){
   if(supCart.length===0) return;
   const dateKey = todayKey();
   const gross = supCart.reduce((s,c)=>s+c.total,0);
-  const _d=activeDiscount('supply'); const discPct=_d?parseFloat(_d.pct):0; const discReason=_d?(_d.reason||''):'';
-  const discAmt=discPct?Math.round(gross*discPct/100):0;
+  const _code=window._supCode||null; const _eff=_code||activeDiscount('supply'); // applied code overrides the auto promo
+  const discPct=_eff?parseFloat(_eff.pct):0; const discReason=_eff?(_eff.reason||_eff.code||''):''; const discCode=_code?(_code.code||''):''; const discItem=_code?(_code.item||''):'';
+  let discAmt=0;
+  if(discPct){ if(discItem){ let _ln=supCart.filter(c=>c.item&&c.item.id===discItem).reduce((s,c)=>s+c.total,0); discAmt=Math.round(_ln*discPct/100); } else { discAmt=Math.round(gross*discPct/100); } }
   const total = gross-discAmt;                                    // promo discount comes off the sale price
   const _supRows = []; // capture the exact SUPPLY_SALES line items for a complete ledger record
 
@@ -7746,7 +7782,7 @@ function supProcessSale(){
   if(!supplyData[dateKey]) supplyData[dateKey]={revenue:0,orders:[]};
   var _sord={
     id:genId(), items:supCart.map(c=>({name:c.item.name,qty:1,price:c.total})),
-    gross, discPct, discAmt, discReason, total, method:supPosPayMethod, time:baliTimeStr()
+    gross, discPct, discAmt, discReason, discCode, total, method:supPosPayMethod, time:baliTimeStr()
   };
   supplyData[dateKey].orders.push(_sord);
   supplyData[dateKey].revenue = (supplyData[dateKey].orders||[]).reduce((s,o)=>s+o.total,0);
@@ -7761,6 +7797,7 @@ function supProcessSale(){
 
 function supNewSale(){
   supCart=[];
+  window._supCode=null; var _sc=document.getElementById('sup-code'); if(_sc)_sc.value=''; var _sm=document.getElementById('sup-code-msg'); if(_sm)_sm.textContent='';
   const conf = document.getElementById('sup-confirm');
   if(conf) conf.style.display='none';
   supUpdateReceipt();
@@ -12542,8 +12579,10 @@ window.injectWaCapture = function(confirmId, sale){
   window.payFuel=function(){
     if(typeof cart==='undefined'||!cart.length) return;
     var gross=cart.reduce(function(s,c){return s+c.linePrice*c.qty;},0);
-    var _d=(typeof activeDiscount==='function')?activeDiscount('fuel'):null; var dp=_d?parseFloat(_d.pct):0;
-    var da=dp?Math.round(gross*dp/100):0; var sub=gross-da;
+    var _code=window._fuelCode||null; var _eff=_code||((typeof activeDiscount==='function')?activeDiscount('fuel'):null);
+    var dp=_eff?parseFloat(_eff.pct):0; var di=_code?(_code.item||''):'';
+    var da=0; if(dp){ if(di){ var ln=cart.filter(function(c){return c.item&&c.item.id===di;}).reduce(function(s,c){return s+c.linePrice*c.qty;},0); da=Math.round(ln*dp/100); } else { da=Math.round(gross*dp/100); } }
+    var sub=gross-da;
     var serviceTax=Math.round(sub*TAX_CFG.cafeService);
     var tax=Math.round((sub+serviceTax)*TAX_CFG.cafePBJT);
     var total=sub+serviceTax+tax;
@@ -12553,8 +12592,10 @@ window.injectWaCapture = function(confirmId, sale){
   window.paySupply=function(){
     if(typeof supCart==='undefined'||!supCart.length) return;
     var gross=supCart.reduce(function(s,c){return s+c.total;},0);
-    var _d=(typeof activeDiscount==='function')?activeDiscount('supply'):null; var dp=_d?parseFloat(_d.pct):0;
-    var da=dp?Math.round(gross*dp/100):0; var total=gross-da;
+    var _code=window._supCode||null; var _eff=_code||((typeof activeDiscount==='function')?activeDiscount('supply'):null);
+    var dp=_eff?parseFloat(_eff.pct):0; var di=_code?(_code.item||''):'';
+    var da=0; if(dp){ if(di){ var ln=supCart.filter(function(c){return c.item&&c.item.id===di;}).reduce(function(s,c){return s+c.total;},0); da=Math.round(ln*dp/100); } else { da=Math.round(gross*dp/100); } }
+    var total=gross-da;
     payConfirm(da?('Confirm Supply sale — '+dp+'% OFF'):'Confirm Supply sale','IDR '+total.toLocaleString('id-ID'), supPosPayMethod, supProcessSale);
   };
   // RECOVERY — confirm before taking deposit / confirming the booking
@@ -12597,25 +12638,39 @@ window.injectWaCapture = function(confirmId, sale){
       v=g('disc_rs_'+i);  if(v!==undefined) d.reason=v;
       v=g('disc_fr_'+i);  if(v!==undefined) d.from=v;
       v=g('disc_to_'+i);  if(v!==undefined) d.to=v;
+      v=g('disc_cd_'+i);  if(v!==undefined) d.code=v.trim().toUpperCase();
+      v=g('disc_it_'+i);  if(v!==undefined) d.item=v;
     });
+  }
+  function _discItemOpts(sel){
+    var o='<option value="">— Whole order / channel —</option>';
+    try{ (typeof MENU_ITEMS!=='undefined'?MENU_ITEMS:[]).forEach(function(it){ if(it&&it.id) o+='<option value="'+it.id+'"'+(sel===it.id?' selected':'')+'>Fuel: '+esc(it.name)+'</option>'; }); }catch(e){}
+    try{ (typeof SUPPLY_ITEMS!=='undefined'?SUPPLY_ITEMS:[]).forEach(function(it){ if(it&&it.id) o+='<option value="'+it.id+'"'+(sel===it.id?' selected':'')+'>Supply: '+esc(it.name)+'</option>'; }); }catch(e){}
+    return o;
   }
   window.discBuildList=function(){
     var el=document.getElementById('disc-list'); if(!el) return;
     var rows=(window.DISCOUNTS||[]);
-    var cols='grid-template-columns:66px 1fr 1.3fr 130px 130px 26px;';
-    var head='<div style="display:grid;'+cols+'gap:8px;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#999;padding-bottom:8px;border-bottom:1px solid #eee;margin-bottom:10px;"><div>% Off</div><div>Channel</div><div>Reason</div><div>From</div><div>To</div><div></div></div>';
     var body=rows.map(function(d,i){
       var chOpts=['all','recovery','fuel','supply'].map(function(c){return '<option value="'+c+'"'+((d.channel||'all')===c?' selected':'')+'>'+c.charAt(0).toUpperCase()+c.slice(1)+'</option>';}).join('');
-      return '<div style="display:grid;'+cols+'gap:8px;align-items:center;margin-bottom:8px;">'
-        +'<input type="number" min="0" max="100" id="disc_pct_'+i+'" value="'+esc(d.pct)+'" style="'+_ist+'">'
-        +'<select id="disc_ch_'+i+'" style="'+_ist+'">'+chOpts+'</select>'
-        +'<input id="disc_rs_'+i+'" value="'+esc(d.reason)+'" placeholder="e.g. Opening week" style="'+_ist+'">'
-        +'<input type="date" id="disc_fr_'+i+'" value="'+esc(d.from)+'" style="'+_ist+'">'
-        +'<input type="date" id="disc_to_'+i+'" value="'+esc(d.to)+'" style="'+_ist+'">'
-        +'<button onclick="discDelRow('+i+')" style="border:none;background:none;color:#FF2D2D;cursor:pointer;font-size:15px;">&times;</button>'
-        +'</div>';
+      var coded=d.code&&String(d.code).trim();
+      return '<div style="border:1px solid #eee;border-radius:6px;padding:12px;margin-bottom:10px;background:#fafafa;">'
+        +'<div style="display:grid;grid-template-columns:70px 110px 1fr 26px;gap:8px;align-items:center;margin-bottom:8px;">'
+          +'<input type="number" min="0" max="100" id="disc_pct_'+i+'" value="'+esc(d.pct)+'" placeholder="% off" style="'+_ist+'">'
+          +'<select id="disc_ch_'+i+'" style="'+_ist+'">'+chOpts+'</select>'
+          +'<input id="disc_rs_'+i+'" value="'+esc(d.reason)+'" placeholder="Reason e.g. Opening week" style="'+_ist+'">'
+          +'<button onclick="discDelRow('+i+')" style="border:none;background:none;color:#FF2D2D;cursor:pointer;font-size:16px;">&times;</button>'
+        +'</div>'
+        +'<div style="display:grid;grid-template-columns:1fr 1fr 130px 1.5fr;gap:8px;align-items:center;">'
+          +'<input type="date" id="disc_fr_'+i+'" value="'+esc(d.from)+'" title="From" style="'+_ist+'">'
+          +'<input type="date" id="disc_to_'+i+'" value="'+esc(d.to)+'" title="To" style="'+_ist+'">'
+          +'<input id="disc_cd_'+i+'" value="'+esc(d.code)+'" placeholder="CODE (optional)" style="'+_ist+'text-transform:uppercase;">'
+          +'<select id="disc_it_'+i+'" style="'+_ist+'">'+_discItemOpts(d.item||'')+'</select>'
+        +'</div>'
+        +'<div style="font-size:9px;letter-spacing:.05em;color:#999;margin-top:7px;">'+(coded?'&#128273; Code required at the till':'&#9889; Auto-applies during the dates')+(d.item?' · single item only':'')+'</div>'
+      +'</div>';
     }).join('');
-    el.innerHTML=head+(body||'<div style="color:#999;font-size:11px;padding:10px 0;">No discounts yet — add one below.</div>');
+    el.innerHTML=(body||'<div style="color:#999;font-size:11px;padding:10px 0;">No discounts yet — add one below.</div>');
   };
   window.openDiscountsMgr=function(){
     if(typeof currentUser==='undefined'||!currentUser||currentUser.type!=='admin'){ alert('Discounts are admin-only.'); return; }
@@ -12623,7 +12678,7 @@ window.injectWaCapture = function(confirmId, sale){
     discBuildList(); document.getElementById('discMgrModal').style.display='flex';
   };
   window.closeDiscountsMgr=function(){ var m=document.getElementById('discMgrModal'); if(m) m.style.display='none'; };
-  window.discAddRow=function(){ _discFlush(); if(!window.DISCOUNTS) window.DISCOUNTS=[]; window.DISCOUNTS.push({id:'d'+Date.now(),pct:10,channel:'all',reason:'',from:'',to:''}); discBuildList(); };
+  window.discAddRow=function(){ _discFlush(); if(!window.DISCOUNTS) window.DISCOUNTS=[]; window.DISCOUNTS.push({id:'d'+Date.now(),pct:10,channel:'all',reason:'',from:'',to:'',code:'',item:''}); discBuildList(); };
   window.discDelRow=function(i){ _discFlush(); window.DISCOUNTS.splice(i,1); discBuildList(); };
   window.saveDiscounts=function(){
     _discFlush();
@@ -12635,4 +12690,25 @@ window.injectWaCapture = function(confirmId, sale){
     closeDiscountsMgr();
   };
 })();
+</script>
+
+<script>
+// Promo-code apply at the till — validates the code and stores the discount for the current cart
+window.applyFuelCode=function(){
+  var el=document.getElementById('fuel-code'), msg=document.getElementById('fuel-code-msg');
+  var code=(el?el.value:'').trim();
+  if(!code){ window._fuelCode=null; if(msg) msg.textContent=''; if(typeof updateReceipt==='function') updateReceipt(); return; }
+  var d=(typeof findDiscountByCode==='function')?findDiscountByCode(code,'fuel'):null;
+  if(!d){ window._fuelCode=null; if(msg){ msg.style.color='#FF2D2D'; msg.textContent='✕ Invalid or expired code'; } }
+  else { window._fuelCode=d; if(msg){ msg.style.color='#10b981'; msg.textContent='✓ '+d.pct+'% off'+(d.item?' (one item)':'')+(d.reason?' — '+d.reason:''); } }
+  if(typeof updateReceipt==='function') updateReceipt();
+};
+window.applySupCode=function(){
+  var el=document.getElementById('sup-code'), msg=document.getElementById('sup-code-msg');
+  var code=(el?el.value:'').trim();
+  if(!code){ window._supCode=null; if(msg) msg.textContent=''; return; }
+  var d=(typeof findDiscountByCode==='function')?findDiscountByCode(code,'supply'):null;
+  if(!d){ window._supCode=null; if(msg){ msg.style.color='#FF2D2D'; msg.textContent='✕ Invalid or expired code'; } }
+  else { window._supCode=d; if(msg){ msg.style.color='#10b981'; msg.textContent='✓ '+d.pct+'% off'+(d.item?' (one item)':'')+(d.reason?' — '+d.reason:''); } }
+};
 </script>
