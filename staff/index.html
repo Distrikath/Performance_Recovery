@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814025;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814026;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -12644,6 +12644,12 @@ window.injectWaCapture = function(confirmId, sale){
   }
   function _discItemOpts(sel){
     var o='<option value="">— Whole order / channel —</option>';
+    // Recovery sessions (pathway + duration) — value rec:PATHWAY:DURATION
+    try{
+      [['RECOVER',[30,45,60,90]],['PERFORM',[30,45,60,90]],['MOVE',[30,45,60,90]],['COMPRESSION',[20,40]]].forEach(function(pw){
+        pw[1].forEach(function(dur){ var v='rec:'+pw[0]+':'+dur; o+='<option value="'+v+'"'+(sel===v?' selected':'')+'>Recovery: '+pw[0].charAt(0)+pw[0].slice(1).toLowerCase()+' '+dur+'min</option>'; });
+      });
+    }catch(e){}
     try{ (typeof MENU_ITEMS!=='undefined'?MENU_ITEMS:[]).forEach(function(it){ if(it&&it.id) o+='<option value="'+it.id+'"'+(sel===it.id?' selected':'')+'>Fuel: '+esc(it.name)+'</option>'; }); }catch(e){}
     try{ (typeof SUPPLY_ITEMS!=='undefined'?SUPPLY_ITEMS:[]).forEach(function(it){ if(it&&it.id) o+='<option value="'+it.id+'"'+(sel===it.id?' selected':'')+'>Supply: '+esc(it.name)+'</option>'; }); }catch(e){}
     return o;
