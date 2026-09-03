@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814033;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814034;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -21,6 +21,35 @@ window.DK_BUILD = 20260814033;  // bump this AND version.json on every deploy
       })
       .catch(function(){});  // offline / no version file -> just run what we have
   }catch(e){}
+})();
+// PERIODIC AUTO-UPDATE: keep every open session current so no forgotten tab can sit on old code and re-push
+// stale/deleted data. Checks version.json every 45s. Reloads SAFELY — never mid-order: only when the tab is
+// hidden/backgrounded or the user has been idle 2min, so an active till is never interrupted.
+(function(){
+  var lastAct=Date.now(), pending=0;
+  ['click','keydown','pointerdown','touchstart','mousemove'].forEach(function(ev){
+    try{ document.addEventListener(ev,function(){ lastAct=Date.now(); },{capture:true,passive:true}); }catch(e){ document.addEventListener(ev,function(){ lastAct=Date.now(); },true); }
+  });
+  function busy(){
+    try{
+      // don't reload while an order is being built or a dialog is open
+      if(document.querySelector('.modal.on, .modal.open, .clin-modal.on, [data-modal-open="1"]')) return true;
+      var carts=document.querySelectorAll('#fuel-order-list .order-row, #sup-order-list .sup-order-row, .pos-cart-row');
+      if(carts && carts.length) return true;
+    }catch(e){}
+    return false;
+  }
+  function doReload(){ try{ location.replace('index.html?v='+pending); }catch(e){ try{location.reload();}catch(_){} } }
+  function maybe(){ if(!pending) return; if(document.hidden || (Date.now()-lastAct>120000 && !busy())) doReload(); }
+  try{ document.addEventListener('visibilitychange', function(){ if(document.hidden) maybe(); }); }catch(e){}
+  setInterval(function(){
+    try{
+      fetch('version.json?_='+Date.now(), {cache:'no-store'})
+        .then(function(r){ return r.ok ? r.json() : null; })
+        .then(function(v){ if(v && v.build && Number(v.build) > window.DK_BUILD){ pending=String(v.build); maybe(); } })
+        .catch(function(){});
+    }catch(e){}
+  }, 45000);
 })();
 </script>
 <!-- Type system: Archivo (display/UI) · Space Mono (labels/data) · Fraunces (editorial italic) -->
@@ -3598,6 +3627,7 @@ function saveAll(){
       STAFF: STAFF.map(s=>({id:s.id,name:s.name,abbr:s.abbr,role:s.role,col:s.col,salary:s.salary,group:s.group||'Operations',pin:s.pin||'1234'})),
       _cfgTs: _prevCfgTs,
       _salesEpoch: (window._salesEpoch||0),   // "cleared watermark" — devices won't resurrect sales created before this
+      _deletedIds: (window._deletedIds||{}),  // tombstones — ids permanently deleted; no device ever resurrects them
       savedAt: new Date().toISOString()
     }));
   } catch(e){ console.warn('Save failed:', e); }
@@ -3639,6 +3669,7 @@ function loadAll(){
     if(data.supplyData)   Object.assign(supplyData,   data.supplyData);
     if(data.DISCOUNTS)    DISCOUNTS = data.DISCOUNTS;
     if(data._salesEpoch)  window._salesEpoch = Math.max(window._salesEpoch||0, data._salesEpoch);   // adopt the newest clear watermark
+    if(data._deletedIds)  window._deletedIds = Object.assign(window._deletedIds||{}, data._deletedIds);   // adopt tombstones (union)
     if(data.roomBookings) roomBookings = data.roomBookings;
     // Restore ZONE_HOURS (zone operating hours from settings)
     if(data.ZONE_HOURS && Array.isArray(data.ZONE_HOURS)){
@@ -9617,18 +9648,18 @@ function renderSoldToday(keys){
       else if(typeof svcName==='string'&&svcName.startsWith('pkg_')){const pkg=PACKAGES.find(p=>p.id===svcName.slice(4));if(pkg)svcName=pkg.name;}
       if(b.discPct>0) svcName+=' · −'+b.discPct+'%';
       if((b.online||b.payType==='deposit')&&!b.balancePaid&&b.status!=='cancelled') svcName+=' · deposit';
-      recRows.push({time:b.time||'—',name:svcName,detail:b.client||'',amount:amt});
+      recRows.push({time:b.time||'—',name:svcName,detail:b.client||'',amount:amt,id:b.id});
     });
     // Fuel
     const f=fuelData[k];
     if(f)(f.transactions||[]).forEach(t=>{
       const names=(t.items||[]).map(i=>i.name).join(', ')||'Order';
-      fuelRows.push({time:t.time||'—',name:names,amount:t.total||0});
+      fuelRows.push({time:t.time||'—',name:names,amount:t.total||0,id:t.id});
     });
     // Supply
     const s=supplyData[k];
     if(s)(s.orders||[]).forEach(o=>{
-      supRows.push({time:o.time||'—',name:o.name||'Sale',amount:o.total||0});
+      supRows.push({time:o.time||'—',name:o.name||'Sale',amount:o.total||0,id:o.id});
     });
   });
 
@@ -9638,6 +9669,7 @@ function renderSoldToday(keys){
     return;
   }
 
+  const _canDel = (typeof currentUser==='undefined'||!currentUser||!currentUser.type||currentUser.type==='admin');
   function colHTML(rows, col, accentCol){
     if(!rows.length) return `<div style="padding:14px 0;font-family:'Space Mono',monospace;font-size:10px;color:#5a5a5f;text-align:center;">No data</div>`;
     return rows.sort((a,b)=>a.time.localeCompare(b.time)).map(r=>`
@@ -9645,6 +9677,7 @@ function renderSoldToday(keys){
         <div style="font-family:'Space Mono',monospace;font-size:10px;color:#6b6b72;flex-shrink:0;">${r.time}</div>
         <div style="font-family:'Space Mono',monospace;font-size:11px;color:#e3e3e6;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.name}${r.detail?' <span style="color:#6b6b72;">'+r.detail+'</span>':''}</div>
         <div style="font-family:'Space Mono',monospace;font-weight:700;font-size:12px;color:#f4f4f5;flex-shrink:0;">IDR ${fmt(r.amount)}</div>
+        ${(_canDel&&r.id)?`<div onclick="dkSoldDelete('${String(r.id).replace(/'/g,'')}')" title="Delete this record permanently" style="cursor:pointer;color:#5a5a5f;font-family:'Space Mono',monospace;font-size:12px;flex-shrink:0;padding:0 2px;" onmouseover="this.style.color='#FF2D2D'" onmouseout="this.style.color='#5a5a5f'">✕</div>`:''}
       </div>`).join('');
   }
 
@@ -9771,6 +9804,49 @@ function clearAllData(){
   }
 }
 window.clearAllData = clearAllData;
+
+// ── PERMANENT DELETE (tombstone) ─────────────────────────────────────
+// Truly remove ONE sale/booking so it never comes back on any device: tombstone the id (synced in distrik_v1),
+// strip it from local per-day stores, and delete its cloud ledger record. The safety-net + rebuild both honour
+// the tombstone, so no device can re-push it. Use for no-shows/tests/mistakes you want gone (not just cancelled).
+window.dkDelete = function(id){
+  try{
+    id=String(id||''); if(!id) return;
+    window._deletedIds = window._deletedIds||{}; window._deletedIds[id]=Date.now();
+    try{ if(typeof recoveryData==='object') Object.keys(recoveryData).forEach(function(d){ var day=recoveryData[d]; if(day&&day.bookings){ var i=day.bookings.findIndex(function(b){return String(b.id)===id;}); if(i>=0) day.bookings.splice(i,1); day.revenue=(day.bookings||[]).reduce(function(s,b){return s+((typeof clinCollected==='function')?clinCollected(b):0);},0); } }); }catch(e){}
+    try{ if(typeof fuelData==='object') Object.keys(fuelData).forEach(function(d){ var day=fuelData[d]; if(day&&day.transactions){ day.transactions=day.transactions.filter(function(t){return String(t.id)!==id;}); day.revenue=day.transactions.reduce(function(s,t){return s+((t&&t.total)||0);},0); } }); }catch(e){}
+    try{ if(typeof supplyData==='object') Object.keys(supplyData).forEach(function(d){ var day=supplyData[d]; if(day&&day.orders){ day.orders=day.orders.filter(function(o){return String(o.id)!==id;}); day.revenue=day.orders.reduce(function(s,o){return s+((o&&o.total)||0);},0); } }); }catch(e){}
+    try{ if(typeof firebase!=='undefined'&&firebase.firestore) firebase.firestore().collection('ledger').doc(id).delete(); }catch(e){}
+    try{ saveAll(); }catch(e){}
+    try{ if(typeof window.dkHardSave==='function') window.dkHardSave(['distrik_v1']); }catch(e){}  // propagate tombstone to all devices
+    try{ if(typeof renderSales==='function') renderSales(); }catch(e){}
+    try{ var hs=document.getElementById('homeScreen'); if(hs&&hs.classList.contains('on')&&typeof showHome==='function') showHome(); }catch(e){}
+  }catch(e){ console.warn('dkDelete',e); }
+};
+
+// Delete a listed sale/booking straight from the Sales "Sold Today" feed (admin-only), with a confirm.
+window.dkSoldDelete = function(id){
+  try{
+    if(typeof currentUser!=='undefined' && currentUser && currentUser.type && currentUser.type!=='admin'){ alert('Only an admin can delete a sale.'); return; }
+    if(!confirm('Delete this record permanently?\n\nIt will be removed from every device and will NOT come back.')) return;
+    window.dkDelete(id);
+  }catch(e){ console.warn('dkSoldDelete',e); }
+};
+
+// Delete a recovery/clinical booking permanently (admin-only), from the bookings list.
+function clinDeleteBooking(id){
+  try{
+    if(typeof currentUser!=='undefined' && currentUser && currentUser.type && currentUser.type!=='admin'){ if(typeof clinNotify==='function') clinNotify('Only an admin can delete a booking.'); return; }
+    var b=null, dk=clinKey(); var day=recoveryData&&recoveryData[dk];
+    if(day&&day.bookings) b=day.bookings.find(function(x){return String(x.id)===String(id);});
+    var nm=(b&&(b.serviceName||b.service))||'this booking';
+    if(!confirm('Delete '+nm+(b&&b.client?' for '+b.client:'')+' permanently?\n\nThis removes it everywhere and it will NOT come back. (Use Cancel instead if you just want to free the slot but keep the record.)')) return;
+    window.dkDelete(id);
+    try{ if(typeof renderClinicalBooking==='function') renderClinicalBooking(); if(typeof renderClinicalOrder==='function') renderClinicalOrder(); if(typeof buildClinRoomGrid==='function') buildClinRoomGrid(); }catch(e){}
+    if(typeof clinNotify==='function') clinNotify('Booking deleted — gone for good.');
+  }catch(e){ console.warn('clinDeleteBooking',e); }
+}
+window.clinDeleteBooking=clinDeleteBooking;
 
 function clearRostersBefore(cutoffStr){
   // cutoffStr e.g. '2026-08-01' — deletes all dailyOverrides with a date key strictly before this date
@@ -10060,6 +10136,7 @@ function renderTodayBookings(){
       +(((b.phone||b.whatsapp)&&b.status!=='cancelled'&&!isHold)?'<button class="clin-bk-act" onclick="clinSendReminder(\''+id+'\')">Send reminder</button>':'')
       +'<button class="clin-bk-act" onclick="clinEditBooking(\''+id+'\')">Edit / move</button>'
       +'<button class="clin-bk-act danger" onclick="clinCancelBooking(\''+id+'\')">Cancel</button>'
+      +((typeof currentUser==='undefined'||!currentUser||!currentUser.type||currentUser.type==='admin')?'<button class="clin-bk-act danger" onclick="clinDeleteBooking(\''+id+'\')" title="Remove permanently — will not come back">Delete</button>':'')
       +'</div>';
     return '<div class="clin-bk-row2">'
       +'<div class="clin-bk-line"><span class="clin-bk-time">'+(b.start||b.time||'—')+'</span>'
@@ -11761,6 +11838,10 @@ window.showRoomCalendar=showRoomCalendar;
       // A stale device's old push has an older _cfgTs, so it can never overwrite newer staff/roster/settings.
       var lt=+lo._cfgTs||0, ct=+co._cfgTs||0;
       var res = (ct>lt) ? Object.assign({},co) : Object.assign({},lo);
+      // TOMBSTONES + WATERMARK never lost to newest-wins: union the deleted-id maps and keep the highest epoch,
+      // so a delete/clear on ANY device sticks even if that device's other config edits were older.
+      try{ res._deletedIds = Object.assign({}, lo._deletedIds||{}, co._deletedIds||{}); }catch(e){}
+      try{ res._salesEpoch = Math.max(+lo._salesEpoch||0, +co._salesEpoch||0); }catch(e){}
       // always keep LOCAL transactions (they're stripped from the cloud copy anyway)
       tf.forEach(function(f){ res[f]=(lo[f]!==undefined)?lo[f]:(f==='SUPPLY_SALES'?[]:{}); });
       if(k==='distrik_supply') _restoreSupplyImgs(localVal,res);   // keep this device's product photos (never synced)
@@ -12116,6 +12197,17 @@ window.ledgerUpdate = function(id, patch){
 <script>
 window.rebuildFromLedger = function(docs){
   var fd={}, sd={}, rd={}, supRows=[];
+  var _tomb = window._deletedIds || {};
+  // Drop any ledger doc that's been tombstoned (deleted by an admin). Belt-and-braces: the cloud doc is also
+  // deleted on the delete action, but if it lingers (e.g. an old session re-pushed it), we still ignore it AND
+  // opportunistically delete it from the cloud so it can't keep coming back.
+  docs = (docs||[]).filter(function(r){
+    if(r && r.id!=null && _tomb[String(r.id)]){
+      try{ if(firebase&&firebase.firestore) firebase.firestore().collection('ledger').doc(String(r.id)).delete(); }catch(e){}
+      return false;
+    }
+    return true;
+  });
   var lids={}; (docs||[]).forEach(function(r){ if(r&&r.id!=null) lids[String(r.id)]=1; });
   window._lastLedgerIds = lids;  // latest known ledger ids — used by the 30s safety flush
   (docs||[]).forEach(function(r){
@@ -12144,10 +12236,11 @@ window.rebuildFromLedger = function(docs){
   // this feature — always old test junk) is NOT resurrected. Only genuinely NEW offline sales (a fresh _ts after
   // the watermark) are re-kept + re-queued. This is what stops cancelled/test data popping back after a clear.
   var _epoch = (window._salesEpoch||0);
-  // Only re-push a sale that carries a creation stamp (_ts) AND was made after the last clear. Any sale WITHOUT
-  // a _ts is pre-032 / test junk (real 032 sales always stamp _ts) and is NEVER resurrected — this holds even if
-  // the watermark hasn't loaded into memory yet (_epoch===0), which is what let test data creep back before.
-  var _survivesEpoch = function(x){ return !!(x && x._ts) && (!_epoch || x._ts > _epoch); };
+  var _tomb2 = window._deletedIds || {};
+  // A local sale is re-pushed by the safety-net ONLY if: it isn't tombstoned (never resurrect a deleted id), it
+  // carries a creation stamp (_ts — real sales always do; test/pre-032 junk doesn't), and it was made after the
+  // last clear. This holds even if the watermark hasn't loaded into memory yet (_epoch===0).
+  var _survivesEpoch = function(x){ return !!(x && x._ts) && !(x.id!=null && _tomb2[String(x.id)]) && (!_epoch || x._ts > _epoch); };
   try{
     if(typeof fuelData==='object'&&fuelData){ Object.keys(fuelData).forEach(function(d){ if(d<_snCut)return; var day=fuelData[d]; if(!day||!day.transactions)return; day.transactions.forEach(function(t){ if(t&&t.id&&!lids[String(t.id)]&&_survivesEpoch(t)){ if(!fd[d])fd[d]={revenue:0,transactions:[]}; fd[d].transactions.push(t); if(typeof ledgerWrite==='function') ledgerWrite('fuel',t.id,d,t.total,(t.serviceTax||0)+(t.tax||0),t.method,t,'completed'); } }); }); }
     if(typeof supplyData==='object'&&supplyData){ Object.keys(supplyData).forEach(function(d){ if(d<_snCut)return; var day=supplyData[d]; if(!day||!day.orders)return; day.orders.forEach(function(o){ if(o&&o.id&&!lids[String(o.id)]&&_survivesEpoch(o)){ if(!sd[d])sd[d]={revenue:0,orders:[]}; sd[d].orders.push(o); if(typeof ledgerWrite==='function') ledgerWrite('supply',o.id,d,o.total,0,o.method,{order:o,rows:[]},'completed'); } }); }); }
