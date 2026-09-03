@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814023;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814024;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -11913,6 +11913,20 @@ window.showRoomCalendar=showRoomCalendar;
   firebase.auth().signInAnonymously()
     .then(function(){ console.log('[sync] anon auth ok'); reconcile(); })
     .catch(function(e){ console.warn('[sync] auth',e); setPill("⚠ Auth off — enable Anonymous","#FF2D2D"); });
+
+  // ── SELF-HEALING CONNECTION ──────────────────────────────────────────────────────────────────────
+  // Recover automatically when the network returns — no one has to touch it. Sales/bookings keep saving
+  // locally + queuing regardless (offline persistence); this just re-establishes the live link ASAP.
+  window.dkReconnect=function(){ try{ if(db&&db.enableNetwork) db.enableNetwork(); }catch(e){} try{ if(typeof reconcile==='function') reconcile(); }catch(e){} };
+  try{ window.addEventListener('online', function(){ setPill("◌ Reconnecting…","#f59e0b"); window.dkReconnect(); }); }catch(e){}
+  var _lastOkTs=Date.now();
+  setInterval(function(){                         // watchdog: if not synced for 60s, nudge the connection back
+    try{
+      var p=document.getElementById('sync-pill');
+      if(p && /Synced|Saved|Read-only/i.test(p.textContent)){ _lastOkTs=Date.now(); return; }
+      if(Date.now()-_lastOkTs > 60000){ window.dkReconnect(); }
+    }catch(e){}
+  }, 30000);
 })();
 </script>
 
