@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814029;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814030;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -10782,7 +10782,7 @@ function confirmClinical(){
       recoveryData[dateKey].bookings.push(rec);
       // Count only what's actually been collected: online → deposit; walk-in confirmed → full; held → nothing yet
       recoveryData[dateKey].revenue=(recoveryData[dateKey].revenue||0)+clinCollected(rec);
-      if(typeof ledgerWrite==='function') ledgerWrite('recovery', rec.id, dateKey, (typeof clinCollected==='function'?clinCollected(rec):(rec.price||0)), 0, rec.payMethod, rec, rec.status);
+      if(typeof ledgerWrite==='function') ledgerWrite('recovery', rec.id, (typeof todayKey==='function'?todayKey():dateKey), (typeof clinCollected==='function'?clinCollected(rec):(rec.price||0)), 0, rec.payMethod, rec, rec.status);  // revenue on the day it's collected
       // auto-save the booking's client into the database (for history / rebooking / promotions)
       if(typeof clientUpsert==='function' && (rec.whatsapp||rec.phone)) clientUpsert({name:rec.client, whatsapp:rec.whatsapp||rec.phone, email:rec.email, source:'recovery', consent:true});
     }
@@ -10811,7 +10811,9 @@ function clinCollectBalance(id){
     var dep=Math.round((b.price||0)*0.5);
     day.revenue=(day.revenue||0)+((b.price||0)-dep); // remaining pre-tax revenue
     b.balancePaid=true;
-    if(typeof ledgerWrite==='function') ledgerWrite('recovery', b.id, dk, clinCollected(b), 0, b.payMethod, b, b.status);
+    // Balance = its OWN ledger entry on the day it's collected (today), so daily cash matches. Deposit entry stays on its own day.
+    var _balAmt=(b.price||0)-Math.round((b.price||0)*0.5);
+    if(typeof ledgerWrite==='function') ledgerWrite('recovery', b.id+'_bal', (typeof todayKey==='function'?todayKey():dk), _balAmt, 0, b.payMethod, b, b.status);
     if(typeof saveAll==='function') saveAll();
     if(typeof syncSalesIncome==='function') syncSalesIncome();
     clinNotify('Balance collected · IDR '+(b.balanceDue||0).toLocaleString('id-ID')+' — paid in full.');
@@ -12077,7 +12079,12 @@ window.rebuildFromLedger = function(docs){
     if(r.kind==='fuel'){ if(!fd[date])fd[date]={revenue:0,transactions:[]}; fd[date].transactions.push(det); }
     else if(r.kind==='supply'){ if(!sd[date])sd[date]={revenue:0,orders:[]}; sd[date].orders.push(det.order||det);
       if(det.rows&&det.rows.length) det.rows.forEach(function(x){ if(x) supRows.push(x); }); }
-    else if(r.kind==='recovery'){ if(!rd[date])rd[date]={revenue:0,bookings:[]}; rd[date].bookings.push(det); }
+    else if(r.kind==='recovery'){
+      // CASH-BASIS: revenue counts on the PAYMENT day (bizDate); the booking is SCHEDULED on its session day (det.date).
+      if(!rd[date])rd[date]={revenue:0,bookings:[]}; rd[date]._rev=(rd[date]._rev||0)+(parseFloat(r.amount)||0);
+      var _sess=(det&&det.date)||date; if(!rd[_sess])rd[_sess]={revenue:0,bookings:[]};
+      var _bid=(det&&det.id); if(_bid){ rd[_sess]._seen=rd[_sess]._seen||{}; if(!rd[_sess]._seen[_bid]){ rd[_sess].bookings.push(det); rd[_sess]._seen[_bid]=1; } }
+    }
   });
   // reconstruct the flat SUPPLY_SALES ledger (brand payouts / P&L) from the permanent record
   try{ if(typeof SUPPLY_SALES!=='undefined' && Array.isArray(SUPPLY_SALES)){ SUPPLY_SALES.length=0; supRows.forEach(function(x){ SUPPLY_SALES.push(x); }); } }catch(e){ console.warn('[ledger] SUPPLY_SALES',e); }
@@ -12095,7 +12102,7 @@ window.rebuildFromLedger = function(docs){
   }catch(e){ console.warn('[ledger] safety-net',e); }
   Object.keys(fd).forEach(function(d){ fd[d].revenue=(fd[d].transactions||[]).reduce(function(s,t){return s+((t&&t.total)||0);},0); });
   Object.keys(sd).forEach(function(d){ sd[d].revenue=(sd[d].orders||[]).reduce(function(s,o){return s+((o&&o.total)||0);},0); });
-  Object.keys(rd).forEach(function(d){ rd[d].revenue=(rd[d].bookings||[]).reduce(function(s,b){ if(!b||b.status==='cancelled')return s; return s+((typeof clinCollected==='function')?clinCollected(b):((b&&b.price)||0)); },0); });
+  Object.keys(rd).forEach(function(d){ rd[d].revenue=(rd[d]._rev||0); delete rd[d]._rev; delete rd[d]._seen; });  // revenue = ledger amounts on the payment day
   try{
     if(typeof fuelData==='object'&&fuelData){ Object.keys(fuelData).forEach(function(k){delete fuelData[k];}); Object.assign(fuelData,fd); }
     if(typeof supplyData==='object'&&supplyData){ Object.keys(supplyData).forEach(function(k){delete supplyData[k];}); Object.assign(supplyData,sd); }
