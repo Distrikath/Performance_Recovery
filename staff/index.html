@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814031;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814032;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -3597,6 +3597,7 @@ function saveAll(){
       DISCOUNTS,
       STAFF: STAFF.map(s=>({id:s.id,name:s.name,abbr:s.abbr,role:s.role,col:s.col,salary:s.salary,group:s.group||'Operations',pin:s.pin||'1234'})),
       _cfgTs: _prevCfgTs,
+      _salesEpoch: (window._salesEpoch||0),   // "cleared watermark" — devices won't resurrect sales created before this
       savedAt: new Date().toISOString()
     }));
   } catch(e){ console.warn('Save failed:', e); }
@@ -3637,6 +3638,7 @@ function loadAll(){
     if(data.fuelData)     Object.assign(fuelData,     data.fuelData);
     if(data.supplyData)   Object.assign(supplyData,   data.supplyData);
     if(data.DISCOUNTS)    DISCOUNTS = data.DISCOUNTS;
+    if(data._salesEpoch)  window._salesEpoch = Math.max(window._salesEpoch||0, data._salesEpoch);   // adopt the newest clear watermark
     if(data.roomBookings) roomBookings = data.roomBookings;
     // Restore ZONE_HOURS (zone operating hours from settings)
     if(data.ZONE_HOURS && Array.isArray(data.ZONE_HOURS)){
@@ -6786,7 +6788,7 @@ function processSale(){
   var _ftx={
     id:genId(), items:cart.map(c=>({name:c.item.name+(c.size?.name?" "+c.size.name:""),cat:c.item.cat||"",qty:c.qty,price:c.linePrice})),
     gross, discPct, discAmt, discReason, discCode, subtotal, serviceTax, tax, total, method:posPayMethod,
-    time:baliTimeStr()
+    time:baliTimeStr(), _ts:Date.now()
   };
   fuelData[key].transactions.push(_ftx);
   fuelData[key].revenue=(fuelData[key].transactions.reduce((s,t)=>s+t.total,0));
@@ -7791,7 +7793,7 @@ function supProcessSale(){
   if(!supplyData[dateKey]) supplyData[dateKey]={revenue:0,orders:[]};
   var _sord={
     id:genId(), items:supCart.map(c=>({name:c.item.name,qty:1,price:c.total})),
-    gross, discPct, discAmt, discReason, discCode, total, method:supPosPayMethod, time:baliTimeStr()
+    gross, discPct, discAmt, discReason, discCode, total, method:supPosPayMethod, time:baliTimeStr(), _ts:Date.now()
   };
   supplyData[dateKey].orders.push(_sord);
   supplyData[dateKey].revenue = (supplyData[dateKey].orders||[]).reduce((s,o)=>s+o.total,0);
@@ -9605,10 +9607,17 @@ function renderSoldToday(keys){
     // Recovery
     const r=recoveryData[k];
     if(r)(r.bookings||[]).forEach(b=>{
-      let svcName=b.service||'Session';
-      if(svcName.startsWith('svc_')){const svc=SERVICES.find(s=>s.id===svcName.slice(4));if(svc)svcName=svc.name;}
-      else if(svcName.startsWith('pkg_')){const pkg=PACKAGES.find(p=>p.id===svcName.slice(4));if(pkg)svcName=pkg.name;}
-      recRows.push({time:b.time||'—',name:svcName,detail:b.client||'',amount:b.price||0});
+      // Show what was actually COLLECTED (deposit %, discounts, cancellations already baked into clinCollected),
+      // not the sticker price — so this feed matches the Recovery revenue total and never shows a cancelled/held
+      // booking as a full sale. Skip anything that took no money (cancelled, unpaid hold, partner IV/blood).
+      const amt=(typeof clinCollected==='function')?clinCollected(b):(b.price||0);
+      if(!amt) return;
+      let svcName=b.serviceName||b.service||'Session';
+      if(typeof svcName==='string'&&svcName.startsWith('svc_')){const svc=SERVICES.find(s=>s.id===svcName.slice(4));if(svc)svcName=svc.name;}
+      else if(typeof svcName==='string'&&svcName.startsWith('pkg_')){const pkg=PACKAGES.find(p=>p.id===svcName.slice(4));if(pkg)svcName=pkg.name;}
+      if(b.discPct>0) svcName+=' · −'+b.discPct+'%';
+      if((b.online||b.payType==='deposit')&&!b.balancePaid&&b.status!=='cancelled') svcName+=' · deposit';
+      recRows.push({time:b.time||'—',name:svcName,detail:b.client||'',amount:amt});
     });
     // Fuel
     const f=fuelData[k];
@@ -9727,6 +9736,10 @@ function clearAllData(){
   if(!confirm('Clear ALL sales & booking data?\n\nThis resets to zero:\n• Sales totals (Recovery, Fuel, Supply)\n• Café & Supply transactions\n• P&L ledger entries\n• Recovery & room bookings\n\nIt KEEPS your roster, staff, services, menu, tax & API setup.\n\nThis cannot be undone.')) return;
   if(!confirm('Are you sure? Last chance.\n\nTip: click Cancel and use "↓ Export Backup" first if you have not already.')) return;
   try{
+    // CLEARED WATERMARK: stamp "now" so no device resurrects any sale/booking that existed before this
+    // clear. saveAll() writes _salesEpoch into distrik_v1 (hard-saved below) → every device adopts it on
+    // sync and the ledger safety-net then ignores all local sales created at/before this instant.
+    window._salesEpoch = Date.now();
     // P&L + weekly sales totals + per-day revenue stores (held in distrik_v1)
     plEntries.length = 0;
     roomBookings.length = 0;
@@ -9742,6 +9755,7 @@ function clearAllData(){
     if(typeof SUPPLY_SALES!=='undefined' && Array.isArray(SUPPLY_SALES)) SUPPLY_SALES.length = 0;
     // Persist the cleared state across all three stores (config is preserved by these save fns)
     try{ saveAll(); }catch(e){}
+    try{ if(typeof window.dkHardSave==='function') window.dkHardSave(['distrik_v1']); }catch(e){}  // push the watermark to the cloud so every device adopts it
     try{ saveRFToStorage(); }catch(e){}
     try{ saveSupplyToStorage(); }catch(e){}
     const n=document.getElementById('notif');
@@ -10285,7 +10299,7 @@ function acceptOnlineBooking(id){
         price:_pn, pressure:r.pressure||null, payType:'deposit',
         source:'Online', status:'confirmed', payMethod:'online',
         online:true, deposit:_dep, balanceDue:_free?0:Math.max(0,_pn-_dep), balancePaid:_free, depositPaid:_free, discPct:(r.discPct||0), discCode:(r.discCode||''), discReason:(r.discReason||''),
-        onlineRef:r.ref||id, date:r.date
+        onlineRef:r.ref||id, date:r.date, _ts:Date.now()
       };
       if(!recoveryData[r.date]) recoveryData[r.date]={revenue:0,bookings:[]};
       if(!recoveryData[r.date].bookings) recoveryData[r.date].bookings=[];
@@ -10319,7 +10333,7 @@ function acceptOnlineBooking(id){
         price:0, partnerTotal:_pvTotal, commission:_commission, commissionStatus:'hold', commissionPct:20,
         payType:'partner', source:'Online', status:'confirmed', payMethod:'partner',
         clinical:true, tag:(r.type==='blood_work'?'HELIX · Bloods':'HUMAN+ · IV'), partner:true, provider:'HUMAN+',
-        checkedIn:false, onlineRef:r.ref||id, date:r.date
+        checkedIn:false, onlineRef:r.ref||id, date:r.date, _ts:Date.now()
       };
       if(!recoveryData[r.date]) recoveryData[r.date]={revenue:0,bookings:[]};
       if(!recoveryData[r.date].bookings) recoveryData[r.date].bookings=[];
@@ -10794,7 +10808,7 @@ function confirmClinical(){
     start:startTime, time:startTime, duration:duration,
     client:patient, email:clinEmail||'', whatsapp:clinWhatsapp||'', phone:clinWhatsapp||'',
     price:_price, gross:(s?s.price:0), discPct:_rvPct, discReason:(_rvDsc?(_rvDsc.reason||''):''), discCode:(_rvDsc?(_rvDsc.code||''):''), pressure:clinPressure||null, payType:clinPayType||'full',
-    source:(clinOnline?'Online':'Walk-in'), status:(isHold?'hold':'confirmed'), payMethod:clinPay
+    source:(clinOnline?'Online':'Walk-in'), status:(isHold?'hold':'confirmed'), payMethod:clinPay, _ts:Date.now()
   };
   if(clinType==='clinical'){ rec.clinical=true; rec.tag='ClinicTerrain'; rec.window=clinWindow; rec.intake=(clinIntake?'approved':'pending'); }
   if(clinOnline){ var _tot=_price; rec.online=true; rec.deposit=Math.round(_tot*0.5); rec.balanceDue=_tot-Math.round(_tot*0.5); rec.balancePaid=false; }
@@ -12126,10 +12140,15 @@ window.rebuildFromLedger = function(docs){
   // removed from the cloud. Idempotent: once a sale lands in the ledger its id is in `lids` and it is
   // neither re-kept nor re-written. No effect on the normal online path (local echo is in `lids`).
   var _snCut='0000-00-00'; try{ var _scd=(typeof baliNow==='function'?baliNow():new Date()); _scd.setDate(_scd.getDate()-7); _snCut=_scd.toISOString().slice(0,10); }catch(e){}
+  // CLEARED WATERMARK: a sale created at/before the last "Clear data" (or one with no _ts stamp, i.e. pre-dating
+  // this feature — always old test junk) is NOT resurrected. Only genuinely NEW offline sales (a fresh _ts after
+  // the watermark) are re-kept + re-queued. This is what stops cancelled/test data popping back after a clear.
+  var _epoch = (window._salesEpoch||0);
+  var _survivesEpoch = function(x){ return !_epoch || (x && x._ts && x._ts > _epoch); };
   try{
-    if(typeof fuelData==='object'&&fuelData){ Object.keys(fuelData).forEach(function(d){ if(d<_snCut)return; var day=fuelData[d]; if(!day||!day.transactions)return; day.transactions.forEach(function(t){ if(t&&t.id&&!lids[String(t.id)]){ if(!fd[d])fd[d]={revenue:0,transactions:[]}; fd[d].transactions.push(t); if(typeof ledgerWrite==='function') ledgerWrite('fuel',t.id,d,t.total,(t.serviceTax||0)+(t.tax||0),t.method,t,'completed'); } }); }); }
-    if(typeof supplyData==='object'&&supplyData){ Object.keys(supplyData).forEach(function(d){ if(d<_snCut)return; var day=supplyData[d]; if(!day||!day.orders)return; day.orders.forEach(function(o){ if(o&&o.id&&!lids[String(o.id)]){ if(!sd[d])sd[d]={revenue:0,orders:[]}; sd[d].orders.push(o); if(typeof ledgerWrite==='function') ledgerWrite('supply',o.id,d,o.total,0,o.method,{order:o,rows:[]},'completed'); } }); }); }
-    if(typeof recoveryData==='object'&&recoveryData){ Object.keys(recoveryData).forEach(function(d){ if(d<_snCut)return; var day=recoveryData[d]; if(!day||!day.bookings)return; day.bookings.forEach(function(b){ if(b&&b.id&&!lids[String(b.id)]){ if(!rd[d])rd[d]={revenue:0,bookings:[]}; rd[d].bookings.push(b); if(typeof ledgerWrite==='function') ledgerWrite('recovery',b.id,d,(typeof clinCollected==='function'?clinCollected(b):(b.price||0)),0,b.payMethod,b,b.status); } }); }); }
+    if(typeof fuelData==='object'&&fuelData){ Object.keys(fuelData).forEach(function(d){ if(d<_snCut)return; var day=fuelData[d]; if(!day||!day.transactions)return; day.transactions.forEach(function(t){ if(t&&t.id&&!lids[String(t.id)]&&_survivesEpoch(t)){ if(!fd[d])fd[d]={revenue:0,transactions:[]}; fd[d].transactions.push(t); if(typeof ledgerWrite==='function') ledgerWrite('fuel',t.id,d,t.total,(t.serviceTax||0)+(t.tax||0),t.method,t,'completed'); } }); }); }
+    if(typeof supplyData==='object'&&supplyData){ Object.keys(supplyData).forEach(function(d){ if(d<_snCut)return; var day=supplyData[d]; if(!day||!day.orders)return; day.orders.forEach(function(o){ if(o&&o.id&&!lids[String(o.id)]&&_survivesEpoch(o)){ if(!sd[d])sd[d]={revenue:0,orders:[]}; sd[d].orders.push(o); if(typeof ledgerWrite==='function') ledgerWrite('supply',o.id,d,o.total,0,o.method,{order:o,rows:[]},'completed'); } }); }); }
+    if(typeof recoveryData==='object'&&recoveryData){ Object.keys(recoveryData).forEach(function(d){ if(d<_snCut)return; var day=recoveryData[d]; if(!day||!day.bookings)return; day.bookings.forEach(function(b){ if(b&&b.id&&!lids[String(b.id)]&&_survivesEpoch(b)){ if(!rd[d])rd[d]={revenue:0,bookings:[]}; rd[d].bookings.push(b); if(typeof ledgerWrite==='function') ledgerWrite('recovery',b.id,d,(typeof clinCollected==='function'?clinCollected(b):(b.price||0)),0,b.payMethod,b,b.status); } }); }); }
   }catch(e){ console.warn('[ledger] safety-net',e); }
   Object.keys(fd).forEach(function(d){ fd[d].revenue=(fd[d].transactions||[]).reduce(function(s,t){return s+((t&&t.total)||0);},0); });
   Object.keys(sd).forEach(function(d){ sd[d].revenue=(sd[d].orders||[]).reduce(function(s,o){return s+((o&&o.total)||0);},0); });
