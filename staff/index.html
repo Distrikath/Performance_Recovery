@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814022;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814023;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -11679,7 +11679,11 @@ window.showRoomCalendar=showRoomCalendar;
   function mount(){ if(!pill.parentNode&&document.body) document.body.appendChild(pill); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',mount); else mount();
 
-  try{ firebase.initializeApp(cfg); db=firebase.firestore(); setPill("◌ Connecting…","#f59e0b"); }
+  try{ firebase.initializeApp(cfg); db=firebase.firestore();
+    // Force HTTP long-polling: Bali café wifi mangles Firestore's default QUIC/WebChannel transport (ERR_QUIC_PROTOCOL_ERROR),
+    // which is what caused the "stuck connecting". Long-polling is a touch slower but connects reliably on flaky/restrictive networks.
+    try{ db.settings({ experimentalForceLongPolling:true, merge:true }); }catch(e){ console.warn('[sync] settings',e&&e.code); }
+    setPill("◌ Connecting…","#f59e0b"); }
   catch(e){ console.warn('[sync] init',e); setPill("⚠ Sync off","#FF2D2D"); return; }
   // DURABLE OFFLINE QUEUE: a sale made while offline (Bali wifi drop) is written to disk and
   // uploaded automatically when the connection returns — even if the tab was closed in between.
