@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814027;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814028;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -3952,9 +3952,9 @@ const THERAPIST_COLS = {
   'Therapy C':'#8b5cf6', 'Therapy D':'#f59e0b',
 };
 
-const ROOM_START = 10; // 10am
+const ROOM_START = 8;  // 8am — recovery opens as early as 8am (roster-driven), so the chair timeline must show it
 const ROOM_END   = 22; // 10pm
-const ROOM_SPAN  = ROOM_END - ROOM_START; // 12hrs
+const ROOM_SPAN  = ROOM_END - ROOM_START; // 14hrs
 
 function roomPct(h){ return ((h - ROOM_START) / ROOM_SPAN) * 100; }
 
