@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814032;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814033;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -12144,7 +12144,10 @@ window.rebuildFromLedger = function(docs){
   // this feature — always old test junk) is NOT resurrected. Only genuinely NEW offline sales (a fresh _ts after
   // the watermark) are re-kept + re-queued. This is what stops cancelled/test data popping back after a clear.
   var _epoch = (window._salesEpoch||0);
-  var _survivesEpoch = function(x){ return !_epoch || (x && x._ts && x._ts > _epoch); };
+  // Only re-push a sale that carries a creation stamp (_ts) AND was made after the last clear. Any sale WITHOUT
+  // a _ts is pre-032 / test junk (real 032 sales always stamp _ts) and is NEVER resurrected — this holds even if
+  // the watermark hasn't loaded into memory yet (_epoch===0), which is what let test data creep back before.
+  var _survivesEpoch = function(x){ return !!(x && x._ts) && (!_epoch || x._ts > _epoch); };
   try{
     if(typeof fuelData==='object'&&fuelData){ Object.keys(fuelData).forEach(function(d){ if(d<_snCut)return; var day=fuelData[d]; if(!day||!day.transactions)return; day.transactions.forEach(function(t){ if(t&&t.id&&!lids[String(t.id)]&&_survivesEpoch(t)){ if(!fd[d])fd[d]={revenue:0,transactions:[]}; fd[d].transactions.push(t); if(typeof ledgerWrite==='function') ledgerWrite('fuel',t.id,d,t.total,(t.serviceTax||0)+(t.tax||0),t.method,t,'completed'); } }); }); }
     if(typeof supplyData==='object'&&supplyData){ Object.keys(supplyData).forEach(function(d){ if(d<_snCut)return; var day=supplyData[d]; if(!day||!day.orders)return; day.orders.forEach(function(o){ if(o&&o.id&&!lids[String(o.id)]&&_survivesEpoch(o)){ if(!sd[d])sd[d]={revenue:0,orders:[]}; sd[d].orders.push(o); if(typeof ledgerWrite==='function') ledgerWrite('supply',o.id,d,o.total,0,o.method,{order:o,rows:[]},'completed'); } }); }); }
