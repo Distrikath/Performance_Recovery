@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814028;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814029;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -5622,7 +5622,7 @@ var rfDate = new Date();
 rfDate.setHours(0,0,0,0);
 
 // Room schedule hours: 10am–10pm
-var SCHED_START = 10;
+var SCHED_START = 8;   // 8am — chairs/rooms can be booked from 8am (roster-driven), so the timeline must start there
 var SCHED_END   = 22;
 var SCHED_SPAN  = SCHED_END - SCHED_START;
 
