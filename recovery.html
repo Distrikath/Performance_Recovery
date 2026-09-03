@@ -833,13 +833,13 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
           <input type="tel" id="bk-phone" placeholder="+62 ..." autocomplete="tel" oninput="bkState.phone=this.value;updateBkNext()">
           <div class="bk-field-note">we'll send your booking confirmation and session details here.</div>
         </div>
-        <div class="bk-field" style="margin-top:18px;">
-          <label>promo code (optional)</label>
+        <div style="margin-top:22px;padding:16px;border:1px dashed rgba(255,45,45,.45);border-radius:8px;background:rgba(255,45,45,.03);">
+          <label style="display:block;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);margin-bottom:10px;">&#127903; have a promo code?</label>
           <div style="display:flex;gap:8px;">
-            <input type="text" id="bk-promo" placeholder="enter code" autocapitalize="characters" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter'){event.preventDefault();bkApplyPromo();}" style="flex:1;">
-            <button type="button" onclick="bkApplyPromo()" style="white-space:nowrap;padding:0 22px;font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:lowercase;background:var(--ink);color:var(--b);border:none;cursor:pointer;">apply</button>
+            <input type="text" id="bk-promo" placeholder="enter code" autocapitalize="characters" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter'){event.preventDefault();bkApplyPromo();}" style="flex:1;text-transform:uppercase;">
+            <button type="button" onclick="bkApplyPromo()" style="white-space:nowrap;padding:0 24px;font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:lowercase;background:var(--r);color:#fff;border:none;cursor:pointer;">apply</button>
           </div>
-          <div class="bk-field-note" id="bk-promo-msg"></div>
+          <div class="bk-field-note" id="bk-promo-msg" style="margin-top:8px;"></div>
         </div>
       </div>
 
