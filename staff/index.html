@@ -5597,6 +5597,33 @@ function initBooking(){
   initFuelPOS();
 }
 
+// The five real spaces. Used to put back anything a partial or corrupted save dropped.
+var ROOM_DEFAULTS = [
+  {id:'room1', name:'Therapy Room 1', type:'therapy', color:'#8b5cf6'},
+  {id:'room2', name:'Therapy Room 2', type:'therapy', color:'#06b6d4'},
+  {id:'room3', name:'Therapy Room 3', type:'therapy', color:'#10b981'},
+  {id:'rec1',  name:'Recovery Chair 1', type:'recovery', color:'#f59e0b'},
+  {id:'rec2',  name:'Recovery Chair 2', type:'recovery', color:'#e8621a'},
+];
+// Restore any room the stored list is missing and backfill blank fields. Everything downstream
+// picks chairs with type==='recovery', so a room that went missing (or lost its type) disappeared
+// from the booking grid entirely. Does NOT override a type you set on purpose - see saveRoomConfig.
+function dkRepairRooms(){
+  try{
+    ROOM_DEFAULTS.forEach(function(def){
+      var r=null;
+      for(var i=0;i<ROOMS.length;i++){ if(ROOMS[i]&&ROOMS[i].id===def.id){ r=ROOMS[i]; break; } }
+      if(!r){ ROOMS.push({id:def.id,name:def.name,type:def.type,color:def.color,services:[],staff:[]}); return; }
+      if(!r.name) r.name=def.name;
+      if(!r.type) r.type=def.type;
+      if(!r.color) r.color=def.color;
+      if(!Array.isArray(r.services)) r.services=[];
+      if(!Array.isArray(r.staff)) r.staff=[];
+    });
+  }catch(e){ console.warn('[rooms] repair',e); }
+}
+function dkChairCount(){ var n=0; ROOMS.forEach(function(r){ if(r&&r.type==='recovery') n++; }); return n; }
+
 function loadRFFromStorage(){
   try{
     const raw=localStorage.getItem('distrik_rf');
@@ -5605,13 +5632,23 @@ function loadRFFromStorage(){
       if(d.bookings)  Object.assign(bookings,  d.bookings);
       if(d.SERVICES)  SERVICES.splice(0,SERVICES.length,...d.SERVICES);
     if(d.PACKAGES)  PACKAGES.splice(0,PACKAGES.length,...d.PACKAGES);
-      if(d.ROOMS)     ROOMS.forEach((r,i)=>{ if(d.ROOMS[i]) Object.assign(r,d.ROOMS[i]); });
+      // Full replace, like SERVICES/PACKAGES. This used to Object.assign the stored rooms onto the
+      // five hardcoded defaults BY INDEX, so the list could never grow or shrink, and a reordered
+      // save cross-assigned one room's fields onto another - which is how a chair went missing.
+      if(d.ROOMS && Array.isArray(d.ROOMS) && d.ROOMS.length) ROOMS.splice(0,ROOMS.length,...d.ROOMS);
     }
   }catch(e){}
+  dkRepairRooms();
 }
 
 function saveRFToStorage(){
-  try{ localStorage.setItem('distrik_rf', JSON.stringify({bookings,SERVICES,PACKAGES,ROOMS})); }catch(e){}
+  // Preserve the config version stamp. Rebuilding the blob from scratch wiped _cfgTs, which is what
+  // the newest-edit-wins merge reads - a stamp of 0 let the cloud's older copy win and silently
+  // revert room/service edits back over the top of what was just saved.
+  try{
+    var _prevCfgTs; try{ _prevCfgTs=JSON.parse(localStorage.getItem('distrik_rf')||'{}')._cfgTs; }catch(e){}
+    localStorage.setItem('distrik_rf', JSON.stringify({bookings,SERVICES,PACKAGES,ROOMS,_cfgTs:_prevCfgTs}));
+  }catch(e){}
   try{ if(typeof window.dkHardSave==='function') window.dkHardSave(['distrik_rf']); }catch(e){}  // hard-save so therapies/packages/rooms stick across devices + logout
 }
 
@@ -6461,9 +6498,17 @@ function saveRoomConfig(){
     const cb=document.getElementById('rcm_'+s.id);
     return cb&&cb.checked;
   }).map(s=>s.id);
-  // Save room type
+  // Save room type - but never below two chairs. Flipping the last chair to a Therapy Room
+  // removed it from every booking screen at once, with no warning and no way back.
   const typeEl=document.querySelector('input[name="rcm-type"]:checked');
-  if(typeEl) room.type=typeEl.value;
+  if(typeEl && typeEl.value!==room.type){
+    if(room.type==='recovery' && typeEl.value!=='recovery' && dkChairCount()<=2){
+      alert('Distrik runs two Recovery Chairs.\n\n'+room.name+' has to stay a Recovery Chair - switching it '
+           +'would remove it from the booking grid, the floor list and every compression/IV slot.');
+      return;
+    }
+    room.type=typeEl.value;
+  }
   const colEl=document.getElementById('rcm-color');
   if(colEl) room.color=colEl.value;
   // Save services — update each service's rooms array
@@ -6479,8 +6524,16 @@ function saveRoomConfig(){
   saveRFToStorage();
   document.getElementById('roomConfigModal').style.display='none';
   buildRoomGrid();
+  // Config only syncs from the admin login. On a staff PIN the push is dropped and the change lives
+  // in this one browser - which is why a room edit "only showed up on my computer". Say so, loudly.
+  const canSync=(typeof currentUser!=='undefined' && currentUser && currentUser.type==='admin');
   const n=document.getElementById('notif');
-  if(n){n.textContent='Room saved ✓';n.classList.add('on');setTimeout(()=>n.classList.remove('on'),2000);}
+  if(n){
+    n.textContent = canSync ? 'Room saved ✓' : 'Saved on THIS DEVICE ONLY — sign in as Admin to sync';
+    n.classList.add('on'); setTimeout(()=>n.classList.remove('on'), canSync?2000:6000);
+  }
+  if(!canSync) alert('Saved on this device only.\n\nRoom settings sync from the Admin login. On a staff '
+                    +'PIN this change stays in this browser and other devices will keep showing the old setup.');
 }
 
 // Hook into goToModule for booking
