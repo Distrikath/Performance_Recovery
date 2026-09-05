@@ -3523,6 +3523,12 @@ const LS_KEY = 'distrik_v1';
 
 function saveAll(){
   try{
+    // Project recovery bookings into the therapist calendar before persisting, so both
+    // stores always agree. Only touches distrik_rf when something actually changed.
+    try{ if(typeof dkSyncAllRecoveryToCalendar==='function' && dkSyncAllRecoveryToCalendar()){
+      if(typeof saveRFToStorage==='function') saveRFToStorage();
+      if(typeof buildRoomGrid==='function') buildRoomGrid();
+    } }catch(e){ console.warn('[mirror] saveAll',e); }
     // Only write to dailyOverrides when user actually edited (dirty flag prevents browse-only saves)
     if(_gridDirty){
       const dateKey = getDateKey(activeDay, rosterWeekOffset);
@@ -6203,13 +6209,68 @@ function openBookingDetail(id){
 }
 
 function recalcRecoveryRevenue(dateKey){
-  const dayBks=(bookings[dateKey]||[]).filter(b=>b.status!=='cancelled');
-  const rev=dayBks.reduce((s,b)=>s+b.price,0);
-  const d=new Date(dateKey+'T12:00:00').getDay();
+  // MERGE, never overwrite. Recovery-panel bookings (_src:'recovery') and therapist-calendar
+  // bookings live in two different stores; this used to replace the whole day with the calendar's
+  // copy, silently deleting every recovery booking on that date (and its revenue) the moment
+  // anyone opened Sales or saved in the calendar.
+  const calBks=(bookings[dateKey]||[]).filter(b=>b.status!=='cancelled');
   if(!recoveryData[dateKey]) recoveryData[dateKey]={};
-  recoveryData[dateKey].revenue=rev;
-  recoveryData[dateKey].bookings=dayBks;
+  const existing=recoveryData[dateKey].bookings||[];
+  const recOrigin=existing.filter(b=>b&&b._src==='recovery');
+  const seen={}; recOrigin.forEach(b=>{ if(b&&b.id!=null) seen[b.id]=1; });
+  const calOnly=calBks.filter(b=>b&&(b.id==null||!seen[b.id]));
+  const merged=recOrigin.concat(calOnly);
+  recoveryData[dateKey].bookings=merged;
+  recoveryData[dateKey].revenue=merged.reduce((sum,b)=>sum+(typeof clinCollected==='function'?clinCollected(b):(b.price||0)),0);
 }
+
+// ── RECOVERY -> THERAPIST CALENDAR MIRROR ─────────────────────────────────────
+// The Recovery module writes to recoveryData[date].bookings; the therapist calendar
+// (buildRoomGrid) reads bookings[date]. Nothing ever bridged the two, so a confirmed
+// recovery booking was invisible on the calendar and its room never showed as taken.
+// This projects recovery bookings into the calendar store, keyed by id.
+function dkSyncRecoveryToCalendar(dateKey){
+  var changed=false;
+  try{
+    if(typeof recoveryData==='undefined'||typeof bookings==='undefined') return false;
+    var src=(recoveryData[dateKey]&&recoveryData[dateKey].bookings)||[];
+    var dst=bookings[dateKey]||[];
+    var live={};
+    src.forEach(function(b){
+      if(!b||b.id==null) return;
+      live[b.id]=1;
+      var mapped={
+        id:b.id, room:b.room, date:dateKey,
+        start:b.start||b.time, duration:b.duration||60,
+        service:b.service, serviceName:b.serviceName,
+        therapist:b.therapist||null, therapistName:b.therapistName||null,
+        client:b.client||'', phone:b.whatsapp||b.phone||'',
+        price:b.price||0, notes:b.notes||'',
+        source:b.source||'Recovery', status:b.status||'confirmed',
+        _src:'recovery'
+      };
+      var i=-1;
+      for(var j=0;j<dst.length;j++){ if(dst[j]&&dst[j].id===b.id){ i=j; break; } }
+      if(i<0){ dst.push(mapped); changed=true; }
+      else if(JSON.stringify(dst[i])!==JSON.stringify(mapped)){ dst[i]=mapped; changed=true; }
+    });
+    // drop mirrored rows whose recovery booking no longer exists
+    var kept=dst.filter(function(b){ return !(b&&b._src==='recovery'&&b.id!=null&&!live[b.id]); });
+    if(kept.length!==dst.length){ dst=kept; changed=true; }
+    if(changed||bookings[dateKey]) bookings[dateKey]=dst;
+  }catch(e){ console.warn('[mirror]',dateKey,e); }
+  return changed;
+}
+function dkSyncAllRecoveryToCalendar(){
+  var changed=false;
+  try{
+    if(typeof recoveryData==='undefined') return false;
+    Object.keys(recoveryData).forEach(function(d){ if(dkSyncRecoveryToCalendar(d)) changed=true; });
+  }catch(e){ console.warn('[mirror] all',e); }
+  return changed;
+}
+window.dkSyncRecoveryToCalendar=dkSyncRecoveryToCalendar;
+window.dkSyncAllRecoveryToCalendar=dkSyncAllRecoveryToCalendar;
 
 // ── SERVICES MANAGER ──────────────────────────────────────────────
 var activeSvcTab = 'single';
@@ -10084,6 +10145,7 @@ function startBookingListener(){
         return ms(b)-ms(a);
       });
       renderOnlineRequests(reqs);
+      try{ _autoAcceptRecovery(reqs); }catch(e){ console.warn('[auto-accept]',e); }
       if(_bkListenerReady){
         snap.docChanges().forEach(function(change){
           if(change.type==='added'){
@@ -10149,9 +10211,74 @@ function _onreqUpdateStatus(id,status,cb){
 }
 function _findReq(id){ for(var i=0;i<_bkReqs.length;i++){ if(_bkReqs[i]._id===id) return _bkReqs[i]; } return null; }
 
-function acceptOnlineBooking(id){
+// ── AUTO-ACCEPT ──────────────────────────────────────────────────────────────
+// Recovery & compression are self-serve: if the slot is free they book straight in,
+// no staff confirmation. IV therapy and blood work are HUMAN+ / HELIX partner services
+// and ALWAYS wait for a human to confirm.
+function _onreqNeedsConfirm(r){ return !!(r && (r.type==='iv_therapy' || r.type==='blood_work')); }
+function _onreqStartHHMM(r){
+  var t=String((r&&r.time)||'').match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i);
+  if(!t) return null;
+  var hh=parseInt(t[1],10), mm=t[2]||'00', ap=(t[3]||'').toLowerCase();
+  if(ap==='pm'&&hh!==12)hh+=12; if(ap==='am'&&hh===12)hh=0;
+  return ('0'+hh).slice(-2)+':'+mm;
+}
+// Is at least one eligible room/chair free for this request's window?
+function _onreqSlotFree(r){
+  try{
+    if(typeof recoveryData==='undefined'||!r||!r.date) return false;
+    var st=_onreqStartHHMM(r); if(!st) return false;
+    var isComp=(String(r.pathway||'').toUpperCase()==='COMPRESSION');
+    var ids=isComp?['rec1','rec2']:['room1','room2','room3'];
+    var mn=function(h){ var m=String(h||'').match(/(\d{1,2}):(\d{2})/); return m?parseInt(m[1],10)*60+parseInt(m[2],10):0; };
+    var s0=mn(st), e0=s0+(r.duration||60);
+    var day=(recoveryData[r.date]&&recoveryData[r.date].bookings)||[];
+    return ids.some(function(rid){
+      return !day.some(function(b){
+        if(!b||b.room!==rid||b.status==='cancelled') return false;
+        var bs=mn(b.start||b.time), be=bs+(b.duration||60);
+        return s0<be && e0>bs;
+      });
+    });
+  }catch(e){ return false; }
+}
+// Claim the request atomically so two open devices can never accept the same booking twice.
+function _onreqClaim(id,cb){
+  var db=_getPublicDb(); if(!db) return;
+  var ref=db.collection('public_bookings').doc(id);
+  db.runTransaction(function(tx){
+    return tx.get(ref).then(function(doc){
+      if(!doc.exists) throw 'gone';
+      if(((doc.data()||{}).status)!=='tentative') throw 'taken';
+      var u={status:'confirmed', autoConfirmed:true};
+      try{ u.confirmedAt=firebase.firestore.FieldValue.serverTimestamp(); }catch(e){}
+      tx.update(ref,u);
+    });
+  }).then(function(){ if(cb) cb(); })
+    .catch(function(e){ if(e!=='taken'&&e!=='gone') console.warn('[auto-accept] claim',e); });
+}
+var _bkAutoBusy={};
+function _autoAcceptRecovery(reqs){
+  // Only the admin device auto-accepts — staff/POS tills stay read-only for this,
+  // which keeps one writer and avoids racing accepts.
+  if(typeof currentUser==='undefined'||!currentUser||currentUser.type!=='admin') return;
+  (reqs||[]).forEach(function(r){
+    var id=r&&r._id; if(!id||_bkAutoBusy[id]) return;
+    if(_onreqNeedsConfirm(r)) return;              // IV / blood work -> staff confirms
+    if(!r.date||!r.time) return;                   // incomplete request -> staff confirms
+    if(!_onreqSlotFree(r)) return;                 // no availability -> staff resolves
+    _bkAutoBusy[id]=1;
+    _onreqClaim(id,function(){
+      acceptOnlineBooking(id,{auto:true});
+      try{ if(typeof clinNotify==='function') clinNotify('Booked in automatically — '+((r.name||'Guest'))+' · '+(r.time||'')+' · '+(r.date||'')); }catch(e){}
+    });
+  });
+}
+
+function acceptOnlineBooking(id,opts){
+  opts=opts||{};
   var r=_findReq(id); if(!r) return;
-  if(!confirm('Confirm booking for '+_escHtml(r.name||'this customer')+'?\n\nThis adds it to the Recovery schedule and opens a WhatsApp confirmation to send.')) return;
+  if(!opts.auto && !confirm('Confirm booking for '+_escHtml(r.name||'this customer')+'?\n\nThis adds it to the Recovery schedule and opens a WhatsApp confirmation to send.')) return;
   try{
     // Recovery/therapy online bookings land on the Recovery schedule. IV & blood are partner-billed → status only.
     if(r.type!=='iv_therapy' && r.type!=='blood_work' && typeof recoveryData!=='undefined'){
@@ -10178,7 +10305,7 @@ function acceptOnlineBooking(id){
         price:_pn, pressure:r.pressure||null, payType:'deposit',
         source:'Online', status:'confirmed', payMethod:'online',
         online:true, deposit:_dep, balanceDue:Math.max(0,_pn-_dep), balancePaid:false, depositPaid:false,
-        onlineRef:r.ref||id, date:r.date
+        onlineRef:r.ref||id, date:r.date, _src:'recovery'
       };
       if(!recoveryData[r.date]) recoveryData[r.date]={revenue:0,bookings:[]};
       if(!recoveryData[r.date].bookings) recoveryData[r.date].bookings=[];
@@ -10212,7 +10339,7 @@ function acceptOnlineBooking(id){
         price:0, partnerTotal:_pvTotal, commission:_commission, commissionStatus:'hold', commissionPct:20,
         payType:'partner', source:'Online', status:'confirmed', payMethod:'partner',
         clinical:true, tag:(r.type==='blood_work'?'HELIX · Bloods':'HUMAN+ · IV'), partner:true, provider:'HUMAN+',
-        checkedIn:false, onlineRef:r.ref||id, date:r.date
+        checkedIn:false, onlineRef:r.ref||id, date:r.date, _src:'recovery'
       };
       if(!recoveryData[r.date]) recoveryData[r.date]={revenue:0,bookings:[]};
       if(!recoveryData[r.date].bookings) recoveryData[r.date].bookings=[];
@@ -10226,7 +10353,7 @@ function acceptOnlineBooking(id){
   }catch(e){ console.warn('acceptOnlineBooking',e); }
   _bkDismissed[id]=1;
   // No WhatsApp on confirm — the customer just booked. Send a reminder the day before instead (Send reminder button).
-  _onreqUpdateStatus(id,'confirmed');
+  if(!opts.auto) _onreqUpdateStatus(id,'confirmed');   // auto path already claimed it in a transaction
 }
 function declineOnlineBooking(id){
   var r=_findReq(id); if(!r) return;
@@ -10680,7 +10807,8 @@ function confirmClinical(){
     start:startTime, time:startTime, duration:duration,
     client:patient, email:clinEmail||'', whatsapp:clinWhatsapp||'', phone:clinWhatsapp||'',
     price:s.price, pressure:clinPressure||null, payType:clinPayType||'full',
-    source:(clinOnline?'Online':'Walk-in'), status:(isHold?'hold':'confirmed'), payMethod:clinPay
+    source:(clinOnline?'Online':'Walk-in'), status:(isHold?'hold':'confirmed'), payMethod:clinPay,
+    _src:'recovery'
   };
   if(clinType==='clinical'){ rec.clinical=true; rec.tag='ClinicTerrain'; rec.window=clinWindow; rec.intake=(clinIntake?'approved':'pending'); }
   if(clinOnline){ var _tot=s.price; rec.online=true; rec.deposit=Math.round(_tot*0.5); rec.balanceDue=_tot-Math.round(_tot*0.5); rec.balancePaid=false; }
