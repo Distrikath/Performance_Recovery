@@ -1189,6 +1189,8 @@ footer.contact-strip{
 .staff-modal-close:hover{color:rgba(242,242,240,.5)}
 
 .cs-legal a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(242,242,240,.25)}.cs-legal a:hover{color:#FF2D2D}
+.ther-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:30px 40px;margin-top:46px}
+@media(max-width:860px){.ther-grid{grid-template-columns:1fr;gap:46px}}
 </style>
 </head>
 <body>
@@ -1252,7 +1254,7 @@ footer.contact-strip{
   <div style="font-family:var(--mono);font-size:11px;letter-spacing:.45em;color:var(--r);text-transform:lowercase;margin-bottom:26px">[ the team ]</div>
   <h2 style="font-family:var(--display);font-weight:800;font-size:clamp(40px,7vw,86px);letter-spacing:-.03em;line-height:.92;margin:0">CHOOSE YOUR<br>THERAPIST</h2>
   <p style="font-family:var(--display);font-size:16px;line-height:1.75;color:var(--ink-d);max-width:620px;margin:26px 0 4px">Every DISTRIK. therapist brings their own experience, techniques and approach to performance recovery. Choose the therapist whose style best matches what your body needs.</p>
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:30px 40px;margin-top:46px">
+  <div class="ther-grid">
     <div style="border-top:1px solid var(--line-mid);padding-top:22px">
       <div style="font-family:var(--display);font-weight:800;font-size:30px;letter-spacing:-.01em;line-height:1">TONI</div>
       <div style="font-family:var(--mono);font-size:11px;letter-spacing:.02em;color:var(--r);margin-top:10px">Deep Tissue Sports Massage + Muscle Recovery</div>
