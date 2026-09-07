@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814039;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814040;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -6647,8 +6647,10 @@ function buildPosCust(){
   document.getElementById('cust-base').textContent='Base: IDR '+item.price.toLocaleString('id-ID');
   document.getElementById('cust-qty').textContent=custQtyVal;
 
-  const hasSizes=SIZE_ITEMS.includes(item.id)||item.hasSizes;
-  const hasMilk=MILK_ITEMS.includes(item.id)||item.hasMilk;
+  // Size & milk now follow the CATEGORY (every Coffee gets them) so they never drift when a drink is re-added
+  // with a new id. Per-item overrides (item.hasSizes/hasMilk) still win if set. Nothing in the menu is changed.
+  const hasSizes=(item.cat==='coffee')||SIZE_ITEMS.includes(item.id)||item.hasSizes;
+  const hasMilk=(item.cat==='coffee')||MILK_ITEMS.includes(item.id)||item.hasMilk;
 
   // Sizes
   const szWrap=document.getElementById('cust-sizes-wrap');
@@ -6729,11 +6731,11 @@ function addToCart(){
   if(!posSelectedItem) return;
   const lp=calcLinePrice(posSelectedItem,custSelections);
   const mods=[];
-  if(SIZE_ITEMS.includes(posSelectedItem.id)){
+  if(posSelectedItem.cat==='coffee'||SIZE_ITEMS.includes(posSelectedItem.id)||posSelectedItem.hasSizes){
     const sz=MENU_OPTS.sizes.find(s=>s.id===custSelections.size);
     if(sz&&sz.id!=='reg') mods.push(sz.name);
   }
-  if(MILK_ITEMS.includes(posSelectedItem.id)){
+  if(posSelectedItem.cat==='coffee'||MILK_ITEMS.includes(posSelectedItem.id)||posSelectedItem.hasMilk){
     const mk=MENU_OPTS.milks.find(m=>m.id===custSelections.milk);
     if(mk&&mk.id!=='full') mods.push(mk.name);
   }
