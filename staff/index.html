@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814037;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814038;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -10191,9 +10191,20 @@ function clinSendReminder(id){
     var b=day.bookings.find(function(x){return x.id===id;}); if(!b) return;
     var ph=String(b.phone||b.whatsapp||'').replace(/\D/g,''); if(!ph){ alert('No WhatsApp number on this booking.'); return; }
     var svc=b.serviceName||b.service||'your session';
-    var when=(typeof clinDateWord==='function'?clinDateWord():'')+' at '+(b.start||b.time||'');
+    var _rd=new Date(dk+'T12:00:00');
+    var _dayFull=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][_rd.getDay()];
+    var _monFull=['January','February','March','April','May','June','July','August','September','October','November','December'][_rd.getMonth()];
+    var _dateStr=_dayFull+' '+_rd.getDate()+' '+_monFull;
+    var _tm=String(b.start||b.time||'').match(/(\d{1,2}):(\d{2})/);
+    var _timeStr=_tm?(((parseInt(_tm[1])%12)||12)+':'+_tm[2]+(parseInt(_tm[1])>=12?'pm':'am')):(b.start||b.time||'');
     var bal=(b.online&&!b.balancePaid&&b.balanceDue)?('\n\nBalance due on arrival: IDR '+(b.balanceDue||0).toLocaleString('id-ID')+'.'):'';
-    var msg='Hi '+(b.client||'there')+' — a friendly reminder from DISTRIK about your '+svc+' '+when+'.'+bal+'\n\nSee you at the Canggu lab 🙏';
+    var _addr='Jl. Raya Babakan Canggu No. 4, Canggu, Kec. Kuta Utara, Kabupaten Badung, Bali 80351';
+    var msg='Hey '+(b.client||'there')+' — just a quick reminder you’re booked for '+svc+' at DISTRIK on '+_dateStr+' at '+_timeStr+'.'
+      +'\n\n'+_addr
+      +'\n\nPlease arrive 15 minutes early so we can check you in and get you ready.'
+      +'\n\nIf you’re running late, please message us so we can let your therapist know. Your session may need to be shortened if we have another appointment directly afterwards. Arrivals more than 15 minutes late will need to be rescheduled.'
+      +bal
+      +'\n\nSee you soon!';
     window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(msg),'_blank');
   }catch(e){ console.warn('clinSendReminder',e); }
 }
