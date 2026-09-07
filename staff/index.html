@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814034;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814037;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -10116,27 +10116,21 @@ function renderTodayBookings(){
     var badge = b.clinical ? (isHold?'<span class="clin-bk-hold">Hold · pending</span>':'<span class="clin-bk-tag">Human+</span>') : '';
     var svcName = b.serviceName||b.service||'';
     var id=(b.id||'').replace(/'/g,'');
-    var pay='';
-    if(b.partner){
-      pay='<span class="clin-bk-pay">HUMAN+ · 20% commission IDR '+((b.commission||0)).toLocaleString('id-ID')+' · '+(b.checkedIn?'checked in':'on hold')+'</span>';
-    } else if(b.online){ pay = (b.discPct>=100||(b.balancePaid&&!(b.price>0)))
-      ? '<span class="clin-bk-pay">Online · FREE'+(b.discCode?' ('+_escHtml(b.discCode)+')':'')+'</span>'
-      : (b.balancePaid
-        ? '<span class="clin-bk-pay">Online · paid in full</span>'
-        : (b.depositPaid
-          ? '<span class="clin-bk-pay due">Online · deposit IDR '+(b.deposit||0).toLocaleString('id-ID')+' paid · balance IDR '+(b.balanceDue||0).toLocaleString('id-ID')+' on arrival</span>'
-          : '<span class="clin-bk-pay due">Online · 50% deposit IDR '+(b.deposit||0).toLocaleString('id-ID')+' via link · balance IDR '+(b.balanceDue||0).toLocaleString('id-ID')+' on arrival</span>')); }
+    var pay=_clinPayLine(b);
     var _bDepLink=(!b.partner && b.online&&!b.depositPaid&&(b.balanceDue>0)&&getXenditLink())?'<button class="clin-bk-act go" onclick="resendDepositLink(\''+id+'\')">Send deposit link &#x2192;</button>':'';
+    var _pinf=_clinPay(b);
+    var _canDelBk=(typeof currentUser==='undefined'||!currentUser||!currentUser.type||currentUser.type==='admin');
+    var _notArrived=(!b.checkedIn && b.status!=='cancelled' && !isHold);
+    var _needsPay=(!isHold && b.status!=='cancelled' && !b.partner && !_pinf.free && !_pinf.fullyPaid && _pinf.isDepositFlow);
     var acts='<div class="clin-bk-acts">'
       +(isHold?'<button class="clin-bk-act go" onclick="clinConfirmHold(\''+id+'\')">Intake back · confirm ✓</button>':'')
       +_bDepLink
-      +(b.partner
-        ? (b.checkedIn?'':'<button class="clin-bk-act go" onclick="clinCheckIn(\''+id+'\')">Check in</button>')
-        : ((b.online&&!b.balancePaid)?'<button class="clin-bk-act go" onclick="clinCollectBalance(\''+id+'\')">Check in · collect balance</button>':''))
       +(((b.phone||b.whatsapp)&&b.status!=='cancelled'&&!isHold)?'<button class="clin-bk-act" onclick="clinSendReminder(\''+id+'\')">Send reminder</button>':'')
+      +(_notArrived?'<button class="clin-bk-act go" onclick="clinCheckIn(\''+id+'\')">Check in</button>':'')
+      +(_needsPay?'<button class="clin-bk-act go" onclick="clinCheckOut(\''+id+'\')">Check out · IDR '+Math.round(_pinf.due).toLocaleString('id-ID')+'</button>':'')
       +'<button class="clin-bk-act" onclick="clinEditBooking(\''+id+'\')">Edit / move</button>'
       +'<button class="clin-bk-act danger" onclick="clinCancelBooking(\''+id+'\')">Cancel</button>'
-      +((typeof currentUser==='undefined'||!currentUser||!currentUser.type||currentUser.type==='admin')?'<button class="clin-bk-act danger" onclick="clinDeleteBooking(\''+id+'\')" title="Remove permanently — will not come back">Delete</button>':'')
+      +(_canDelBk?'<button class="clin-bk-act danger" onclick="clinDeleteBooking(\''+id+'\')" title="Remove permanently — will not come back">Delete</button>':'')
       +'</div>';
     return '<div class="clin-bk-row2">'
       +'<div class="clin-bk-line"><span class="clin-bk-time">'+(b.start||b.time||'—')+'</span>'
@@ -10170,10 +10164,24 @@ function clinCheckIn(id){
     var dk=clinKey(); var day=recoveryData&&recoveryData[dk]; if(!day||!day.bookings) return;
     var b=day.bookings.find(function(x){return x.id===id;}); if(!b) return;
     b.checkedIn=true;
-    if(typeof ledgerWrite==='function') ledgerWrite('recovery', b.id, dk, 0, 0, b.payMethod||'partner', b, b.status||'confirmed');
+    // Persist arrival + record ONLY what's actually been paid so far (checkout adds the rest). Never assumes a deposit.
+    var _ciPaid=0; try{ _ciPaid=_clinPay(b).paid; }catch(e){}
+    if(typeof ledgerWrite==='function') ledgerWrite('recovery', b.id, dk, _ciPaid, 0, b.payMethod||'partner', b, b.status||'confirmed');
     if(typeof saveAll==='function') saveAll();
     try{ if(typeof buildClinRoomGrid==='function') buildClinRoomGrid(); if(typeof renderClinicalBooking==='function') renderClinicalBooking(); }catch(e){}
-    if(typeof clinNotify==='function') clinNotify('Checked in ✓');
+    // Tell reception exactly what (if anything) to collect at checkout.
+    var _f=function(n){return 'IDR '+Math.round(n).toLocaleString('id-ID');};
+    var _msg='Checked in ✓';
+    try{
+      if(b.partner) _msg='Checked in ✓ — HUMAN+ collects payment.';
+      else{ var _p=_clinPay(b);
+        if(_p.free) _msg='Checked in ✓ — FREE, nothing to collect.';
+        else if(_p.fullyPaid) _msg='Checked in ✓ — paid in full.';
+        else if(_p.depositPaid) _msg='Checked in ✓ — deposit '+_f(_p.paid)+' paid · '+_f(_p.due)+' due at checkout.';
+        else _msg='Checked in ✓ — UNPAID · '+_f(_p.due)+' due at checkout.';
+      }
+    }catch(e){}
+    if(typeof clinNotify==='function') clinNotify(_msg);
   }catch(e){ console.warn('clinCheckIn',e); }
 }
 window.clinCheckIn=clinCheckIn;
@@ -10364,7 +10372,22 @@ function acceptOnlineBooking(id){
       var _rMin=function(hhmm){ var m=String(hhmm||'').match(/(\d{1,2}):(\d{2})/); return m?parseInt(m[1])*60+parseInt(m[2]):0; };
       var _rs0=_rMin(_st), _re0=_rs0+(r.duration||60);
       var _rDay=(recoveryData[r.date]&&recoveryData[r.date].bookings)||[];
-      var _roomId=_rIds.find(function(rid){ return !_rDay.some(function(b){ if(b.room!==rid||b.status==='cancelled') return false; var bs=_rMin(b.start||b.time), be=bs+(b.duration||60); return _rs0<be && _re0>bs; }); }) || _rIds[0];
+      var _roomFree=function(rid){ return !_rDay.some(function(b){ if(b.room!==rid||b.status==='cancelled') return false; var bs=_rMin(b.start||b.time), be=bs+(b.duration||60); return _rs0<be && _re0>bs; }); };
+      // Land the booking in the room where the CHOSEN therapist is rostered that day, so it shows in THEIR schedule
+      // (not just any free room — that's what made bookings appear under the wrong therapist). Falls back to any free room.
+      var _therRoom=null;
+      try{
+        if(!_rIsComp && r.therapist){
+          var _dobj=new Date(r.date+'T12:00:00'); var _dname=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][_dobj.getDay()];
+          var _dd=(typeof dailyOverrides!=='undefined'&&dailyOverrides[r.date])?dailyOverrides[r.date]:((typeof grid!=='undefined'&&grid[_dname])||null);
+          var _trows=(_dd&&_dd['Therapy'])||[];
+          for(var _ri=0; _ri<3; _ri++){
+            var _rw=_trows[_ri]||[];
+            if(_rw.some(function(c){ return c && !(typeof isBreakCell==='function'&&isBreakCell(c)) && (typeof staffId==='function'?staffId(c):c)===r.therapist; })){ _therRoom=_rIds[_ri]; break; }
+          }
+        }
+      }catch(e){}
+      var _roomId=(_therRoom&&_roomFree(_therRoom))?_therRoom:(_rIds.find(_roomFree)||_rIds[0]);
       var _roomName=(typeof ROOMS!=='undefined'?((ROOMS.find(function(x){return x.id===_roomId;})||{}).name):null)||'';
       var rec={
         id:(typeof genId==='function'?genId():'obk_'+Date.now()),
@@ -10676,7 +10699,9 @@ function renderClinicalBooking(){
     var clientSep='<div style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#56565b;margin:18px 0 10px;padding-top:14px;border-top:1px solid #f0f0f0;">6 · Client details</div>';
     var svcPrice=s.price||0, dep50=Math.round(svcPrice*0.5);
     var paymentSep='<div style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#56565b;margin:18px 0 10px;padding-top:14px;border-top:1px solid #f0f0f0;">7 · Payment</div>';
-    var paymentBlock=paymentSep+'<div class="clin-windows">'
+    var paymentBlock=clinEditingId
+      ? paymentSep+'<div style="font-family:\'Space Mono\',monospace;font-size:11px;color:#56565b;padding:2px 0 2px;line-height:1.5;">Editing — payment stays as it is. Just move the date, time, room or therapist, then press <b>Update booking</b>.</div>'
+      : paymentSep+'<div class="clin-windows">'
       +'<button class="clin-win'+(clinPayType==='deposit'?' sel':'')+'" onclick="clinSetPayType(\'deposit\')">Deposit 50% · '+(typeof clinFmt==='function'?clinFmt(dep50):'IDR '+dep50)+'</button>'
       +'<button class="clin-win'+(clinPayType==='full'?' sel':'')+'" onclick="clinSetPayType(\'full\')">Full · '+(typeof clinFmt==='function'?clinFmt(svcPrice):'IDR '+svcPrice)+'</button>'
       +'</div>';
@@ -10747,7 +10772,8 @@ function updateClinicalTotals(base){
   var tax=0, total=base; // Recovery/spa & clinical: NON-PKP, no PBJT → no consumption tax
   clinSetText('clin-subtotal', _dp?(clinFmt(total)+'  ('+_dp+'% off)'):clinFmt(base)); clinSetText('clin-tax',clinFmt(tax)); clinSetText('clin-total',clinFmt(total));
   var dep=Math.round(total*0.5), bal=total-dep;
-  var isDeposit=(clinPayType==='deposit')||clinOnline;
+  // When EDITING an existing booking we're only moving the slot — never re-charging — so suppress the deposit UI.
+  var isDeposit=!clinEditingId && ((clinPayType==='deposit')||clinOnline);
   var dl=document.getElementById('clin-deposit-lines');
   if(dl){
     var depHtml=(isDeposit&&clinSel)?('<div class="clin-deposit-line due"><span>Deposit due now (50%)</span><span>'+clinFmt(dep)+'</span></div><div class="clin-deposit-line bal"><span>Balance on arrival (50%)</span><span>'+clinFmt(bal)+'</span></div>'):'';
@@ -10890,6 +10916,13 @@ function confirmClinical(){
   if(clinType==='clinical'){ rec.clinical=true; rec.tag='ClinicTerrain'; rec.window=clinWindow; rec.intake=(clinIntake?'approved':'pending'); }
   if(clinOnline){ var _tot=_price; rec.online=true; rec.deposit=Math.round(_tot*0.5); rec.balanceDue=_tot-Math.round(_tot*0.5); rec.balancePaid=false; }
   else if(clinPayType==='deposit'){ rec.deposit=Math.round(_price*0.5); rec.balanceDue=_price-Math.round(_price*0.5); rec.balancePaid=false; }
+  // EDITING = moving only: keep the money exactly as it was (deposit, balance, paid-state, price, discount, partner
+  // commission). We only change the schedule (room/therapist/time/date). Never re-charge on an edit.
+  if(clinEditingId && window._clinEditOrig){
+    var _o=window._clinEditOrig;
+    ['online','deposit','balanceDue','balancePaid','depositPaid','price','gross','payType','discPct','discReason','discCode','source','partner','partnerTotal','commission','commissionStatus','commissionPct','provider','tag','clinical','forfeited','onlineRef','payMethod'].forEach(function(k){ if(_o[k]!==undefined) rec[k]=_o[k]; });
+    if(_o.status && _o.status!=='cancelled') rec.status=_o.status;   // keep confirmed/hold as it was
+  }
   try{
     // If editing an existing booking, remove the original first (reverse whatever revenue it contributed)
     if(clinEditingId){
@@ -10912,7 +10945,7 @@ function confirmClinical(){
     var dateLabel=clinDate.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
     sendBookingEmail(rec, dateLabel, isHold?'hold':'confirmed');
   }catch(e){ console.warn('clinical save',e); }
-  var wasEdit=!!clinEditingId; clinEditingId=null; clinEditingDate=null;
+  var wasEdit=!!clinEditingId; clinEditingId=null; clinEditingDate=null; window._clinEditOrig=null;
   clinDone=true; clinDoneHold=isHold; buildClinRoomGrid(); renderClinicalOrder();
   if(wasEdit) clinNotify('Booking updated.');
 }
@@ -10925,6 +10958,52 @@ function clinCollected(b){
   return (b.price||0);
 }
 // Collect the remaining 50% balance when the client arrives
+// ── RECEPTION PAYMENT CLARITY ────────────────────────────────────────
+// One source of truth for what's paid vs what's owed on a booking, so the list, Check in and Check out agree.
+function _clinPay(b){
+  b=b||{};
+  var price=b.price||0;
+  var free=(price<=0)||((b.discPct||0)>=100);
+  var dep=b.deposit||Math.round(price*0.5);
+  var isDepositFlow=(b.online||b.payType==='deposit');           // came in with a 50% deposit path (online / Xendit)
+  var fullyPaid = free || !!b.balancePaid || (!isDepositFlow && b.status!=='hold'); // walk-in full is paid at the till
+  var paid = free?0:(fullyPaid?price:(b.depositPaid?dep:0));
+  var due  = fullyPaid?0:Math.max(0,price-paid);
+  return {price:price,free:free,dep:dep,paid:paid,due:due,depositPaid:!!b.depositPaid,fullyPaid:fullyPaid,isDepositFlow:isDepositFlow};
+}
+// The one-line status reception reads — always says exactly what's paid and what's due.
+function _clinPayLine(b){
+  var esc=(typeof _escHtml==='function')?_escHtml:function(x){return x;};
+  var ci=b.checkedIn?' · <b style="color:#10b981;">checked in ✓</b>':'';
+  if(b.partner) return '<span class="clin-bk-pay">HUMAN+ · pay at partner'+(b.discCode?'':'')+ci+'</span>';
+  var p=_clinPay(b), f=function(n){return 'IDR '+Math.round(n).toLocaleString('id-ID');};
+  if(p.free)      return '<span class="clin-bk-pay">FREE'+(b.discCode?' ('+esc(b.discCode)+')':'')+' · nothing to collect'+ci+'</span>';
+  if(p.fullyPaid) return '<span class="clin-bk-pay">PAID IN FULL · '+f(p.price)+ci+'</span>';
+  if(p.depositPaid) return '<span class="clin-bk-pay due">Deposit '+f(p.paid)+' paid · '+f(p.due)+' DUE at checkout'+ci+'</span>';
+  return '<span class="clin-bk-pay due">UNPAID · '+f(p.due)+' due'+ci+'</span>';
+}
+// Check out — collect whatever is still owed (remaining balance, or full if nothing paid). Marks paid in full.
+function clinCheckOut(id){
+  try{
+    var dk=clinKey(); var day=recoveryData&&recoveryData[dk]; if(!day||!day.bookings) return;
+    var b=day.bookings.find(function(x){return x.id===id;}); if(!b) return;
+    if(b.partner){ if(typeof clinNotify==='function') clinNotify('HUMAN+ collects payment for IV/Blood — nothing to take here.'); return; }
+    var p=_clinPay(b);
+    if(p.free){ if(typeof clinNotify==='function') clinNotify('This booking is free — nothing to collect.'); return; }
+    if(p.fullyPaid){ if(typeof clinNotify==='function') clinNotify('Already paid in full.'); return; }
+    if(!confirm('Check out '+(b.client||'this client')+' — collect '+('IDR '+Math.round(p.due).toLocaleString('id-ID'))+(p.depositPaid?' (remaining balance)':' (full payment)')+'?')) return;
+    b.balancePaid=true; b.depositPaid=true; b.checkedIn=true;
+    day.revenue=(day.revenue||0)+p.due;
+    // the collected cash is its OWN ledger entry dated TODAY (cash-basis), so the daily takings match. Booking's
+    // own record isn't duplicated (rebuild dedupes by booking id).
+    if(typeof ledgerWrite==='function') ledgerWrite('recovery', b.id+'_bal', (typeof todayKey==='function'?todayKey():dk), p.due, 0, b.payMethod||'card', b, b.status||'confirmed');
+    if(typeof saveAll==='function') saveAll();
+    if(typeof syncSalesIncome==='function') syncSalesIncome();
+    if(typeof clinNotify==='function') clinNotify('Checked out · IDR '+Math.round(p.due).toLocaleString('id-ID')+' collected — paid in full ✓');
+    renderClinicalBooking(); renderClinicalOrder(); buildClinRoomGrid();
+  }catch(e){ console.warn('clinCheckOut',e); }
+}
+window.clinCheckOut=clinCheckOut;
 function clinCollectBalance(id){
   try{
     var dk=clinKey(); var day=recoveryData&&recoveryData[dk]; if(!day||!day.bookings) return;
@@ -10997,6 +11076,7 @@ function clinEditBooking(id){
   try{
     var dk=clinKey(); var day=recoveryData&&recoveryData[dk]; if(!day||!day.bookings) return;
     var b=day.bookings.find(function(x){return x.id===id;}); if(!b) return;
+    try{ window._clinEditOrig=JSON.parse(JSON.stringify(b)); }catch(e){ window._clinEditOrig=null; }  // keep original payment/financials for the move
     clinEditingId=id; clinEditingDate=dk; clinDone=false; clinDoneHold=false;
     clinType=b.clinical?'clinical':'recovery';
     var list=(clinType==='clinical'?CLINICAL_SERVICES:(typeof SERVICES!=='undefined'?SERVICES:[]));
