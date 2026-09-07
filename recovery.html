@@ -1075,11 +1075,11 @@ function _bkPreloadRoster(){
 }
 // A day is open iff someone nominated to run this pathway is rostered that day (with a free chair/room). No hard-coded hours.
 function _bkDayOpen(pathway,dateStr){
-  if(!_bkRosterCache)return true; // roster not loaded yet — allow the day; the times step still filters, and we re-render when it loads
+  if(!_bkRosterCache)return false; // FAIL CLOSED: no roster loaded = not bookable (calendar re-renders when it loads)
   try{
     var rooms=(_bkRfCache&&_bkRfCache.ROOMS)||[];
     return _bkGetAvailSlots(_bkRosterCache,dateStr,(pathway==='COMPRESSION'?20:30),pathway,rooms).length>0;
-  }catch(e){return true;}
+  }catch(e){return false;}
 }
 function _bkIsBreak(c){return typeof c==='string'&&c.startsWith('Break:');}
 function _bkStaffId(c){return c?(_bkIsBreak(c)?c.slice(6):c):null;}
@@ -1341,7 +1341,28 @@ function submitBk(){
   var _pr=bkState.promo, _ppct=_pr?parseFloat(_pr.pct):0;
   if(_ppct){ _pn=Math.max(0,Math.round(_pn*(1-_ppct/100))); }   // apply customer promo to the price
   var rec={ref:rnd,pathway:bkState.pathway,duration:bkState.duration,price:bkState.price,priceNum:_pn,deposit:Math.round(_pn/2),discPct:_ppct,discCode:(_pr?(_pr.code||''):''),discReason:(_pr?(_pr.reason||''):''),pressure:bkState.pressure,date:bkState.date,time:bkState.time,therapist:bkState.therapist||null,name:bkState.name.trim(),phone:bkState.phone.trim(),status:'tentative',paymentStatus:'unpaid',submittedAt:firebase.firestore.FieldValue.serverTimestamp()};
-  bkAuth().then(function(db){ return db.collection('public_bookings').add(rec); }).then(function(){showBkConfirm(rnd,rec);}).catch(function(e){
+  bkAuth().then(function(db){
+    // ROSTER LOCK: re-check availability against a FRESH roster right before writing, so a stale page, a cache
+    // race, or a mid-session roster change can NEVER book a slot with no one rostered. This is the hard lock.
+    return Promise.all([db.collection('distrik_state').doc('distrik_v1').get(),db.collection('distrik_state').doc('distrik_rf').get()]).then(function(rs){
+      var _ro={},_rf={};
+      try{_ro=rs[0].exists?JSON.parse(rs[0].data().value||'{}'):{};}catch(e){}
+      try{_rf=rs[1].exists?JSON.parse(rs[1].data().value||'{}'):{};}catch(e){}
+      _bkRosterCache=_ro;_bkRfCache=_rf;
+      var _rooms=(_rf&&_rf.ROOMS)||[];
+      var _slots=[]; try{_slots=_bkGetAvailSlots(_ro,bkState.date,bkState.duration||60,bkState.pathway,_rooms)||[];}catch(e){_slots=[];}
+      var _m=_slots.filter(function(sl){return sl.time===bkState.time;});
+      var _ok=_m.length>0 && (!bkState.therapist || _m.some(function(sl){return (sl.therapists||[]).indexOf(bkState.therapist)>-1;}));
+      if(!_ok){
+        if(btn){btn.disabled=false;btn.textContent='confirm →';}
+        alert('Sorry — that time is no longer available (no therapist is rostered for it). Please choose another time.');
+        try{renderBkTimes();}catch(e){}
+        throw new Error('roster_unavailable');
+      }
+      return db.collection('public_bookings').add(rec);
+    });
+  }).then(function(){showBkConfirm(rnd,rec);}).catch(function(e){
+    if(e&&e.message==='roster_unavailable') return;
     if(btn){btn.disabled=false;btn.textContent='confirm →';}
     alert('Booking error: '+e.message+'\n\nPlease WhatsApp us directly: +62 819 9480 1516');
   });
