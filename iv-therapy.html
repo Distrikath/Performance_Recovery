@@ -712,6 +712,10 @@ function bkRenderCal(){
 function bkCalPrev(){_calState.month--;if(_calState.month<0){_calState.month=11;_calState.year--;}bkRenderCal();}
 function bkCalNext(){_calState.month++;if(_calState.month>11){_calState.month=0;_calState.year++;}bkRenderCal();}
 var IV_CAPACITY=4; // number of IV therapy chairs
+var CHAIR_CAPACITY=2; // Compression + IV + Blood SHARE the 2 recovery chairs
+function _bkTimeToMin(str){var m=String(str||'').match(/(\d{1,2}):?(\d{2})?\s*(am|pm)?/i);if(!m)return null;var hh=parseInt(m[1]);var mm=m[2]?parseInt(m[2]):0;var ap=(m[3]||'').toLowerCase();if(ap==='pm'&&hh!==12)hh+=12;if(ap==='am'&&hh===12)hh=0;return hh*60+mm;}
+function _bkChairWindows(snap){var w=[];snap.forEach(function(doc){var d=doc.data()||{};var st=(d.status||'').toLowerCase();if(st==='cancelled'||st==='declined')return;var isChair=(String(d.pathway||'').toUpperCase()==='COMPRESSION')||d.type==='iv_therapy'||d.type==='blood_work';if(!isChair)return;var s=_bkTimeToMin(d.time);if(s==null)return;var dur=parseInt(d.duration)||(d.type==='iv_therapy'?60:(d.type==='blood_work'?20:30));w.push({s:s,e:s+dur+15});});return w;} // +15 min buffer
+function _bkChairsBusyAt(wins,s,dur){if(!wins||!wins.length)return 0;var e=s+dur;var n=0;wins.forEach(function(w){if(s<w.e&&e>w.s)n++;});return n;}
 
 // Read which 30-min slot indices have a therapist working in `zone` on `dateStr`
 // Returns an object keyed by slot index, or null if no roster data (fallback: show all)
@@ -780,14 +784,8 @@ function bkPickDay(ds){
   try{
     bkAuth().then(function(db){ return db.collection('public_bookings').where('date','==',ds).get(); })
       .then(function(snap){
-        var counts={};
-        snap.forEach(function(doc){
-          var d=doc.data();
-          if(d.type==='iv_therapy'&&d.status!=='cancelled'&&d.time)
-            counts[d.time]=(counts[d.time]||0)+1;
-        });
-        renderTimes(counts,worked);
-      }).catch(function(){ renderTimes({},worked); });
+        renderTimes(_bkChairWindows(snap),worked);   // all chair bookings (Compression/IV/Blood) share the 2 chairs
+      }).catch(function(){ renderTimes([],worked); });
   }catch(e){ renderTimes({},worked); }
   updateBkNext();updateBkSum();
 }
@@ -801,8 +799,7 @@ function renderTimes(counts,worked){
   IV_SLOTS.forEach(function(t){
     if(!slotRostered(t,worked)) return; // no therapist rostered at this hour
     if(!bkIVSlotOk(t)) return;          // under 24h notice — not bookable
-    var booked=(counts&&counts[t])||0;
-    var full=booked>=IV_CAPACITY;
+    var full=_bkChairsBusyAt(counts,_bkTimeToMin(t),60)>=CHAIR_CAPACITY; // 60-min IV vs the shared 2 chairs
     var btn=document.createElement('button');
     btn.className='bk-time-btn'+(full?' sel':'');
     btn.textContent=full?t+' · full':t;

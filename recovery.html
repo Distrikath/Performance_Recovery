@@ -1092,17 +1092,20 @@ function _bkStaffId(c){return c?(_bkIsBreak(c)?c.slice(6):c):null;}
 var _bkBusyByDate={};
 function _bkTimeToMin(str){var m=String(str||'').match(/(\d{1,2}):?(\d{2})?\s*(am|pm)?/i);if(!m)return null;var hh=parseInt(m[1]);var mm=m[2]?parseInt(m[2]):0;var ap=(m[3]||'').toLowerCase();if(ap==='pm'&&hh!==12)hh+=12;if(ap==='am'&&hh===12)hh=0;return hh*60+mm;}
 function _bkTherBusy(tid,s,dur,dateStr){var b=(_bkBusyByDate[dateStr]||{})[tid];if(!b)return false;var e=s+dur;return b.some(function(w){return s<w.e&&e>w.s;});}
+var _bkChairByDate={};var CHAIR_CAPACITY=2; // Compression + IV + Blood SHARE the 2 recovery chairs
+function _bkChairsBusyAt(wins,s,dur){if(!wins||!wins.length)return 0;var e=s+dur;var n=0;wins.forEach(function(w){if(s<w.e&&e>w.s)n++;});return n;}
 function _bkLoadBusy(dateStr){
   return bkAuth().then(function(db){
     return Promise.all([
       db.collection('public_bookings').where('date','==',dateStr).get().catch(function(){return null;}),
       db.collection('ledger').where('kind','==','recovery').get().catch(function(){return null;})
     ]).then(function(res){
-      var map={};
+      var map={},chairs=[];
       function add(t,s,d){ if(t==null||s==null)return; d=d||30; (map[t]=map[t]||[]).push({s:s,e:s+d+15}); } // +15 min buffer
-      if(res[0])res[0].forEach(function(doc){var r=doc.data()||{};var st=(r.status||'').toLowerCase();if(st==='declined'||st==='cancelled')return;add(r.therapist,_bkTimeToMin(r.time),parseInt(r.duration)||30);});
+      function addChair(s,d){ if(s==null)return; d=d||30; chairs.push({s:s,e:s+d+15}); }
+      if(res[0])res[0].forEach(function(doc){var r=doc.data()||{};var st=(r.status||'').toLowerCase();if(st==='declined'||st==='cancelled')return;add(r.therapist,_bkTimeToMin(r.time),parseInt(r.duration)||30);if((String(r.pathway||'').toUpperCase()==='COMPRESSION')||r.type==='iv_therapy'||r.type==='blood_work')addChair(_bkTimeToMin(r.time),parseInt(r.duration)||(r.type==='iv_therapy'?60:(r.type==='blood_work'?20:30)));});
       if(res[1])res[1].forEach(function(doc){var d=doc.data()||{};var det={};try{det=d.detail?JSON.parse(d.detail):{};}catch(e){}if((det.date||d.bizDate)!==dateStr)return;if((det.status||d.status)==='cancelled')return;add(det.therapist,_bkTimeToMin(det.start||det.time),parseInt(det.duration)||30);});
-      _bkBusyByDate[dateStr]=map;return map;
+      _bkBusyByDate[dateStr]=map;_bkChairByDate[dateStr]=chairs;return map;
     });
   }).catch(function(){_bkBusyByDate[dateStr]=_bkBusyByDate[dateStr]||{};return _bkBusyByDate[dateStr];});
 }
@@ -1222,7 +1225,7 @@ function _bkGetAvailSlots(rData,dateStr,durMins,pathway,rooms){
       var h=SLOT_START+si*0.5,h12=Math.floor(h)%12||12,mn=h%1?30:0,ap=Math.floor(h)>=12?'pm':'am';
       var lbl=h12+(mn?':30':':00')+ap;
       var avail=checkRows(fohRows,FOH,si,durSlots).filter(function(tid){return !_bkTherBusy(tid,(SLOT_START+si*0.5)*60,durMins,dateStr);});
-      if(avail.length>0)slots.push({time:lbl,therapists:avail});
+      if(avail.length>0 && _bkChairsBusyAt(_bkChairByDate[dateStr],(SLOT_START+si*0.5)*60,durMins)<CHAIR_CAPACITY) slots.push({time:lbl,therapists:avail});
     }
   } else {
     var therapyRows=zoneRows('Therapy');
