@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814038;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814039;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -1342,7 +1342,7 @@ h1,
 .svc-grid-hdr{display:grid;grid-template-columns:3fr 60px 60px 95px 60px 110px 120px 28px;gap:6px;padding:8px 16px;background:#fafafa;border-bottom:1px solid #e8e8e8;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:#777;}
 .svc-row{display:grid;grid-template-columns:3fr 60px 60px 95px 60px 110px 120px 28px;gap:6px;padding:8px 16px;border-bottom:1px solid #f5f5f5;align-items:start;}
 
-.menu-opt-row{display:grid;grid-template-columns:1.5fr 80px 80px 80px 28px;gap:6px;align-items:center;padding:5px 16px;border-bottom:1px solid #f5f5f5;}
+.menu-opt-row{display:grid;grid-template-columns:20px 1.5fr 80px 80px 80px 28px;gap:6px;align-items:center;padding:5px 16px;border-bottom:1px solid #f5f5f5;}
 /* ════════ DISTRIK RE-SKIN · HOME / INDEX (scoped) ════════ */
 #homeScreen{background:#0a0a0b !important;color:#f4f4f5;min-height:100vh;padding:0 !important;}
 #homeScreen .home-hdr{display:grid !important;grid-template-columns:1fr auto;align-items:start;gap:32px;max-width:1180px;margin:0 auto;padding:46px 32px 24px;border-bottom:1px solid #232327 !important;background:#0a0a0b !important;}
@@ -6889,11 +6889,12 @@ function buildMenuMgr(){
     sections.forEach(sec=>{
       html+=`<div style="margin-bottom:16px;">
         <div style="font-family:'Space Mono',monospace;font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:#777;padding:8px 16px;background:#fafafa;border-bottom:1px solid #f0f0f0;">${sec.label}</div>
-        <div style="display:grid;grid-template-columns:1.5fr 80px 80px 80px 28px;gap:6px;padding:5px 16px;font-family:'Space Mono',monospace;font-size:8.5px;letter-spacing:1.5px;text-transform:uppercase;color:#BFC2C7;border-bottom:1px solid #f5f5f5;">
-          <div>Name</div><div>RRP</div><div>Cost</div><div>Price</div><div></div>
+        <div style="display:grid;grid-template-columns:20px 1.5fr 80px 80px 80px 28px;gap:6px;padding:5px 16px;font-family:'Space Mono',monospace;font-size:8.5px;letter-spacing:1.5px;text-transform:uppercase;color:#BFC2C7;border-bottom:1px solid #f5f5f5;">
+          <div></div><div>Name</div><div>RRP</div><div>Cost</div><div>Price</div><div></div>
         </div>`;
       MENU_OPTS[sec.key].forEach((opt,i)=>{
-        html+=`<div class="menu-opt-row">
+        html+=`<div class="menu-opt-row" ondragover="event.preventDefault()" ondrop="optDrop('${sec.key}',${i})">
+          <span draggable="true" ondragstart="optDragStart('${sec.key}',${i})" title="Drag to reorder" style="cursor:grab;color:#c0c0c0;font-size:15px;text-align:center;user-select:none;line-height:1;">⠿</span>
           <input class="svc-input" id="opt_${sec.key}_name_${i}" value="${opt.name}" placeholder="Name">
           <input class="svc-input" id="opt_${sec.key}_rrp_${i}"   type="number" value="${opt.rrp||0}"   placeholder="RRP">
           <input class="svc-input" id="opt_${sec.key}_cost_${i}"  type="number" value="${opt.cost||0}"  placeholder="Cost">
@@ -6942,6 +6943,12 @@ var menuDragSrc=null;
 function menuDragStart(i){ _menuFlushAll(); menuDragSrc=i; }
 function menuDrop(i){ if(menuDragSrc===null||menuDragSrc===i){ menuDragSrc=null; return; } var m=MENU_ITEMS.splice(menuDragSrc,1)[0]; MENU_ITEMS.splice(i,0,m); menuDragSrc=null; saveMenuToStorage(); buildMenuMgr(); }
 window.menuDragStart=menuDragStart; window.menuDrop=menuDrop;
+// Drag-to-reorder within a modifier section (sizes / milks / add-ons / extras). Only reorders inside the SAME
+// section (dragging across sections does nothing). Flush edits first so nothing typed is lost, then save (syncs to the till).
+var optDragSrc={key:null,i:null};
+function optDragStart(key,i){ _menuFlushAll(); optDragSrc={key:key,i:i}; }
+function optDrop(key,i){ if(optDragSrc.key!==key||optDragSrc.i===null||optDragSrc.i===i){ optDragSrc={key:null,i:null}; return; } var arr=MENU_OPTS[key]; if(!arr) return; var m=arr.splice(optDragSrc.i,1)[0]; arr.splice(i,0,m); optDragSrc={key:null,i:null}; saveMenuToStorage(); buildMenuMgr(); }
+window.optDragStart=optDragStart; window.optDrop=optDrop;
 function addOpt(key){ _menuFlushAll(); MENU_OPTS[key].push({id:'o'+Date.now(),name:'',rrp:0,cost:0,price:0}); buildMenuMgr(); _menuScrollBottom(); }
 function delOpt(key,i){ _menuFlushAll(); MENU_OPTS[key].splice(i,1); buildMenuMgr(); }
 function saveMenuMgr(){
