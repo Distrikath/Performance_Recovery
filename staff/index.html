@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814040;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814041;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -791,9 +791,10 @@ body.light-panel .home-screen,
 .cust-options{display:flex;flex-direction:column;gap:5px;}
 .cust-opt{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border:1px solid #e8e8e8;border-radius:2px;cursor:pointer;transition:all .15s;font-family:'Space Mono',monospace;font-size:10.5px;}
 .cust-opt:hover{border-color:#0A0A0A;}
-.cust-opt.selected{background:#0A0A0A;border-color:#0A0A0A;color:#333;}
+.cust-opt.selected{background:#F5F5F5;border-color:#0A0A0A;color:#0A0A0A;}
 .cust-opt.multi-opt{cursor:pointer;}
 .cust-opt.multi-opt.selected{background:#F5F5F5;border-color:#0A0A0A;color:#0A0A0A;}
+.cust-opt.selected .cust-opt-name,.cust-opt.selected .cust-opt-price,.cust-opt.selected span,.cust-opt.selected label,.cust-opt.selected div{color:#0A0A0A!important;}
 .cust-opt-name{color:inherit;}
 .cust-opt-price{font-size:9.5px;opacity:0.7;}
 .cust-footer{padding:14px 16px;border-top:1px solid #f0f0f0;margin-top:auto;flex-shrink:0;background:#fff;}
@@ -6569,7 +6570,7 @@ var posPayMethod = 'card';
 var posActiveCat = 'coffee';
 var posSelectedItem = null;
 var custQtyVal = 1;
-var custSelections = {size:'reg', milk:'full', addons:[], extras:[]};
+var custSelections = {size:null, milk:null, addons:[], extras:[]};  // null = nothing pre-selected (defaults to base Regular/Full Cream in price)
 
 // Items that need milk options
 var MILK_ITEMS = ['m3','m4','m5','m7'];
@@ -6628,7 +6629,7 @@ function selectPOSItem(id){
   posSelectedItem=MENU_ITEMS.find(i=>i.id===id);
   if(!posSelectedItem) return;
   custQtyVal=1;
-  custSelections={size:'reg',milk:'full',addons:[],extras:[]};
+  custSelections={size:null,milk:null,addons:[],extras:[]};
   buildPosCust();
   buildPosItems(); // refresh selected state
   document.getElementById('pos-customiser').style.display='flex';
