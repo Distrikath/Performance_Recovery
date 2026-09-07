@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814041;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814042;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -2410,6 +2410,7 @@ h1,
       </div>
       <div class="receipt-totals">
         <div class="receipt-row"><span>Total</span><span id="r-subtotal">IDR 0</span></div>
+        <div class="receipt-row" id="r-disc-row" style="display:none;"><span id="r-disc-label" style="color:#FF2D2D;">Discount</span><span id="r-disc" style="color:#FF2D2D;">IDR 0</span></div>
         <div class="receipt-row"><span id="r-service-label">Service Charge 7%</span><span id="r-service-tax">IDR 0</span></div>
         <div class="receipt-row"><span id="r-pbjt-label">PB1 10%</span><span id="r-tax">IDR 0</span></div>
         <div class="receipt-row receipt-total"><span>Grand Total</span><span id="r-total">IDR 0</span></div>
@@ -2483,6 +2484,7 @@ h1,
           <div class="receipt-items" id="sup-receipt-items"><div class="receipt-empty">No items yet</div></div>
           <div class="receipt-totals">
             <div class="receipt-row"><span>Subtotal</span><span id="sup-subtotal">IDR 0</span></div>
+            <div class="receipt-row" id="sup-disc-row" style="display:none;"><span id="sup-disc-label" style="color:#FF2D2D;">Discount</span><span id="sup-disc" style="color:#FF2D2D;">IDR 0</span></div>
             <div class="receipt-row"><span>Tax</span><span id="sup-tax">IDR 0</span></div>
             <div class="receipt-row receipt-total"><span>Total</span><span id="sup-total">IDR 0</span></div>
           </div>
@@ -6772,15 +6774,23 @@ function updateReceipt(){
       </div>`).join('');
     document.getElementById('pos-pay-btn').disabled=false;
   }
-  // Totals
-  const subtotal=cart.reduce((s,c)=>s+c.linePrice*c.qty,0);
-  const serviceTax=Math.round(subtotal*TAX_CFG.cafeService); // 7% service charge (gratuity)
-  const tax=Math.round((subtotal+serviceTax)*TAX_CFG.cafePBJT); // 10% PBJT on subtotal+service charge
-  const total=subtotal+serviceTax+tax;
-  const fmt=n=>'IDR '+n.toLocaleString('id-ID');
+  // Totals — mirror processSale exactly: discount comes off BEFORE tax, then service charge + PB1 recalc on the net.
+  const fmt=n=>'IDR '+Math.round(n).toLocaleString('id-ID');
   const s=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
   const lbl=(id,t)=>{const e=document.getElementById(id);if(e)e.textContent=t;};
-  s('r-subtotal',   fmt(subtotal));
+  const gross=cart.reduce((sm,c)=>sm+c.linePrice*c.qty,0);
+  const _eff=window._fuelCode||(typeof activeDiscount==='function'?activeDiscount('fuel'):null);
+  const discPct=_eff?parseFloat(_eff.pct):0; const discItem=_eff?(_eff.item||''):'';
+  let discAmt=0;
+  if(discPct){ if(discItem){ const _ln=cart.filter(c=>c.item&&c.item.id===discItem).reduce((sm,c)=>sm+c.linePrice*c.qty,0); discAmt=Math.round(_ln*discPct/100); } else { discAmt=Math.round(gross*discPct/100); } }
+  const subtotal=gross-discAmt;                                    // net = discount off before tax
+  const serviceTax=Math.round(subtotal*TAX_CFG.cafeService);       // 7% service charge on the NET
+  const tax=Math.round((subtotal+serviceTax)*TAX_CFG.cafePBJT);    // 10% PB1 on net + service
+  const total=subtotal+serviceTax+tax;
+  s('r-subtotal',   fmt(gross));
+  const discRow=document.getElementById('r-disc-row');
+  if(discAmt>0){ if(discRow)discRow.style.display=''; lbl('r-disc-label','Discount '+parseFloat(discPct.toFixed(2))+'%'+(_eff&&_eff.reason?' · '+_eff.reason:'')); s('r-disc','− '+fmt(discAmt)); }
+  else { if(discRow)discRow.style.display='none'; }
   lbl('r-service-label','Service Charge '+parseFloat((TAX_CFG.cafeService*100).toFixed(4))+'%');
   lbl('r-pbjt-label','PB1 '+parseFloat((TAX_CFG.cafePBJT*100).toFixed(4))+'%');
   s('r-service-tax',fmt(serviceTax));
@@ -7779,12 +7789,22 @@ function supUpdateReceipt(){
       </div>`).join('');
     const btn = document.getElementById('sup-pay-btn'); if(btn) btn.disabled=false;
   }
-  const subtotal = supCart.reduce((s,c)=>s+c.price,0);
-  const tax      = supCart.reduce((s,c)=>s+c.tax,0);
-  const total    = subtotal+tax;
-  const fmt = n=>'IDR '+n.toLocaleString('id-ID');
+  const fmt = n=>'IDR '+Math.round(n).toLocaleString('id-ID');
   const s=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  const lbl=(id,t)=>{const e=document.getElementById(id);if(e)e.textContent=t;};
+  const subtotal = supCart.reduce((s,c)=>s+c.price,0);            // ex-tax
+  const grossTax = supCart.reduce((s,c)=>s+c.tax,0);              // full tax before any discount
+  const _eff=window._supCode||(typeof activeDiscount==='function'?activeDiscount('supply'):null);
+  const discPct=_eff?parseFloat(_eff.pct):0; const discItem=_eff?(_eff.item||''):'';
+  let discAmt=0;
+  if(discPct){ if(discItem){ const _ln=supCart.filter(c=>c.item&&c.item.id===discItem).reduce((s,c)=>s+c.price,0); discAmt=Math.round(_ln*discPct/100); } else { discAmt=Math.round(subtotal*discPct/100); } }
+  const net = subtotal-discAmt;                                    // discount off BEFORE tax
+  const tax = subtotal>0?Math.round(grossTax*net/subtotal):0;      // tax recalculated on the discounted amount
+  const total = net+tax;
   s('sup-subtotal', fmt(subtotal));
+  const dr=document.getElementById('sup-disc-row');
+  if(discAmt>0){ if(dr)dr.style.display=''; lbl('sup-disc-label','Discount '+parseFloat(discPct.toFixed(2))+'%'+(_eff&&_eff.reason?' · '+_eff.reason:'')); s('sup-disc','− '+fmt(discAmt)); }
+  else { if(dr)dr.style.display='none'; }
   s('sup-tax',      fmt(tax));
   s('sup-total',    fmt(total));
 }
@@ -7800,12 +7820,16 @@ function supSetPay(m){
 function supProcessSale(){
   if(supCart.length===0) return;
   const dateKey = todayKey();
-  const gross = supCart.reduce((s,c)=>s+c.total,0);
+  const _subEx = supCart.reduce((s,c)=>s+c.price,0);              // ex-tax subtotal
+  const _grossTax = supCart.reduce((s,c)=>s+(c.tax||0),0);        // full tax before discount
+  const gross = _subEx+_grossTax;
   const _code=window._supCode||null; const _eff=_code||activeDiscount('supply'); // applied code overrides the auto promo
   const discPct=_eff?parseFloat(_eff.pct):0; const discReason=_eff?(_eff.reason||_eff.code||''):''; const discCode=_code?(_code.code||''):''; const discItem=_code?(_code.item||''):'';
   let discAmt=0;
-  if(discPct){ if(discItem){ let _ln=supCart.filter(c=>c.item&&c.item.id===discItem).reduce((s,c)=>s+c.total,0); discAmt=Math.round(_ln*discPct/100); } else { discAmt=Math.round(gross*discPct/100); } }
-  const total = gross-discAmt;                                    // promo discount comes off the sale price
+  if(discPct){ if(discItem){ let _ln=supCart.filter(c=>c.item&&c.item.id===discItem).reduce((s,c)=>s+c.price,0); discAmt=Math.round(_ln*discPct/100); } else { discAmt=Math.round(_subEx*discPct/100); } }
+  const _net = _subEx-discAmt;                                    // discount comes off BEFORE tax
+  const _taxTotal = _subEx>0?Math.round(_grossTax*_net/_subEx):0; // tax recalculated on the discounted amount
+  const total = _net+_taxTotal;
   const _supRows = []; // capture the exact SUPPLY_SALES line items for a complete ledger record
 
   supCart.forEach(c=>{
@@ -7838,7 +7862,7 @@ function supProcessSale(){
   };
   supplyData[dateKey].orders.push(_sord);
   supplyData[dateKey].revenue = (supplyData[dateKey].orders||[]).reduce((s,o)=>s+o.total,0);
-  if(typeof ledgerWrite==='function') ledgerWrite('supply', _sord.id, dateKey, total, supCart.reduce((s,c)=>s+(c.tax||0),0), supPosPayMethod, {order:_sord, rows:_supRows}, 'completed');
+  if(typeof ledgerWrite==='function') ledgerWrite('supply', _sord.id, dateKey, total, _taxTotal, supPosPayMethod, {order:_sord, rows:_supRows}, 'completed');
 
   saveSupplyToStorage();
   const conf = document.getElementById('sup-confirm');
@@ -12857,11 +12881,12 @@ window.injectWaCapture = function(confirmId, sale){
   // SUPPLY — confirm before recording the retail sale
   window.paySupply=function(){
     if(typeof supCart==='undefined'||!supCart.length) return;
-    var gross=supCart.reduce(function(s,c){return s+c.total;},0);
+    var subEx=supCart.reduce(function(s,c){return s+c.price;},0);
+    var grossTax=supCart.reduce(function(s,c){return s+(c.tax||0);},0);
     var _code=window._supCode||null; var _eff=_code||((typeof activeDiscount==='function')?activeDiscount('supply'):null);
     var dp=_eff?parseFloat(_eff.pct):0; var di=_code?(_code.item||''):'';
-    var da=0; if(dp){ if(di){ var ln=supCart.filter(function(c){return c.item&&c.item.id===di;}).reduce(function(s,c){return s+c.total;},0); da=Math.round(ln*dp/100); } else { da=Math.round(gross*dp/100); } }
-    var total=gross-da;
+    var da=0; if(dp){ if(di){ var ln=supCart.filter(function(c){return c.item&&c.item.id===di;}).reduce(function(s,c){return s+c.price;},0); da=Math.round(ln*dp/100); } else { da=Math.round(subEx*dp/100); } }
+    var net=subEx-da; var tax=subEx>0?Math.round(grossTax*net/subEx):0; var total=net+tax;
     payConfirm(da?('Confirm Supply sale — '+dp+'% OFF'):'Confirm Supply sale','IDR '+total.toLocaleString('id-ID'), supPosPayMethod, supProcessSale);
   };
   // RECOVERY — confirm before taking deposit / confirming the booking
