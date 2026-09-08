@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814051;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814052;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -10317,6 +10317,7 @@ function renderTodayBookings(){
       +((b.checkedIn && b.status!=='cancelled')?'<button class="clin-bk-act" onclick="clinUndoCheckIn(\''+id+'\')" title="Undo an accidental check-in">Undo check-in</button>':'')
       +(_needsPay?'<button class="clin-bk-act go" onclick="clinCheckOut(\''+id+'\')">Check out · IDR '+Math.round(_pinf.due).toLocaleString('id-ID')+'</button>':'')
       +'<button class="clin-bk-act" onclick="clinEditBooking(\''+id+'\')">Edit / move</button>'
+      +'<button class="clin-bk-act" onclick="clinRebookFromId(\''+id+'\')" title="Start a new booking pre-filled with this client\'s name, WhatsApp, treatment &amp; pressure">↻ Rebook</button>'
       +'<button class="clin-bk-act danger" onclick="clinCancelBooking(\''+id+'\')">Cancel</button>'
       +(_canDelBk?'<button class="clin-bk-act danger" onclick="clinDeleteBooking(\''+id+'\')" title="Remove permanently — will not come back">Delete</button>':'')
       +'</div>';
@@ -10864,6 +10865,11 @@ function renderClinicalBooking(){
   var nameLbl=clinType==='clinical'?'Patient name':'Client name';
   var emailNote=clinType==='clinical'?'intake form &amp; confirmation sent here':'confirmation sent here';
   var contactBlock=''
+    +'<div class="clin-field" style="position:relative;"><label>Returning client? <span style="text-transform:none;color:#9a9a9e">· search to auto-fill</span></label>'
+      +'<input type="text" id="clin-rebook" placeholder="🔎 Search a saved name or WhatsApp" autocomplete="off" oninput="clinRebookSearch(this.value)" onfocus="clinRebookSearch(this.value)">'
+      +'<div id="clin-rebook-results" style="display:none;position:absolute;left:0;right:0;top:100%;z-index:40;background:#fff;border:1px solid #e0e0e0;border-top:none;max-height:240px;overflow-y:auto;box-shadow:0 10px 26px rgba(0,0,0,.14);"></div>'
+      +'<div id="clin-rebook-note" style="font-family:\'Space Mono\',monospace;font-size:10px;color:#1a9e54;margin-top:6px;min-height:12px;"></div>'
+    +'</div>'
     +'<div class="clin-field"><label>'+nameLbl+'</label><input type="text" id="clin-patient" placeholder="Full name"></div>'
     +'<div class="clin-field"><label>Email <span style="text-transform:none;color:#9a9a9e">· '+emailNote+'</span></label><input type="email" id="clin-email" placeholder="name@email.com"></div>'
     +'<div class="clin-field"><label>WhatsApp <span style="text-transform:none;color:#9a9a9e">· reminders &amp; updates</span></label><input type="tel" id="clin-whatsapp" placeholder="+62 8xx xxxx xxxx"></div>';
@@ -11025,6 +11031,83 @@ window.clinSetPay=clinSetPay;
 function clinSetPressure(p){ clinPressure=p; renderClinicalBooking(); renderClinicalOrder(); }
 function clinSetPayType(t){ clinPayType=t; renderClinicalBooking(); renderClinicalOrder(); }
 window.clinSetPressure=clinSetPressure; window.clinSetPayType=clinSetPayType;
+
+// ── REBOOK: search saved clients and auto-fill their details (no re-asking the same questions) ──
+function clinRebookSearch(q){
+  var box=document.getElementById('clin-rebook-results'); if(!box) return;
+  q=(q||'').trim().toLowerCase();
+  if(q.length<2){ box.style.display='none'; box.innerHTML=''; return; }
+  var all=(typeof CLIENTS==='object'&&CLIENTS)?CLIENTS:{};
+  var digits=q.replace(/[^0-9]/g,'');
+  var matches=Object.keys(all).map(function(k){return all[k];}).filter(function(c){
+    if(!c) return false;
+    var nm=(c.name||'').toLowerCase(); var wa=String(c.whatsapp||c.id||'');
+    return (nm.indexOf(q)>-1) || (digits.length>=3 && wa.indexOf(digits)>-1);
+  }).sort(function(a,b){ return (a.name||'').localeCompare(b.name||''); }).slice(0,8);
+  if(!matches.length){ box.style.display='block'; box.innerHTML='<div style="padding:10px 12px;font-family:\'Space Mono\',monospace;font-size:11px;color:#9a9a9e;">No saved client — new customer, just fill the fields below.</div>'; return; }
+  box.innerHTML=matches.map(function(c){
+    var wa=(typeof waDisplay==='function')?waDisplay(c.whatsapp||c.id):('+'+(c.whatsapp||c.id));
+    var src=(c.sources&&c.sources.length)?c.sources.join(' · '):'';
+    return '<div onclick="clinRebookPick(\''+_escHtml(c.id||c.whatsapp)+'\')" style="padding:9px 12px;border-bottom:1px solid #f0f0f0;cursor:pointer;" onmouseover="this.style.background=\'#f5f5f5\'" onmouseout="this.style.background=\'#fff\'">'
+      +'<div style="font-family:\'Archivo\',sans-serif;font-weight:700;font-size:13px;color:#0A0A0A;">'+_escHtml(c.name||'Unnamed')+'</div>'
+      +'<div style="font-family:\'Space Mono\',monospace;font-size:10px;color:#9a9a9e;">'+_escHtml(wa)+(src?' · '+_escHtml(src):'')+'</div>'
+    +'</div>';
+  }).join('');
+  box.style.display='block';
+}
+function clinRebookPick(wa){
+  var all=(typeof CLIENTS==='object'&&CLIENTS)?CLIENTS:{}; var c=all[wa]||null;
+  var box=document.getElementById('clin-rebook-results'); if(box){box.style.display='none';box.innerHTML='';}
+  var note=document.getElementById('clin-rebook-note');
+  if(!c){ if(note) note.textContent=''; return; }
+  clinPatient=c.name||''; clinWhatsapp=(typeof waDisplay==='function')?waDisplay(c.whatsapp||c.id):(c.whatsapp||wa); clinEmail=c.email||'';
+  var pe=document.getElementById('clin-patient'); if(pe)pe.value=clinPatient;
+  var we=document.getElementById('clin-whatsapp'); if(we)we.value=clinWhatsapp;
+  var ee=document.getElementById('clin-email'); if(ee)ee.value=clinEmail;
+  var sb=document.getElementById('clin-rebook'); if(sb)sb.value=c.name||'';
+  if(note) note.textContent='✓ '+(c.name||'Client')+' loaded — checking last visit…';
+  // Pull their most recent recovery visit to pre-fill pressure + show what/who last time
+  if(typeof clientHistory==='function'){
+    clientHistory(c.id||wa).then(function(rows){
+      var last=null;
+      (rows||[]).forEach(function(r){ if(last||!r||r.kind!=='recovery')return; try{ var d=JSON.parse(r.detail||'{}'); if((d.status||r.status)!=='cancelled') last={d:d,date:r.bizDate}; }catch(e){} });
+      if(last){
+        var d=last.d;
+        if(d.pressure){ clinPressure=d.pressure; try{ renderClinicalBooking(); renderClinicalOrder(); }catch(e){} }
+        var ther=d.therapistName?String(d.therapistName).split(' - ')[0]:'';
+        var summ='Last: '+(d.serviceName||d.service||'session')+(ther?(' · '+ther):'')+(d.pressure?(' · '+d.pressure.charAt(0).toUpperCase()+d.pressure.slice(1)):'')+(last.date?(' · '+last.date):'');
+        var n2=document.getElementById('clin-rebook-note'); if(n2) n2.innerHTML='✓ Returning &mdash; '+_escHtml(summ);
+      } else {
+        var n3=document.getElementById('clin-rebook-note'); if(n3) n3.textContent='✓ '+(c.name||'Client')+' loaded (no past recovery visit on record).';
+      }
+    });
+  }
+}
+// Rebook straight from an existing booking row: start a FRESH booking pre-loaded with that client's service + details.
+function clinRebookClient(name, wa, email, pressure, serviceId, serviceType){
+  try{
+    if(serviceId){ selectService(serviceId, serviceType||'recovery'); }   // sets service + resets the flow, then we overlay the client
+    clinEditingId=null; clinEditingDate=null; window._clinEditOrig=null;
+    clinRoom=null; clinTime=''; clinDone=false; clinDoneHold=false; clinOnline=false; clinPayType='full'; window.clinPromo=null;
+    clinPatient=name||''; clinWhatsapp=wa||''; clinEmail=email||''; clinPressure=pressure||'';
+    renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); clinRestoreInputs();
+    var bk=document.getElementById('clin-booking'); if(bk) bk.scrollTop=0;
+    var top=document.getElementById('panel-recovery'); if(top) top.scrollTop=0;
+    if(typeof clinNotify==='function') clinNotify('Rebooking '+(name||'client')+' — pick a date, room & time. Details are filled in.');
+  }catch(e){ console.warn('rebook',e); }
+}
+// Rebook from a booking row: find the booking by id (any loaded date) and start a fresh pre-filled booking.
+function clinRebookFromId(id){
+  try{
+    var b=null;
+    if(typeof recoveryData==='object'&&recoveryData){
+      Object.keys(recoveryData).some(function(d){ var day=recoveryData[d]; var hit=day&&day.bookings&&day.bookings.find(function(x){return x.id===id;}); if(hit){ b=hit; return true; } return false; });
+    }
+    if(!b) return;
+    clinRebookClient(b.client, b.whatsapp||b.phone||'', b.email||'', b.pressure||'', b.service, b.clinical?'clinical':'recovery');
+  }catch(e){ console.warn('rebookId',e); }
+}
+window.clinRebookSearch=clinRebookSearch; window.clinRebookPick=clinRebookPick; window.clinRebookClient=clinRebookClient; window.clinRebookFromId=clinRebookFromId;
 function sendDepositLink(){
   clinCaptureInputs();
   var xLink=getXenditLink(); if(!xLink) return alert('No Xendit link set — add it in Settings → Payments.');
