@@ -1101,8 +1101,10 @@ function _bkLoadBusy(dateStr){
       db.collection('ledger').where('kind','==','recovery').get().catch(function(){return null;})
     ]).then(function(res){
       var map={},chairs=[];
-      function add(t,s,d){ if(t==null||s==null)return; d=d||30; (map[t]=map[t]||[]).push({s:s,e:s+d+15}); } // +15 min buffer
-      function addChair(s,d){ if(s==null)return; d=d||30; chairs.push({s:s,e:s+d+15}); }
+      // 15-min buffer BOTH sides — a session needs 15 min clear BEFORE and AFTER, so a new booking can never butt
+      // right up against an existing one (e.g. a 12:00 session ending exactly when a 12:30 session starts).
+      function add(t,s,d){ if(t==null||s==null)return; d=d||30; (map[t]=map[t]||[]).push({s:s-15,e:s+d+15}); }
+      function addChair(s,d){ if(s==null)return; d=d||30; chairs.push({s:s-15,e:s+d+15}); }
       // PENDING online requests only. A CONFIRMED request also lives in the ledger (authoritative, below) — counting it
       // here too double-books the slot AND leaves a "ghost" busy window if it's later cancelled (the ledger updates on
       // cancel, but the public_bookings doc keeps saying 'confirmed'). So confirmed/declined/cancelled never block here.
