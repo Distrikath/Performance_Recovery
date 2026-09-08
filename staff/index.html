@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814052;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814053;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -10339,7 +10339,7 @@ function renderTodayBookings(){
       +'</span></div>'
       +'<div class="clin-bk-acts">'
       +'<button class="clin-bk-act go" onclick="acceptOnlineBooking(\''+id+'\')">✓ Confirm</button>'
-      +'<button class="clin-bk-act" onclick="suggestAlternative(\''+id+'\')">Alt. Time</button>'
+      +'<button class="clin-bk-act" onclick="editOnlineRequest(\''+id+'\')" title="Open this request in the booking builder to set the agreed room/date/time yourself">Edit / move</button>'
       +'<button class="clin-bk-act danger" onclick="declineOnlineBooking(\''+id+'\')">✕ Decline</button>'
       +'</div></div>';
   }).join('');
@@ -10551,7 +10551,7 @@ function renderOnlineRequests(reqs){
       +'</div>'
       +'<div class="onreq-actions">'
         +'<button class="onreq-btn accept" onclick="acceptOnlineBooking(\''+id+'\')">&#x2713; Confirm</button>'
-        +'<button class="onreq-btn suggest" onclick="suggestAlternative(\''+id+'\')">Alt. Time</button>'
+        +'<button class="onreq-btn suggest" onclick="editOnlineRequest(\''+id+'\')">Edit / move</button>'
         +'<button class="onreq-btn decline" onclick="declineOnlineBooking(\''+id+'\')">&#x2715; Decline</button>'
       +'</div>'
     +'</div>';
@@ -10690,9 +10690,29 @@ function suggestAlternative(id){
   var ph=(r.phone||'').replace(/\D/g,'');
   if(ph) window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(_onreqWaMsg(r,'suggest',alt.trim())),'_blank');
 }
+// EDIT / MOVE a tentative online request: open it in the booking builder pre-filled with the customer's
+// details + treatment, so staff set the AGREED room/date/time and confirm — no auto "Alt. Time" message,
+// no double-book warning. Confirming consumes the request (see confirmClinical).
+function editOnlineRequest(id){
+  var r=_findReq(id); if(!r) return;
+  var isClin=(r.type==='iv_therapy'||r.type==='blood_work');
+  // pre-select the matching service (same pathway + duration) where possible
+  var svcId=null;
+  try{
+    var list=isClin?CLINICAL_SERVICES:SERVICES;
+    var pw=String(r.pathway||'').toUpperCase(), du=r.duration||0;
+    var hit=list.find(function(s){return String(s.name||s.pathway||'').toUpperCase()===pw && (!du || s.duration===du);})
+          || list.find(function(s){return String(s.name||s.pathway||'').toUpperCase()===pw;});
+    if(hit) svcId=hit.id;
+  }catch(e){}
+  clinRebookClient(r.name||'', r.phone||'', r.email||'', r.pressure||'', svcId, isClin?'clinical':'recovery');
+  window._clinOnlineReqId=id;  // set AFTER clinRebookClient (its selectService clears it); consumed on confirm
+  if(typeof clinNotify==='function') clinNotify('Editing '+(r.name||'this request')+' — set the agreed room, date & time, then Confirm. The pending request clears when you confirm.');
+}
 window.acceptOnlineBooking=acceptOnlineBooking;
 window.declineOnlineBooking=declineOnlineBooking;
 window.suggestAlternative=suggestAlternative;
+window.editOnlineRequest=editOnlineRequest;
 
 function svcCard(s,type){
   var sel=(clinSel===s.id&&clinType===type);
@@ -10722,7 +10742,7 @@ function renderClinicalServices(){
     +'</div>'
     +'<div class="clin-acc-body'+(cOpen?' open':'')+'">'+cSvcs.map(function(s){return svcCard(s,'clinical');}).join('')+'</div>';
 }
-function selectService(id,type){ clinSel=id;clinType=type;clinIntake=false;clinWindow=null;clinRoom=null;clinDone=false;clinOnline=false;clinPressure='';clinPayType='full';clinPatient='';clinEmail='';clinWhatsapp='';clinTime=''; renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); }
+function selectService(id,type){ clinSel=id;clinType=type;clinIntake=false;clinWindow=null;clinRoom=null;clinDone=false;clinOnline=false;clinPressure='';clinPayType='full';clinPatient='';clinEmail='';clinWhatsapp='';clinTime=''; window._clinOnlineReqId=null; renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); }
 window.selectService=selectService;
 
 // Which rooms can the currently-selected service be booked in (with roster therapist + eligibility)
@@ -11264,6 +11284,8 @@ function confirmClinical(){
     var dateLabel=clinDate.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
     sendBookingEmail(rec, dateLabel, isHold?'hold':'confirmed');
   }catch(e){ console.warn('clinical save',e); }
+  // If this booking was an online request opened via "Edit / move", clear that request from the pending list now.
+  if(window._clinOnlineReqId){ try{ _bkDismissed[window._clinOnlineReqId]=1; _onreqUpdateStatus(window._clinOnlineReqId,'confirmed'); }catch(e){} window._clinOnlineReqId=null; }
   var wasEdit=!!clinEditingId; clinEditingId=null; clinEditingDate=null; window._clinEditOrig=null;
   clinDone=true; clinDoneHold=isHold; buildClinRoomGrid(); renderClinicalOrder();
   if(wasEdit) clinNotify('Booking updated.');
