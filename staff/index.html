@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814046;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814047;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -10991,7 +10991,20 @@ function confirmClinical(){
   // commission). We only change the schedule (room/therapist/time/date). Never re-charge on an edit.
   if(clinEditingId && window._clinEditOrig){
     var _o=window._clinEditOrig;
-    ['online','deposit','balanceDue','balancePaid','depositPaid','price','gross','payType','discPct','discReason','discCode','source','partner','partnerTotal','commission','commissionStatus','commissionPct','provider','tag','clinical','forfeited','onlineRef','payMethod'].forEach(function(k){ if(_o[k]!==undefined) rec[k]=_o[k]; });
+    // Did the user ACTIVELY apply a discount/promo during this edit? (window.clinPromo is only set by applyRegDisc)
+    var _editRepr=!!(window.clinPromo && _rvPct>0);
+    if(_editRepr){
+      // RE-PRICE from the new discount instead of restoring the old amount owing (promo-day 100% off, etc.)
+      ['source','partner','partnerTotal','commission','commissionStatus','commissionPct','provider','tag','clinical','payMethod','onlineRef','depositPaid'].forEach(function(k){ if(_o[k]!==undefined) rec[k]=_o[k]; });
+      rec.gross=(_o.gross!==undefined?_o.gross:rec.gross);
+      rec.price=Math.round((rec.gross||0)*(1-_rvPct/100));
+      rec.discPct=_rvPct; rec.discReason=(_rvDsc?(_rvDsc.reason||''):''); rec.discCode=(_rvDsc?(_rvDsc.code||''):'');
+      if(_o.online){ rec.online=true; rec.deposit=Math.round(rec.price*0.5); rec.balanceDue=Math.max(0,rec.price-rec.deposit); rec.balancePaid=(rec.price===0); }
+      else { rec.online=false; rec.deposit=0; rec.balanceDue=0; rec.balancePaid=(rec.price===0); rec.payType='full'; }
+    } else {
+      // plain move — keep the money exactly as it was, never re-charge
+      ['online','deposit','balanceDue','balancePaid','depositPaid','price','gross','payType','discPct','discReason','discCode','source','partner','partnerTotal','commission','commissionStatus','commissionPct','provider','tag','clinical','forfeited','onlineRef','payMethod'].forEach(function(k){ if(_o[k]!==undefined) rec[k]=_o[k]; });
+    }
     if(_o.status && _o.status!=='cancelled') rec.status=_o.status;   // keep confirmed/hold as it was
   }
   try{
@@ -11148,6 +11161,8 @@ function clinEditBooking(id){
     var dk=clinKey(); var day=recoveryData&&recoveryData[dk]; if(!day||!day.bookings) return;
     var b=day.bookings.find(function(x){return x.id===id;}); if(!b) return;
     try{ window._clinEditOrig=JSON.parse(JSON.stringify(b)); }catch(e){ window._clinEditOrig=null; }  // keep original payment/financials for the move
+    // start the edit with NO promo applied — money carries forward unless the user actively enters a discount now
+    try{ window.clinPromo=null; ['recovery-disc-pct','recovery-disc-code'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';}); var _em=document.getElementById('recovery-disc-msg');if(_em)_em.textContent=''; }catch(e){}
     clinEditingId=id; clinEditingDate=dk; clinDone=false; clinDoneHold=false;
     clinType=b.clinical?'clinical':'recovery';
     var list=(clinType==='clinical'?CLINICAL_SERVICES:(typeof SERVICES!=='undefined'?SERVICES:[]));
