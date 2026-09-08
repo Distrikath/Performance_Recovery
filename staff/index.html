@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814049;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814050;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -2128,11 +2128,7 @@ h1,
       <div class="dk-cell"><div class="dk-clbl">QRIS</div><div class="dk-v" id="pay-qris">IDR 0</div><div class="dk-cs" id="pay-qris-sub">0 payments</div></div>
       <div class="dk-cell"><div class="dk-clbl">Online (Xendit)</div><div class="dk-v" id="pay-online">IDR 0</div><div class="dk-cs" id="pay-online-sub">0 payments</div></div>
       <div class="dk-cell" id="pay-other-cell" style="display:none;"><div class="dk-clbl">Other</div><div class="dk-v" id="pay-other">IDR 0</div><div class="dk-cs" id="pay-other-sub">0 payments</div></div>
-    </div>
-    <div id="pay-reconcile" style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-family:'Space Mono',monospace;font-size:12px;margin:-10px 2px 18px;padding:8px 12px;border:1px solid var(--bd);border-radius:3px;">
-      <span style="opacity:.7;letter-spacing:.05em;">Card + QRIS + Online</span>
-      <span id="pay-recon-msg" style="opacity:.7;"></span>
-      <span id="pay-recon-total" style="font-weight:600;">IDR 0</span>
+      <div class="dk-cell" id="pay-recon-cell" style="border-left:2px solid var(--bd);"><div class="dk-clbl">Total takings</div><div class="dk-v" id="pay-recon-total">IDR 0</div><div class="dk-cs" id="pay-recon-msg"></div></div>
     </div>
 
     <!-- Channel modules (new layout) -->
@@ -3873,11 +3869,11 @@ function renderSales(){
   // Reconciliation: the buckets should add up to total takings
   const payGrand=payAmt.card+payAmt.qr+payAmt.online+payAmt.other;
   set('pay-recon-total', fmtFull(payGrand));
-  const _rl=document.getElementById('pay-reconcile'), _rm=document.getElementById('pay-recon-msg');
-  const _diff=payGrand-total;
-  if(_rm){ if(Math.abs(_diff)<1){ _rm.textContent='✓ matches total'; _rm.style.color='#10b981'; }
+  const _rc=document.getElementById('pay-recon-cell'), _rm=document.getElementById('pay-recon-msg');
+  const _diff=payGrand-total; const _ok=Math.abs(_diff)<1;
+  if(_rm){ if(_ok){ _rm.textContent='✓ matches total'; _rm.style.color='#10b981'; }
     else { _rm.textContent=(_diff>0?'+':'')+fmtFull(_diff)+' vs total'; _rm.style.color='#FF2D2D'; } }
-  if(_rl) _rl.style.borderColor=(Math.abs(_diff)<1?'var(--bd)':'#FF2D2D');
+  if(_rc) _rc.style.borderLeftColor=(_ok?'#10b981':'#FF2D2D');
 
   // Source cards
   set('r-section-total', fmtFull(recRev));
