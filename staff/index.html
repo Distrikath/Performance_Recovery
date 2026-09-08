@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814043;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814044;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -10435,6 +10435,14 @@ function acceptOnlineBooking(id){
       }catch(e){}
       var _roomId=(_therRoom&&_roomFree(_therRoom))?_therRoom:(_rIds.find(_roomFree)||_rIds[0]);
       var _roomName=(typeof ROOMS!=='undefined'?((ROOMS.find(function(x){return x.id===_roomId;})||{}).name):null)||'';
+      // BUFFER GUARD: never confirm into a slot that overlaps another booking (+15-min buffer) in this room — warn staff.
+      try{
+        var _cb=(typeof CLIN_BUFFER_MIN!=='undefined'?CLIN_BUFFER_MIN:15)/60;
+        var _cday=(recoveryData[r.date]&&recoveryData[r.date].bookings)||[];
+        var _cns=(typeof parseTime==='function'?parseTime(_st):0), _cne=_cns+((r.duration||60)/60)+_cb;
+        if(_cday.some(function(b){ if(!b||b.status==='cancelled'||b.room!==_roomId||!b.start)return false; var bs=parseTime(b.start), be=bs+((b.duration||60)/60)+_cb; return _cns<be-1e-9 && _cne>bs+1e-9; })
+           && !confirm('⚠ '+_roomName+' already has a booking within the 15-min buffer around '+_st+'.\n\nConfirm anyway (this will double-book)?')) return;
+      }catch(e){}
       var rec={
         id:(typeof genId==='function'?genId():'obk_'+Date.now()),
         service:r.pathway||'recovery', serviceName:String(_onreqLabel(r)).replace(/<[^>]+>/g,''),
