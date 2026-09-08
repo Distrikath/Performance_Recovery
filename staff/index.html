@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814055;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814056;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -12669,9 +12669,16 @@ window.rebuildFromLedger = function(docs){
       if(det.rows&&det.rows.length) det.rows.forEach(function(x){ if(x) supRows.push(x); }); }
     else if(r.kind==='recovery'){
       // CASH-BASIS: revenue counts on the PAYMENT day (bizDate); the booking is SCHEDULED on its session day (det.date).
-      if(!rd[date])rd[date]={revenue:0,bookings:[]}; rd[date]._rev=(rd[date]._rev||0)+(parseFloat(r.amount)||0);
-      var _sess=(det&&det.date)||date; if(!rd[_sess])rd[_sess]={revenue:0,bookings:[]};
-      var _bid=(det&&det.id); if(_bid){ rd[_sess]._seen=rd[_sess]._seen||{}; if(!rd[_sess]._seen[_bid]){ rd[_sess].bookings.push(det); rd[_sess]._seen[_bid]=1; } }
+      // CANCELLED bookings never count as revenue and never land on the schedule — EXCEPT a deposit that was
+      // explicitly FORFEITED on cancel (that money is kept). This stops a stale `amount` on a cancelled/declined
+      // booking from inflating takings (e.g. an un-paid online deposit left on a cancelled test booking).
+      var _cxl=((det&&det.status==='cancelled')||r.status==='cancelled');
+      if(!rd[date])rd[date]={revenue:0,bookings:[]};
+      if(!_cxl || (det&&det.forfeited)) rd[date]._rev=(rd[date]._rev||0)+(parseFloat(r.amount)||0);
+      if(!_cxl){
+        var _sess=(det&&det.date)||date; if(!rd[_sess])rd[_sess]={revenue:0,bookings:[]};
+        var _bid=(det&&det.id); if(_bid){ rd[_sess]._seen=rd[_sess]._seen||{}; if(!rd[_sess]._seen[_bid]){ rd[_sess].bookings.push(det); rd[_sess]._seen[_bid]=1; } }
+      }
     }
   });
   // reconstruct the flat SUPPLY_SALES ledger (brand payouts / P&L) from the permanent record
