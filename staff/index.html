@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814045;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814046;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -10448,7 +10448,9 @@ function acceptOnlineBooking(id){
           }
         }
       }catch(e){}
-      var _roomId=(_therRoom&&_roomFree(_therRoom))?_therRoom:(_rIds.find(_roomFree)||_rIds[0]);
+      // Always keep the booking in the CHOSEN therapist's room (room follows therapist). Only fall back to any free
+      // room when that therapist isn't rostered — otherwise a booking would land under the wrong therapist's colour.
+      var _roomId=_therRoom||(_rIds.find(_roomFree)||_rIds[0]);
       var _roomName=(typeof ROOMS!=='undefined'?((ROOMS.find(function(x){return x.id===_roomId;})||{}).name):null)||'';
       // BUFFER GUARD: never confirm into a slot that overlaps another booking (+15-min buffer) in this room — warn staff.
       try{
