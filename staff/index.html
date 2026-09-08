@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814042;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814043;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -5820,11 +5820,12 @@ function buildTimeline(room, roomBks){
       <span class="rf-block-client">${bk.client}</span>
       <span class="rf-block-time">${bk.start}</span>
     </div>`;
-    // Buffer block
-    if(svc?.buffer>0){
-      const bufEnd=endH+svc.buffer/60;
+    // Buffer block — EVERY booking gets a 15-min buffer after (a service may override with a longer one).
+    const _buf=(svc&&svc.buffer>0)?svc.buffer:15;
+    if(_buf>0){
+      const bufEnd=endH+_buf/60;
       const bl=rfPct(endH), bw=rfPct(bufEnd)-bl;
-      html+=`<div style="position:absolute;top:4px;height:calc(100% - 8px);left:${bl}%;width:${bw}%;background:${col}22;border:1px dashed ${col}55;border-radius:2px;" title="Buffer ${svc.buffer}min"></div>`;
+      html+=`<div style="position:absolute;top:4px;height:calc(100% - 8px);left:${bl}%;width:${bw}%;background:${col}22;border:1px dashed ${col}55;border-radius:2px;" title="Buffer ${_buf}min"></div>`;
     }
   });
 
@@ -10956,7 +10957,7 @@ function confirmClinical(){
     start:startTime, time:startTime, duration:duration,
     client:patient, email:clinEmail||'', whatsapp:clinWhatsapp||'', phone:clinWhatsapp||'',
     price:_price, gross:(s?s.price:0), discPct:_rvPct, discReason:(_rvDsc?(_rvDsc.reason||''):''), discCode:(_rvDsc?(_rvDsc.code||''):''), pressure:clinPressure||null, payType:clinPayType||'full',
-    source:(clinOnline?'Online':'Walk-in'), status:(isHold?'hold':'confirmed'), payMethod:clinPay, _ts:Date.now()
+    source:(clinOnline?'Online':'Walk-in'), status:(isHold?'hold':'confirmed'), payMethod:clinPay, date:dateKey, _ts:Date.now()
   };
   if(clinType==='clinical'){ rec.clinical=true; rec.tag='ClinicTerrain'; rec.window=clinWindow; rec.intake=(clinIntake?'approved':'pending'); }
   if(clinOnline){ var _tot=_price; rec.online=true; rec.deposit=Math.round(_tot*0.5); rec.balanceDue=_tot-Math.round(_tot*0.5); rec.balancePaid=false; }
