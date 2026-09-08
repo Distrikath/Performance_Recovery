@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814044;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814045;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -10162,6 +10162,7 @@ function renderTodayBookings(){
       +_bDepLink
       +(((b.phone||b.whatsapp)&&b.status!=='cancelled'&&!isHold)?'<button class="clin-bk-act" onclick="clinSendReminder(\''+id+'\')">Send reminder</button>':'')
       +(_notArrived?'<button class="clin-bk-act go" onclick="clinCheckIn(\''+id+'\')">Check in</button>':'')
+      +((b.checkedIn && b.status!=='cancelled')?'<button class="clin-bk-act" onclick="clinUndoCheckIn(\''+id+'\')" title="Undo an accidental check-in">Undo check-in</button>':'')
       +(_needsPay?'<button class="clin-bk-act go" onclick="clinCheckOut(\''+id+'\')">Check out · IDR '+Math.round(_pinf.due).toLocaleString('id-ID')+'</button>':'')
       +'<button class="clin-bk-act" onclick="clinEditBooking(\''+id+'\')">Edit / move</button>'
       +'<button class="clin-bk-act danger" onclick="clinCancelBooking(\''+id+'\')">Cancel</button>'
@@ -10220,6 +10221,20 @@ function clinCheckIn(id){
   }catch(e){ console.warn('clinCheckIn',e); }
 }
 window.clinCheckIn=clinCheckIn;
+// Undo an accidental check-in — flips the arrived flag back, no payment change.
+function clinUndoCheckIn(id){
+  try{
+    var dk=clinKey(); var day=recoveryData&&recoveryData[dk]; if(!day||!day.bookings) return;
+    var b=day.bookings.find(function(x){return x.id===id;}); if(!b||!b.checkedIn) return;
+    if(!confirm('Undo check-in for '+(b.client||'this booking')+'? (marks them not arrived — payment is unchanged)')) return;
+    b.checkedIn=false;
+    if(typeof ledgerUpdate==='function') ledgerUpdate(b.id, {detail: JSON.stringify(b)});   // persist the flag only
+    if(typeof saveAll==='function') saveAll();
+    try{ if(typeof buildClinRoomGrid==='function') buildClinRoomGrid(); if(typeof renderClinicalBooking==='function') renderClinicalBooking(); }catch(e){}
+    if(typeof clinNotify==='function') clinNotify('Check-in undone — marked not arrived.');
+  }catch(e){ console.warn('clinUndoCheckIn',e); }
+}
+window.clinUndoCheckIn=clinUndoCheckIn;
 function clinSendReminder(id){
   try{
     var dk=clinKey(); var day=recoveryData&&recoveryData[dk]; if(!day||!day.bookings) return;
