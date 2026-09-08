@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814053;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814055;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -10297,7 +10297,8 @@ function renderTodayBookings(){
   var dk=clinKey();
   var online=(_bkReqs||[]).filter(function(r){return r.date===dk;});
   if(!bks.length&&!online.length) return '<div class="clin-placeholder" style="padding:8px 0 0;text-align:left;">No bookings yet '+clinDateWord()+'.</div>';
-  var localHtml=bks.slice().sort(function(a,b){return (a.start||a.time||'').localeCompare(b.start||b.time||'');}).map(function(b){
+  // one booking row — keeps every reception action
+  function _bkRowHtml(b){
     var det = b.clinical ? (b.window||'Clinical') : (b.roomName||b.room||'');
     var isHold = b.status==='hold';
     var badge = b.clinical ? (isHold?'<span class="clin-bk-hold">Hold · pending</span>':'<span class="clin-bk-tag">Human+</span>') : '';
@@ -10312,7 +10313,7 @@ function renderTodayBookings(){
     var acts='<div class="clin-bk-acts">'
       +(isHold?'<button class="clin-bk-act go" onclick="clinConfirmHold(\''+id+'\')">Intake back · confirm ✓</button>':'')
       +_bDepLink
-      +(((b.phone||b.whatsapp)&&b.status!=='cancelled'&&!isHold)?'<button class="clin-bk-act" onclick="clinSendReminder(\''+id+'\')">Send reminder</button>':'')
+      +(((b.phone||b.whatsapp)&&b.status!=='cancelled'&&!isHold)?(b.reminderSent?'<button class="clin-bk-act" style="opacity:.55;color:#1a9e54;border-color:#bfe6cf;" onclick="clinResendReminder(\''+id+'\')" title="Reminder already sent via WhatsApp — click to send again">✓ Reminder sent</button>':'<button class="clin-bk-act" onclick="clinSendReminder(\''+id+'\')">Send reminder</button>'):'')
       +(_notArrived?'<button class="clin-bk-act go" onclick="clinCheckIn(\''+id+'\')">Check in</button>':'')
       +((b.checkedIn && b.status!=='cancelled')?'<button class="clin-bk-act" onclick="clinUndoCheckIn(\''+id+'\')" title="Undo an accidental check-in">Undo check-in</button>':'')
       +(_needsPay?'<button class="clin-bk-act go" onclick="clinCheckOut(\''+id+'\')">Check out · IDR '+Math.round(_pinf.due).toLocaleString('id-ID')+'</button>':'')
@@ -10326,6 +10327,26 @@ function renderTodayBookings(){
       +'<span class="clin-bk-svc">'+svcName+'<em>'+(b.client||'')+'</em>'+pay+'</span>'
       +'<span class="clin-bk-det">'+det+' '+badge+'</span></div>'
       +acts+'</div>';
+  }
+  // group by therapist (like the Booking Schedule) — colour-dot header + count, rows time-sorted within each
+  var groups={};
+  bks.forEach(function(b){
+    var stf=(b.therapist&&typeof getStaff==='function')?getStaff(b.therapist):null;
+    var gName=b.therapistName||(stf&&stf.name)||(b.clinical?'HUMAN+ · Nurse':(b.roomName||b.room||'Unassigned'));
+    var gCol=(stf&&stf.col)||(b.clinical?'#a855f7':'#9a9a9e');
+    if(!groups[gName]) groups[gName]={col:gCol,rows:[]};
+    groups[gName].rows.push(b);
+  });
+  Object.keys(groups).forEach(function(g){ groups[g].rows.sort(function(a,b){return (a.start||a.time||'').localeCompare(b.start||b.time||'');}); });
+  var gKeys=Object.keys(groups).sort(function(a,b){ return ((groups[a].rows[0].start||groups[a].rows[0].time||'99')).localeCompare((groups[b].rows[0].start||groups[b].rows[0].time||'99')); });
+  var localHtml=gKeys.map(function(g){
+    var grp=groups[g];
+    return '<div style="display:flex;align-items:center;gap:8px;margin:16px 0 6px;padding-bottom:6px;border-bottom:1px solid #e8e8e8;">'
+      +'<span style="width:8px;height:8px;border-radius:50%;background:'+grp.col+';display:inline-block;flex:none;"></span>'
+      +'<span style="font-family:\'Space Mono\',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#0A0A0A;font-weight:600;">'+_escHtml(g)+'</span>'
+      +'<span style="margin-left:auto;font-family:\'Space Mono\',monospace;font-size:10px;color:#9a9a9e;">'+grp.rows.length+' booking'+(grp.rows.length!==1?'s':'')+'</span>'
+      +'</div>'
+      +grp.rows.map(_bkRowHtml).join('');
   }).join('');
   var onlineHtml=online.slice().sort(function(a,b){return (a.time||'').localeCompare(b.time||'');}).map(function(r){
     var id=_escHtml(r._id||'');
@@ -10409,9 +10430,16 @@ function clinSendReminder(id){
       +bal
       +'\n\nSee you soon!';
     window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(msg),'_blank');
+    // Mark reminded so the button flips to "Reminder sent ✓" and staff don't double-message.
+    b.reminderSent=true; b.reminderAt=Date.now();
+    try{ if(typeof ledgerUpdate==='function') ledgerUpdate(b.id,{detail:JSON.stringify(b)}); }catch(e){}
+    try{ if(typeof saveAll==='function') saveAll(); }catch(e){}
+    try{ if(typeof renderClinicalBooking==='function') renderClinicalBooking(); }catch(e){}
   }catch(e){ console.warn('clinSendReminder',e); }
 }
-window.clinSendReminder=clinSendReminder;
+// Resend guard — the button becomes "Reminder sent ✓"; re-sending asks first so no accidental double message.
+function clinResendReminder(id){ if(confirm('A reminder was already sent to this client via WhatsApp.\n\nSend another one?')) clinSendReminder(id); }
+window.clinSendReminder=clinSendReminder; window.clinResendReminder=clinResendReminder;
 function initRecovery(){ if(typeof loadClinical==='function') loadClinical(); clinSel=null;clinType=null;clinIntake=false;clinWindow=null;clinRoom=null;clinPay='card';clinDone=false;clinDoneHold=false;clinEditingId=null;clinEditingDate=null;clinOnline=false;clinPressure='';clinPayType='full';clinPatient='';clinEmail='';clinWhatsapp='';clinTime=''; clinDate=(typeof baliNow==='function'?baliNow():new Date()); clinViewYear=null;clinViewMonth=null; clinGroupOpen={recovery:true,clinical:true}; try{window.clinPromo=null; ['recovery-disc-pct','recovery-disc-code'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';}); var _m=document.getElementById('recovery-disc-msg');if(_m)_m.textContent='';}catch(e){} clinSyncDateUI(); renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); startBookingListener(); }
 window.initRecovery=initRecovery;
 
