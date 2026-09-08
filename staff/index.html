@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814047;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814048;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -2121,6 +2121,15 @@ h1,
       <div class="dk-cell"><div class="dk-clbl">Staff on floor</div><div class="dk-v" id="s-staff">—</div><div class="dk-cs">scheduled</div></div>
     </div>
 
+    <!-- Payment breakdown — end-of-day cash-up (Card / QRIS / Online) -->
+    <div class="dk-clbl" style="margin:2px 2px 6px;letter-spacing:.08em;opacity:.8;">PAYMENT BREAKDOWN · end-of-day cash-up</div>
+    <div class="dk-strip" style="margin-bottom:18px;">
+      <div class="dk-cell"><div class="dk-clbl">Card</div><div class="dk-v" id="pay-card">IDR 0</div><div class="dk-cs" id="pay-card-sub">0 payments</div></div>
+      <div class="dk-cell"><div class="dk-clbl">QRIS</div><div class="dk-v" id="pay-qris">IDR 0</div><div class="dk-cs" id="pay-qris-sub">0 payments</div></div>
+      <div class="dk-cell"><div class="dk-clbl">Online (Xendit)</div><div class="dk-v" id="pay-online">IDR 0</div><div class="dk-cs" id="pay-online-sub">0 payments</div></div>
+      <div class="dk-cell" id="pay-other-cell" style="display:none;"><div class="dk-clbl">Other</div><div class="dk-v" id="pay-other">IDR 0</div><div class="dk-cs" id="pay-other-sub">0 payments</div></div>
+    </div>
+
     <!-- Channel modules (new layout) -->
     <div class="dk-cols3">
       <div class="dk-mod">
@@ -3838,6 +3847,24 @@ function renderSales(){
   set('s-supply',      supRev>0?fmtIDR(supRev):'IDR 0');
   set('s-supply-sub',  supOrders>0?supOrders+' order'+(supOrders!==1?'s':''):'0 orders');
   set('s-staff',       staffCount||'—');
+
+  // ── Payment-method breakdown (Card / QRIS / Online) for the end-of-day cash-up ──
+  const payAmt={card:0,qr:0,online:0,other:0}, payCnt={card:0,qr:0,online:0,other:0};
+  const _payBucket=(m)=>{ m=(m||'').toString().toLowerCase();
+    if(m==='card') return 'card';
+    if(m==='qr'||m==='qris'||m==='gopay'||m==='ovo') return 'qr';
+    if(m==='online'||m==='xendit') return 'online';
+    return 'other'; };
+  fuelTxns.forEach(t=>{ const bk=_payBucket(t.method); if((t.total||0)>0){ payAmt[bk]+=t.total; payCnt[bk]++; } });
+  supOrderList.forEach(o=>{ const bk=_payBucket(o.method); if((o.total||0)>0){ payAmt[bk]+=o.total; payCnt[bk]++; } });
+  recBookings.forEach(b=>{ const amt=(typeof clinCollected==='function')?clinCollected(b):(b.price||0);
+    if(amt>0){ const bk=_payBucket(b.online?'online':(b.payMethod||'card')); payAmt[bk]+=amt; payCnt[bk]++; } });
+  const _payLine=(id,amt,cnt)=>{ set(id, amt>0?fmtFull(amt):'IDR 0'); set(id+'-sub', cnt+' payment'+(cnt!==1?'s':'')); };
+  _payLine('pay-card',   payAmt.card,   payCnt.card);
+  _payLine('pay-qris',   payAmt.qr,     payCnt.qr);
+  _payLine('pay-online', payAmt.online, payCnt.online);
+  _payLine('pay-other',  payAmt.other,  payCnt.other);
+  const _oc=document.getElementById('pay-other-cell'); if(_oc) _oc.style.display=(payAmt.other>0)?'':'none';
 
   // Source cards
   set('r-section-total', fmtFull(recRev));
