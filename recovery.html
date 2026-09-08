@@ -1110,7 +1110,7 @@ function _bkLoadBusy(dateStr){
   }).catch(function(){_bkBusyByDate[dateStr]=_bkBusyByDate[dateStr]||{};return _bkBusyByDate[dateStr];});
 }
 function _bkGetAvailSlots(rData,dateStr,durMins,pathway,rooms){
-  var SLOT_START=6,TOTAL_BK=32;
+  var SLOT_START=6,TOTAL_BK=64; // 15-min increments so times land exactly after a booking+buffer
   var dow=new Date(dateStr+'T12:00:00').getDay();
   var dayName=_DAY_NAMES[dow];
   var isCompression=(pathway==='COMPRESSION');
@@ -1119,7 +1119,7 @@ function _bkGetAvailSlots(rData,dateStr,durMins,pathway,rooms){
   var _nowBali; try{ _nowBali=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Makassar'})); }catch(e){ _nowBali=new Date(); }
   var _minStart=new Date(_nowBali.getTime()+60*60*1000);
   var _dp=dateStr.split('-');
-  function slotOk(si){ var hh=SLOT_START+si*0.5; var sd=new Date(parseInt(_dp[0]),parseInt(_dp[1])-1,parseInt(_dp[2]),Math.floor(hh),(hh%1?30:0),0,0); return sd>=_minStart; }
+  function slotOk(si){ var hh=SLOT_START+si*0.25; var sd=new Date(parseInt(_dp[0]),parseInt(_dp[1])-1,parseInt(_dp[2]),Math.floor(hh),(hh%1?30:0),0,0); return sd>=_minStart; }
 
   // Availability is driven ENTIRELY by the roster + who's nominated to run the session — NO hard-coded hours.
   // Scan the full possible day window; the per-slot roster checks below filter to actual staffed times.
@@ -1172,7 +1172,7 @@ function _bkGetAvailSlots(rData,dateStr,durMins,pathway,rooms){
         if(!row||avail.indexOf(tid)>-1)return;
         var ok=true;
         for(var ss=si;ss<si+durSlots;ss++){
-          var c=row[ss];
+          var c=row[Math.floor(ss/2)];
           if(!c||_bkIsBreak(c)||_bkStaffId(c)!==tid){ok=false;break;}
         }
         if(ok)avail.push(tid);
@@ -1210,7 +1210,7 @@ function _bkGetAvailSlots(rData,dateStr,durMins,pathway,rooms){
   }
 
   var slots=[];
-  var durSlots=Math.ceil(durMins/30);
+  var durSlots=Math.ceil(durMins/15);
 
   if(isCompression){
     // Compression is done ONLY by staff NOMINATED to the recovery chairs (Settings → Rooms & Recovery Chairs)
@@ -1222,19 +1222,19 @@ function _bkGetAvailSlots(rData,dateStr,durMins,pathway,rooms){
     if(fohRows.length===0)fohRows=null;
     for(var si=siMin;si+durSlots<=siMax;si++){
       if(!slotOk(si))continue;
-      var h=SLOT_START+si*0.5,h12=Math.floor(h)%12||12,mn=h%1?30:0,ap=Math.floor(h)>=12?'pm':'am';
-      var lbl=h12+(mn?':30':':00')+ap;
-      var avail=checkRows(fohRows,FOH,si,durSlots).filter(function(tid){return !_bkTherBusy(tid,(SLOT_START+si*0.5)*60,durMins,dateStr);});
-      if(avail.length>0 && _bkChairsBusyAt(_bkChairByDate[dateStr],(SLOT_START+si*0.5)*60,durMins)<CHAIR_CAPACITY) slots.push({time:lbl,therapists:avail});
+      var h=SLOT_START+si*0.25,_H=Math.floor(h),_mn=Math.round((h-_H)*60),h12=_H%12||12,ap=_H>=12?'pm':'am';
+      var lbl=h12+':'+('0'+_mn).slice(-2)+ap;
+      var avail=checkRows(fohRows,FOH,si,durSlots).filter(function(tid){return !_bkTherBusy(tid,(SLOT_START+si*0.25)*60,durMins,dateStr);});
+      if(avail.length>0 && _bkChairsBusyAt(_bkChairByDate[dateStr],(SLOT_START+si*0.25)*60,durMins)<CHAIR_CAPACITY) slots.push({time:lbl,therapists:avail});
     }
   } else {
     var therapyRows=zoneRows('Therapy');
     var THERS=buildThers(therapyRows);
     for(var si=siMin;si+durSlots<=siMax;si++){
       if(!slotOk(si))continue;
-      var h=SLOT_START+si*0.5,h12=Math.floor(h)%12||12,mn=h%1?30:0,ap=Math.floor(h)>=12?'pm':'am';
-      var lbl=h12+(mn?':30':':00')+ap;
-      var avail=checkRows(therapyRows,THERS,si,durSlots).filter(function(tid){return !_bkTherBusy(tid,(SLOT_START+si*0.5)*60,durMins,dateStr);});
+      var h=SLOT_START+si*0.25,_H=Math.floor(h),_mn=Math.round((h-_H)*60),h12=_H%12||12,ap=_H>=12?'pm':'am';
+      var lbl=h12+':'+('0'+_mn).slice(-2)+ap;
+      var avail=checkRows(therapyRows,THERS,si,durSlots).filter(function(tid){return !_bkTherBusy(tid,(SLOT_START+si*0.25)*60,durMins,dateStr);});
       if(avail.length>0)slots.push({time:lbl,therapists:avail});
     }
   }
