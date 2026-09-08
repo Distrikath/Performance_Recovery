@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814050;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814051;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -5334,6 +5334,7 @@ const HOME_TILES = [
   {id:'pl',      icon:'', name:'P & L',          desc:'Profit & loss\nFinancial overview',      col:'#f5c842', access:['admin']},
   {id:'settings',icon:'',  name:'Settings',       desc:'Staff · Zones\nHours & config',          col:'#FF2D2D', access:['admin']},
   {id:'roster',  icon:'', name:'Weekly Roster',  desc:'Drag & drop\nShift management',          col:'#3b82f6', access:['admin','pos_fr','pos_sup','staff']},
+  {id:'schedule',icon:'', name:'Booking Schedule',desc:'Read-only\nWho’s booked · scroll dates', col:'#14b8a6', access:['admin','pos_fr','pos_sup','staff']},
 ];
 
 // Staff also get a personal tile
@@ -5394,7 +5395,7 @@ const PAGE_NAMES = {
   'reference': 'REPORTING STRUCTURE',
   sales:'Sales', pl:'Profit & Loss', settings:'Settings',
   roster:'Weekly Roster', booking:'Recovery', fuel:'Fuel', supply:'Supply',
-  myaccount:'My Account'
+  myaccount:'My Account', schedule:'Schedule'
 };
 
 // Access control: which login levels may open each module. Enforced on every navigation path
@@ -5403,7 +5404,8 @@ const ACCESS_MAP = {
   // Either till can ring ANY sale (Fuel + Supply + Recovery bookings) — flexibility by login, not device. Config stays admin-only.
   sales:['admin','pos_fr','pos_sup'], booking:['admin','pos_fr','pos_sup'], recovery:['admin','pos_fr','pos_sup'],
   fuel:['admin','pos_fr','pos_sup'], supply:['admin','pos_fr','pos_sup'], pl:['admin'], settings:['admin'],
-  roster:['admin','pos_fr','pos_sup','staff'], clients:['admin'], myaccount:['staff']
+  roster:['admin','pos_fr','pos_sup','staff'], clients:['admin'], myaccount:['staff'],
+  schedule:['admin','pos_fr','pos_sup','staff']
 };
 function canAccess(id){
   var acc = (currentUser && currentUser.access) || 'staff';
@@ -5436,6 +5438,7 @@ function switchTab(t){
     buildTS();
   }
   if(t==='booking') { initBooking(); }
+  if(t==='schedule'){ showSchedule(); }
 }
 
 function goToModule(id){
@@ -5470,6 +5473,7 @@ function goToModule(id){
     initSupply();
   }
   else if(id==='myaccount'){ showMyAccount(); }
+  else if(id==='schedule'){ showSchedule(); }
 }
 
 function showComingSoon(msg){
@@ -5595,6 +5599,118 @@ function buildMyAccount(el){
     </div>`:''}
    </div>
   </div>`;
+}
+
+// ── BOOKING SCHEDULE (read-only, everyone) ───────────────────────────
+// A view-only day schedule of recovery bookings that staff (and the tills) can open from Home.
+// No money, no actions — just who is booked, when, with which therapist/room. Scroll dates like Sales.
+var schedOffset=0;
+function schedKey(){ var d=(typeof baliNow==='function'?baliNow():new Date()); d.setDate(d.getDate()+schedOffset); return (typeof rfDateKey==='function')?rfDateKey(d):d.toLocaleDateString('en-CA'); }
+function schedChangeDate(n){ schedOffset+=n; renderSchedule(); }
+function schedToday(){ schedOffset=0; renderSchedule(); }
+function showSchedule(){
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('on');});
+  var tb=document.getElementById('topNav'); if(tb) tb.style.display='flex';
+  var el=document.getElementById('panel-schedule');
+  if(!el){ el=document.createElement('div'); el.id='panel-schedule'; el.className='panel'; document.body.appendChild(el); }
+  el.classList.add('on');
+  var bc=document.getElementById('nav-breadcrumb'); if(bc) bc.textContent='Schedule';
+  schedOffset=0;
+  renderSchedule();
+}
+function _schedStatus(b){
+  if(b.checkedIn) return '<span style="color:#22c55e;">Checked in &#10003;</span>';
+  if(b.status==='hold') return '<span style="color:#f59e0b;">Hold · pending</span>';
+  return '<span style="color:#8ab4ff;">Confirmed</span>';
+}
+function renderSchedule(){
+  var el=document.getElementById('panel-schedule'); if(!el) return;
+  var key=schedKey();
+  var d=(typeof baliNow==='function'?baliNow():new Date()); d.setDate(d.getDate()+schedOffset);
+  var dateLbl=d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'}).toUpperCase();
+  var rel=schedOffset===0?'TODAY':schedOffset===-1?'YESTERDAY':schedOffset===1?'TOMORROW':'';
+  var day=(typeof recoveryData!=='undefined'&&recoveryData[key])?recoveryData[key]:null;
+  var bks=((day&&day.bookings)||[]).filter(function(b){return b&&b.status!=='cancelled';});
+  // online tentative requests for this date (still pending a therapist's confirm)
+  var reqs=(typeof _bkReqs!=='undefined'&&_bkReqs)?_bkReqs.filter(function(r){return r.date===key;}):[];
+
+  // group confirmed/hold bookings by therapist (fall back to room / Human+ / walk-in)
+  var groups={};
+  bks.forEach(function(b){
+    var st=(b.therapist&&typeof getStaff==='function')?getStaff(b.therapist):null;
+    var gName=b.therapistName||(st&&st.name)||(b.clinical?'HUMAN+ · Nurse':(b.roomName||b.room||'Unassigned'));
+    var gCol=(st&&st.col)||(b.clinical?'#a855f7':'#6b6b72');
+    if(!groups[gName]) groups[gName]={col:gCol,rows:[]};
+    groups[gName].rows.push(b);
+  });
+  var gKeys=Object.keys(groups).sort(function(a,b){
+    var ta=(groups[a].rows[0]&&(groups[a].rows[0].start||groups[a].rows[0].time))||'99';
+    var tb=(groups[b].rows[0]&&(groups[b].rows[0].start||groups[b].rows[0].time))||'99';
+    return ta.localeCompare(tb);
+  });
+
+  var body='';
+  if(!bks.length && !reqs.length){
+    body='<div style="padding:40px 4px;font-family:\'Space Mono\',monospace;font-size:12px;color:#5a5a5f;">No bookings '+(rel?rel.toLowerCase():'this day')+'.</div>';
+  } else {
+    gKeys.forEach(function(g){
+      var grp=groups[g];
+      var rows=grp.rows.slice().sort(function(a,b){return (a.start||a.time||'').localeCompare(b.start||b.time||'');});
+      body+='<div style="margin:0 0 18px;border:1px solid #232327;">'
+        +'<div style="display:flex;align-items:center;gap:9px;padding:11px 14px;border-bottom:1px solid #232327;background:#111114;">'
+          +'<span style="width:9px;height:9px;border-radius:50%;background:'+grp.col+';display:inline-block;"></span>'
+          +'<span style="font-family:\'Space Mono\',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#f4f4f5;">'+g+'</span>'
+          +'<span style="margin-left:auto;font-family:\'Space Mono\',monospace;font-size:10px;color:#6b6b72;">'+rows.length+' booking'+(rows.length!==1?'s':'')+'</span>'
+        +'</div>';
+      rows.forEach(function(b){
+        var svc=b.serviceName||b.service||'Session';
+        var room=b.clinical?(b.window||'HUMAN+'):(b.roomName||b.room||'');
+        var dur=b.duration?(b.duration+' min'):'';
+        body+='<div style="display:grid;grid-template-columns:64px 1fr auto;gap:10px;align-items:baseline;padding:11px 14px;border-bottom:1px solid #1a1a1d;font-family:\'Space Mono\',monospace;">'
+          +'<span style="font-size:13px;color:#f4f4f5;">'+(b.start||b.time||'—')+'</span>'
+          +'<span style="font-size:12px;color:#a6a6ad;">'+svc+' &middot; <span style="color:#f4f4f5;">'+(b.client||'Guest')+'</span>'
+            +'<span style="display:block;font-size:10px;color:#6b6b72;margin-top:2px;">'+room+(dur?' &middot; '+dur:'')+'</span></span>'
+          +'<span style="font-size:10px;text-align:right;">'+_schedStatus(b)+'</span>'
+        +'</div>';
+      });
+      body+='</div>';
+    });
+    if(reqs.length){
+      body+='<div style="margin:0 0 18px;border:1px solid #3a1f22;">'
+        +'<div style="padding:11px 14px;border-bottom:1px solid #3a1f22;background:#1c1315;font-family:\'Space Mono\',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#ff6b6b;">Online requests · pending confirmation</div>';
+      reqs.slice().sort(function(a,b){return (a.time||'').localeCompare(b.time||'');}).forEach(function(r){
+        var lbl=(typeof _onreqLabel==='function')?_onreqLabel(r):(r.service||'Recovery');
+        body+='<div style="display:grid;grid-template-columns:64px 1fr auto;gap:10px;align-items:baseline;padding:11px 14px;border-bottom:1px solid #1a1a1d;font-family:\'Space Mono\',monospace;">'
+          +'<span style="font-size:13px;color:#f4f4f5;">'+(r.time||'—')+'</span>'
+          +'<span style="font-size:12px;color:#a6a6ad;">'+lbl+' &middot; <span style="color:#f4f4f5;">'+((r.name||'Guest'))+'</span></span>'
+          +'<span style="font-size:9px;color:#ff6b6b;text-align:right;letter-spacing:.1em;">TENTATIVE</span>'
+        +'</div>';
+      });
+      body+='</div>';
+    }
+  }
+
+  el.innerHTML='<div style="background:#0a0a0b;min-height:100vh;color:#f4f4f5;font-family:\'Archivo\',sans-serif;">'
+   +'<div style="max-width:1180px;margin:0 auto;padding:30px 32px 60px;">'
+    +'<button onclick="showHome()" class="dk-back">&larr; Index</button>'
+    +'<div class="dk-mast"><div>'
+      +'<div class="dk-idx">[ SCHEDULE / READ-ONLY ]</div>'
+      +'<div class="dk-h1">Booking Schedule</div>'
+      +'<div class="dk-kicker">Everyone\'s day at a glance.</div>'
+    +'</div></div>'
+    // date scroller
+    +'<div style="display:flex;align-items:center;gap:12px;margin:6px 0 26px;">'
+      +'<button onclick="schedChangeDate(-1)" class="dk-ghost" style="min-width:44px;">&lsaquo;</button>'
+      +'<div style="text-align:center;min-width:230px;">'
+        +'<div style="font-family:\'Space Mono\',monospace;font-size:14px;letter-spacing:.08em;color:#f4f4f5;">'+dateLbl+'</div>'
+        +(rel?'<div style="font-family:\'Space Mono\',monospace;font-size:10px;color:#ff2d2d;letter-spacing:.14em;margin-top:2px;">'+rel+'</div>':'')
+      +'</div>'
+      +'<button onclick="schedChangeDate(1)" class="dk-ghost" style="min-width:44px;">&rsaquo;</button>'
+      +'<button onclick="schedToday()" class="dk-ghost" style="margin-left:6px;">Today</button>'
+      +'<span style="margin-left:auto;font-family:\'Space Mono\',monospace;font-size:10px;color:#6b6b72;">'+bks.length+' confirmed &middot; '+reqs.length+' pending</span>'
+    +'</div>'
+    +body
+   +'</div></div>';
 }
 
 // ── SESSION RESTORE ───────────────────────────────────────────────
