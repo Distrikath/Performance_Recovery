@@ -1103,8 +1103,12 @@ function _bkLoadBusy(dateStr){
       var map={},chairs=[];
       function add(t,s,d){ if(t==null||s==null)return; d=d||30; (map[t]=map[t]||[]).push({s:s,e:s+d+15}); } // +15 min buffer
       function addChair(s,d){ if(s==null)return; d=d||30; chairs.push({s:s,e:s+d+15}); }
-      if(res[0])res[0].forEach(function(doc){var r=doc.data()||{};var st=(r.status||'').toLowerCase();if(st==='declined'||st==='cancelled')return;add(r.therapist,_bkTimeToMin(r.time),parseInt(r.duration)||30);if((String(r.pathway||'').toUpperCase()==='COMPRESSION')||r.type==='iv_therapy'||r.type==='blood_work')addChair(_bkTimeToMin(r.time),parseInt(r.duration)||(r.type==='iv_therapy'?60:(r.type==='blood_work'?20:30)));});
-      if(res[1])res[1].forEach(function(doc){var d=doc.data()||{};var det={};try{det=d.detail?JSON.parse(d.detail):{};}catch(e){}if((det.date||d.bizDate)!==dateStr)return;if((det.status||d.status)==='cancelled')return;add(det.therapist,_bkTimeToMin(det.start||det.time),parseInt(det.duration)||30);});
+      // PENDING online requests only. A CONFIRMED request also lives in the ledger (authoritative, below) — counting it
+      // here too double-books the slot AND leaves a "ghost" busy window if it's later cancelled (the ledger updates on
+      // cancel, but the public_bookings doc keeps saying 'confirmed'). So confirmed/declined/cancelled never block here.
+      if(res[0])res[0].forEach(function(doc){var r=doc.data()||{};var st=(r.status||'').toLowerCase();if(st==='declined'||st==='cancelled'||st==='confirmed')return;add(r.therapist,_bkTimeToMin(r.time),parseInt(r.duration)||30);if((String(r.pathway||'').toUpperCase()==='COMPRESSION')||r.type==='iv_therapy'||r.type==='blood_work')addChair(_bkTimeToMin(r.time),parseInt(r.duration)||(r.type==='iv_therapy'?60:(r.type==='blood_work'?20:30)));});
+      // LEDGER = authoritative for CONFIRMED bookings; it reflects cancellations. Skip if EITHER status field says cancelled.
+      if(res[1])res[1].forEach(function(doc){var d=doc.data()||{};var det={};try{det=d.detail?JSON.parse(d.detail):{};}catch(e){}if((det.date||d.bizDate)!==dateStr)return;if(det.status==='cancelled'||d.status==='cancelled')return;add(det.therapist,_bkTimeToMin(det.start||det.time),parseInt(det.duration)||30);var _p=String(det.pathway||det.service||'').toUpperCase();if(_p==='COMPRESSION'||det.type==='iv_therapy'||det.type==='blood_work'||det.clinical)addChair(_bkTimeToMin(det.start||det.time),parseInt(det.duration)||(det.type==='iv_therapy'?60:(det.type==='blood_work'?20:30)));});
       _bkBusyByDate[dateStr]=map;_bkChairByDate[dateStr]=chairs;return map;
     });
   }).catch(function(){_bkBusyByDate[dateStr]=_bkBusyByDate[dateStr]||{};return _bkBusyByDate[dateStr];});
