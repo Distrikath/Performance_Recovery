@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814057;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814058;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -3614,6 +3614,14 @@ function findDiscountByCode(code, channel){
   }catch(e){ return null; }
 }
 window.activeDiscount=activeDiscount; window.findDiscountByCode=findDiscountByCode;
+// ── Multi-item discount targeting ── a discount can target MANY items via d.items[] (tokens:
+// 'rec:PATHWAY:DUR', a fuel/supply item id, or 'rec:*'/'fuel:*'/'supply:*' = all of that channel).
+// Back-compat: an old single d.item is treated as a one-entry list.
+window._discItemsOf=function(d){ if(!d) return []; if(Array.isArray(d.items)&&d.items.length) return d.items; return d.item?[d.item]:[]; };
+// True = discount the WHOLE order for this channel (no specific items chosen, or the "all of channel" token).
+window._discWholeOrder=function(d,channel){ var it=window._discItemsOf(d); return !it.length || it.indexOf(channel+':*')>-1; };
+// True = this specific line item is targeted by the discount.
+window._discLineHit=function(d,channel,itemId){ var it=window._discItemsOf(d); if(!it.length) return true; if(it.indexOf(channel+':*')>-1) return true; return itemId!=null && it.indexOf(itemId)>-1; };
 
 function saveAll(){
   try{
@@ -6935,7 +6943,7 @@ function updateReceipt(){
   const _eff=window._fuelCode||(typeof activeDiscount==='function'?activeDiscount('fuel'):null);
   const discPct=_eff?parseFloat(_eff.pct):0; const discItem=_eff?(_eff.item||''):'';
   let discAmt=0;
-  if(discPct){ if(discItem){ const _ln=cart.filter(c=>c.item&&c.item.id===discItem).reduce((sm,c)=>sm+c.linePrice*c.qty,0); discAmt=Math.round(_ln*discPct/100); } else { discAmt=Math.round(gross*discPct/100); } }
+  if(discPct){ if(window._discWholeOrder(_eff,'fuel')){ discAmt=Math.round(gross*discPct/100); } else { const _ln=cart.filter(c=>c.item&&window._discLineHit(_eff,'fuel',c.item.id)).reduce((sm,c)=>sm+c.linePrice*c.qty,0); discAmt=Math.round(_ln*discPct/100); } }
   const subtotal=gross-discAmt;                                    // net = discount off before tax
   const serviceTax=Math.round(subtotal*TAX_CFG.cafeService);       // 7% service charge on the NET
   const tax=Math.round((subtotal+serviceTax)*TAX_CFG.cafePBJT);    // 10% PB1 on net + service
@@ -6973,7 +6981,7 @@ function processSale(){
   const _code=window._fuelCode||null; const _eff=_code||activeDiscount('fuel'); // an applied code overrides the auto promo
   const discPct=_eff?parseFloat(_eff.pct):0; const discReason=_eff?(_eff.reason||_eff.code||''):''; const discCode=_code?(_code.code||''):''; const discItem=_code?(_code.item||''):'';
   let discAmt=0;
-  if(discPct){ if(discItem){ let _ln=cart.filter(c=>c.item&&c.item.id===discItem).reduce((s,c)=>s+c.linePrice*c.qty,0); discAmt=Math.round(_ln*discPct/100); } else { discAmt=Math.round(gross*discPct/100); } }
+  if(discPct){ if(window._discWholeOrder(_code,'fuel')){ discAmt=Math.round(gross*discPct/100); } else { let _ln=cart.filter(c=>c.item&&window._discLineHit(_code,'fuel',c.item.id)).reduce((s,c)=>s+c.linePrice*c.qty,0); discAmt=Math.round(_ln*discPct/100); } }
   const subtotal=gross-discAmt;                                      // discount applied before tax
   const serviceTax=Math.round(subtotal*TAX_CFG.cafeService); // 7% service charge
   const tax=Math.round((subtotal+serviceTax)*TAX_CFG.cafePBJT); // 10% PBJT on subtotal+service charge
@@ -7950,7 +7958,7 @@ function supUpdateReceipt(){
   const _eff=window._supCode||(typeof activeDiscount==='function'?activeDiscount('supply'):null);
   const discPct=_eff?parseFloat(_eff.pct):0; const discItem=_eff?(_eff.item||''):'';
   let discAmt=0;
-  if(discPct){ if(discItem){ const _ln=supCart.filter(c=>c.item&&c.item.id===discItem).reduce((s,c)=>s+c.price,0); discAmt=Math.round(_ln*discPct/100); } else { discAmt=Math.round(subtotal*discPct/100); } }
+  if(discPct){ if(window._discWholeOrder(_eff,'supply')){ discAmt=Math.round(subtotal*discPct/100); } else { const _ln=supCart.filter(c=>c.item&&window._discLineHit(_eff,'supply',c.item.id)).reduce((s,c)=>s+c.price,0); discAmt=Math.round(_ln*discPct/100); } }
   const net = subtotal-discAmt;                                    // discount off BEFORE tax
   const tax = subtotal>0?Math.round(grossTax*net/subtotal):0;      // tax recalculated on the discounted amount
   const total = net+tax;
@@ -7979,7 +7987,7 @@ function supProcessSale(){
   const _code=window._supCode||null; const _eff=_code||activeDiscount('supply'); // applied code overrides the auto promo
   const discPct=_eff?parseFloat(_eff.pct):0; const discReason=_eff?(_eff.reason||_eff.code||''):''; const discCode=_code?(_code.code||''):''; const discItem=_code?(_code.item||''):'';
   let discAmt=0;
-  if(discPct){ if(discItem){ let _ln=supCart.filter(c=>c.item&&c.item.id===discItem).reduce((s,c)=>s+c.price,0); discAmt=Math.round(_ln*discPct/100); } else { discAmt=Math.round(_subEx*discPct/100); } }
+  if(discPct){ if(window._discWholeOrder(_code,'supply')){ discAmt=Math.round(_subEx*discPct/100); } else { let _ln=supCart.filter(c=>c.item&&window._discLineHit(_code,'supply',c.item.id)).reduce((s,c)=>s+c.price,0); discAmt=Math.round(_ln*discPct/100); } }
   const _net = _subEx-discAmt;                                    // discount comes off BEFORE tax
   const _taxTotal = _subEx>0?Math.round(_grossTax*_net/_subEx):0; // tax recalculated on the discounted amount
   const total = _net+_taxTotal;
@@ -10979,7 +10987,7 @@ function renderClinicalBooking(){
     var paymentBlock=clinEditingId
       ? paymentSep+'<div style="font-family:\'Space Mono\',monospace;font-size:11px;color:#56565b;padding:2px 0 2px;line-height:1.5;">Editing — payment stays as it is. Just move the date, time, room or therapist, then press <b>Update booking</b>.</div>'
       : paymentSep+'<div class="clin-windows">'
-      +'<button class="clin-win'+(clinPayType==='deposit'?' sel':'')+'" onclick="clinSetPayType(\'deposit\')">Deposit 50% · '+(typeof clinFmt==='function'?clinFmt(dep50):'IDR '+dep50)+'</button>'
+      +'<button class="clin-win'+(clinPayType==='deposit'?' sel':'')+'" onclick="clinSetPayType(\'deposit\')" title="Client pays 50% now at the till; the balance is collected on the treatment day at Check out">Deposit 50% now · '+(typeof clinFmt==='function'?clinFmt(dep50):'IDR '+dep50)+'<span style="display:block;font-size:8px;opacity:.7;">rest on arrival</span></button>'
       +'<button class="clin-win'+(clinPayType==='full'?' sel':'')+'" onclick="clinSetPayType(\'full\')">Full · '+(typeof clinFmt==='function'?clinFmt(svcPrice):'IDR '+svcPrice)+'</button>'
       +'</div>';
     el.innerHTML=renderClinMiniCal()+roomGridDiv+dateBar
@@ -11034,7 +11042,7 @@ function renderClinicalOrder(){
       +(rt?'<div class="clin-oline sub"><span>Therapist</span><span>'+rt.therapist+'</span></div>':'')
       +(clinTime?'<div class="clin-oline sub"><span>Time</span><span>'+clinDate.toLocaleDateString('en-US',{weekday:'short'})+' '+clinTime+'</span></div>':'')
       +(clinPressure?'<div class="clin-oline sub"><span>Pressure</span><span style="text-transform:capitalize;">'+clinPressure+'</span></div>':'')
-      +(clinPayType?'<div class="clin-oline sub"><span>Payment</span><span>'+(clinPayType==='deposit'?'Deposit 50% · '+(typeof clinFmt==='function'?clinFmt(Math.round(_svcP*0.5)):'IDR '+Math.round(_svcP*0.5)):'Full · '+(typeof clinFmt==='function'?clinFmt(_svcP):'IDR '+_svcP))+'</span></div>':'');
+      +(clinPayType?'<div class="clin-oline sub"><span>Payment</span><span>'+(clinPayType==='deposit'?'Deposit 50% now · '+(typeof clinFmt==='function'?clinFmt(Math.round(_svcP*0.5)):'IDR '+Math.round(_svcP*0.5))+' <span style="opacity:.6;">(rest on arrival)</span>':'Full · '+(typeof clinFmt==='function'?clinFmt(_svcP):'IDR '+_svcP))+'</span></div>':'');
   }
   el.innerHTML=lines;
   var ob=document.getElementById('clin-online'); if(ob) ob.checked=clinOnline;
@@ -11269,7 +11277,7 @@ function confirmClinical(){
   };
   if(clinType==='clinical'){ rec.clinical=true; rec.tag='ClinicTerrain'; rec.window=clinWindow; rec.intake=(clinIntake?'approved':'pending'); }
   if(clinOnline){ var _tot=_price; rec.online=true; rec.deposit=Math.round(_tot*0.5); rec.balanceDue=_tot-Math.round(_tot*0.5); rec.balancePaid=false; }
-  else if(clinPayType==='deposit'){ rec.deposit=Math.round(_price*0.5); rec.balanceDue=_price-Math.round(_price*0.5); rec.balancePaid=false; }
+  else if(clinPayType==='deposit'){ rec.deposit=Math.round(_price*0.5); rec.balanceDue=_price-Math.round(_price*0.5); rec.balancePaid=false; rec.depositPaid=true; /* IN-PERSON deposit: paid now at the till (card/QR); balance collected on the treatment day at Check out */ }
   // EDITING = moving only: keep the money exactly as it was (deposit, balance, paid-state, price, discount, partner
   // commission). We only change the schedule (room/therapist/time/date). Never re-charge on an edit.
   if(clinEditingId && window._clinEditOrig){
@@ -13204,7 +13212,7 @@ window.injectWaCapture = function(confirmId, sale){
     var gross=cart.reduce(function(s,c){return s+c.linePrice*c.qty;},0);
     var _code=window._fuelCode||null; var _eff=_code||((typeof activeDiscount==='function')?activeDiscount('fuel'):null);
     var dp=_eff?parseFloat(_eff.pct):0; var di=_code?(_code.item||''):'';
-    var da=0; if(dp){ if(di){ var ln=cart.filter(function(c){return c.item&&c.item.id===di;}).reduce(function(s,c){return s+c.linePrice*c.qty;},0); da=Math.round(ln*dp/100); } else { da=Math.round(gross*dp/100); } }
+    var da=0; if(dp){ if(window._discWholeOrder(_code,'fuel')){ da=Math.round(gross*dp/100); } else { var ln=cart.filter(function(c){return c.item&&window._discLineHit(_code,'fuel',c.item.id);}).reduce(function(s,c){return s+c.linePrice*c.qty;},0); da=Math.round(ln*dp/100); } }
     var sub=gross-da;
     var serviceTax=Math.round(sub*TAX_CFG.cafeService);
     var tax=Math.round((sub+serviceTax)*TAX_CFG.cafePBJT);
@@ -13218,7 +13226,7 @@ window.injectWaCapture = function(confirmId, sale){
     var grossTax=supCart.reduce(function(s,c){return s+(c.tax||0);},0);
     var _code=window._supCode||null; var _eff=_code||((typeof activeDiscount==='function')?activeDiscount('supply'):null);
     var dp=_eff?parseFloat(_eff.pct):0; var di=_code?(_code.item||''):'';
-    var da=0; if(dp){ if(di){ var ln=supCart.filter(function(c){return c.item&&c.item.id===di;}).reduce(function(s,c){return s+c.price;},0); da=Math.round(ln*dp/100); } else { da=Math.round(subEx*dp/100); } }
+    var da=0; if(dp){ if(window._discWholeOrder(_code,'supply')){ da=Math.round(subEx*dp/100); } else { var ln=supCart.filter(function(c){return c.item&&window._discLineHit(_code,'supply',c.item.id);}).reduce(function(s,c){return s+c.price;},0); da=Math.round(ln*dp/100); } }
     var net=subEx-da; var tax=subEx>0?Math.round(grossTax*net/subEx):0; var total=net+tax;
     payConfirm(da?('Confirm Supply sale — '+dp+'% OFF'):'Confirm Supply sale','IDR '+total.toLocaleString('id-ID'), supPosPayMethod, supProcessSale);
   };
@@ -13263,20 +13271,23 @@ window.injectWaCapture = function(confirmId, sale){
       v=g('disc_fr_'+i);  if(v!==undefined) d.from=v;
       v=g('disc_to_'+i);  if(v!==undefined) d.to=v;
       v=g('disc_cd_'+i);  if(v!==undefined) d.code=v.trim().toUpperCase();
-      v=g('disc_it_'+i);  if(v!==undefined) d.item=v;
+      // targets = every ticked checkbox in this row's "applies to" list (multi-select)
+      var boxes=document.querySelectorAll('.disc_it_'+i);
+      if(boxes && boxes.length){ var arr=[]; for(var _b=0;_b<boxes.length;_b++){ if(boxes[_b].checked) arr.push(boxes[_b].value); } d.items=arr; d.item=''; }
     });
   }
-  function _discItemOpts(sel){
-    var o='<option value="">— Whole order / channel —</option>';
-    // Recovery sessions (pathway + duration) — value rec:PATHWAY:DURATION
-    try{
-      [['RECOVER',[30,45,60,90]],['PERFORM',[30,45,60,90]],['MOVE',[30,45,60,90]],['COMPRESSION',[20,40]]].forEach(function(pw){
-        pw[1].forEach(function(dur){ var v='rec:'+pw[0]+':'+dur; o+='<option value="'+v+'"'+(sel===v?' selected':'')+'>Recovery: '+pw[0].charAt(0)+pw[0].slice(1).toLowerCase()+' '+dur+'min</option>'; });
-      });
-    }catch(e){}
-    try{ (typeof MENU_ITEMS!=='undefined'?MENU_ITEMS:[]).forEach(function(it){ if(it&&it.id) o+='<option value="'+it.id+'"'+(sel===it.id?' selected':'')+'>Fuel: '+esc(it.name)+'</option>'; }); }catch(e){}
-    try{ (typeof SUPPLY_ITEMS!=='undefined'?SUPPLY_ITEMS:[]).forEach(function(it){ if(it&&it.id) o+='<option value="'+it.id+'"'+(sel===it.id?' selected':'')+'>Supply: '+esc(it.name)+'</option>'; }); }catch(e){}
-    return o;
+  // Multi-select "applies to" — a scrollable checkbox list; nothing ticked = whole channel/order.
+  function _discItemChecks(sel, i){
+    sel = Array.isArray(sel)?sel:(sel?[sel]:[]);
+    function cb(val,label){ var ck=(sel.indexOf(val)>-1)?' checked':''; return '<label style="display:flex;align-items:center;gap:6px;padding:2px 0;cursor:pointer;font-size:10px;color:#0A0A0A;"><input type="checkbox" class="disc_it_'+i+'" value="'+esc(val)+'"'+ck+'>'+esc(label)+'</label>'; }
+    function hdr(t){ return '<div style="font-weight:700;font-size:9px;letter-spacing:.08em;color:#888;margin:6px 0 2px;">'+t+'</div>'; }
+    var h='<div style="border:1px solid #d3d3ce;background:#fff;max-height:150px;overflow:auto;padding:6px 10px;border-radius:4px;">';
+    h+=hdr('RECOVERY')+cb('rec:*','★ All recovery sessions');
+    try{ [['RECOVER',[30,45,60,90]],['PERFORM',[30,45,60,90]],['MOVE',[30,45,60,90]],['COMPRESSION',[20,40]]].forEach(function(pw){ pw[1].forEach(function(dur){ h+=cb('rec:'+pw[0]+':'+dur, pw[0].charAt(0)+pw[0].slice(1).toLowerCase()+' '+dur+'min'); }); }); }catch(e){}
+    try{ var fi=(typeof MENU_ITEMS!=='undefined'?MENU_ITEMS:[]); if(fi.length){ h+=hdr('FUEL')+cb('fuel:*','★ All fuel items'); fi.forEach(function(it){ if(it&&it.id) h+=cb(it.id, it.name); }); } }catch(e){}
+    try{ var si=(typeof SUPPLY_ITEMS!=='undefined'?SUPPLY_ITEMS:[]); if(si.length){ h+=hdr('SUPPLY')+cb('supply:*','★ All supply items'); si.forEach(function(it){ if(it&&it.id) h+=cb(it.id, it.name); }); } }catch(e){}
+    h+='</div>';
+    return h;
   }
   window.discBuildList=function(){
     var el=document.getElementById('disc-list'); if(!el) return;
@@ -13291,13 +13302,16 @@ window.injectWaCapture = function(confirmId, sale){
           +'<input id="disc_rs_'+i+'" value="'+esc(d.reason)+'" placeholder="Reason e.g. Opening week" style="'+_ist+'">'
           +'<button onclick="discDelRow('+i+')" style="border:none;background:none;color:#FF2D2D;cursor:pointer;font-size:16px;">&times;</button>'
         +'</div>'
-        +'<div style="display:grid;grid-template-columns:1fr 1fr 130px 1.5fr;gap:8px;align-items:center;">'
+        +'<div style="display:grid;grid-template-columns:1fr 1fr 130px;gap:8px;align-items:center;">'
           +'<input type="date" id="disc_fr_'+i+'" value="'+esc(d.from)+'" title="From" style="'+_ist+'">'
           +'<input type="date" id="disc_to_'+i+'" value="'+esc(d.to)+'" title="To" style="'+_ist+'">'
           +'<input id="disc_cd_'+i+'" value="'+esc(d.code)+'" placeholder="CODE (optional)" style="'+_ist+'text-transform:uppercase;">'
-          +'<select id="disc_it_'+i+'" style="'+_ist+'">'+_discItemOpts(d.item||'')+'</select>'
         +'</div>'
-        +'<div style="font-size:9px;letter-spacing:.05em;color:#999;margin-top:7px;">'+(coded?'&#128273; Code required at the till':'&#9889; Auto-applies during the dates')+(d.item?' · single item only':'')+'</div>'
+        +'<div style="margin-top:8px;">'
+          +'<div style="font-size:9px;letter-spacing:.08em;color:#888;margin-bottom:4px;">APPLIES TO <span style="color:#bbb;text-transform:none;letter-spacing:0;">· tick one or more · leave all unticked = whole channel/order</span></div>'
+          +_discItemChecks(window._discItemsOf(d), i)
+        +'</div>'
+        +'<div style="font-size:9px;letter-spacing:.05em;color:#999;margin-top:7px;">'+(coded?'&#128273; Code required at the till':'&#9889; Auto-applies during the dates')+((window._discItemsOf(d).length)?' · '+window._discItemsOf(d).length+' item(s) targeted':'')+'</div>'
       +'</div>';
     }).join('');
     el.innerHTML=(body||'<div style="color:#999;font-size:11px;padding:10px 0;">No discounts yet — add one below.</div>');
@@ -13308,7 +13322,7 @@ window.injectWaCapture = function(confirmId, sale){
     discBuildList(); document.getElementById('discMgrModal').style.display='flex';
   };
   window.closeDiscountsMgr=function(){ var m=document.getElementById('discMgrModal'); if(m) m.style.display='none'; };
-  window.discAddRow=function(){ _discFlush(); if(!window.DISCOUNTS) window.DISCOUNTS=[]; window.DISCOUNTS.push({id:'d'+Date.now(),pct:10,channel:'all',reason:'',from:'',to:'',code:'',item:''}); discBuildList(); };
+  window.discAddRow=function(){ _discFlush(); if(!window.DISCOUNTS) window.DISCOUNTS=[]; window.DISCOUNTS.push({id:'d'+Date.now(),pct:10,channel:'all',reason:'',from:'',to:'',code:'',item:'',items:[]}); discBuildList(); };
   window.discDelRow=function(i){ _discFlush(); window.DISCOUNTS.splice(i,1); discBuildList(); };
   window.saveDiscounts=function(){
     _discFlush();
@@ -13350,8 +13364,13 @@ window.applySupCode=function(){
   // does an item-targeted recovery discount (rec:PATHWAY:DURATION) match the currently selected session?
   window._clinDiscMatch=function(d){
     if(!d) return false;
-    if(!d.item || String(d.item).indexOf('rec:')!==0) return true;
-    try{ var pr=String(d.item).split(':'); var s=(typeof clinSvc==='function')?clinSvc():null; var pw=(s&&(s.name||s.pathway))||''; var dur=(s&&s.duration)||''; return String(pw).toUpperCase()===String(pr[1]).toUpperCase() && String(dur)===String(pr[2]); }catch(e){ return true; }
+    var items=(typeof window._discItemsOf==='function')?window._discItemsOf(d):(d.item?[d.item]:[]);
+    if(!items.length) return true;                 // whole channel/order → matches any recovery session
+    if(items.indexOf('rec:*')>-1) return true;     // "all recovery" token
+    // otherwise it must list a recovery session that matches the one being booked
+    try{ var s=(typeof clinSvc==='function')?clinSvc():null; var pw=String((s&&(s.name||s.pathway))||'').toUpperCase(); var dur=String((s&&s.duration)||'');
+      return items.some(function(it){ it=String(it); if(it.indexOf('rec:')!==0) return false; var pr=it.split(':'); return String(pr[1]).toUpperCase()===pw && String(pr[2])===dur; });
+    }catch(e){ return true; }
   };
   // effective recovery discount = applied code/manual (if it matches the session) else the auto promo
   window._clinEffDiscount=function(){
