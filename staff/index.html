@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814056;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814057;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -10770,7 +10770,7 @@ function renderClinicalServices(){
     +'</div>'
     +'<div class="clin-acc-body'+(cOpen?' open':'')+'">'+cSvcs.map(function(s){return svcCard(s,'clinical');}).join('')+'</div>';
 }
-function selectService(id,type){ clinSel=id;clinType=type;clinIntake=false;clinWindow=null;clinRoom=null;clinDone=false;clinOnline=false;clinPressure='';clinPayType='full';clinPatient='';clinEmail='';clinWhatsapp='';clinTime=''; window._clinOnlineReqId=null; renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); }
+function selectService(id,type){ if(typeof clinCaptureInputs==='function') clinCaptureInputs(); /* keep whatever's typed */ clinSel=id;clinType=type;clinIntake=false;clinWindow=null;clinRoom=null;clinDone=false;clinOnline=false;clinPayType='full';clinTime=''; window._clinOnlineReqId=null; /* PRESERVE client name/email/WhatsApp + pressure when changing the session type — a full reset only happens via initRecovery / New booking */ renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); }
 window.selectService=selectService;
 
 // Which rooms can the currently-selected service be booked in (with roster therapist + eligibility)
