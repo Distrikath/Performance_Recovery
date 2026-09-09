@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814062;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814064;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -5600,6 +5600,10 @@ function buildMyAccount(el){
       </div>
     </div>
 
+    ${(typeof _buildTipsBlock==='function')?_buildTipsBlock(s):''}
+
+    ${(typeof _buildCommissionBlock==='function')?_buildCommissionBlock(s):''}
+
     ${(currentUser?.type==='admin'||currentUser?.role==='2IC')?`
     <div style="margin-top:28px;border:1px solid #232327;">
       <div style="padding:13px 16px;border-bottom:1px solid #232327;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6b6b72;">Monthly payslips</div>
@@ -5607,6 +5611,143 @@ function buildMyAccount(el){
     </div>`:''}
    </div>
   </div>`;
+}
+
+// ── SERVICE-CHARGE TIP POOL ──────────────────────────────────────────
+// The café's 7% service charge (a gratuity, Fuel sales only) is split evenly each day between 5 staff.
+// Runs on a 16th→15th cycle: totals build daily, pay out on the 15th, then start fresh on the 16th.
+// Computed live from the ledger (fuelData) — no stored balances to reset; the window just moves.
+var TIP_POOL_IDS=['SA','SC','HS','SD','SE'];  // Jason, Valen, Jordann, Markus, Sella
+function _tipPeriodKeys(){
+  var d=(typeof baliNow==='function'?baliNow():new Date());
+  var y=d.getFullYear(), m=d.getMonth(), day=d.getDate(), s, e;
+  if(day>=16){ s=new Date(y,m,16,12,0,0); e=new Date(y,m+1,15,12,0,0); }
+  else { s=new Date(y,m-1,16,12,0,0); e=new Date(y,m,15,12,0,0); }
+  var keys=[], t=new Date(s.getTime());
+  while(t<=e){ keys.push(t.getFullYear()+'-'+('0'+(t.getMonth()+1)).slice(-2)+'-'+('0'+t.getDate()).slice(-2)); t.setDate(t.getDate()+1); }
+  return {keys:keys, start:s, end:e};
+}
+function _dayServicePool(dateKey){
+  try{ var f=(typeof fuelData!=='undefined'&&fuelData[dateKey])?fuelData[dateKey]:null;
+    if(!f||!f.transactions) return 0;
+    return f.transactions.reduce(function(sum,t){ return sum + ((t&&t.serviceTax)||0); }, 0);
+  }catch(e){ return 0; }
+}
+// Build the My Account tips section. Pool member → their running total + daily rows. Admin/2IC → all 5 + grand total.
+function _buildTipsBlock(s){
+  try{
+    var isAdmin=(currentUser&&(currentUser.type==='admin'||currentUser.role==='2IC'));
+    var isMember=s&&TIP_POOL_IDS.indexOf(s.id)>-1;
+    if(!isMember && !isAdmin) return '';
+    var per=_tipPeriodKeys();
+    var f=function(n){ return 'IDR '+Math.round(n||0).toLocaleString('id-ID'); };
+    var mon=function(dk){ var p=dk.split('-'); return p[2].replace(/^0/,'')+' '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+p[1]-1]; };
+    var startK=per.keys[0], endK=per.keys[per.keys.length-1];
+    var periodLbl=mon(startK)+' – '+mon(endK);
+    // per-day pools across the period
+    var dayPools=[], grand=0;
+    per.keys.forEach(function(k){ var pool=_dayServicePool(k); if(pool>0){ dayPools.push({k:k,pool:pool,share:Math.round(pool/5)}); grand+=pool; } });
+    var head='<div style="margin-top:28px;border:1px solid #232327;">'
+      +'<div style="display:flex;justify-content:space-between;align-items:baseline;padding:13px 16px;border-bottom:1px solid #232327;">'
+        +'<span style="font-family:\'Space Mono\',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6b6b72;">Service charge · tips</span>'
+        +'<span style="font-family:\'Space Mono\',monospace;font-size:10px;color:#6b6b72;">'+periodLbl+' · pay 15th</span>'
+      +'</div>';
+    if(!dayPools.length){
+      return head+'<div style="padding:18px 16px;font-family:\'Space Mono\',monospace;font-size:11px;color:#6b6b72;text-align:center;">No café service charge collected this period yet.</div></div>';
+    }
+    if(isMember && !isAdmin){
+      // this staffer's own share (pool ÷ 5 each day)
+      var myTotal=dayPools.reduce(function(a,d){return a+d.share;},0);
+      var rows=dayPools.slice().reverse().map(function(d){
+        return '<div style="display:flex;justify-content:space-between;padding:9px 16px;border-bottom:1px solid #1b1b1e;font-family:\'Space Mono\',monospace;font-size:11px;">'
+          +'<span style="color:#a6a6ad;">'+mon(d.k)+'</span>'
+          +'<span style="color:#6b6b72;font-size:10px;">pool '+f(d.pool)+' ÷5</span>'
+          +'<span style="color:#f4f4f5;font-weight:700;">'+f(d.share)+'</span></div>';
+      }).join('');
+      return head
+        +'<div style="padding:16px;border-bottom:1px solid #232327;">'
+          +'<div style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#6b6b72;">Your tips this period</div>'
+          +'<div style="font-family:\'Archivo\',sans-serif;font-weight:800;font-size:30px;color:#22c55e;margin-top:4px;">'+f(myTotal)+'</div>'
+          +'<div style="font-family:\'Space Mono\',monospace;font-size:10px;color:#6b6b72;margin-top:2px;">even 1/5 share · paid out on the 15th</div>'
+        +'</div>'+rows+'</div>';
+    }
+    // admin / 2IC → payout sheet: all 5 members + grand total.
+    // per-member = sum of each day's rounded 1/5 share (identical to what each member sees in My Account).
+    var perMember=dayPools.reduce(function(a,d){return a+d.share;},0);
+    var mrows=TIP_POOL_IDS.map(function(id){
+      var nm=((typeof getStaff==='function'&&getStaff(id))||{}).name||id;
+      return '<div style="display:flex;justify-content:space-between;padding:9px 16px;border-bottom:1px solid #1b1b1e;font-family:\'Space Mono\',monospace;font-size:12px;">'
+        +'<span style="color:#f4f4f5;">'+nm+'</span><span style="color:#22c55e;font-weight:700;">'+f(perMember)+'</span></div>';
+    }).join('');
+    return head
+      +'<div style="padding:14px 16px;border-bottom:1px solid #232327;font-family:\'Space Mono\',monospace;font-size:10px;color:#6b6b72;">Pool collected this period: <b style="color:#f4f4f5;">'+f(grand)+'</b> · ÷5 each</div>'
+      +mrows
+      +'<div style="display:flex;justify-content:space-between;padding:11px 16px;font-family:\'Space Mono\',monospace;font-size:12px;background:#111114;"><span style="color:#6b6b72;text-transform:uppercase;letter-spacing:.1em;">Total to pay (15th)</span><span style="color:#f4f4f5;font-weight:700;">'+f(perMember*5)+'</span></div>'
+      +'</div>';
+  }catch(e){ return ''; }
+}
+
+// ── THERAPIST COMMISSION ─────────────────────────────────────────────
+// Tony (TC), Luli (TB), Nanda (TD): 10% of the therapy sessions THEY personally do (on the amount charged),
+// + 2.5% of any IV/Blood they RECOMMENDED (recommendedBy). Same 16th→15th cycle, paid the 15th, live from ledger.
+var THERAPIST_IDS=['TC','TB','TD'];
+function _therapistCommForDay(therId, dateKey){
+  var day=(typeof recoveryData!=='undefined'&&recoveryData[dateKey])?recoveryData[dateKey]:null;
+  var out={therapy:0, iv:0};
+  if(!day||!day.bookings) return out;
+  day.bookings.forEach(function(b){
+    if(!b||b.status==='cancelled') return;
+    if(b.clinical||b.partner){ if(b.recommendedBy===therId){ out.iv += Math.round((b.partnerTotal||b.price||0)*0.025); } }
+    else { if(b.therapist===therId){ out.therapy += Math.round((b.price||0)*0.10); } }
+  });
+  return out;
+}
+function _therapistCommPeriod(therId){
+  var per=_tipPeriodKeys(); var therapy=0, iv=0, days=[];
+  per.keys.forEach(function(k){ var d=_therapistCommForDay(therId,k); if(d.therapy||d.iv){ therapy+=d.therapy; iv+=d.iv; days.push({k:k,therapy:d.therapy,iv:d.iv}); } });
+  return {therapy:therapy, iv:iv, total:therapy+iv, days:days, per:per};
+}
+function _buildCommissionBlock(s){
+  try{
+    var isAdmin=(currentUser&&(currentUser.type==='admin'||currentUser.role==='2IC'));
+    var isTher=s&&THERAPIST_IDS.indexOf(s.id)>-1;
+    if(!isTher && !isAdmin) return '';
+    var per=_tipPeriodKeys();
+    var f=function(n){ return 'IDR '+Math.round(n||0).toLocaleString('id-ID'); };
+    var mon=function(dk){ var p=dk.split('-'); return p[2].replace(/^0/,'')+' '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+p[1]-1]; };
+    var periodLbl=mon(per.keys[0])+' – '+mon(per.keys[per.keys.length-1]);
+    var head='<div style="margin-top:28px;border:1px solid #232327;">'
+      +'<div style="display:flex;justify-content:space-between;align-items:baseline;padding:13px 16px;border-bottom:1px solid #232327;">'
+        +'<span style="font-family:\'Space Mono\',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6b6b72;">Therapist commission</span>'
+        +'<span style="font-family:\'Space Mono\',monospace;font-size:10px;color:#6b6b72;">'+periodLbl+' · pay 15th</span>'
+      +'</div>';
+    if(isTher && !isAdmin){
+      var c=_therapistCommPeriod(s.id);
+      if(!c.total && !c.days.length) return head+'<div style="padding:18px 16px;font-family:\'Space Mono\',monospace;font-size:11px;color:#6b6b72;text-align:center;">No commission earned this period yet.</div></div>';
+      var rows=c.days.slice().reverse().map(function(d){
+        return '<div style="display:flex;justify-content:space-between;padding:9px 16px;border-bottom:1px solid #1b1b1e;font-family:\'Space Mono\',monospace;font-size:11px;">'
+          +'<span style="color:#a6a6ad;">'+mon(d.k)+'</span>'
+          +'<span style="color:#6b6b72;font-size:10px;">'+(d.therapy?'therapy '+f(d.therapy):'')+(d.therapy&&d.iv?' · ':'')+(d.iv?'IV/blood '+f(d.iv):'')+'</span>'
+          +'<span style="color:#f4f4f5;font-weight:700;">'+f(d.therapy+d.iv)+'</span></div>';
+      }).join('');
+      return head
+        +'<div style="padding:16px;border-bottom:1px solid #232327;">'
+          +'<div style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#6b6b72;">Your commission this period</div>'
+          +'<div style="font-family:\'Archivo\',sans-serif;font-weight:800;font-size:30px;color:#22c55e;margin-top:4px;">'+f(c.total)+'</div>'
+          +'<div style="font-family:\'Space Mono\',monospace;font-size:10px;color:#6b6b72;margin-top:2px;">10% therapy ('+f(c.therapy)+') · 2.5% IV/blood recommendations ('+f(c.iv)+') · paid 15th</div>'
+        +'</div>'+rows+'</div>';
+    }
+    var grand=0, mrows=THERAPIST_IDS.map(function(id){
+      var c=_therapistCommPeriod(id); grand+=c.total;
+      var nm=((typeof getStaff==='function'&&getStaff(id))||{}).name||id;
+      return '<div style="display:flex;justify-content:space-between;padding:9px 16px;border-bottom:1px solid #1b1b1e;font-family:\'Space Mono\',monospace;font-size:12px;">'
+        +'<span style="color:#f4f4f5;">'+nm+' <span style="color:#6b6b72;font-size:9px;">10% '+f(c.therapy)+' · 2.5% '+f(c.iv)+'</span></span>'
+        +'<span style="color:#22c55e;font-weight:700;">'+f(c.total)+'</span></div>';
+    }).join('');
+    return head+mrows
+      +'<div style="display:flex;justify-content:space-between;padding:11px 16px;font-family:\'Space Mono\',monospace;font-size:12px;background:#111114;"><span style="color:#6b6b72;text-transform:uppercase;letter-spacing:.1em;">Total commission (15th)</span><span style="color:#f4f4f5;font-weight:700;">'+f(grand)+'</span></div>'
+      +'</div>';
+  }catch(e){ return ''; }
 }
 
 // ── BOOKING SCHEDULE (read-only, everyone) ───────────────────────────
@@ -10191,6 +10332,7 @@ var clinSel=null, clinType=null, clinIntake=false, clinWindow=null, clinRoom=nul
 var clinEditingId=null, clinEditingDate=null;
 var clinOnline=false; // online booking → take 50% deposit, balance on arrival
 var clinPressure=''; // 'light' | 'medium' | 'firm'
+var clinRecommendedBy=''; // IV/blood: therapist (TC/TB/TD) who recommended it → earns 2.5% commission ('' = none)
 var clinPayType='full'; // 'deposit' | 'full'
 var clinPatient='', clinEmail='', clinWhatsapp='', clinTime='';
 var clinDate=(typeof baliNow==='function'?baliNow():new Date());
@@ -10452,7 +10594,7 @@ function clinSendReminder(id){
 // Resend guard — the button becomes "Reminder sent ✓"; re-sending asks first so no accidental double message.
 function clinResendReminder(id){ if(confirm('A reminder was already sent to this client via WhatsApp.\n\nSend another one?')) clinSendReminder(id); }
 window.clinSendReminder=clinSendReminder; window.clinResendReminder=clinResendReminder;
-function initRecovery(){ if(typeof loadClinical==='function') loadClinical(); clinSel=null;clinType=null;clinIntake=false;clinWindow=null;clinRoom=null;clinPay='card';clinDone=false;clinDoneHold=false;clinEditingId=null;clinEditingDate=null;clinOnline=false;clinPressure='';clinPayType='full';clinPatient='';clinEmail='';clinWhatsapp='';clinTime=''; clinDate=(typeof baliNow==='function'?baliNow():new Date()); clinViewYear=null;clinViewMonth=null; clinGroupOpen={recovery:true,clinical:true}; try{window.clinPromo=null; ['recovery-disc-pct','recovery-disc-code'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';}); var _m=document.getElementById('recovery-disc-msg');if(_m)_m.textContent='';}catch(e){} clinSyncDateUI(); renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); startBookingListener(); }
+function initRecovery(){ if(typeof loadClinical==='function') loadClinical(); clinSel=null;clinType=null;clinIntake=false;clinWindow=null;clinRoom=null;clinPay='card';clinDone=false;clinDoneHold=false;clinEditingId=null;clinEditingDate=null;clinOnline=false;clinPressure='';clinRecommendedBy='';clinPayType='full';clinPatient='';clinEmail='';clinWhatsapp='';clinTime=''; clinDate=(typeof baliNow==='function'?baliNow():new Date()); clinViewYear=null;clinViewMonth=null; clinGroupOpen={recovery:true,clinical:true}; try{window.clinPromo=null; ['recovery-disc-pct','recovery-disc-code'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';}); var _m=document.getElementById('recovery-disc-msg');if(_m)_m.textContent='';}catch(e){} clinSyncDateUI(); renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); startBookingListener(); }
 window.initRecovery=initRecovery;
 
 // ── Online Booking Requests (public_bookings Firestore collection) ──────
@@ -10782,7 +10924,7 @@ function renderClinicalServices(){
     +'</div>'
     +'<div class="clin-acc-body'+(cOpen?' open':'')+'">'+cSvcs.map(function(s){return svcCard(s,'clinical');}).join('')+'</div>';
 }
-function selectService(id,type){ if(typeof clinCaptureInputs==='function') clinCaptureInputs(); /* keep whatever's typed */ clinSel=id;clinType=type;clinIntake=false;clinWindow=null;clinRoom=null;clinDone=false;clinOnline=false;clinPayType='full';clinTime=''; window._clinOnlineReqId=null; /* PRESERVE client name/email/WhatsApp + pressure when changing the session type — a full reset only happens via initRecovery / New booking */ renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); }
+function selectService(id,type){ if(typeof clinCaptureInputs==='function') clinCaptureInputs(); /* keep whatever's typed */ clinSel=id;clinType=type;clinIntake=false;clinWindow=null;clinRoom=null;clinDone=false;clinOnline=false;clinPayType='full';clinTime='';clinRecommendedBy=''; window._clinOnlineReqId=null; /* PRESERVE client name/email/WhatsApp + pressure when changing the session type — a full reset only happens via initRecovery / New booking */ renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); }
 window.selectService=selectService;
 
 // Which rooms can the currently-selected service be booked in (with roster therapist + eligibility)
@@ -10963,6 +11105,11 @@ function renderClinicalBooking(){
       +'<div class="clin-field"><label>3 · Recovery chair</label>'+roomLine+'</div>'
       +'<div style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#56565b;margin:18px 0 10px;padding-top:14px;border-top:1px solid #f0f0f0;">4 · Patient details</div>'
       +contactBlock
+      +('<div style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#56565b;margin:18px 0 8px;padding-top:14px;border-top:1px solid #f0f0f0;">Recommended by <span style="text-transform:none;color:#9a9a9e">· therapist earns 2.5%</span></div>'
+        +'<select id="clin-recommend" onchange="clinSetRecommend(this.value)" style="width:100%;font-family:\'Space Mono\',monospace;font-size:11px;border:1px solid #d3d3ce;padding:8px;background:#fafafa;color:#0A0A0A;box-sizing:border-box;">'
+        +'<option value="">— No recommendation (no 2.5%) —</option>'
+        +['TC','TB','TD'].map(function(_tid){ var _n=((typeof getStaff==='function'&&getStaff(_tid))||{}).name||_tid; return '<option value="'+_tid+'"'+(clinRecommendedBy===_tid?' selected':'')+'>'+_n+'</option>'; }).join('')
+        +'</select>')
       +intakeBlock
       +'<div class="clin-tagline"><span>Internal tag</span><span class="clin-tag">Clinical Partner</span></div>'
       +'</div>';
@@ -11092,6 +11239,7 @@ window.clinSetPay=clinSetPay;
 function clinSetPressure(p){ clinPressure=p; renderClinicalBooking(); renderClinicalOrder(); }
 function clinSetPayType(t){ clinPayType=t; renderClinicalBooking(); renderClinicalOrder(); }
 window.clinSetPressure=clinSetPressure; window.clinSetPayType=clinSetPayType;
+function clinSetRecommend(v){ clinRecommendedBy=v||''; } window.clinSetRecommend=clinSetRecommend;
 
 // ── REBOOK: search saved clients and auto-fill their details (no re-asking the same questions) ──
 function clinRebookSearch(q){
@@ -11280,7 +11428,7 @@ function confirmClinical(){
     price:_price, gross:(s?s.price:0), discPct:_rvPct, discReason:(_rvDsc?(_rvDsc.reason||''):''), discCode:(_rvDsc?(_rvDsc.code||''):''), pressure:clinPressure||null, payType:clinPayType||'full',
     source:(clinOnline?'Online':'Walk-in'), status:(isHold?'hold':'confirmed'), payMethod:clinPay, date:dateKey, _ts:Date.now()
   };
-  if(clinType==='clinical'){ rec.clinical=true; rec.tag='ClinicTerrain'; rec.window=clinWindow; rec.intake=(clinIntake?'approved':'pending'); }
+  if(clinType==='clinical'){ rec.clinical=true; rec.tag='ClinicTerrain'; rec.window=clinWindow; rec.intake=(clinIntake?'approved':'pending'); rec.recommendedBy=clinRecommendedBy||''; }
   if(clinOnline){ var _tot=_price; rec.online=true; rec.deposit=Math.round(_tot*0.5); rec.balanceDue=_tot-Math.round(_tot*0.5); rec.balancePaid=false; }
   else if(clinPayType==='deposit'){ rec.deposit=Math.round(_price*0.5); rec.balanceDue=_price-Math.round(_price*0.5); rec.balancePaid=false; rec.depositPaid=true; /* IN-PERSON deposit: paid now at the till (card/QR); balance collected on the treatment day at Check out */ }
   else if(clinPayType==='later'){ rec.deposit=0; rec.balanceDue=_price; rec.balancePaid=false; rec.depositPaid=false; /* PAY ON ARRIVAL: nothing taken now (e.g. WhatsApp booking) — the full amount is collected on the treatment day at Check out */ }
@@ -11292,7 +11440,7 @@ function confirmClinical(){
     var _editRepr=!!(window.clinPromo && _rvPct>0);
     if(_editRepr){
       // RE-PRICE from the new discount instead of restoring the old amount owing (promo-day 100% off, etc.)
-      ['source','partner','partnerTotal','commission','commissionStatus','commissionPct','provider','tag','clinical','payMethod','onlineRef','depositPaid'].forEach(function(k){ if(_o[k]!==undefined) rec[k]=_o[k]; });
+      ['source','partner','partnerTotal','commission','commissionStatus','commissionPct','provider','tag','clinical','payMethod','onlineRef','depositPaid','recommendedBy'].forEach(function(k){ if(_o[k]!==undefined) rec[k]=_o[k]; });
       rec.gross=(_o.gross!==undefined?_o.gross:rec.gross);
       rec.price=Math.round((rec.gross||0)*(1-_rvPct/100));
       rec.discPct=_rvPct; rec.discReason=(_rvDsc?(_rvDsc.reason||''):''); rec.discCode=(_rvDsc?(_rvDsc.code||''):'');
@@ -11300,7 +11448,7 @@ function confirmClinical(){
       else { rec.online=false; rec.deposit=0; rec.balanceDue=0; rec.balancePaid=(rec.price===0); rec.payType='full'; }
     } else {
       // plain move — keep the money exactly as it was, never re-charge
-      ['online','deposit','balanceDue','balancePaid','depositPaid','price','gross','payType','discPct','discReason','discCode','source','partner','partnerTotal','commission','commissionStatus','commissionPct','provider','tag','clinical','forfeited','onlineRef','payMethod'].forEach(function(k){ if(_o[k]!==undefined) rec[k]=_o[k]; });
+      ['online','deposit','balanceDue','balancePaid','depositPaid','price','gross','payType','discPct','discReason','discCode','source','partner','partnerTotal','commission','commissionStatus','commissionPct','provider','tag','clinical','forfeited','onlineRef','payMethod','recommendedBy'].forEach(function(k){ if(_o[k]!==undefined) rec[k]=_o[k]; });
     }
     if(_o.status && _o.status!=='cancelled') rec.status=_o.status;   // keep confirmed/hold as it was
   }
