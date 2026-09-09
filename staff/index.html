@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814059;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814062;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -7994,8 +7994,11 @@ function supProcessSale(){
   const _supRows = []; // capture the exact SUPPLY_SALES line items for a complete ledger record
 
   supCart.forEach(c=>{
-    // Deduct stock
-    if(c.item.sizes[c.size]>0) c.item.sizes[c.size]--;
+    // Deduct stock from the LIVE inventory item (look it up by id — the cart's item reference can go stale if
+    // the config re-synced between add-to-cart and Pay, which would silently miss the decrement and leave stock unchanged).
+    var _liveItem=(typeof SUPPLY_ITEMS!=='undefined'&&c.item)?SUPPLY_ITEMS.find(function(i){return i.id===c.item.id;}):null;
+    var _stockTgt=_liveItem||c.item;
+    if(_stockTgt&&_stockTgt.sizes&&_stockTgt.sizes[c.size]>0) _stockTgt.sizes[c.size]--;
     const brand = BRANDS.find(b=>b.id===c.item.brandId);
     const itemBrandSplit = (c.item.brandSplit !== undefined && c.item.brandSplit !== null) ? c.item.brandSplit : (brand?.split !== undefined ? brand.split : 60);
     const payoutBase = c.item.priceRRP || c.item.priceFull || c.price || 0; // payout = % of RRP, not sale price
@@ -8018,7 +8021,7 @@ function supProcessSale(){
   // Update supplyData for sales dashboard
   if(!supplyData[dateKey]) supplyData[dateKey]={revenue:0,orders:[]};
   var _sord={
-    id:genId(), items:supCart.map(c=>({name:c.item.name,qty:1,price:c.total})),
+    id:genId(), items:supCart.map(c=>({name:c.item.name,size:c.size,qty:1,price:c.total})),
     gross, discPct, discAmt, discReason, discCode, total, method:supPosPayMethod, time:baliTimeStr(), _ts:Date.now()
   };
   supplyData[dateKey].orders.push(_sord);
@@ -8388,9 +8391,9 @@ function downloadBrandReport(brandId, reportType, period){
       const payout=rrp>0?Math.round(rrp*ibs/100):0;
       totRRP+=rrp; totPayout+=payout;
       const sl=s.size.replace('sz','').replace('_','/');
-      csv+=s.date+',"'+s.itemName+'","'+sl.toUpperCase()+'",'+fmt(rrp)+','+fmt(payout)+'\n';
+      csv+=s.date+',"'+s.itemName+'","'+sl.toUpperCase()+'",'+Math.round(rrp)+','+Math.round(payout)+'\n';   // raw numbers so spreadsheets sum correctly (no "." thousands separators)
     });
-    csv+='\n,,,TOTAL,'+fmt(totPayout)+'\nItems Sold,'+sales.length+'\nTotal RRP,'+fmt(totRRP)+'\nPayout Due,'+fmt(totPayout)+'\n';
+    csv+='\n,,,TOTAL,'+Math.round(totPayout)+'\nItems Sold,'+sales.length+'\nTotal RRP,'+Math.round(totRRP)+'\nPayout Due,'+Math.round(totPayout)+'\n';
     filename='Distrik_'+brand.name.replace(/\s+/g,'_')+'_Payout_'+monthKey+'.csv';
   }
   else if(reportType==='internal'){
@@ -8403,9 +8406,9 @@ function downloadBrandReport(brandId, reportType, period){
       const profit=(s.price||0)-cost-tax-payout;
       totSales+=s.price||0; totCost+=cost; totTax+=tax; totPayout+=payout; totProfit+=profit;
       const sl=s.size.replace('sz','').replace('_','/');
-      csv+=s.date+',"'+s.itemName+'","'+sl.toUpperCase()+'",'+fmt(s.price||0)+','+fmt(cost)+','+fmt(tax)+','+fmt(payout)+','+fmt(profit)+','+(s.method||'')+'\n';
+      csv+=s.date+',"'+s.itemName+'","'+sl.toUpperCase()+'",'+Math.round(s.price||0)+','+Math.round(cost)+','+Math.round(tax)+','+Math.round(payout)+','+Math.round(profit)+','+(s.method||'')+'\n';   // raw numbers so spreadsheets sum correctly
     });
-    csv+='\nTotal Sales,'+fmt(totSales)+'\nTotal Cost,'+fmt(totCost)+'\nTotal Tax,'+fmt(totTax)+'\nBrand Payouts,'+fmt(totPayout)+'\nNET PROFIT,'+fmt(totProfit)+'\nMargin,'+(totSales>0?Math.round(totProfit/totSales*100):0)+'%\n';
+    csv+='\nTotal Sales,'+Math.round(totSales)+'\nTotal Cost,'+Math.round(totCost)+'\nTotal Tax,'+Math.round(totTax)+'\nBrand Payouts,'+Math.round(totPayout)+'\nNET PROFIT,'+Math.round(totProfit)+'\nMargin,'+(totSales>0?Math.round(totProfit/totSales*100):0)+'%\n';
     filename='Distrik_'+brand.name.replace(/\s+/g,'_')+'_Internal_'+periodLabel.replace(/\s+/g,'_')+'.csv';
   }
 
@@ -9854,7 +9857,8 @@ function renderSoldToday(keys){
     // Supply
     const s=supplyData[k];
     if(s)(s.orders||[]).forEach(o=>{
-      supRows.push({time:o.time||'—',name:o.name||'Sale',amount:o.total||0,id:o.id});
+      const names=(o.items||[]).map(i=>i.name+(i.size?' ('+String(i.size).toUpperCase()+')':'')).join(', ')||o.name||'Sale';
+      supRows.push({time:o.time||'—',name:names,amount:o.total||0,id:o.id});
     });
   });
 
