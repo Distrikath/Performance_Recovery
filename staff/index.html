@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814065;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814066;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -5347,6 +5347,7 @@ const HOME_TILES = [
   {id:'settings',icon:'',  name:'Settings',       desc:'Staff · Zones\nHours & config',          col:'#FF2D2D', access:['admin']},
   {id:'roster',  icon:'', name:'Weekly Roster',  desc:'Drag & drop\nShift management',          col:'#3b82f6', access:['admin','pos_fr','pos_sup','staff']},
   {id:'schedule',icon:'', name:'Booking Schedule',desc:'Read-only\nWho’s booked · scroll dates', col:'#14b8a6', access:['admin','pos_fr','pos_sup','staff']},
+  {id:'payroll', icon:'', name:'Payroll',         desc:'Monthly pay picture\nSalary · tips · commission', col:'#f5c842', access:['admin']},
 ];
 
 // Staff also get a personal tile
@@ -5407,7 +5408,7 @@ const PAGE_NAMES = {
   'reference': 'REPORTING STRUCTURE',
   sales:'Sales', pl:'Profit & Loss', settings:'Settings',
   roster:'Weekly Roster', booking:'Recovery', fuel:'Fuel', supply:'Supply',
-  myaccount:'My Account', schedule:'Schedule'
+  myaccount:'My Account', schedule:'Schedule', payroll:'Payroll'
 };
 
 // Access control: which login levels may open each module. Enforced on every navigation path
@@ -5417,7 +5418,7 @@ const ACCESS_MAP = {
   sales:['admin','pos_fr','pos_sup'], booking:['admin','pos_fr','pos_sup'], recovery:['admin','pos_fr','pos_sup'],
   fuel:['admin','pos_fr','pos_sup'], supply:['admin','pos_fr','pos_sup'], pl:['admin'], settings:['admin'],
   roster:['admin','pos_fr','pos_sup','staff'], clients:['admin'], myaccount:['staff'],
-  schedule:['admin','pos_fr','pos_sup','staff']
+  schedule:['admin','pos_fr','pos_sup','staff'], payroll:['admin']
 };
 function canAccess(id){
   var acc = (currentUser && currentUser.access) || 'staff';
@@ -5486,6 +5487,7 @@ function goToModule(id){
   }
   else if(id==='myaccount'){ showMyAccount(); }
   else if(id==='schedule'){ showSchedule(); }
+  else if(id==='payroll'){ showPayroll(); }
 }
 
 function showComingSoon(msg){
@@ -5607,6 +5609,8 @@ function buildMyAccount(el){
     ${(typeof _buildTipsBlock==='function')?_buildTipsBlock(s):''}
 
     ${(typeof _buildCommissionBlock==='function')?_buildCommissionBlock(s):''}
+
+    ${(typeof _buildPayslipBlock==='function')?_buildPayslipBlock(s):''}
 
     ${(currentUser?.type==='admin'||currentUser?.role==='2IC')?`
     <div style="margin-top:28px;border:1px solid #232327;">
@@ -13157,6 +13161,163 @@ window.renderSettlementRecon=function(){
 };
 function _reconCell(label,val,sub){ return '<div style="background:#0f0f11;padding:11px 14px;"><div style="font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:#6b6b72;">'+label+'</div><div style="font-family:\'Archivo\',sans-serif;font-weight:800;font-size:18px;color:#f4f4f5;margin-top:3px;">'+val+'</div><div style="font-family:\'Space Mono\',monospace;font-size:9px;color:#6b6b72;">'+sub+'</div></div>'; }
 function _escSettle(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+</script>
+
+<!-- ===== PAYROLL (admin) — monthly income picture + editable BPJS/PPh21 gaps → employee payslips ===== -->
+<script>
+// Income auto-pulled per employee per payroll month: monthly salary + service-fee tips + therapist commission for
+// the cycle that PAID OUT on the 15th of that month (16th prev → 15th this). BPJS + PPh21 are editable gaps the
+// accountant fills with exact figures. Stored per employee-month in the `payroll` collection. Feeds My Account payslip.
+function _cycleKeysForMonth(ym){
+  var p=String(ym).split('-'); var y=+p[0], m=+p[1]; if(!y||!m) return [];
+  var start=new Date(y,m-2,16,12,0,0), end=new Date(y,m-1,15,12,0,0);
+  var keys=[], t=new Date(start.getTime());
+  while(t<=end){ keys.push(t.getFullYear()+'-'+('0'+(t.getMonth()+1)).slice(-2)+'-'+('0'+t.getDate()).slice(-2)); t.setDate(t.getDate()+1); }
+  return keys;
+}
+function _memberTipsForKeys(keys){ var tot=0; (keys||[]).forEach(function(k){ var pool=(typeof _dayServicePool==='function')?_dayServicePool(k):0; if(pool>0) tot+=Math.round(pool/5); }); return tot; }
+function _therapistCommForKeys(therId,keys){ var th=0,iv=0; (keys||[]).forEach(function(k){ var d=(typeof _therapistCommForDay==='function')?_therapistCommForDay(therId,k):{therapy:0,iv:0}; th+=d.therapy; iv+=d.iv; }); return {therapy:th,iv:iv,total:th+iv}; }
+function _payrollIncome(emp, ym){
+  var keys=_cycleKeysForMonth(ym);
+  var salary=(emp&&emp.salary)||0;
+  var service=(typeof TIP_POOL_IDS!=='undefined'&&TIP_POOL_IDS.indexOf(emp.id)>-1)?_memberTipsForKeys(keys):0;
+  var comm=(typeof THERAPIST_IDS!=='undefined'&&THERAPIST_IDS.indexOf(emp.id)>-1)?_therapistCommForKeys(emp.id,keys).total:0;
+  return {salary:salary, service:service, commission:comm, gross:salary+service+comm};
+}
+window.PAYROLL={};
+(function(){ var subbed=false;
+  window.loadPayroll=function(){ if(subbed)return; if(typeof firebase==='undefined'||!firebase.firestore)return; subbed=true;
+    firebase.firestore().collection('payroll').onSnapshot(function(snap){ var m={}; snap.forEach(function(d){m[d.id]=d.data();}); window.PAYROLL=m; try{ var p=document.querySelector('.panel.on'); if(p&&p.id==='panel-payroll'&&typeof renderPayroll==='function') renderPayroll(); }catch(e){} }, function(e){console.warn('[payroll] snap',e);}); };
+  if(typeof firebase!=='undefined'&&firebase.auth){ firebase.auth().onAuthStateChanged(function(u){ if(u) loadPayroll(); }); }
+})();
+function _payrollDocId(empId,ym){ return String(empId)+'__'+ym; }
+function _payrollAdj(empId,ym){ return (window.PAYROLL&&window.PAYROLL[_payrollDocId(empId,ym)])||{}; }
+window.payrollSave=function(empId,ym,patch){ try{ if(typeof firebase==='undefined'||!firebase.firestore)return; var id=_payrollDocId(empId,ym); var doc=Object.assign({empId:empId,month:ym},patch,{ts:firebase.firestore.FieldValue.serverTimestamp(),by:((typeof currentUser!=='undefined'&&currentUser&&currentUser.name)||'?')}); firebase.firestore().collection('payroll').doc(id).set(doc,{merge:true}); }catch(e){console.warn('[payroll] save',e);} };
+var _payMonth=null;
+function _payMonthNow(){ if(!_payMonth){ var d=(typeof baliNow==='function'?baliNow():new Date()); _payMonth=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2); } return _payMonth; }
+window.payChangeMonth=function(n){ var ym=_payMonthNow().split('-'); var d=new Date(+ym[0],+ym[1]-1+n,1); _payMonth=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2); renderPayroll(); };
+window.showPayroll=function(){
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('on');});
+  var tb=document.getElementById('topNav'); if(tb) tb.style.display='flex';
+  var el=document.getElementById('panel-payroll'); if(!el){ el=document.createElement('div'); el.id='panel-payroll'; el.className='panel'; document.body.appendChild(el); }
+  el.classList.add('on');
+  var bc=document.getElementById('nav-breadcrumb'); if(bc) bc.textContent='Payroll';
+  if(typeof loadPayroll==='function') loadPayroll();
+  renderPayroll();
+};
+function _pf(n){ return 'IDR '+Math.round(n||0).toLocaleString('id-ID'); }
+function _payNum(id){ var e=document.getElementById(id); if(!e) return 0; return Math.round(parseFloat((e.value||'').replace(/[^0-9.-]/g,''))||0); }
+window.payrollSaveRow=function(empId){
+  var ym=_payMonthNow();
+  window.payrollSave(empId,ym,{ bonus:_payNum('pay_bonus_'+empId), allowance:_payNum('pay_allow_'+empId), bpjsKesEmp:_payNum('pay_kesE_'+empId), bpjsTkEmp:_payNum('pay_tkE_'+empId), bpjsKesCo:_payNum('pay_kesC_'+empId), bpjsTkCo:_payNum('pay_tkC_'+empId), pph21:_payNum('pay_pph_'+empId), note:((document.getElementById('pay_note_'+empId)||{}).value||'') });
+  var st=document.getElementById('pay_saved_'+empId); if(st){ st.textContent='saved ✓'; setTimeout(function(){st.textContent='';},1800); }
+};
+window.renderPayroll=function(){
+  var el=document.getElementById('panel-payroll'); if(!el) return;
+  var ym=_payMonthNow(); var mp=ym.split('-');
+  var mLbl=['January','February','March','April','May','June','July','August','September','October','November','December'][+mp[1]-1]+' '+mp[0];
+  var cyc=_cycleKeysForMonth(ym); var cycLbl=cyc.length?(cyc[0]+' → '+cyc[cyc.length-1]):'';
+  var staff=(typeof STAFF!=='undefined')?STAFF:[];
+  var C='#232327', MUT='#6b6b72', TX='#f4f4f5';
+  var inp='font-family:\'Space Mono\',monospace;font-size:11px;background:#0f0f11;color:'+TX+';border:1px solid '+C+';padding:6px;width:110px;box-sizing:border-box;';
+  var hint=function(v){return '<div style="color:'+MUT+';font-size:8px;margin-top:2px;">≈ '+_pf(v)+' (of salary)</div>';};
+  var rows=staff.map(function(s){
+    var inc=_payrollIncome(s,ym); var adj=_payrollAdj(s.id,ym);
+    var bonus=adj.bonus||0, allow=adj.allowance||0, gross=inc.gross+bonus+allow;
+    var kesE=adj.bpjsKesEmp||0,tkE=adj.bpjsTkEmp||0,pph=adj.pph21||0,kesC=adj.bpjsKesCo||0,tkC=adj.bpjsTkCo||0;
+    var ded=kesE+tkE+pph, net=gross-ded;
+    var cell=function(l,v){return '<div>'+l+'<br><b style="color:'+TX+';font-size:12px;">'+v+'</b></div>';};
+    var fld=function(l,id,val,ph,hintv){return '<div>'+l+'<br><input id="'+id+'" value="'+(val||'')+'" placeholder="'+(ph||'0')+'" style="'+inp+'">'+(hintv!=null?hint(hintv):'')+'</div>';};
+    return '<div style="border:1px solid '+C+';border-radius:6px;margin-bottom:10px;">'
+      +'<div style="display:flex;justify-content:space-between;align-items:baseline;padding:10px 14px;border-bottom:1px solid '+C+';background:#111114;">'
+        +'<span style="font-family:\'Space Mono\',monospace;font-size:12px;color:'+TX+';font-weight:700;">'+s.name+' <span style="color:'+MUT+';font-size:9px;">'+(s.role||'')+'</span></span>'
+        +'<span style="font-family:\'Space Mono\',monospace;font-size:11px;color:#22c55e;">NET '+_pf(net)+'</span>'
+      +'</div>'
+      +'<div style="padding:10px 14px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px 14px;font-family:\'Space Mono\',monospace;font-size:10px;color:'+MUT+';">'
+        +cell('Salary',_pf(inc.salary))+cell('Service fee (tips)',_pf(inc.service))+cell('Commission',_pf(inc.commission))
+        +fld('Bonus / THR','pay_bonus_'+s.id,bonus,'0',null)+fld('Allowances','pay_allow_'+s.id,allow,'0',null)+cell('GROSS (PPh21 base)',_pf(gross))
+        +fld('BPJS Kesehatan · employee','pay_kesE_'+s.id,kesE,'fill exact',Math.round(inc.salary*0.01))
+        +fld('BPJS Ketenagakerjaan · employee','pay_tkE_'+s.id,tkE,'fill exact',Math.round(inc.salary*0.03))
+        +fld('PPh 21 (accountant)','pay_pph_'+s.id,pph,'fill exact',null)
+        +fld('BPJS Kesehatan · company','pay_kesC_'+s.id,kesC,'fill exact',Math.round(inc.salary*0.04))
+        +fld('BPJS Ketenagakerjaan · company','pay_tkC_'+s.id,tkC,'fill exact',Math.round(inc.salary*0.0624))
+        +'<div>Note<br><input id="pay_note_'+s.id+'" value="'+_escSettle(adj.note||'')+'" placeholder="optional" style="'+inp+'width:100%;"></div>'
+      +'</div>'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-top:1px solid '+C+';">'
+        +'<span style="font-family:\'Space Mono\',monospace;font-size:9px;color:'+MUT+';">Employee deductions '+_pf(ded)+' · Company contributions '+_pf(kesC+tkC)+'</span>'
+        +'<span><span id="pay_saved_'+s.id+'" style="font-family:\'Space Mono\',monospace;font-size:9px;color:#22c55e;margin-right:8px;"></span><button class="dk-ghost" onclick="payrollSaveRow(\''+s.id+'\')" style="background:#0A0A0A;color:#fff;">Save</button></span>'
+      +'</div>'
+    +'</div>';
+  }).join('');
+  el.innerHTML='<div style="background:#0a0a0b;min-height:100vh;color:'+TX+';font-family:\'Archivo\',sans-serif;">'
+   +'<div style="max-width:1180px;margin:0 auto;padding:30px 32px 60px;">'
+    +'<button onclick="showHome()" class="dk-back">&larr; Index</button>'
+    +'<div class="dk-mast"><div><div class="dk-idx">[ PAYROLL / ADMIN ]</div><div class="dk-h1">Payroll</div><div class="dk-kicker">Monthly pay picture · feeds employee payslips.</div></div></div>'
+    +'<div style="display:flex;align-items:center;gap:12px;margin:6px 0 22px;">'
+      +'<button onclick="payChangeMonth(-1)" class="dk-ghost">‹</button>'
+      +'<div style="text-align:center;min-width:220px;"><div style="font-family:\'Space Mono\',monospace;font-size:14px;color:'+TX+';">'+mLbl+'</div><div style="font-family:\'Space Mono\',monospace;font-size:9px;color:'+MUT+';">tips/commission cycle '+cycLbl+'</div></div>'
+      +'<button onclick="payChangeMonth(1)" class="dk-ghost">›</button>'
+      +'<span style="margin-left:auto;font-family:\'Space Mono\',monospace;font-size:9px;color:'+MUT+';">Salary · service fee · commission auto-filled — BPJS &amp; PPh21 are gaps to fill from the accountant</span>'
+    +'</div>'+rows
+   +'</div></div>';
+};
+// ── EMPLOYEE PAYSLIP (My Account) ──
+function _buildPayslipBlock(s){
+  try{
+    if(!s||!s.id) return '';
+    var ym=(typeof _payMonthNow==='function')?_payMonthNow():null; if(!ym){ var d=(typeof baliNow==='function'?baliNow():new Date()); ym=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2); }
+    var mp=ym.split('-'); var mLbl=['January','February','March','April','May','June','July','August','September','October','November','December'][+mp[1]-1]+' '+mp[0];
+    var inc=_payrollIncome(s,ym); var adj=_payrollAdj(s.id,ym);
+    var bonus=adj.bonus||0, allow=adj.allowance||0, gross=inc.gross+bonus+allow;
+    var ded=(adj.bpjsKesEmp||0)+(adj.bpjsTkEmp||0)+(adj.pph21||0), net=gross-ded;
+    var f=function(n){return 'IDR '+Math.round(n||0).toLocaleString('id-ID');};
+    var C='#232327',MUT='#6b6b72',TX='#f4f4f5';
+    var line=function(l,v,em){return '<div style="display:flex;justify-content:space-between;padding:7px 16px;border-bottom:1px solid #1b1b1e;font-family:\'Space Mono\',monospace;font-size:11px;"><span style="color:'+(em?TX:MUT)+';">'+l+'</span><span style="color:'+TX+';'+(em?'font-weight:700;':'')+'">'+v+'</span></div>';};
+    return '<div style="margin-top:28px;border:1px solid '+C+';">'
+      +'<div style="display:flex;justify-content:space-between;align-items:baseline;padding:13px 16px;border-bottom:1px solid '+C+';"><span style="font-family:\'Space Mono\',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:'+MUT+';">Payslip</span><span style="font-family:\'Space Mono\',monospace;font-size:10px;color:'+MUT+';">'+mLbl+'</span></div>'
+      +line('Basic salary',f(inc.salary))
+      +(inc.service?line('Service fee (tips)',f(inc.service)):'')
+      +(inc.commission?line('Commission',f(inc.commission)):'')
+      +(bonus?line('Bonus / THR',f(bonus)):'')
+      +(allow?line('Allowances',f(allow)):'')
+      +line('Gross',f(gross),true)
+      +(adj.bpjsKesEmp?line('− BPJS Kesehatan (1%)','−'+f(adj.bpjsKesEmp)):'')
+      +(adj.bpjsTkEmp?line('− BPJS Ketenagakerjaan (3%)','−'+f(adj.bpjsTkEmp)):'')
+      +(adj.pph21?line('− PPh 21','−'+f(adj.pph21)):'')
+      +'<div style="display:flex;justify-content:space-between;padding:11px 16px;background:#111114;font-family:\'Space Mono\',monospace;font-size:13px;"><span style="color:'+MUT+';text-transform:uppercase;letter-spacing:.1em;">Net pay</span><span style="color:#22c55e;font-weight:700;">'+f(net)+'</span></div>'
+      +(ded?'':'<div style="padding:8px 16px;font-family:\'Space Mono\',monospace;font-size:9px;color:'+MUT+';">BPJS/PPh21 pending from accounts — net shown is before those deductions.</div>')
+      +'<div style="padding:10px 16px;"><button class="dk-ghost" onclick="downloadPayslip(\''+s.id+'\',\''+ym+'\')" style="background:#0A0A0A;color:#fff;">↓ Download pay sheet</button></div>'
+    +'</div>';
+  }catch(e){ return ''; }
+}
+window.downloadPayslip=function(empId,ym){
+  try{
+    var s=(typeof STAFF!=='undefined')?STAFF.find(function(x){return x.id===empId;}):null; if(!s) return;
+    var inc=_payrollIncome(s,ym); var adj=_payrollAdj(empId,ym);
+    var bonus=adj.bonus||0, allow=adj.allowance||0, gross=inc.gross+bonus+allow;
+    var kesE=adj.bpjsKesEmp||0,tkE=adj.bpjsTkEmp||0,pph=adj.pph21||0, ded=kesE+tkE+pph, net=gross-ded;
+    var mp=ym.split('-'); var mLbl=['January','February','March','April','May','June','July','August','September','October','November','December'][+mp[1]-1]+' '+mp[0];
+    var f=function(n){return 'IDR '+Math.round(n||0).toLocaleString('id-ID');};
+    var row=function(l,v){return '<tr><td style="padding:6px 10px;border-bottom:1px solid #eee;">'+l+'</td><td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:right;">'+v+'</td></tr>';};
+    var tot=function(l,v){return '<tr><td style="padding:8px 10px;border-top:2px solid #111;font-weight:700;font-size:15px;">'+l+'</td><td style="padding:8px 10px;border-top:2px solid #111;text-align:right;font-weight:700;font-size:15px;">'+v+'</td></tr>';};
+    var html='<html><head><title>Payslip '+s.name+' '+mLbl+'</title><style>body{font-family:Arial,sans-serif;color:#111;max-width:600px;margin:24px auto;padding:0 16px;}h1{font-size:20px;letter-spacing:2px;margin-bottom:2px;}h2{font-size:13px;color:#666;font-weight:400;margin-top:0;}table{width:100%;border-collapse:collapse;font-size:13px;margin-top:12px;}</style></head><body>'
+      +'<h1>DISTRIK — PAYSLIP</h1><h2>'+s.name+' · '+(s.role||'')+' · '+mLbl+'</h2><table>'
+      +row('Basic salary',f(inc.salary))
+      +(inc.service?row('Service fee (tips)',f(inc.service)):'')
+      +(inc.commission?row('Commission',f(inc.commission)):'')
+      +(bonus?row('Bonus / THR',f(bonus)):'')
+      +(allow?row('Allowances',f(allow)):'')
+      +tot('GROSS',f(gross))
+      +(kesE?row('− BPJS Kesehatan (1%)','−'+f(kesE)):'')
+      +(tkE?row('− BPJS Ketenagakerjaan (3%)','−'+f(tkE)):'')
+      +(pph?row('− PPh 21','−'+f(pph)):'')
+      +tot('NET PAY',f(net))
+      +'</table>'
+      +'<p style="font-size:11px;color:#888;margin-top:16px;">Company contributions (not deducted from you): BPJS Kesehatan '+f(adj.bpjsKesCo||0)+' · BPJS Ketenagakerjaan '+f(adj.bpjsTkCo||0)+'.'+(ded?'':' Deductions pending final figures from accounts.')+'</p>'
+      +'<p style="font-size:10px;color:#aaa;">Generated '+new Date().toLocaleDateString('en-GB')+' · DISTRIK Canggu</p></body></html>';
+    var w=window.open('','_blank'); if(w){ w.document.write(html); w.document.close(); setTimeout(function(){ try{w.print();}catch(e){} },300); }
+  }catch(e){ console.warn('payslip',e); }
+};
 </script>
 
 <!-- ===== CRM: WhatsApp receipts + client capture at Fuel & Supply checkout ===== -->
