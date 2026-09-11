@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814075;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814076;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -132,6 +132,14 @@ window.DK_BUILD = 20260814075;  // bump this AND version.json on every deploy
 .slot-block{position:absolute;top:2px;height:28px;border-radius:2px;display:flex;align-items:center;padding:0 5px;font-family:'Space Mono',monospace;font-size:10px;font-weight:500;white-space:nowrap;overflow:hidden;cursor:grab;z-index:2;border:1px solid transparent;user-select:none;touch-action:none;}
 .slot-block:hover{filter:brightness(1.1);}
 .slot-block.is-break{background:#e8e8e8 !important;color:#777;border:1px dashed #ccc;cursor:grab;font-size:9.5px;}
+/* Absence / off-day column + grey-out */
+.axis-absence{width:120px;flex-shrink:0;border-right:1px solid var(--bd);padding:4px 6px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#888;display:flex;align-items:center;}
+.row-absence{width:120px;flex-shrink:0;border-right:1px solid var(--bd);display:flex;align-items:center;padding:0 5px;background:var(--s1);}
+.abs-select{width:100%;font-family:'Space Mono',monospace;font-size:9px;border:1px solid #e0e0e0;border-radius:2px;background:#fff;color:#666;padding:3px 2px;cursor:pointer;}
+.abs-select.on{background:#6b7280;color:#fff;border-color:#6b7280;font-weight:600;}
+.slot-row.is-off .slot-block{opacity:.30;filter:grayscale(1);}
+.slot-row.is-off .row-label{color:#b0b0b0;text-decoration:line-through;}
+.slot-row.is-off .slots:after{content:attr(data-off);position:absolute;left:8px;top:50%;transform:translateY(-50%);z-index:5;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#4b5563;font-weight:700;pointer-events:none;background:rgba(255,255,255,.82);padding:2px 7px;border-radius:2px;box-shadow:0 1px 3px rgba(0,0,0,.08);}
 .slot-block .blbl{overflow:hidden;text-overflow:ellipsis;}
 .slot-block .btime{opacity:0.55;font-size:6.5px;margin-left:3px;flex-shrink:0;}
 .slot-block .resize-handle{position:absolute;right:0;top:0;width:5px;height:100%;cursor:ew-resize;z-index:3;}
@@ -2927,6 +2935,10 @@ function emptyGrid(){
 
 let grid=emptyGrid();
 let dailyOverrides={}; // {'2026-08-08': {Therapy:[[...]], ...}} — per specific calendar date
+// Per-date absence markers: {'2026-09-12': {'Reception:0': {reason,staffId,note}}}. The person stays fully
+// rostered (payroll/hours unaffected) — this just greys the row for the day so the team knows they're off.
+let dailyAbsence={};
+const ABSENCE_REASONS=['Sick','Annual Leave','Personal Leave / Izin','Public Holiday','Religious Observance / Ceremony','Collective Leave — Cuti Bersama','Medical Appointment','Menstrual Leave','Family Emergency','Bereavement Leave','Marriage Leave','Family Ceremony Leave','Maternity / Pregnancy Leave','Paternity / Partner Support Leave','Workplace Injury','Late Arrival / Early Departure','Unapproved Absence / No Show','Unpaid Leave','Other'];
 let _baseGrid=null; // snapshot of default weekly template (set after populateDefaults)
 let _gridDirty=false; // true only when user actually edits; prevents browsing from auto-saving
 let activeDay=0; // will be set to today on roster open
@@ -3321,6 +3333,44 @@ function syncZonesFromHours(){
   });
 }
 
+// The person occupying a row for the active day (longest non-break run) — recorded on an absence for the Phase-2 per-person tally.
+function _primaryStaffInRow(zoneId,row){
+  try{
+    var slots=(grid[DAYS[activeDay]]&&grid[DAYS[activeDay]][zoneId]&&grid[DAYS[activeDay]][zoneId][row])||[];
+    var counts={};
+    slots.forEach(function(c){ if(c&&!isBreakCell(c)){ var s=staffId(c); counts[s]=(counts[s]||0)+1; } });
+    var best=null,bn=0; Object.keys(counts).forEach(function(s){ if(counts[s]>bn){bn=counts[s];best=s;} });
+    return best;
+  }catch(e){ return null; }
+}
+function _absSelectHtml(zoneId,row,selected){
+  var esc=function(x){return String(x).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');};
+  var opts='<option value="">— in —</option>';
+  ABSENCE_REASONS.forEach(function(r){ opts+='<option value="'+esc(r)+'"'+(r===selected?' selected':'')+'>'+esc(r)+'</option>'; });
+  return '<select class="abs-select'+(selected?' on':'')+'" onchange="setAbsence(\''+zoneId+'\','+row+',this.value)" onclick="event.stopPropagation()" onmousedown="event.stopPropagation()">'+opts+'</select>';
+}
+// Mark (or clear) a row's off-day for the active date. Person stays rostered + in payroll; the row just greys out.
+function setAbsence(zoneId,row,reason){
+  try{
+    if(typeof currentUser!=='undefined'&&currentUser&&currentUser.type&&currentUser.type!=='admin'){ if(typeof clinNotify==='function')clinNotify('Only admin can edit the roster.'); buildGrid(); return; }
+    var dk=(typeof getDateKey==='function')?getDateKey(activeDay, rosterWeekOffset):'';
+    if(!dk) return;
+    if(!dailyAbsence[dk]) dailyAbsence[dk]={};
+    var key=zoneId+':'+row;
+    if(!reason){
+      delete dailyAbsence[dk][key];
+      if(!Object.keys(dailyAbsence[dk]).length) delete dailyAbsence[dk];
+    } else {
+      var note='';
+      if(reason==='Other'){ note=(prompt('Reason / explanation for this off-day:')||'').trim(); }
+      dailyAbsence[dk][key]={reason:reason, staffId:(_primaryStaffInRow(zoneId,row)||null), note:note};
+    }
+    saveAll();
+    if(typeof window.dkHardSave==='function') window.dkHardSave(['distrik_v1']);
+    buildGrid();
+  }catch(e){ console.warn('setAbsence',e); }
+}
+window.setAbsence=setAbsence;
 function buildGrid(){
   syncZonesFromHours();
   const el=document.getElementById('rosterGrid');
@@ -3329,7 +3379,7 @@ function buildGrid(){
   const fmtH=h=>h===0?'12am':h<12?h+'am':h===12?'12pm':(h-12)+'pm';
 
   // Time axis
-  html+=`<div class="axis-row"><div class="axis-label">TIME ↓</div><div class="axis-cells">`;
+  html+=`<div class="axis-row"><div class="axis-label">TIME ↓</div><div class="axis-absence">Off / Leave</div><div class="axis-cells">`;
   for(let i=0;i<TOTAL_SLOTS;i++){
     const h=slotToH(i);
     const isHour=h===Math.floor(h);
@@ -3343,9 +3393,14 @@ function buildGrid(){
     for(let row=0;row<numRows;row++){
       const rowSlots=grid[day][zoneId][row]||[];
       const rowLabel = (rowLabels&&rowLabels[row]) ? rowLabels[row] : `Row ${row+1}`;
-      html+=`<div class="slot-row">
+      const _adk = (typeof getDateKey==='function') ? getDateKey(activeDay, rosterWeekOffset) : '';
+      const _abs = (dailyAbsence[_adk]||{})[zoneId+':'+row];
+      const _absReason = _abs ? _abs.reason : '';
+      const _offLabel = _absReason ? ('OFF · '+_absReason+(_abs.note?(' — '+_abs.note):'')) : '';
+      html+=`<div class="slot-row${_absReason?' is-off':''}">
         <div class="row-label">${rowLabel}</div>
-        <div class="slots" id="slots-${zoneId}-${row}" style="position:relative">`;
+        <div class="row-absence">${_absSelectHtml(zoneId,row,_absReason)}</div>
+        <div class="slots" id="slots-${zoneId}-${row}" style="position:relative"${_offLabel?` data-off="${_offLabel.replace(/"/g,'&quot;')}"`:''}>`;
       for(let si=0;si<TOTAL_SLOTS;si++){
         const h=slotToH(si);
         const active=h>=zoneStart&&h<zoneEnd;
@@ -3640,6 +3695,7 @@ function saveAll(){
     localStorage.setItem(LS_KEY, JSON.stringify({
       grid: _baseGrid || grid, // always save base template, not current week
       dailyOverrides,
+      dailyAbsence,
       plEntries,
       sData,
       roomBookings,
@@ -3670,6 +3726,7 @@ function loadAll(){
       _baseGrid = JSON.parse(JSON.stringify(grid));
     }
     // Restore per-date overrides; migrate from legacy weeklyGrids format if present
+    if(data.dailyAbsence) dailyAbsence = data.dailyAbsence;
     if(data.dailyOverrides){
       dailyOverrides = data.dailyOverrides;
     } else if(data.weeklyGrids){
