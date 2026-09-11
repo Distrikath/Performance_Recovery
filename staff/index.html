@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814069;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814071;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -3870,7 +3870,7 @@ function renderSales(){
   fuelTxns.forEach(t=>{ const bk=_payBucket(t.method); if((t.total||0)>0){ payAmt[bk]+=t.total; payCnt[bk]++; } });
   supOrderList.forEach(o=>{ const bk=_payBucket(o.method); if((o.total||0)>0){ payAmt[bk]+=o.total; payCnt[bk]++; } });
   recBookings.forEach(b=>{ const amt=(typeof clinCollected==='function')?clinCollected(b):(b.price||0);
-    if(amt>0){ const bk=_payBucket(b.online?'online':(b.payMethod||'card')); payAmt[bk]+=amt; payCnt[bk]++; } });
+    if(amt>0){ const bk=_payBucket(b.payMethod||b.method||(b.online?'online':'card')); payAmt[bk]+=amt; payCnt[bk]++; } });
   const _payLine=(id,amt,cnt)=>{ set(id, amt>0?fmtFull(amt):'IDR 0'); set(id+'-sub', cnt+' payment'+(cnt!==1?'s':'')); };
   _payLine('pay-card',   payAmt.card,   payCnt.card);
   _payLine('pay-qris',   payAmt.qr,     payCnt.qr);
@@ -10483,6 +10483,26 @@ function renderTodayBookings(){
     var pay=_clinPayLine(b);
     var _bDepLink=(!b.partner && b.online&&!b.depositPaid&&(b.balanceDue>0)&&getXenditLink())?'<button class="clin-bk-act go" onclick="resendDepositLink(\''+id+'\')">Send deposit link &#x2192;</button>':'';
     var _pinf=_clinPay(b);
+    // ── INLINE ORDER: Check out opened this booking → show it like a normal sale (details + amount due + Card/QR + Process) ──
+    if(window._clinCheckoutRow && id===window._clinCheckoutRow && !_pinf.fullyPaid && !_pinf.free && !b.partner){
+      var _due=Math.round(_pinf.due), _money='IDR '+_due.toLocaleString('id-ID');
+      var _meth=window._clinCheckoutMethod;
+      var _mBtn=function(m,lbl){ var on=(_meth===m); return '<button onclick="clinCheckoutSetMethod(\''+id+'\',\''+m+'\')" style="flex:1;padding:12px;border:1px solid #0A0A0A;background:'+(on?'#0A0A0A':'#fff')+';color:'+(on?'#fff':'#0A0A0A')+';font-family:\'Space Mono\',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;">'+lbl+'</button>'; };
+      return '<div class="clin-bk-row2" id="clin-co-'+id+'" style="border:1.5px solid #0A0A0A;background:#fafafa;">'
+        +'<div style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#9a9a9e;margin-bottom:6px;">Order · check out</div>'
+        +'<div style="font-family:\'Archivo\',sans-serif;font-weight:800;font-size:15px;color:#0A0A0A;">'+_escHtml(b.client||'Client')+'</div>'
+        +'<div style="font-family:\'Space Mono\',monospace;font-size:11px;color:#56565b;margin:2px 0 8px;">'+_escHtml(svcName)+(det?(' · '+_escHtml(det)):'')+((b.start||b.time)?(' · '+_escHtml(b.start||b.time)):'')+'</div>'
+        +'<div style="display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid #e8e8e8;padding-top:8px;margin-bottom:10px;">'
+          +'<span style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#9a9a9e;">'+(_pinf.depositPaid?'Balance due':'Amount due')+'</span>'
+          +'<span style="font-family:\'Archivo\',sans-serif;font-weight:800;font-size:22px;color:#0A0A0A;">'+_money+'</span></div>'
+        +'<div style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#9a9a9e;margin-bottom:6px;">How are they paying?</div>'
+        +'<div style="display:flex;gap:8px;margin-bottom:10px;">'+_mBtn('card','Card')+_mBtn('qr','QR')+'</div>'
+        +'<div style="display:flex;gap:8px;">'
+          +'<button onclick="clinCheckoutProcess(\''+id+'\')" '+(_meth?'':'disabled')+' style="flex:2;padding:13px;border:none;background:'+(_meth?'#10b981':'#c8c8c8')+';color:#fff;font-family:\'Space Mono\',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;cursor:'+(_meth?'pointer':'not-allowed')+';">'+(_meth?('Process '+_money):'Choose card or QR')+'</button>'
+          +'<button onclick="clinCheckoutCancel()" style="flex:1;padding:13px;border:1px solid #e0e0e0;background:#fff;color:#777;font-family:\'Space Mono\',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;">Cancel</button>'
+        +'</div>'
+      +'</div>';
+    }
     var _canDelBk=(typeof currentUser==='undefined'||!currentUser||!currentUser.type||currentUser.type==='admin');
     var _notArrived=(!b.checkedIn && b.status!=='cancelled' && !isHold);
     var _needsPay=(!isHold && b.status!=='cancelled' && !b.partner && !_pinf.free && !_pinf.fullyPaid && (_pinf.isDepositFlow||_pinf.isLater));
@@ -11538,6 +11558,8 @@ function _clinPayLine(b){
   return '<span class="clin-bk-pay due">UNPAID · '+f(p.due)+' due'+ci+'</span>';
 }
 // Check out — collect whatever is still owed (remaining balance, or full if nothing paid). Marks paid in full.
+var _clinCheckoutId=null;
+// Check out — opens the booking's INLINE order (in the reception list): pick Card / QR, then Process.
 function clinCheckOut(id){
   try{
     var dk=clinKey(); var day=recoveryData&&recoveryData[dk]; if(!day||!day.bookings) return;
@@ -11545,20 +11567,38 @@ function clinCheckOut(id){
     if(b.partner){ if(typeof clinNotify==='function') clinNotify('HUMAN+ collects payment for IV/Blood — nothing to take here.'); return; }
     var p=_clinPay(b);
     if(p.free){ if(typeof clinNotify==='function') clinNotify('This booking is free — nothing to collect.'); return; }
-    if(p.fullyPaid){ if(typeof clinNotify==='function') clinNotify('Already paid in full.'); return; }
-    if(!confirm('Check out '+(b.client||'this client')+' — collect '+('IDR '+Math.round(p.due).toLocaleString('id-ID'))+(p.depositPaid?' (remaining balance)':' (full payment)')+'?')) return;
-    b.balancePaid=true; b.depositPaid=true; b.checkedIn=true;
-    day.revenue=(day.revenue||0)+p.due;
-    // the collected cash is its OWN ledger entry dated TODAY (cash-basis), so the daily takings match. Booking's
-    // own record isn't duplicated (rebuild dedupes by booking id).
-    if(typeof ledgerWrite==='function') ledgerWrite('recovery', b.id+'_bal', (typeof todayKey==='function'?todayKey():dk), p.due, 0, b.payMethod||'card', b, b.status||'confirmed');
-    if(typeof saveAll==='function') saveAll();
-    if(typeof syncSalesIncome==='function') syncSalesIncome();
-    if(typeof clinNotify==='function') clinNotify('Checked out · IDR '+Math.round(p.due).toLocaleString('id-ID')+' collected — paid in full ✓');
-    renderClinicalBooking(); renderClinicalOrder(); buildClinRoomGrid();
+    if(p.fullyPaid){ if(typeof clinNotify==='function') clinNotify('Already paid in full — nothing to collect.'); return; }
+    window._clinCheckoutRow=id; window._clinCheckoutMethod=null;   // open the inline order for this booking, no method chosen yet
+    renderClinicalBooking();
+    setTimeout(function(){ var e=document.getElementById('clin-co-'+id); if(e&&e.scrollIntoView) e.scrollIntoView({block:'center',behavior:'smooth'}); },30);
   }catch(e){ console.warn('clinCheckOut',e); }
 }
-window.clinCheckOut=clinCheckOut;
+// Pick the pay method on the open inline order (highlights, enables Process).
+function clinCheckoutSetMethod(id,m){
+  window._clinCheckoutRow=id; window._clinCheckoutMethod=m; renderClinicalBooking();
+  setTimeout(function(){ var e=document.getElementById('clin-co-'+id); if(e&&e.scrollIntoView) e.scrollIntoView({block:'center'}); },20);
+}
+// Close the inline order without collecting.
+function clinCheckoutCancel(){ window._clinCheckoutRow=null; window._clinCheckoutMethod=null; renderClinicalBooking(); }
+// Process the payment on the open inline order — collects what's due, records the real method, marks paid in full.
+function clinCheckoutProcess(id){
+  try{
+    var method=window._clinCheckoutMethod; if(!method) return;   // must choose Card / QR first
+    var dk=clinKey(); var day=recoveryData&&recoveryData[dk]; var b=day&&day.bookings&&day.bookings.find(function(x){return x.id===id;});
+    if(!b){ clinCheckoutCancel(); return; }
+    var p=_clinPay(b);
+    if(p.fullyPaid){ clinCheckoutCancel(); return; }
+    b.balancePaid=true; b.depositPaid=true; b.checkedIn=true; b.payMethod=method; b.method=method;   // record the method they actually paid with
+    day.revenue=(day.revenue||0)+p.due;
+    if(typeof ledgerWrite==='function') ledgerWrite('recovery', b.id+'_bal', (typeof todayKey==='function'?todayKey():dk), p.due, 0, method, b, b.status||'confirmed');
+    if(typeof saveAll==='function') saveAll();
+    if(typeof syncSalesIncome==='function') syncSalesIncome();
+    window._clinCheckoutRow=null; window._clinCheckoutMethod=null;
+    if(typeof clinNotify==='function') clinNotify('Checked out · IDR '+Math.round(p.due).toLocaleString('id-ID')+' via '+String(method).toUpperCase()+' — paid in full ✓');
+    renderClinicalBooking(); renderClinicalOrder(); buildClinRoomGrid();
+  }catch(e){ console.warn('clinCheckoutProcess',e); }
+}
+window.clinCheckOut=clinCheckOut; window.clinCheckoutSetMethod=clinCheckoutSetMethod; window.clinCheckoutCancel=clinCheckoutCancel; window.clinCheckoutProcess=clinCheckoutProcess;
 function clinCollectBalance(id){
   try{
     var dk=clinKey(); var day=recoveryData&&recoveryData[dk]; if(!day||!day.bookings) return;
@@ -13086,7 +13126,7 @@ function _dashCardQrForDate(k){
   function add(m,amt){ if(!amt||amt<=0)return; m=(m||'').toString().toLowerCase(); if(m==='online'||m==='xendit'||m==='partner')return; if(m==='qr'||m==='qris'||m==='gopay'||m==='ovo')qr+=amt; else card+=amt; }
   try{ var f=(typeof fuelData!=='undefined')?fuelData[k]:null; if(f)(f.transactions||[]).forEach(function(t){ add(t.method,t.total||0); }); }catch(e){}
   try{ var s=(typeof supplyData!=='undefined')?supplyData[k]:null; if(s)(s.orders||[]).forEach(function(o){ add(o.method,o.total||0); }); }catch(e){}
-  try{ var r=(typeof recoveryData!=='undefined')?recoveryData[k]:null; if(r)(r.bookings||[]).forEach(function(b){ if(!b||b.status==='cancelled')return; var amt=(typeof clinCollected==='function')?clinCollected(b):(b.price||0); add(b.online?'online':(b.payMethod||b.method), amt); }); }catch(e){}
+  try{ var r=(typeof recoveryData!=='undefined')?recoveryData[k]:null; if(r)(r.bookings||[]).forEach(function(b){ if(!b||b.status==='cancelled')return; var amt=(typeof clinCollected==='function')?clinCollected(b):(b.price||0); add(b.payMethod||b.method||(b.online?'online':'card'), amt); }); }catch(e){}
   return {card:card, qr:qr};
 }
 // settlements collection (mirrors the clients collection pattern)
