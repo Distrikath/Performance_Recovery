@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814074;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814075;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -3817,6 +3817,7 @@ function renderSales(){
   let fuelRev=0, fuelTxn=0, fuelItems=0, fuelCash=0, fuelCard=0;
   let supRev=0, supOrders=0, supItems=0, supReturns=0;
   const recBookings=[], fuelTxns=[], supOrderList=[];
+  const recPay={card:0,qr:0,online:0,other:0}, recPayCnt={card:0,qr:0,online:0,other:0};
   const therapistRev={};
   const fuelItemCount={};
   const supItemCount={};
@@ -3824,6 +3825,8 @@ function renderSales(){
   keys.forEach(k=>{
     const r=recoveryData[k]; const f=fuelData[k]; const s=supplyData[k];
     if(r){ recRev+=r.revenue||0; recBk+=(r.bookings||[]).length; recCancel+=(r.cancellations||0);
+      if(r._pay){ recPay.card+=r._pay.card||0; recPay.qr+=r._pay.qr||0; recPay.online+=r._pay.online||0; recPay.other+=r._pay.other||0; }
+      if(r._payCnt){ recPayCnt.card+=r._payCnt.card||0; recPayCnt.qr+=r._payCnt.qr||0; recPayCnt.online+=r._payCnt.online||0; recPayCnt.other+=r._payCnt.other||0; }
       (r.bookings||[]).forEach(b=>{ recBookings.push({...b,date:k});
         const tn=b.therapistName||((typeof getStaff==='function'&&b.therapist)?((getStaff(b.therapist)||{}).name):null)||(b.clinical?'Nurse · Human+':null);
         if(tn) therapistRev[tn]=(therapistRev[tn]||0)+b.price; }); }
@@ -3869,8 +3872,9 @@ function renderSales(){
     return 'other'; };
   fuelTxns.forEach(t=>{ const bk=_payBucket(t.method); if((t.total||0)>0){ payAmt[bk]+=t.total; payCnt[bk]++; } });
   supOrderList.forEach(o=>{ const bk=_payBucket(o.method); if((o.total||0)>0){ payAmt[bk]+=o.total; payCnt[bk]++; } });
-  recBookings.forEach(b=>{ const amt=(typeof clinCollected==='function')?clinCollected(b):(b.price||0);
-    if(amt>0){ const bk=_payBucket(b.payMethod||b.method||(b.online?'online':'card')); payAmt[bk]+=amt; payCnt[bk]++; } });
+  // Recovery money is bucketed from the LEDGER by the day it ARRIVED (recoveryData[day]._pay) — matches recovery
+  // revenue exactly, so the cash-up reconciles even when an online deposit is paid on a different day than the session.
+  ['card','qr','online','other'].forEach(k=>{ if(recPay[k]>0){ payAmt[k]+=recPay[k]; payCnt[k]+=(recPayCnt[k]||0); } });
   const _payLine=(id,amt,cnt)=>{ set(id, amt>0?fmtFull(amt):'IDR 0'); set(id+'-sub', cnt+' payment'+(cnt!==1?'s':'')); };
   _payLine('pay-card',   payAmt.card,   payCnt.card);
   _payLine('pay-qris',   payAmt.qr,     payCnt.qr);
@@ -12934,7 +12938,17 @@ window.rebuildFromLedger = function(docs){
       // booking from inflating takings (e.g. an un-paid online deposit left on a cancelled test booking).
       var _cxl=((det&&det.status==='cancelled')||r.status==='cancelled');
       if(!rd[date])rd[date]={revenue:0,bookings:[]};
-      if(!_cxl || (det&&det.forfeited)) rd[date]._rev=(rd[date]._rev||0)+(parseFloat(r.amount)||0);
+      if(!_cxl || (det&&det.forfeited)){
+        var _amt=(parseFloat(r.amount)||0);
+        rd[date]._rev=(rd[date]._rev||0)+_amt;
+        // Payment-by-method for the end-of-day cash-up, keyed to the day the money ARRIVED (bizDate) so the breakdown
+        // reconciles with revenue exactly — even when an online deposit is paid on a different day than the session.
+        if(_amt>0){
+          var _pm=(r.method||(det&&det.payMethod)||(det&&det.online?'online':'card')).toString().toLowerCase();
+          var _pb=(_pm==='card')?'card':((_pm==='qr'||_pm==='qris'||_pm==='gopay'||_pm==='ovo')?'qr':((_pm==='online'||_pm==='xendit')?'online':((_pm==='partner')?'':'other')));
+          if(_pb){ rd[date]._pay=rd[date]._pay||{card:0,qr:0,online:0,other:0}; rd[date]._payCnt=rd[date]._payCnt||{card:0,qr:0,online:0,other:0}; rd[date]._pay[_pb]+=_amt; rd[date]._payCnt[_pb]++; }
+        }
+      }
       if(!_cxl){
         var _sess=(det&&det.date)||date; if(!rd[_sess])rd[_sess]={revenue:0,bookings:[]};
         var _bid=(det&&det.id); if(_bid){ rd[_sess]._seen=rd[_sess]._seen||{}; if(!rd[_sess]._seen[_bid]){ rd[_sess].bookings.push(det); rd[_sess]._seen[_bid]=1; } }
