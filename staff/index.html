@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814068;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814069;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -11507,7 +11507,7 @@ function clinCollected(b){
   if(!b) return 0;
   if(b.status==='cancelled') return ((b.online||b.payType==='deposit') && b.forfeited) ? Math.round((b.price||0)*0.5) : 0;
   if(b.payType==='later') return b.balancePaid?(b.price||0):0;   // pay-on-arrival: nothing now, full when collected at Check out
-  if(b.online||b.payType==='deposit'){ var dep=Math.round((b.price||0)*0.5); return dep + (b.balancePaid?((b.price||0)-dep):0); }
+  if(b.online||b.payType==='deposit'){ var dep=Math.round((b.price||0)*0.5); return (b.depositPaid?dep:0) + (b.balancePaid?((b.price||0)-dep):0); }  // count the deposit only once it's ACTUALLY paid (Xendit not live → depositPaid false → 0 collected)
   if(b.status==='hold') return 0;
   return (b.price||0);
 }
