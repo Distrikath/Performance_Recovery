@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814067;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814068;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -4587,13 +4587,16 @@ function renderPLChart(){
 // ── MODAL ────────────────────────────────────────────────────────
 function openPLModal(type){
   plModalType = type;
-  document.getElementById('plModalTitle').textContent = type==='income'?'Add Income':'Add Expense';
-  document.getElementById('pl-date').value = new Date().toISOString().slice(0,10);
-  document.getElementById('pl-desc').value='';
-  document.getElementById('pl-amount').value='';
-  document.getElementById('pl-notes').value='';
-  document.getElementById('pl-cat').value = type==='income'?'fuel':'ops';
-  document.getElementById('plModal').classList.add('on');
+  var g=function(id){return document.getElementById(id);};
+  if(g('plModalTitle')) g('plModalTitle').textContent = type==='income'?'Add Income':'Add Expense';
+  if(g('pl-date')) g('pl-date').value = new Date().toISOString().slice(0,10);
+  if(g('pl-desc')) g('pl-desc').value='';
+  if(g('pl-amount')) g('pl-amount').value='';
+  if(g('pl-notes')) g('pl-notes').value='';
+  // show the fields for the chosen type, hide the other (income vs expense have their own category/unit selects)
+  if(g('pl-income-fields'))  g('pl-income-fields').style.display  = type==='income'?'block':'none';
+  if(g('pl-expense-fields')) g('pl-expense-fields').style.display = type==='expense'?'block':'none';
+  if(g('plModal')) g('plModal').classList.add('on');
 }
 function closePLModal(){ document.getElementById('plModal').classList.remove('on'); }
 
@@ -4609,16 +4612,17 @@ function savePLEntry(){
     : (document.getElementById('pl-source-expense')?.value || 'general');
   const notes  = document.getElementById('pl-notes').value.trim();
   if(!desc || isNaN(amount) || amount<=0){ alert('Please enter a description and valid amount.'); return; }
-  plEntries.push({id:genId(), type:plModalType, desc, amount, date, cat, source, notes});
+  plEntries.push({id:genId(), type:plModalType, desc, amount, date, cat, source, notes, _ts:Date.now()});
+  try{ if(typeof saveAll==='function') saveAll(); }catch(e){}   // persist + sync so the entry survives a refresh
   closePLModal();
   renderPL();
   const n=document.getElementById('notif');
-  n.textContent='Entry saved ✓'; n.classList.add('on');
-  setTimeout(()=>n.classList.remove('on'),2200);
+  if(n){ n.textContent='Entry saved ✓'; n.classList.add('on'); setTimeout(()=>n.classList.remove('on'),2200); }
 }
 
 function deleteEntry(id){
   plEntries = plEntries.filter(e=>e.id!==id);
+  try{ if(typeof saveAll==='function') saveAll(); }catch(e){}
   renderPL();
 }
 
@@ -7124,9 +7128,14 @@ function setPayMethod(m){
   document.getElementById('pay-'+m)?.classList.add('active');
 }
 
+var _fuelLastSale=0;
 function processSale(){
   if(cart.length===0) return;
   const gross=cart.reduce((s,c)=>s+c.linePrice*c.qty,0);
+  // DOUBLE-RING GUARD: block a second identical-looking sale fired within 10s (double-tap / re-fire).
+  var _fsig=cart.map(function(c){return (c.item&&c.item.id)+':'+(c.size&&c.size.name||'')+':'+c.qty;}).sort().join('|')+'#'+gross+'#'+posPayMethod;
+  if(window._fuelLastSig===_fsig && (Date.now()-_fuelLastSale)<10000){ if(!confirm('⚠ An identical Fuel sale was just recorded seconds ago.\n\nRecord it AGAIN? Cancel if that was a double-tap.')) return; }
+  _fuelLastSale=Date.now(); window._fuelLastSig=_fsig;
   const _code=window._fuelCode||null; const _eff=_code||activeDiscount('fuel'); // an applied code overrides the auto promo
   const discPct=_eff?parseFloat(_eff.pct):0; const discReason=_eff?(_eff.reason||_eff.code||''):''; const discCode=_code?(_code.code||''):''; const discItem=_code?(_code.item||''):'';
   let discAmt=0;
@@ -8127,8 +8136,13 @@ function supSetPay(m){
   document.getElementById('sup-pay-'+m)?.classList.add('active');
 }
 
+var _supLastSale=0;
 function supProcessSale(){
   if(supCart.length===0) return;
+  // DOUBLE-RING GUARD: block a second identical-looking sale fired within 10s (double-tap / re-fire).
+  var _sig=supCart.map(function(c){return (c.item&&c.item.id)+':'+c.size;}).sort().join('|')+'#'+supCart.reduce(function(s,c){return s+c.price;},0)+'#'+supPosPayMethod;
+  if(window._supLastSig===_sig && (Date.now()-_supLastSale)<10000){ if(!confirm('⚠ An identical Supply sale was just recorded seconds ago.\n\nRecord it AGAIN? Cancel if that was a double-tap.')) return; }
+  _supLastSale=Date.now(); window._supLastSig=_sig;
   const dateKey = todayKey();
   const _subEx = supCart.reduce((s,c)=>s+c.price,0);              // ex-tax subtotal
   const _grossTax = supCart.reduce((s,c)=>s+(c.tax||0),0);        // full tax before discount
