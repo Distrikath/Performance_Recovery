@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814066;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814067;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -13084,79 +13084,83 @@ window.SETTLEMENTS={};
 })();
 window.settlementAdd=function(o){ try{ if(typeof firebase==='undefined'||!firebase.firestore)return; var id='st_'+Date.now()+'_'+Math.random().toString(36).slice(2,7); firebase.firestore().collection('settlements').doc(id).set({ id:id, tradeDate:o.tradeDate, method:o.method, amount:Math.round(o.amount||0), note:o.note||'', ts:firebase.firestore.FieldValue.serverTimestamp(), by:((typeof currentUser!=='undefined'&&currentUser&&currentUser.name)||'?') }); }catch(e){ console.warn('[settlements] add',e); } };
 window.settlementDelete=function(id){ try{ if(typeof firebase==='undefined'||!firebase.firestore)return; if(!confirm('Delete this settlement entry?'))return; firebase.firestore().collection('settlements').doc(String(id)).delete(); }catch(e){} };
-// date state
-var _reconDate=null;
-function _reconObj(){ if(!_reconDate){ var d=(typeof baliNow==='function'?baliNow():new Date()); d.setDate(d.getDate()-1); _reconDate=d; } return _reconDate; }
-function _reconFmt(d){ return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2); }
-window.reconChangeDate=function(n){ var d=_reconObj(); _reconDate=new Date(d.getTime()+n*86400000); renderSettlementRecon(); };
-window.reconToday=function(){ _reconDate=(typeof baliNow==='function'?baliNow():new Date()); renderSettlementRecon(); };
+// MONTH state — settlements lag (T+1 or later), so reconcile per MONTH, not per day. Two methods only: Card / QRIS.
+var _reconMonth=null;
+function _pctS(x){ return +( (x*100).toFixed(2) ); }
+function _reconMonthNow(){ if(!_reconMonth){ var d=(typeof baliNow==='function'?baliNow():new Date()); _reconMonth=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2); } return _reconMonth; }
+function _reconMonthKeys(ym){ var p=ym.split('-'); var y=+p[0], m=+p[1]; var n=new Date(y,m,0).getDate(); var keys=[]; for(var dd=1;dd<=n;dd++) keys.push(y+'-'+('0'+m).slice(-2)+'-'+('0'+dd).slice(-2)); return keys; }
+window.reconChangeMonth=function(n){ var p=_reconMonthNow().split('-'); var d=new Date(+p[0],+p[1]-1+n,1); _reconMonth=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2); renderSettlementRecon(); };
+window.reconThisMonth=function(){ _reconMonth=null; renderSettlementRecon(); };
 window.reconAddEntry=function(){
-  var key=_reconFmt(_reconObj());
-  var mEl=document.getElementById('recon-method'), aEl=document.getElementById('recon-amount'), nEl=document.getElementById('recon-note');
+  var dEl=document.getElementById('recon-date'), mEl=document.getElementById('recon-method'), aEl=document.getElementById('recon-amount'), nEl=document.getElementById('recon-note');
   var amt=Math.round(parseFloat((aEl&&aEl.value||'').replace(/[^0-9.]/g,''))||0);
   if(!amt){ if(aEl){aEl.focus();} return; }
-  window.settlementAdd({tradeDate:key, method:(mEl&&mEl.value)||'QRIS', amount:amt, note:(nEl&&nEl.value)||''});
+  var date=(dEl&&dEl.value)|| _reconMonthNow()+'-01';
+  window.settlementAdd({tradeDate:date, method:((mEl&&mEl.value)||'QRIS'), amount:amt, note:(nEl&&nEl.value)||''});
   if(aEl)aEl.value=''; if(nEl)nEl.value='';
 };
 window.renderSettlementRecon=function(){
   var el=document.getElementById('pl-recon'); if(!el) return;
   var isAdmin=(typeof currentUser==='undefined')||!currentUser||currentUser.type==='admin'||currentUser.role==='2IC';
   if(!isAdmin){ el.innerHTML=''; return; }
-  var d=_reconObj(), key=_reconFmt(d);
+  var ym=_reconMonthNow(), mp=ym.split('-');
+  var mLbl=['January','February','March','April','May','June','July','August','September','October','November','December'][+mp[1]-1]+' '+mp[0];
   var f=function(n){ return 'IDR '+Math.round(n||0).toLocaleString('id-ID'); };
-  var exp=_dashCardQrForDate(key);
-  var expCardNet=Math.round(exp.card*(1-SETTLE_FEE.card)), expQrNet=Math.round(exp.qr*(1-SETTLE_FEE.qr));
-  var expTotal=expCardNet+expQrNet;
-  var entries=Object.keys(window.SETTLEMENTS||{}).map(function(k){return window.SETTLEMENTS[k];}).filter(function(s){return s&&s.tradeDate===key;});
+  // expected net across the whole month's trading days
+  var cardGross=0, qrGross=0;
+  _reconMonthKeys(ym).forEach(function(k){ var g=_dashCardQrForDate(k); cardGross+=g.card; qrGross+=g.qr; });
+  var expCardNet=Math.round(cardGross*(1-SETTLE_FEE.card)), expQrNet=Math.round(qrGross*(1-SETTLE_FEE.qr)), expTotal=expCardNet+expQrNet;
+  // settlements logged for this month (by the date they landed)
+  var entries=Object.keys(window.SETTLEMENTS||{}).map(function(k){return window.SETTLEMENTS[k];}).filter(function(s){return s&&String(s.tradeDate||'').slice(0,7)===ym;});
   var entCard=0, entQr=0; entries.forEach(function(s){ if(_methodFamily(s.method)==='qr') entQr+=s.amount||0; else entCard+=s.amount||0; });
   var entTotal=entCard+entQr;
-  var diff=entTotal-expTotal, absd=Math.abs(diff), tol=Math.max(3000, Math.round(expTotal*0.01));
-  var lbl=d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+  var diff=entTotal-expTotal, absd=Math.abs(diff), tol=Math.max(10000, Math.round(expTotal*0.005));
   var C='#232327', MUT='#6b6b72', TX='#f4f4f5';
-  var methodOpts=['QRIS','Visa','Mastercard','Amex','Apple Pay','Debit','Other'].map(function(m){return '<option value="'+m+'">'+m+'</option>';}).join('');
-  var rowsHtml = entries.length ? entries.sort(function(a,b){return (a.method||'').localeCompare(b.method||'');}).map(function(s){
+  var today=(typeof baliNow==='function'?baliNow():new Date()); var todayStr=today.getFullYear()+'-'+('0'+(today.getMonth()+1)).slice(-2)+'-'+('0'+today.getDate()).slice(-2);
+  var methodOpts=['Card','QRIS'].map(function(m){return '<option value="'+m+'">'+m+(m==='QRIS'?' (PAY QR)':'')+'</option>';}).join('');
+  var rowsHtml = entries.length ? entries.sort(function(a,b){return String(b.tradeDate||'').localeCompare(String(a.tradeDate||''));}).map(function(s){
+    var dd=String(s.tradeDate||'').slice(8); var mm=['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+String(s.tradeDate||'0-0').slice(5,7)]||'';
     return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid #1b1b1e;font-family:\'Space Mono\',monospace;font-size:11px;">'
-      +'<span style="color:'+TX+';min-width:90px;">'+_escSettle(s.method)+'</span>'
+      +'<span style="color:'+MUT+';min-width:52px;">'+dd+' '+mm+'</span>'
+      +'<span style="color:'+TX+';min-width:80px;">'+(_methodFamily(s.method)==='qr'?'QRIS':'Card')+'</span>'
       +'<span style="color:'+MUT+';flex:1;font-size:10px;">'+_escSettle(s.note||'')+'</span>'
       +'<span style="color:'+TX+';font-weight:700;">'+f(s.amount)+'</span>'
       +'<span onclick="settlementDelete(\''+_escSettle(s.id)+'\')" style="cursor:pointer;color:#5a5a5f;padding:0 2px;" title="Delete">✕</span></div>';
-  }).join('') : '<div style="padding:12px 14px;color:'+MUT+';font-family:\'Space Mono\',monospace;font-size:11px;">No settlement entered for this day yet.</div>';
+  }).join('') : '<div style="padding:12px 14px;color:'+MUT+';font-family:\'Space Mono\',monospace;font-size:11px;">No settlements logged for '+mLbl+' yet.</div>';
   var matchHtml;
-  if(!entries.length){ matchHtml='<span style="color:'+MUT+';">Awaiting settlement entry</span>'; }
-  else if(absd<=tol){ matchHtml='<span style="color:#22c55e;font-weight:700;">✓ Matches (within fees)</span>'; }
-  else { matchHtml='<span style="color:#f59e0b;font-weight:700;">'+(diff>0?'+':'−')+f(absd)+' vs expected</span> <span style="color:'+MUT+';">· likely batch-timing (settles next batch), not a lost sale</span>'; }
+  if(!entries.length){ matchHtml='<span style="color:'+MUT+';">Awaiting settlements</span>'; }
+  else if(absd<=tol){ matchHtml='<span style="color:#22c55e;font-weight:700;">✓ Reconciled (within fees)</span>'; }
+  else if(diff<0){ matchHtml='<span style="color:#f59e0b;font-weight:700;">'+f(absd)+' still to land</span> <span style="color:'+MUT+';">· recent days settle next month — normal, not a lost sale</span>'; }
+  else { matchHtml='<span style="color:#f59e0b;font-weight:700;">'+f(absd)+' over</span> <span style="color:'+MUT+';">· includes late settlements from last month</span>'; }
   el.innerHTML=''
     +'<div class="ledger" style="border:1px solid '+C+';">'
     +'<div class="ledger-head" style="align-items:center;">'
       +'<h3>Bank Settlement Reconciliation</h3>'
       +'<div style="display:flex;align-items:center;gap:6px;">'
-        +'<button class="dk-ghost" onclick="reconChangeDate(-1)" style="min-width:34px;">‹</button>'
-        +'<span style="font-family:\'Space Mono\',monospace;font-size:11px;color:'+TX+';min-width:150px;text-align:center;">'+lbl+'</span>'
-        +'<button class="dk-ghost" onclick="reconChangeDate(1)" style="min-width:34px;">›</button>'
-        +'<button class="dk-ghost" onclick="reconToday()">Today</button>'
+        +'<button class="dk-ghost" onclick="reconChangeMonth(-1)" style="min-width:34px;">‹</button>'
+        +'<span style="font-family:\'Space Mono\',monospace;font-size:11px;color:'+TX+';min-width:130px;text-align:center;">'+mLbl+'</span>'
+        +'<button class="dk-ghost" onclick="reconChangeMonth(1)" style="min-width:34px;">›</button>'
+        +'<button class="dk-ghost" onclick="reconThisMonth()">This month</button>'
       +'</div>'
     +'</div>'
-    // expected
     +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:'+C+';">'
-      +_reconCell('Expected Card (−3%)', f(expCardNet), 'gross '+f(exp.card))
-      +_reconCell('Expected QRIS (−0.7%)', f(expQrNet), 'gross '+f(exp.qr))
-      +_reconCell('Expected total (net)', f(expTotal), 'what the bank should send')
+      +_reconCell('Expected Card (−'+_pctS(SETTLE_FEE.card)+'%)', f(expCardNet), 'gross '+f(cardGross))
+      +_reconCell('Expected QRIS (−'+_pctS(SETTLE_FEE.qr)+'%)', f(expQrNet), 'gross '+f(qrGross))
+      +_reconCell('Expected total (net)', f(expTotal), 'what the bank should send this month')
     +'</div>'
-    // add form
     +'<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:12px 14px;border-bottom:1px solid '+C+';">'
+      +'<input id="recon-date" type="date" value="'+todayStr+'" style="font-family:\'Space Mono\',monospace;font-size:11px;background:#0f0f11;color:'+TX+';border:1px solid '+C+';padding:7px;">'
       +'<select id="recon-method" style="font-family:\'Space Mono\',monospace;font-size:11px;background:#0f0f11;color:'+TX+';border:1px solid '+C+';padding:7px;">'+methodOpts+'</select>'
       +'<input id="recon-amount" type="text" inputmode="numeric" placeholder="Amount settled" style="font-family:\'Space Mono\',monospace;font-size:11px;background:#0f0f11;color:'+TX+';border:1px solid '+C+';padding:7px;width:130px;">'
-      +'<input id="recon-note" type="text" placeholder="Batch time / ref (optional)" style="font-family:\'Space Mono\',monospace;font-size:11px;background:#0f0f11;color:'+TX+';border:1px solid '+C+';padding:7px;flex:1;min-width:120px;">'
+      +'<input id="recon-note" type="text" placeholder="Ref (optional)" style="font-family:\'Space Mono\',monospace;font-size:11px;background:#0f0f11;color:'+TX+';border:1px solid '+C+';padding:7px;flex:1;min-width:100px;">'
       +'<button class="dk-ghost" onclick="reconAddEntry()" style="background:#0A0A0A;color:#fff;">+ Add settlement</button>'
     +'</div>'
-    // entered list
     +rowsHtml
-    // totals + match
     +'<div style="display:flex;justify-content:space-between;align-items:center;padding:11px 14px;background:#111114;font-family:\'Space Mono\',monospace;font-size:12px;">'
-      +'<span style="color:'+MUT+';">Settled: <b style="color:'+TX+';">'+f(entTotal)+'</b> <span style="font-size:10px;">(card '+f(entCard)+' · QRIS '+f(entQr)+')</span></span>'
+      +'<span style="color:'+MUT+';">Settled: <b style="color:'+TX+';">'+f(entTotal)+'</b> <span style="font-size:10px;">(Card '+f(entCard)+' · QRIS '+f(entQr)+')</span></span>'
       +'<span style="font-size:11px;">'+matchHtml+'</span>'
     +'</div>'
-    +'<div style="padding:8px 14px;color:'+MUT+';font-family:\'Space Mono\',monospace;font-size:9px;">Tip: settlements usually arrive the morning after trading — pick the TRADING day here and enter the batch(es) that covered it. Fees assumed: card '+(SETTLE_FEE.card*100)+'%, QRIS '+(SETTLE_FEE.qr*100)+'%.</div>'
+    +'<div style="padding:8px 14px;color:'+MUT+';font-family:\'Space Mono\',monospace;font-size:9px;">Reconciles by MONTH so day-to-day settlement lag evens out. Log each Card / PAY QR settlement as it lands. Fees assumed: Card '+_pctS(SETTLE_FEE.card)+'%, QRIS '+_pctS(SETTLE_FEE.qr)+'%.</div>'
     +'</div>';
 };
 function _reconCell(label,val,sub){ return '<div style="background:#0f0f11;padding:11px 14px;"><div style="font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:#6b6b72;">'+label+'</div><div style="font-family:\'Archivo\',sans-serif;font-weight:800;font-size:18px;color:#f4f4f5;margin-top:3px;">'+val+'</div><div style="font-family:\'Space Mono\',monospace;font-size:9px;color:#6b6b72;">'+sub+'</div></div>'; }
