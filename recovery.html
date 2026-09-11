@@ -856,10 +856,10 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
         <div class="bk-confirm-wrap">
           <div class="bk-confirm-check">&#x2713;</div>
           <div class="bk-confirm-ref" id="bk-ref-text"></div>
-          <div class="bk-confirm-title">request sent.</div>
+          <div class="bk-confirm-title" id="bk-confirm-title">almost there.</div>
           <div class="bk-confirm-detail" id="bk-conf-detail"></div>
-          <div class="bk-confirm-deposit" id="bk-confirm-deposit">50% deposit required &mdash; payment gateway coming soon</div>
-          <div class="bk-confirm-note">we'll confirm your session via whatsapp within a few hours.<br>see you at the canggu lab.</div>
+          <div class="bk-confirm-deposit" id="bk-confirm-deposit"></div>
+          <div class="bk-confirm-note" id="bk-confirm-note">pay your 50% deposit to secure this booking.</div>
           <button class="bk-next" style="margin-top:32px" onclick="closeBk()">done &#x2192;</button>
         </div>
       </div>
@@ -1414,34 +1414,63 @@ function showBkConfirm(ref,rec){
     de.innerHTML=rec.pathway+' · '+rec.duration+' min'+(rec.pressure&&rec.pressure!=='n/a'?' · '+rec.pressure:'')+'<br>'+rec.date+' at '+rec.time+'<br>therapist: '+tn+'<br>'+rec.name+' · '+rec.phone;
   }
   bkGoStep(6);
-  // Pay the 50% deposit by CARD — our Cloud Function creates a per-booking Xendit card invoice.
+  // 50% deposit by CARD is REQUIRED to secure the booking — our Cloud Function creates a per-booking Xendit card invoice.
+  var titleEl=document.getElementById('bk-confirm-title');
+  var noteEl=document.getElementById('bk-confirm-note');
   var depEl=document.getElementById('bk-confirm-deposit');
   var priceNum=(rec.priceNum!=null)?rec.priceNum:bkPriceNum(rec.price);
   var half=priceNum?Math.round(priceNum/2):0;
-  if(!priceNum){ if(depEl) depEl.innerHTML='<div style="color:#10b981;letter-spacing:.08em;line-height:1.8;">&#10003; No payment needed — free with code '+(rec.discCode||'')+'.<br>see you at the lab.</div>'; return; }
+  if(!priceNum){
+    if(titleEl) titleEl.textContent='you’re booked.';
+    if(noteEl) noteEl.innerHTML='we’ll confirm your session via whatsapp within a few hours.<br>see you at the canggu lab.';
+    if(depEl) depEl.innerHTML='<div style="color:#10b981;letter-spacing:.08em;line-height:1.8;">&#10003; No payment needed — free with code '+(rec.discCode||'')+'.</div>';
+    return;
+  }
+  if(titleEl) titleEl.textContent='almost there.';
+  if(noteEl) noteEl.textContent='pay your 50% deposit to secure this booking.';
   if(depEl) depEl.innerHTML='<div style="font-family:var(--mono);font-size:9px;letter-spacing:.05em;color:var(--ink-d);text-transform:none;">preparing secure card payment&hellip;</div>';
+  // stash details so the post-payment return screen (?paid=1) can confirm with the same info
+  try{ sessionStorage.setItem('bk_last', JSON.stringify({ref:ref, detail:(de?de.innerHTML:''), half:half})); }catch(e){}
   fetch('https://asia-southeast2-distrikath80361.cloudfunctions.net/createDepositInvoice',{
     method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({ref:ref,price:priceNum,name:rec.name,email:rec.email||'',phone:rec.phone,pathway:rec.pathway,date:rec.date,time:rec.time})
   }).then(function(r){return r.json();}).then(function(j){
     if(!depEl) return;
     if(j&&j.invoice_url){
-      var bs='display:flex;justify-content:space-between;align-items:center;gap:16px;width:100%;padding:15px 18px;margin-top:10px;text-decoration:none;font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;box-sizing:border-box;';
+      var bs='display:flex;justify-content:space-between;align-items:center;gap:16px;width:100%;padding:16px 18px;margin-top:10px;text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;box-sizing:border-box;';
       depEl.innerHTML=
         '<div style="font-family:var(--mono);font-size:9px;letter-spacing:.05em;color:var(--ink-d);text-transform:none;margin-bottom:2px;">secure your booking — pay the 50% deposit by card:</div>'
-        +'<a href="'+j.invoice_url+'" target="_blank" rel="noopener" style="'+bs+'background:var(--r);color:#fff;"><span>pay 50% deposit by card</span><span>IDR '+half.toLocaleString()+'</span></a>'
-        +'<div style="font-family:var(--mono);font-size:8px;letter-spacing:.05em;color:var(--ink-d);text-transform:none;margin-top:10px;line-height:1.7;">the remaining 50% is paid in person after your treatment.</div>';
+        +'<a href="'+j.invoice_url+'" rel="noopener" style="'+bs+'background:var(--r);color:#fff;font-weight:700;"><span>pay 50% deposit by card</span><span>IDR '+half.toLocaleString()+'</span></a>'
+        +'<div style="font-family:var(--mono);font-size:8px;letter-spacing:.05em;color:var(--ink-d);text-transform:none;margin-top:10px;line-height:1.7;">the remaining 50% is paid in person after your treatment. your slot is held once the deposit is paid.</div>';
     } else {
+      if(noteEl) noteEl.textContent='we’ll send your payment link via whatsapp shortly.';
       depEl.textContent='our team will send your payment link via WhatsApp.';
     }
   }).catch(function(){
+    if(noteEl) noteEl.textContent='we’ll send your payment link via whatsapp shortly.';
     if(depEl) depEl.textContent='our team will send your payment link via WhatsApp.';
   });
+}
+// After the customer pays on Xendit, they are redirected back to recovery.html?paid=1&ref=… — show the CONFIRMED screen.
+function showBkPaidConfirmed(ref){
+  var info={}; try{ info=JSON.parse(sessionStorage.getItem('bk_last')||'{}'); }catch(e){}
+  var ov=document.getElementById('bk-overlay'); if(ov) ov.classList.add('open');
+  document.body.style.overflow='hidden';
+  bkGoStep(6);
+  var re=document.getElementById('bk-ref-text'); if(re) re.textContent=ref||info.ref||'';
+  var titleEl=document.getElementById('bk-confirm-title'); if(titleEl) titleEl.textContent='booking confirmed.';
+  var de=document.getElementById('bk-conf-detail'); if(de&&info.detail) de.innerHTML=info.detail;
+  var depEl=document.getElementById('bk-confirm-deposit'); if(depEl) depEl.innerHTML='<div style="color:#10b981;letter-spacing:.1em;font-weight:700;">&#10003; 50% deposit paid'+(info.half?(' · IDR '+Number(info.half).toLocaleString()):'')+'</div>';
+  var noteEl=document.getElementById('bk-confirm-note'); if(noteEl) noteEl.innerHTML='the remaining 50% is paid in person after your treatment.<br>see you at the canggu lab.';
+  try{ sessionStorage.removeItem('bk_last'); }catch(e){}
+  try{ history.replaceState({},'',location.pathname); }catch(e){}
 }
 
 document.addEventListener('DOMContentLoaded',function(){
   var ov=document.getElementById('bk-overlay');
   if(ov)ov.addEventListener('click',function(e){if(e.target===ov)closeBk();});
+  // returning from Xendit after a successful deposit → show the confirmed screen
+  try{ var _pp=new URLSearchParams(location.search); if(_pp.get('paid')==='1'){ showBkPaidConfirmed(_pp.get('ref')||''); } }catch(e){}
   var fd=document.getElementById('fd-overlay');
   if(fd)fd.addEventListener('click',function(e){if(e.target===fd)closeFd();});
 });
