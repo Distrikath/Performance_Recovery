@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814071;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814072;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -10483,26 +10483,6 @@ function renderTodayBookings(){
     var pay=_clinPayLine(b);
     var _bDepLink=(!b.partner && b.online&&!b.depositPaid&&(b.balanceDue>0)&&getXenditLink())?'<button class="clin-bk-act go" onclick="resendDepositLink(\''+id+'\')">Send deposit link &#x2192;</button>':'';
     var _pinf=_clinPay(b);
-    // ── INLINE ORDER: Check out opened this booking → show it like a normal sale (details + amount due + Card/QR + Process) ──
-    if(window._clinCheckoutRow && id===window._clinCheckoutRow && !_pinf.fullyPaid && !_pinf.free && !b.partner){
-      var _due=Math.round(_pinf.due), _money='IDR '+_due.toLocaleString('id-ID');
-      var _meth=window._clinCheckoutMethod;
-      var _mBtn=function(m,lbl){ var on=(_meth===m); return '<button onclick="clinCheckoutSetMethod(\''+id+'\',\''+m+'\')" style="flex:1;padding:12px;border:1px solid #0A0A0A;background:'+(on?'#0A0A0A':'#fff')+';color:'+(on?'#fff':'#0A0A0A')+';font-family:\'Space Mono\',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;">'+lbl+'</button>'; };
-      return '<div class="clin-bk-row2" id="clin-co-'+id+'" style="border:1.5px solid #0A0A0A;background:#fafafa;">'
-        +'<div style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#9a9a9e;margin-bottom:6px;">Order · check out</div>'
-        +'<div style="font-family:\'Archivo\',sans-serif;font-weight:800;font-size:15px;color:#0A0A0A;">'+_escHtml(b.client||'Client')+'</div>'
-        +'<div style="font-family:\'Space Mono\',monospace;font-size:11px;color:#56565b;margin:2px 0 8px;">'+_escHtml(svcName)+(det?(' · '+_escHtml(det)):'')+((b.start||b.time)?(' · '+_escHtml(b.start||b.time)):'')+'</div>'
-        +'<div style="display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid #e8e8e8;padding-top:8px;margin-bottom:10px;">'
-          +'<span style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#9a9a9e;">'+(_pinf.depositPaid?'Balance due':'Amount due')+'</span>'
-          +'<span style="font-family:\'Archivo\',sans-serif;font-weight:800;font-size:22px;color:#0A0A0A;">'+_money+'</span></div>'
-        +'<div style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#9a9a9e;margin-bottom:6px;">How are they paying?</div>'
-        +'<div style="display:flex;gap:8px;margin-bottom:10px;">'+_mBtn('card','Card')+_mBtn('qr','QR')+'</div>'
-        +'<div style="display:flex;gap:8px;">'
-          +'<button onclick="clinCheckoutProcess(\''+id+'\')" '+(_meth?'':'disabled')+' style="flex:2;padding:13px;border:none;background:'+(_meth?'#10b981':'#c8c8c8')+';color:#fff;font-family:\'Space Mono\',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;cursor:'+(_meth?'pointer':'not-allowed')+';">'+(_meth?('Process '+_money):'Choose card or QR')+'</button>'
-          +'<button onclick="clinCheckoutCancel()" style="flex:1;padding:13px;border:1px solid #e0e0e0;background:#fff;color:#777;font-family:\'Space Mono\',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;">Cancel</button>'
-        +'</div>'
-      +'</div>';
-    }
     var _canDelBk=(typeof currentUser==='undefined'||!currentUser||!currentUser.type||currentUser.type==='admin');
     var _notArrived=(!b.checkedIn && b.status!=='cancelled' && !isHold);
     var _needsPay=(!isHold && b.status!=='cancelled' && !b.partner && !_pinf.free && !_pinf.fullyPaid && (_pinf.isDepositFlow||_pinf.isLater));
@@ -11219,8 +11199,52 @@ function approveIntake(){ clinCaptureInputs(); clinIntake=true; renderClinicalBo
 function selectWindow(w){ clinCaptureInputs(); clinWindow=w; renderClinicalBooking(); renderClinicalOrder(); }
 window.selectRoom=selectRoom; window.sendIntake=sendIntake; window.approveIntake=approveIntake; window.selectWindow=selectWindow;
 
+// Show/hide the normal booking chrome in the Order foot (online checkbox, discount row, deposit lines) and
+// restore the confirm button to its normal booking action. Called with false during checkout, true otherwise.
+function _clinOrderChrome(show){
+  var disp=show?'':'none';
+  var ob=document.getElementById('clin-online'); if(ob){ var r=(ob.closest?ob.closest('.clin-online-row'):null); if(r) r.style.display=disp; }
+  var dp=document.getElementById('recovery-disc-pct'); if(dp&&dp.parentElement) dp.parentElement.style.display=disp;
+  var dm=document.getElementById('recovery-disc-msg'); if(dm) dm.style.display=disp;
+  if(show){ var btn=document.getElementById('clin-confirm-btn'); if(btn) btn.onclick=function(){ payClinical(); }; }
+}
+// Render a booking into the Order panel as a checkout order + wire the big button to collect. Returns false if nothing to collect.
+function _renderCheckoutOrder(el){
+  try{
+    var id=window._clinCheckoutRow;
+    var dk=clinKey(); var day=recoveryData&&recoveryData[dk]; var b=day&&day.bookings&&day.bookings.find(function(x){return x.id===id;});
+    if(!b){ window._clinCheckoutRow=null; return false; }
+    var p=_clinPay(b);
+    if(p.free||p.fullyPaid||b.partner){ window._clinCheckoutRow=null; return false; }
+    var due=Math.round(p.due);
+    var svc=b.serviceName||b.service||'Session';
+    var det=b.clinical?(b.window||'Clinical'):(b.roomName||b.room||'');
+    var when=(b.start||b.time||'');
+    var lines='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">'
+        +'<span style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#FF2D2D;">● Checking out</span>'
+        +'<button onclick="clinCheckoutCancel()" style="border:none;background:none;font-family:\'Space Mono\',monospace;font-size:10px;color:#9a9a9e;cursor:pointer;text-decoration:underline;">✕ cancel</button>'
+      +'</div>';
+    lines+='<div class="clin-oline"><span>'+_escHtml(svc)+'</span><span>'+clinFmt(b.price||due)+'</span></div>';
+    lines+='<div class="clin-oline sub"><span>Client</span><span>'+_escHtml(b.client||'—')+'</span></div>';
+    if(det)  lines+='<div class="clin-oline sub"><span>'+(b.clinical?'Service':'Room')+'</span><span>'+_escHtml(det)+'</span></div>';
+    if(when) lines+='<div class="clin-oline sub"><span>Time</span><span>'+_escHtml(when)+'</span></div>';
+    if(p.depositPaid) lines+='<div class="clin-oline sub"><span>Deposit already paid</span><span>−'+clinFmt(p.paid)+'</span></div>';
+    el.innerHTML=lines;
+    _clinOrderChrome(false);                                   // hide online/discount rows during checkout
+    var dl=document.getElementById('clin-deposit-lines'); if(dl) dl.innerHTML='';
+    clinSetText('clin-subtotal', clinFmt(due)); clinSetText('clin-tax', clinFmt(0)); clinSetText('clin-total', clinFmt(due));
+    if(clinPay!=='card'&&clinPay!=='qr') clinSetPay('card');   // default the method, Card/QR buttons stay live
+    var btn=document.getElementById('clin-confirm-btn');
+    if(btn){ btn.disabled=false; btn.textContent='Process · '+clinFmt(due); btn.onclick=function(){ window._clinCheckoutMethod=(clinPay==='qr'?'qr':'card'); clinCheckoutProcess(id); }; }
+    return true;
+  }catch(e){ console.warn('_renderCheckoutOrder',e); window._clinCheckoutRow=null; return false; }
+}
 function renderClinicalOrder(){
   var el=document.getElementById('clin-order-body'); if(!el) return;
+  // ── CHECK-OUT MODE: a booking was sent to the Order panel via "Check out" — show it as an order & collect ──
+  if(window._clinCheckoutRow){ if(_renderCheckoutOrder(el)) return; }
+  // not in checkout → make sure the normal booking chrome (online / discount / normal button) is restored
+  _clinOrderChrome(true);
   if(clinDone){ var dMsg=clinDoneHold?'Tentative — intake pending':'Booking confirmed'; var dIco=clinDoneHold?'<span style="color:#FF2D2D;">●</span>':'✓'; var dSub=clinDoneHold?'<div style="font-family:Space Mono,monospace;font-size:11px;color:#56565b;margin-top:8px;line-height:1.5;">Chair reserved. Confirm once intake is returned &amp; approved.</div>':''; el.innerHTML='<div class="clin-confirm"><div class="clin-confirm-ico">'+dIco+'</div><div class="clin-confirm-msg">'+dMsg+'</div>'+dSub+'<button class="clin-intake-btn" style="background:#0A0A0A;margin-top:14px;" onclick="initRecovery()">New booking</button></div>'; clinSetText('clin-subtotal','—'); clinSetText('clin-tax','—'); clinSetText('clin-total','—'); var b=document.getElementById('clin-confirm-btn'); if(b){b.disabled=true;b.textContent=clinDoneHold?'Tentative':'Confirmed';} return; }
   if(!clinSel){ el.innerHTML='<div class="receipt-empty" style="padding:24px;text-align:center;color:#9a9a9e;font-family:Space Mono,monospace;font-size:11px;">No service selected</div>'; updateClinicalTotals(0); return; }
   var s=clinSvc();
@@ -11557,9 +11581,7 @@ function _clinPayLine(b){
   if(p.depositPaid) return '<span class="clin-bk-pay due">Deposit '+f(p.paid)+' paid · '+f(p.due)+' DUE at checkout'+ci+'</span>';
   return '<span class="clin-bk-pay due">UNPAID · '+f(p.due)+' due'+ci+'</span>';
 }
-// Check out — collect whatever is still owed (remaining balance, or full if nothing paid). Marks paid in full.
-var _clinCheckoutId=null;
-// Check out — opens the booking's INLINE order (in the reception list): pick Card / QR, then Process.
+// Check out — sends the booking to the ORDER panel (right column): shows it as an order, pick Card / QR, then Process.
 function clinCheckOut(id){
   try{
     var dk=clinKey(); var day=recoveryData&&recoveryData[dk]; if(!day||!day.bookings) return;
@@ -11568,18 +11590,14 @@ function clinCheckOut(id){
     var p=_clinPay(b);
     if(p.free){ if(typeof clinNotify==='function') clinNotify('This booking is free — nothing to collect.'); return; }
     if(p.fullyPaid){ if(typeof clinNotify==='function') clinNotify('Already paid in full — nothing to collect.'); return; }
-    window._clinCheckoutRow=id; window._clinCheckoutMethod=null;   // open the inline order for this booking, no method chosen yet
-    renderClinicalBooking();
-    setTimeout(function(){ var e=document.getElementById('clin-co-'+id); if(e&&e.scrollIntoView) e.scrollIntoView({block:'center',behavior:'smooth'}); },30);
+    window._clinCheckoutRow=id; window._clinCheckoutMethod=null;   // route this booking into the Order panel
+    renderClinicalOrder();
+    if(typeof clinNotify==='function') clinNotify('Sent to Order — choose Card or QR, then Process · IDR '+Math.round(p.due).toLocaleString('id-ID'));
+    setTimeout(function(){ var e=document.getElementById('clin-order-body'); if(e&&e.scrollIntoView) e.scrollIntoView({block:'center',behavior:'smooth'}); },30);
   }catch(e){ console.warn('clinCheckOut',e); }
 }
-// Pick the pay method on the open inline order (highlights, enables Process).
-function clinCheckoutSetMethod(id,m){
-  window._clinCheckoutRow=id; window._clinCheckoutMethod=m; renderClinicalBooking();
-  setTimeout(function(){ var e=document.getElementById('clin-co-'+id); if(e&&e.scrollIntoView) e.scrollIntoView({block:'center'}); },20);
-}
-// Close the inline order without collecting.
-function clinCheckoutCancel(){ window._clinCheckoutRow=null; window._clinCheckoutMethod=null; renderClinicalBooking(); }
+// Close the checkout order without collecting → Order panel returns to normal.
+function clinCheckoutCancel(){ window._clinCheckoutRow=null; window._clinCheckoutMethod=null; renderClinicalOrder(); renderClinicalBooking(); }
 // Process the payment on the open inline order — collects what's due, records the real method, marks paid in full.
 function clinCheckoutProcess(id){
   try{
@@ -11598,7 +11616,7 @@ function clinCheckoutProcess(id){
     renderClinicalBooking(); renderClinicalOrder(); buildClinRoomGrid();
   }catch(e){ console.warn('clinCheckoutProcess',e); }
 }
-window.clinCheckOut=clinCheckOut; window.clinCheckoutSetMethod=clinCheckoutSetMethod; window.clinCheckoutCancel=clinCheckoutCancel; window.clinCheckoutProcess=clinCheckoutProcess;
+window.clinCheckOut=clinCheckOut; window.clinCheckoutCancel=clinCheckoutCancel; window.clinCheckoutProcess=clinCheckoutProcess;
 function clinCollectBalance(id){
   try{
     var dk=clinKey(); var day=recoveryData&&recoveryData[dk]; if(!day||!day.bookings) return;
