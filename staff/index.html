@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814072;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814073;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -10817,6 +10817,8 @@ function acceptOnlineBooking(id){
         if(_cday.some(function(b){ if(!b||b.status==='cancelled'||b.room!==_roomId||!b.start)return false; var bs=parseTime(b.start), be=bs+((b.duration||60)/60)+_cb; return _cns<be-1e-9 && _cne>bs+1e-9; })
            && !confirm('⚠ '+_roomName+' already has a booking within the 15-min buffer around '+_st+'.\n\nConfirm anyway (this will double-book)?')) return;
       }catch(e){}
+      // Online deposit paid by card? The Xendit webhook stamps the public_bookings request (depositPaid / paymentStatus).
+      var _depPaid=(!_free && (r.depositPaid===true || r.paymentStatus==='deposit_paid' || r.paymentStatus==='paid'));
       var rec={
         id:(typeof genId==='function'?genId():'obk_'+Date.now()),
         service:r.pathway||'recovery', serviceName:String(_onreqLabel(r)).replace(/<[^>]+>/g,''),
@@ -10826,15 +10828,16 @@ function acceptOnlineBooking(id){
         client:r.name||'Guest', email:r.email||'', whatsapp:r.phone||'', phone:r.phone||'',
         price:_pn, pressure:r.pressure||null, payType:'deposit',
         source:'Online', status:'confirmed', payMethod:'online',
-        online:true, deposit:_dep, balanceDue:_free?0:Math.max(0,_pn-_dep), balancePaid:_free, depositPaid:_free, discPct:(r.discPct||0), discCode:(r.discCode||''), discReason:(r.discReason||''),
+        online:true, deposit:_dep, balanceDue:_free?0:Math.max(0,_pn-_dep), balancePaid:_free, depositPaid:(_free||_depPaid), discPct:(r.discPct||0), discCode:(r.discCode||''), discReason:(r.discReason||''),
         onlineRef:r.ref||id, date:r.date, _ts:Date.now()
       };
       if(!recoveryData[r.date]) recoveryData[r.date]={revenue:0,bookings:[]};
       if(!recoveryData[r.date].bookings) recoveryData[r.date].bookings=[];
       recoveryData[r.date].bookings.push(rec);
-      // Deposit is paid online via the Xendit link — until receipt is confirmed (webhook / staff), count 0 collected.
+      // Deposit paid online by card (Xendit webhook confirmed) → record the 50% now under ONLINE; the balance is
+      // collected in person at Check out. Not yet paid → 0 collected until then.
       recoveryData[r.date].revenue=(recoveryData[r.date].revenue||0);
-      if(typeof ledgerWrite==='function') ledgerWrite('recovery', rec.id, r.date, 0, 0, 'online', rec, 'confirmed');
+      if(typeof ledgerWrite==='function') ledgerWrite('recovery', rec.id, r.date, (_depPaid?_dep:0), 0, 'online', rec, 'confirmed');
       if(typeof clientUpsert==='function' && r.phone) clientUpsert({name:r.name, whatsapp:r.phone, email:r.email, source:'recovery', consent:true});
       if(typeof saveAll==='function') saveAll();
       try{ if(typeof buildClinRoomGrid==='function') buildClinRoomGrid(); if(typeof renderClinicalBooking==='function') renderClinicalBooking(); }catch(e){}
