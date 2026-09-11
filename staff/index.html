@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814076;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814077;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -2938,7 +2938,48 @@ let dailyOverrides={}; // {'2026-08-08': {Therapy:[[...]], ...}} — per specifi
 // Per-date absence markers: {'2026-09-12': {'Reception:0': {reason,staffId,note}}}. The person stays fully
 // rostered (payroll/hours unaffected) — this just greys the row for the day so the team knows they're off.
 let dailyAbsence={};
-const ABSENCE_REASONS=['Sick','Annual Leave','Personal Leave / Izin','Public Holiday','Religious Observance / Ceremony','Collective Leave — Cuti Bersama','Medical Appointment','Menstrual Leave','Family Emergency','Bereavement Leave','Marriage Leave','Family Ceremony Leave','Maternity / Pregnancy Leave','Paternity / Partner Support Leave','Workplace Injury','Late Arrival / Early Departure','Unapproved Absence / No Show','Unpaid Leave','Other'];
+// Authoritative DISTRIK absence reasons (see DISTRIK_absence_policy.json). Dropdown order = most-common first.
+const ABSENCE_REASONS=[
+  {id:'sick_leave',label:'Sick Leave'},
+  {id:'annual_leave',label:'Annual Leave'},
+  {id:'personal_leave',label:'Personal Leave / Izin'},
+  {id:'public_holiday',label:'Public Holiday'},
+  {id:'religious_observance',label:'Religious Observance / Ceremony'},
+  {id:'collective_leave',label:'Collective Leave — Cuti Bersama'},
+  {id:'medical_appointment',label:'Medical Appointment'},
+  {id:'menstrual_leave',label:'Menstrual Leave'},
+  {id:'family_emergency',label:'Family Emergency'},
+  {id:'bereavement_immediate_family',label:'Bereavement — Immediate Family'},
+  {id:'bereavement_household_member',label:'Bereavement — Household Member'},
+  {id:'employee_marriage',label:'Employee’s Marriage'},
+  {id:'child_marriage',label:'Child’s Marriage'},
+  {id:'child_circumcision_or_baptism',label:'Child’s Circumcision / Baptism'},
+  {id:'maternity_leave',label:'Maternity Leave'},
+  {id:'miscarriage_leave',label:'Miscarriage Leave'},
+  {id:'paternity_birth_support',label:'Paternity / Birth Support'},
+  {id:'partner_miscarriage',label:'Partner’s Miscarriage'},
+  {id:'workplace_injury',label:'Workplace Injury'},
+  {id:'late_arrival_early_departure',label:'Late Arrival / Early Departure'},
+  {id:'unapproved_absence',label:'Unapproved Absence / No Show'},
+  {id:'unpaid_leave',label:'Unpaid Leave'},
+  {id:'other',label:'Other'}
+];
+// Allowance rules. annual/annual_prorata = per-cycle cap (cycle starts 1 Sep); per_event = statutory days per occurrence;
+// per_month = cap per calendar month; everything else = tracked count only (no cap). Sick is pro-rata for part-time.
+const ABSENCE_POLICY={
+  sick_leave:{capType:'annual_prorata', ftDays:10, carry:true},
+  annual_leave:{capType:'annual', ftDays:12},
+  bereavement_immediate_family:{capType:'per_event', days:2},
+  bereavement_household_member:{capType:'per_event', days:1},
+  employee_marriage:{capType:'per_event', days:3},
+  child_marriage:{capType:'per_event', days:2},
+  child_circumcision_or_baptism:{capType:'per_event', days:2},
+  paternity_birth_support:{capType:'per_event', days:2},
+  partner_miscarriage:{capType:'per_event', days:2},
+  menstrual_leave:{capType:'per_month', days:2}
+};
+const FT_WEEKLY_HOURS=42;  // full-time reference for the part-time sick pro-rata (10 × hrs ÷ 42)
+function _absLabelOf(id){ var r=ABSENCE_REASONS.find(function(x){return x.id===id;}); return r?r.label:id; }
 let _baseGrid=null; // snapshot of default weekly template (set after populateDefaults)
 let _gridDirty=false; // true only when user actually edits; prevents browsing from auto-saving
 let activeDay=0; // will be set to today on roster open
@@ -3343,11 +3384,11 @@ function _primaryStaffInRow(zoneId,row){
     return best;
   }catch(e){ return null; }
 }
-function _absSelectHtml(zoneId,row,selected){
+function _absSelectHtml(zoneId,row,selectedId){
   var esc=function(x){return String(x).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');};
   var opts='<option value="">— in —</option>';
-  ABSENCE_REASONS.forEach(function(r){ opts+='<option value="'+esc(r)+'"'+(r===selected?' selected':'')+'>'+esc(r)+'</option>'; });
-  return '<select class="abs-select'+(selected?' on':'')+'" onchange="setAbsence(\''+zoneId+'\','+row+',this.value)" onclick="event.stopPropagation()" onmousedown="event.stopPropagation()">'+opts+'</select>';
+  ABSENCE_REASONS.forEach(function(r){ opts+='<option value="'+r.id+'"'+(r.id===selectedId?' selected':'')+'>'+esc(r.label)+'</option>'; });
+  return '<select class="abs-select'+(selectedId?' on':'')+'" onchange="setAbsence(\''+zoneId+'\','+row+',this.value)" onclick="event.stopPropagation()" onmousedown="event.stopPropagation()">'+opts+'</select>';
 }
 // Mark (or clear) a row's off-day for the active date. Person stays rostered + in payroll; the row just greys out.
 function setAbsence(zoneId,row,reason){
@@ -3362,8 +3403,8 @@ function setAbsence(zoneId,row,reason){
       if(!Object.keys(dailyAbsence[dk]).length) delete dailyAbsence[dk];
     } else {
       var note='';
-      if(reason==='Other'){ note=(prompt('Reason / explanation for this off-day:')||'').trim(); }
-      dailyAbsence[dk][key]={reason:reason, staffId:(_primaryStaffInRow(zoneId,row)||null), note:note};
+      if(reason==='other'){ note=(prompt('Reason / explanation for this off-day:')||'').trim(); }
+      dailyAbsence[dk][key]={reason:reason, label:_absLabelOf(reason), staffId:(_primaryStaffInRow(zoneId,row)||null), note:note};
     }
     saveAll();
     if(typeof window.dkHardSave==='function') window.dkHardSave(['distrik_v1']);
@@ -3396,7 +3437,8 @@ function buildGrid(){
       const _adk = (typeof getDateKey==='function') ? getDateKey(activeDay, rosterWeekOffset) : '';
       const _abs = (dailyAbsence[_adk]||{})[zoneId+':'+row];
       const _absReason = _abs ? _abs.reason : '';
-      const _offLabel = _absReason ? ('OFF · '+_absReason+(_abs.note?(' — '+_abs.note):'')) : '';
+      const _absLbl = _abs ? (_abs.label || _absLabelOf(_abs.reason)) : '';
+      const _offLabel = _absReason ? ('OFF · '+_absLbl+(_abs.note?(' — '+_abs.note):'')) : '';
       html+=`<div class="slot-row${_absReason?' is-off':''}">
         <div class="row-label">${rowLabel}</div>
         <div class="row-absence">${_absSelectHtml(zoneId,row,_absReason)}</div>
@@ -3704,7 +3746,7 @@ function saveAll(){
       fuelData,
       supplyData,
       DISCOUNTS,
-      STAFF: STAFF.map(s=>({id:s.id,name:s.name,abbr:s.abbr,role:s.role,col:s.col,salary:s.salary,group:s.group||'Operations',pin:s.pin||'1234'})),
+      STAFF: STAFF.map(s=>({id:s.id,name:s.name,abbr:s.abbr,role:s.role,col:s.col,salary:s.salary,group:s.group||'Operations',pin:s.pin||'1234',weeklyHours:(s.weeklyHours!=null?s.weeklyHours:42),employment:(s.employment||'full')})),
       _cfgTs: _prevCfgTs,
       _salesEpoch: (window._salesEpoch||0),   // "cleared watermark" — devices won't resurrect sales created before this
       _deletedIds: (window._deletedIds||{}),  // tombstones — ids permanently deleted; no device ever resurrects them
@@ -5108,7 +5150,7 @@ function buildSettingsStaff(){
       ondragover="staffDragOver(event)"
       ondrop="staffDrop(event,${i})"
       ondragend="staffDragEnd()"
-      style="display:grid;grid-template-columns:20px 28px 1fr 1fr 90px 90px 60px 70px;gap:6px;align-items:center;margin-bottom:6px;padding:6px 4px;border-bottom:1px solid #f0f0f0;border-radius:2px;transition:background .1s;">
+      style="display:grid;grid-template-columns:20px 26px 1fr 1fr 80px 82px 48px 62px 48px 62px;gap:5px;align-items:center;margin-bottom:6px;padding:6px 4px;border-bottom:1px solid #f0f0f0;border-radius:2px;transition:background .1s;">
       <div style="cursor:grab;color:#ccc;font-size:14px;text-align:center;user-select:none;" title="Drag to reorder">⠿</div>
       <input type="color" value="${s.col}" id="stf_col_${i}"
         style="width:26px;height:26px;border-radius:50%;border:2px solid #e8e8e8;cursor:pointer;padding:0;background:${s.col}"
@@ -5121,8 +5163,13 @@ function buildSettingsStaff(){
         <option value="Therapy"    ${grp==='Therapy'   ?'selected':''}>Therapy</option>
       </select>
       <input class="svc-input" id="stf_sal_${i}" value="${s.salary||''}" type="number" placeholder="Salary IDR" style="font-family:'Space Mono',monospace;font-size:10px;">
-      <input class="svc-input" id="stf_pin_${i}" value="${s.pin||'1234'}" type="text" maxlength="4" placeholder="PIN" style="font-family:'Space Mono',monospace;font-size:10px;width:54px;">
-      <button onclick="settingsRemoveStaff(${i})" style="background:transparent;border:1px solid #e0e0e0;border-radius:2px;color:#999;font-family:'Space Mono',monospace;font-size:9px;padding:5px 6px;cursor:pointer;letter-spacing:1px;">Remove</button>
+      <input class="svc-input" id="stf_hrs_${i}" value="${s.weeklyHours!=null?s.weeklyHours:42}" type="number" title="Contracted weekly hours (full-time = 42)" placeholder="hrs/wk" style="font-family:'Space Mono',monospace;font-size:10px;">
+      <select class="svc-input" id="stf_emp_${i}" title="Full-time / Part-time" style="font-family:'Space Mono',monospace;font-size:9px;padding:6px 4px;">
+        <option value="full" ${(s.employment||'full')==='full'?'selected':''}>Full-t</option>
+        <option value="part" ${s.employment==='part'?'selected':''}>Part-t</option>
+      </select>
+      <input class="svc-input" id="stf_pin_${i}" value="${s.pin||'1234'}" type="text" maxlength="4" placeholder="PIN" style="font-family:'Space Mono',monospace;font-size:10px;">
+      <button onclick="settingsRemoveStaff(${i})" style="background:transparent;border:1px solid #e0e0e0;border-radius:2px;color:#999;font-family:'Space Mono',monospace;font-size:9px;padding:5px 4px;cursor:pointer;letter-spacing:.5px;">Remove</button>
     </div>`;
   }).join('');
 }
@@ -5176,7 +5223,7 @@ function buildSettingsZones(){
 function settingsAddStaff(){
   const colors = ['#e879f9','#fb923c','#a3e635','#38bdf8','#f472b6','#34d399'];
   const col = colors[STAFF.length % colors.length];
-  const newS = {id:'new'+Date.now(), col, group:'Operations', name:'New Staff', abbr:'NS', role:'Staff', salary:3900000};
+  const newS = {id:'new'+Date.now(), col, group:'Operations', name:'New Staff', abbr:'NS', role:'Staff', salary:3900000, weeklyHours:42, employment:'full'};
   STAFF.push(newS);
   STAFF_MAP[newS.id] = newS;
   buildSettingsStaff();
@@ -5218,6 +5265,10 @@ function saveSettings(){
     const grp = document.getElementById('stf_grp_'+i)?.value;
     if(grp)   s.group=grp;
     if(!isNaN(sal)&&sal>0) s.salary=sal;
+    const hrs = parseFloat(document.getElementById('stf_hrs_'+i)?.value);
+    if(!isNaN(hrs)&&hrs>0) s.weeklyHours=hrs;
+    const emp = document.getElementById('stf_emp_'+i)?.value;
+    if(emp==='full'||emp==='part') s.employment=emp;
     const pin = document.getElementById('stf_pin_'+i)?.value.trim();
     if(pin&&pin.length===4&&/^\d{4}$/.test(pin)) s.pin=pin;
     if(col)   s.col=col;
@@ -5675,6 +5726,8 @@ function buildMyAccount(el){
 
     ${(typeof _buildCommissionBlock==='function')?_buildCommissionBlock(s):''}
 
+    ${(typeof _buildAbsenceBlock==='function')?_buildAbsenceBlock(s):''}
+
     ${(typeof _buildPayslipBlock==='function')?_buildPayslipBlock(s):''}
 
     ${(currentUser?.type==='admin'||currentUser?.role==='2IC')?`
@@ -5686,6 +5739,87 @@ function buildMyAccount(el){
   </div>`;
 }
 
+// ── LEAVE & ABSENCE TALLY (My Account) ───────────────────────────────
+// Yearly cycle from 1 September. Counts days per reason from dailyAbsence (deduped per date), shows used/remaining
+// for capped types. Sick = 10 FT days, pro-rata for part-time, carry-forward of the prior cycle's unused.
+function _absCycleKeys(offset){
+  offset=offset||0;
+  var d=(typeof baliNow==='function'?baliNow():new Date());
+  var y=d.getFullYear(), m=d.getMonth();          // Sep = 8
+  var startY=((m>=8)?y:y-1)+offset;
+  var iso=function(dt){ return dt.getFullYear()+'-'+('0'+(dt.getMonth()+1)).slice(-2)+'-'+('0'+dt.getDate()).slice(-2); };
+  var start=new Date(startY,8,1), end=new Date(startY+1,7,31);
+  return {startISO:iso(start), endISO:iso(end), label:'1 Sep '+startY+' – 31 Aug '+(startY+1)};
+}
+function _absTally(sid, startISO, endISO){
+  var seen={}; // reasonId -> {date:1}
+  Object.keys(dailyAbsence||{}).forEach(function(dk){
+    if(dk<startISO||dk>endISO) return;
+    var day=dailyAbsence[dk]; if(!day) return;
+    Object.keys(day).forEach(function(k){ var a=day[k]; if(a&&a.staffId===sid&&a.reason){ (seen[a.reason]=seen[a.reason]||{})[dk]=1; } });
+  });
+  var counts={}; Object.keys(seen).forEach(function(r){ counts[r]=Object.keys(seen[r]).length; });
+  return counts;
+}
+function _sickAllowance(s){
+  var ft=ABSENCE_POLICY.sick_leave.ftDays;
+  if((s.employment||'full')==='part'){ var hrs=(s.weeklyHours!=null?s.weeklyHours:FT_WEEKLY_HOURS); return Math.max(0,Math.round(ft*hrs/FT_WEEKLY_HOURS)); }
+  return ft;
+}
+function _absBal(st){
+  var cyc=_absCycleKeys(0), prev=_absCycleKeys(-1);
+  var mine=_absTally(st.id, cyc.startISO, cyc.endISO);
+  var sickAllow=_sickAllowance(st);
+  var prevSick=(_absTally(st.id, prev.startISO, prev.endISO).sick_leave||0);
+  var carry=(ABSENCE_POLICY.sick_leave.carry)?Math.max(0,sickAllow-prevSick):0;
+  return {mine:mine, sickAllow:sickAllow, carry:carry, sickTotal:sickAllow+carry,
+    sickUsed:(mine.sick_leave||0), annualUsed:(mine.annual_leave||0),
+    total:Object.keys(mine).reduce(function(a,r){return a+mine[r];},0)};
+}
+function _buildAbsenceBlock(s){
+  try{
+    if(!s) return '';
+    var isAdmin=(currentUser&&(currentUser.type==='admin'||currentUser.role==='2IC'));
+    var cyc=_absCycleKeys(0);
+    var b=_absBal(s);
+    var esc=(typeof _escHtml==='function')?_escHtml:function(x){return x;};
+    var rowHtml=function(lbl,used,cap,note){
+      var right = (cap!=null) ? (used+' of '+cap+' · '+Math.max(0,cap-used)+' left') : (used+' day'+(used!==1?'s':'')+(note?(' · '+note):''));
+      var warn=(cap!=null && used>cap);
+      return '<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #232327;font-family:\'Space Mono\',monospace;font-size:12px;">'
+        +'<span style="color:#f4f4f5;">'+esc(lbl)+'</span>'
+        +'<span style="color:'+(warn?'#f87171':'#a6a6ad')+';text-align:right;">'+right+'</span></div>';
+    };
+    var rows=rowHtml('Sick Leave', b.sickUsed, b.sickTotal, null);
+    if(b.carry>0 || (s.employment||'full')==='part') rows+='<div style="font-family:\'Space Mono\',monospace;font-size:9px;color:#6b6b72;margin:-6px 0 6px;">base '+b.sickAllow+((s.employment||'full')==='part'?' (part-time pro-rata of 10)':'')+(b.carry>0?(' + '+b.carry+' carried over'):'')+'</div>';
+    rows+=rowHtml('Annual Leave', b.annualUsed, ABSENCE_POLICY.annual_leave.ftDays, null);
+    ABSENCE_REASONS.forEach(function(r){
+      if(r.id==='sick_leave'||r.id==='annual_leave') return;
+      var u=b.mine[r.id]||0; if(!u) return;
+      var pol=ABSENCE_POLICY[r.id]; var note=pol?(pol.capType==='per_event'?(pol.days+'/event'):(pol.capType==='per_month'?(pol.days+'/month'):'')):'';
+      rows+=rowHtml(r.label, u, null, note);
+    });
+    var own='<div style="margin-top:28px;border:1px solid #232327;">'
+      +'<div style="padding:13px 16px;border-bottom:1px solid #232327;font-family:\'Space Mono\',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6b6b72;">Leave &amp; absence · '+cyc.label+'</div>'
+      +'<div style="padding:6px 16px 14px;">'+rows+'</div></div>';
+    var adm='';
+    if(isAdmin){
+      var trs=STAFF.map(function(st){
+        var bb=_absBal(st);
+        return '<tr style="border-bottom:1px solid #232327;"><td style="padding:8px 6px;color:#f4f4f5;">'+esc(st.name)+'</td>'
+          +'<td style="padding:8px 6px;text-align:right;color:'+(bb.sickUsed>bb.sickTotal?'#f87171':'#a6a6ad')+';">'+bb.sickUsed+' / '+bb.sickTotal+'</td>'
+          +'<td style="padding:8px 6px;text-align:right;color:'+(bb.annualUsed>ABSENCE_POLICY.annual_leave.ftDays?'#f87171':'#a6a6ad')+';">'+bb.annualUsed+' / '+ABSENCE_POLICY.annual_leave.ftDays+'</td>'
+          +'<td style="padding:8px 6px;text-align:right;color:#a6a6ad;">'+bb.total+'</td></tr>';
+      }).join('');
+      adm='<div style="margin-top:16px;border:1px solid #232327;">'
+        +'<div style="padding:13px 16px;border-bottom:1px solid #232327;font-family:\'Space Mono\',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6b6b72;">Team leave balances · '+cyc.label+'</div>'
+        +'<div style="padding:4px 10px 12px;overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-family:\'Space Mono\',monospace;font-size:11px;">'
+        +'<tr style="color:#6b6b72;"><td style="padding:6px;">Staff</td><td style="padding:6px;text-align:right;">Sick</td><td style="padding:6px;text-align:right;">Annual</td><td style="padding:6px;text-align:right;">Total off</td></tr>'
+        +trs+'</table></div></div>';
+    }
+    return own+adm;
+  }catch(e){ console.warn('_buildAbsenceBlock',e); return ''; }
+}
 // ── SERVICE-CHARGE TIP POOL ──────────────────────────────────────────
 // The café's 7% service charge (a gratuity, Fuel sales only) is split evenly each day between 5 staff.
 // Runs on a 16th→15th cycle: totals build daily, pay out on the 15th, then start fresh on the 16th.
