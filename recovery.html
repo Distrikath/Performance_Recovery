@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<!-- Google tag (gtag.js) — Google Ads AW-723064176 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-723064176"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","AW-723064176");</script>
+
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Distrik. — 01 / Recovery</title>
@@ -1401,6 +1405,8 @@ function submitBk(){
   });
 }
 function showBkConfirm(ref,rec){
+  // Google Ads conversion — fires once a booking is actually submitted (value = booking price, ref = unique id so it never double-counts).
+  try{ if(typeof gtag==='function') gtag('event','conversion',{'send_to':'AW-723064176/HiD9CNaP1_McEPCq5NgC','value':((rec&&rec.priceNum)||0),'currency':'IDR','transaction_id':ref}); }catch(e){}
   var re=document.getElementById('bk-ref-text');if(re)re.textContent=ref;
   var de=document.getElementById('bk-conf-detail');
   if(de){
