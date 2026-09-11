@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814073;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814074;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -10528,11 +10528,17 @@ function renderTodayBookings(){
     var id=_escHtml(r._id||'');
     var label=_escHtml(_onreqLabel(r));
     var client=_escHtml(r.name||'Guest')+(r.phone?' · '+_escHtml(r.phone):'');
-    return '<div class="clin-bk-row2" style="border-left:3px solid #FF2D2D;background:#fff2f2;">'
+    // Deposit status — the Xendit webhook stamps depositPaid/paymentStatus on paid online bookings.
+    var _dp=(r.depositPaid===true||r.paymentStatus==='deposit_paid');
+    var _depBadge=_dp
+      ? '<span style="display:inline-block;background:#10b981;color:#fff;font-family:\'Space Mono\',monospace;font-size:7px;letter-spacing:.12em;padding:2px 6px;text-transform:uppercase;margin-left:6px;vertical-align:middle;">✓ 50% DEPOSIT PAID'+(r.depositAmount?(' · '+Math.round(r.depositAmount).toLocaleString('id-ID')):'')+'</span>'
+      : '<span style="display:inline-block;background:#f59e0b;color:#fff;font-family:\'Space Mono\',monospace;font-size:7px;letter-spacing:.12em;padding:2px 6px;text-transform:uppercase;margin-left:6px;vertical-align:middle;">AWAITING DEPOSIT</span>';
+    return '<div class="clin-bk-row2" style="border-left:3px solid '+(_dp?'#10b981':'#FF2D2D')+';background:'+(_dp?'#f2fff7':'#fff2f2')+';">'
       +'<div class="clin-bk-line">'
       +'<span class="clin-bk-time">'+_escHtml(r.time||'—')+'</span>'
       +'<span class="clin-bk-svc">'+label+'<em>'+client+'</em>'
       +'<span style="display:inline-block;background:#FF2D2D;color:#fff;font-family:\'Space Mono\',monospace;font-size:7px;letter-spacing:.14em;padding:2px 6px;text-transform:uppercase;margin-left:6px;vertical-align:middle;">TENTATIVE</span>'
+      +_depBadge
       +'</span></div>'
       +'<div class="clin-bk-acts">'
       +'<button class="clin-bk-act go" onclick="acceptOnlineBooking(\''+id+'\')">✓ Confirm</button>'
@@ -10834,10 +10840,17 @@ function acceptOnlineBooking(id){
       if(!recoveryData[r.date]) recoveryData[r.date]={revenue:0,bookings:[]};
       if(!recoveryData[r.date].bookings) recoveryData[r.date].bookings=[];
       recoveryData[r.date].bookings.push(rec);
-      // Deposit paid online by card (Xendit webhook confirmed) → record the 50% now under ONLINE; the balance is
-      // collected in person at Check out. Not yet paid → 0 collected until then.
+      // Deposit paid online by card (Xendit webhook confirmed) → record the 50% now under ONLINE, dated the day it was
+      // actually PAID (booking day) so it lands in THAT day's Sales; the balance is collected in person at Check out.
+      // The booking still SCHEDULES on its session day (det.date=r.date) — rebuildFromLedger separates revenue-day (bizDate)
+      // from session-day, so putting the deposit's bizDate on the pay-day doesn't move the booking off the treatment day.
       recoveryData[r.date].revenue=(recoveryData[r.date].revenue||0);
-      if(typeof ledgerWrite==='function') ledgerWrite('recovery', rec.id, r.date, (_depPaid?_dep:0), 0, 'online', rec, 'confirmed');
+      var _payDay=r.date;
+      if(_depPaid){
+        _payDay=(typeof todayKey==='function'?todayKey():r.date);
+        try{ var _t=r.depositPaidAt; if(_t){ var _pd=_t.toDate?_t.toDate():(_t.seconds?new Date(_t.seconds*1000):new Date(_t)); if(_pd&&!isNaN(_pd.getTime())){ _payDay=new Date(_pd.getTime()+8*3600000).toISOString().slice(0,10); } } }catch(e){}
+      }
+      if(typeof ledgerWrite==='function') ledgerWrite('recovery', rec.id, _payDay, (_depPaid?_dep:0), 0, 'online', rec, 'confirmed');
       if(typeof clientUpsert==='function' && r.phone) clientUpsert({name:r.name, whatsapp:r.phone, email:r.email, source:'recovery', consent:true});
       if(typeof saveAll==='function') saveAll();
       try{ if(typeof buildClinRoomGrid==='function') buildClinRoomGrid(); if(typeof renderClinicalBooking==='function') renderClinicalBooking(); }catch(e){}
