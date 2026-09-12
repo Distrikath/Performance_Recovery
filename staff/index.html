@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814084;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814086;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -812,6 +812,16 @@ body.light-panel .home-screen,
 #cust-qty{font-family:'Archivo',sans-serif;font-weight:700;font-size:22px;letter-spacing:2px;color:#0A0A0A;min-width:24px;text-align:center;}
 .pos-add-btn{width:100%;padding:12px;background:#0A0A0A;color:#fff;border:none;border-radius:2px;font-family:'Space Mono',monospace;font-size:10.5px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:background .15s;display:flex;align-items:center;justify-content:center;gap:8px;}
 .pos-add-btn:hover{background:#FF2D2D;}
+
+/* Held-order tabs (Fuel POS) */
+.pos-order-tabs{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:8px 14px;background:#fafafa;border-bottom:1px solid #e8e8e8;}
+.pos-otab-lbl{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#9a9a9e;margin-right:4px;}
+.pos-otab{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:7px 13px;border:1px solid #e0e0e0;border-radius:3px;background:#fff;color:#888;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:all .12s;}
+.pos-otab:hover{border-color:#0A0A0A;color:#0A0A0A;}
+.pos-otab.has:not(.active){border-color:#0A0A0A;color:#0A0A0A;}
+.pos-otab.active{background:#0A0A0A;color:#fff;border-color:#0A0A0A;}
+.pos-otab-badge{background:#FF2D2D;color:#fff;border-radius:10px;font-size:9px;font-weight:700;padding:1px 6px;min-width:15px;text-align:center;line-height:1.5;}
+.pos-otab.active .pos-otab-badge{background:#fff;color:#0A0A0A;}
 
 /* Receipt */
 .pos-receipt{background:#fff;border-left:1px solid #e8e8e8;display:flex;flex-direction:column;overflow-y:auto;padding-bottom:24px;}
@@ -2381,6 +2391,7 @@ h1,
       <button onclick="openMenuMgr()" class="nav-action-btn">Menu</button>
     </div>
   </div>
+  <div class="pos-order-tabs" id="pos-order-tabs"></div>
   <div class="pos-layout-inner">
     <div class="pos-menu-col">
       <div class="rf-split-title" style="padding:12px 14px 8px;">Menu</div>
@@ -7115,6 +7126,33 @@ var posSelectedItem = null;
 var custQtyVal = 1;
 var custSelections = {size:null, milk:null, addons:[], extras:[]};  // null = nothing pre-selected (defaults to base Regular/Full Cream in price)
 
+// ── HELD ORDER TABS ── up to 5 parallel Fuel orders that sit open until checkout, then the tab closes (empties).
+// Persisted per-device so a refresh doesn't lose an in-progress order.
+var posTabs=[[],[],[],[],[]];
+var posActiveTab=0;
+function _savePosTabs(){ try{ posTabs[posActiveTab]=cart; localStorage.setItem('distrik_pos_tabs', JSON.stringify(posTabs)); }catch(e){} }
+function _loadPosTabs(){ try{ var t=JSON.parse(localStorage.getItem('distrik_pos_tabs')||'null'); if(Array.isArray(t)&&t.length===5) posTabs=t; }catch(e){} if(!Array.isArray(posTabs[posActiveTab])) posTabs[posActiveTab]=[]; cart=posTabs[posActiveTab]; }
+function renderOrderTabs(){
+  var el=document.getElementById('pos-order-tabs'); if(!el) return;
+  var h='<span class="pos-otab-lbl">Orders</span>';
+  for(var i=0;i<5;i++){ var c=posTabs[i]||[]; var n=c.reduce(function(s,x){return s+(x.qty||1);},0);
+    h+='<button class="pos-otab'+(i===posActiveTab?' active':'')+(n>0?' has':'')+'" onclick="switchOrderTab('+i+')">Order '+(i+1)+(n>0?'<span class="pos-otab-badge">'+n+'</span>':'')+'</button>';
+  }
+  el.innerHTML=h;
+}
+function switchOrderTab(n){
+  if(n===posActiveTab) return;
+  posTabs[posActiveTab]=cart;                 // stash the current order
+  posActiveTab=n;
+  if(!Array.isArray(posTabs[n])) posTabs[n]=[];
+  cart=posTabs[n];                            // load the target order
+  try{ if(typeof hideCust==='function') hideCust(); }catch(e){}
+  var cf=document.getElementById('receipt-confirm'); if(cf) cf.style.display='none';
+  window._fuelCode=null;                      // discount code is per-order; reset on switch
+  updateReceipt(); buildPosItems(); renderOrderTabs(); _savePosTabs();
+}
+window.switchOrderTab=switchOrderTab;
+
 // Items that need milk options
 var MILK_ITEMS = ['m3','m4','m5','m7'];
 // Items that need size options
@@ -7122,8 +7160,11 @@ var SIZE_ITEMS = ['m2','m3','m4','m5','m6','m7'];
 
 function initFuelPOS(){
   loadMenuFromStorage();
+  _loadPosTabs();
   buildPosCats();
   buildPosItems();
+  renderOrderTabs();
+  updateReceipt();
 }
 
 function loadMenuFromStorage(){
@@ -7337,6 +7378,7 @@ function updateReceipt(){
   s('r-service-tax',fmt(serviceTax));
   s('r-tax',        fmt(tax));
   s('r-total',      fmt(total));
+  try{ posTabs[posActiveTab]=cart; _savePosTabs(); renderOrderTabs(); }catch(e){}  // keep the held order + tab badge in sync
 }
 
 function removeCartItem(id){
@@ -7396,6 +7438,8 @@ function processSale(){
   saveMenuToStorage();
   saveRFToStorage();
   saveAll();
+  // Checkout done → close this order tab (empty it) so it can't be re-rung, and free the slot for a new order.
+  cart=[]; try{ posTabs[posActiveTab]=[]; _savePosTabs(); renderOrderTabs(); }catch(e){}
 }
 
 function newSale(){
@@ -9382,23 +9426,10 @@ function loadSalesDataFromStorage(){
     const menu = localStorage.getItem('distrik_menu');
     // fuelData is populated directly by processSale() - nothing extra needed
   }catch(e){}
-  // Load Supply into supplyData  
-  try{
-    const sup = localStorage.getItem('distrik_supply');
-    if(sup){
-      const d = JSON.parse(sup);
-      if(d.SUPPLY_SALES){
-        d.SUPPLY_SALES.forEach(sale=>{
-          if(!supplyData[sale.date]) supplyData[sale.date]={revenue:0,orders:[]};
-          // Avoid duplicates
-          if(!supplyData[sale.date].orders.find(o=>o.id===sale.id)){
-            supplyData[sale.date].orders.push({id:sale.id,items:[{name:sale.itemName,qty:1,price:sale.total}],total:sale.total,method:sale.method,time:sale.time});
-            supplyData[sale.date].revenue = supplyData[sale.date].orders.reduce((s,o)=>s+o.total,0);
-          }
-        });
-      }
-    }
-  }catch(e){}
+  // Supply sales-dashboard ORDERS come from the LEDGER only (rebuildFromLedger → supplyData[date].orders = the order docs,
+  // with sizes). We deliberately do NOT rebuild orders from the flat SUPPLY_SALES rows — that's a per-LINE-ITEM payout
+  // record with its own ids, so pushing one order per row created DUPLICATE sold-today entries (same sale shown twice —
+  // once with the size, once without) and double-counted supply revenue.
 }
 
 
