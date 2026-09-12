@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814077;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814084;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -2979,6 +2979,8 @@ const ABSENCE_POLICY={
   menstrual_leave:{capType:'per_month', days:2}
 };
 const FT_WEEKLY_HOURS=42;  // full-time reference for the part-time sick pro-rata (10 × hrs ÷ 42)
+const FT_ANNUAL_HOURS=FT_WEEKLY_HOURS*52;  // full-time hours to earn the full year's sick entitlement (accrual basis)
+const BUSINESS_START='2026-09-01';          // DISTRIK opened — default hire date; nothing accrues before this
 function _absLabelOf(id){ var r=ABSENCE_REASONS.find(function(x){return x.id===id;}); return r?r.label:id; }
 let _baseGrid=null; // snapshot of default weekly template (set after populateDefaults)
 let _gridDirty=false; // true only when user actually edits; prevents browsing from auto-saving
@@ -3746,7 +3748,7 @@ function saveAll(){
       fuelData,
       supplyData,
       DISCOUNTS,
-      STAFF: STAFF.map(s=>({id:s.id,name:s.name,abbr:s.abbr,role:s.role,col:s.col,salary:s.salary,group:s.group||'Operations',pin:s.pin||'1234',weeklyHours:(s.weeklyHours!=null?s.weeklyHours:42),employment:(s.employment||'full')})),
+      STAFF: STAFF.map(s=>({id:s.id,name:s.name,abbr:s.abbr,role:s.role,col:s.col,salary:s.salary,group:s.group||'Operations',pin:s.pin||'1234',weeklyHours:(s.weeklyHours!=null?s.weeklyHours:42),employment:(s.employment||'full'),startDate:(s.startDate||'2026-09-01')})),
       _cfgTs: _prevCfgTs,
       _salesEpoch: (window._salesEpoch||0),   // "cleared watermark" — devices won't resurrect sales created before this
       _deletedIds: (window._deletedIds||{}),  // tombstones — ids permanently deleted; no device ever resurrects them
@@ -5150,7 +5152,7 @@ function buildSettingsStaff(){
       ondragover="staffDragOver(event)"
       ondrop="staffDrop(event,${i})"
       ondragend="staffDragEnd()"
-      style="display:grid;grid-template-columns:20px 26px 1fr 1fr 80px 82px 48px 62px 48px 62px;gap:5px;align-items:center;margin-bottom:6px;padding:6px 4px;border-bottom:1px solid #f0f0f0;border-radius:2px;transition:background .1s;">
+      style="display:grid;grid-template-columns:20px 26px 1.2fr 1.2fr 96px 104px 62px 78px 62px 74px;gap:6px;align-items:center;margin-bottom:6px;padding:6px 4px;border-bottom:1px solid #f0f0f0;border-radius:2px;transition:background .1s;">
       <div style="cursor:grab;color:#ccc;font-size:14px;text-align:center;user-select:none;" title="Drag to reorder">⠿</div>
       <input type="color" value="${s.col}" id="stf_col_${i}"
         style="width:26px;height:26px;border-radius:50%;border:2px solid #e8e8e8;cursor:pointer;padding:0;background:${s.col}"
@@ -5766,14 +5768,41 @@ function _sickAllowance(s){
   if((s.employment||'full')==='part'){ var hrs=(s.weeklyHours!=null?s.weeklyHours:FT_WEEKLY_HOURS); return Math.max(0,Math.round(ft*hrs/FT_WEEKLY_HOURS)); }
   return ft;
 }
+// Total rostered hours for a staffer between two dates (inclusive) — the basis for sick accrual.
+// Uses each date's saved roster (dailyOverrides) or the base template for that weekday. 0.5h per slot, breaks excluded.
+function _rosteredHoursBetween(sid, startISO, endISO){
+  try{
+    if(!sid||!startISO||!endISO||endISO<startISO) return 0;
+    var zones=(typeof getLeafZones==='function')?getLeafZones():[];
+    var dayNames=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    var iso=function(dt){return dt.getFullYear()+'-'+('0'+(dt.getMonth()+1)).slice(-2)+'-'+('0'+dt.getDate()).slice(-2);};
+    var d=new Date(startISO+'T12:00:00'), end=new Date(endISO+'T12:00:00'), total=0, guard=0;
+    while(d<=end && guard++<400){
+      var dk=iso(d), dn=dayNames[d.getDay()];
+      var roster=(dailyOverrides&&dailyOverrides[dk])?dailyOverrides[dk]:((typeof _baseGrid!=='undefined'&&_baseGrid&&_baseGrid[dn])?_baseGrid[dn]:((typeof grid!=='undefined'&&grid[dn])||null));
+      if(roster){ zones.forEach(function(z){ var rows=roster[z.id]||[]; rows.forEach(function(row){ (row||[]).forEach(function(cell){ if(cell&&!isBreakCell(cell)&&staffId(cell)===sid) total+=0.5; }); }); }); }
+      d.setDate(d.getDate()+1);
+    }
+    return total;
+  }catch(e){ return 0; }
+}
+// Sick leave ACCRUES with hours worked: rate = 10 FT days ÷ full-time annual hours, applied to hours worked
+// since the later of (cycle start, hire date), capped at the person's annual entitlement (10 FT / pro-rata part-time).
 function _absBal(st){
-  var cyc=_absCycleKeys(0), prev=_absCycleKeys(-1);
+  var cyc=_absCycleKeys(0);
   var mine=_absTally(st.id, cyc.startISO, cyc.endISO);
-  var sickAllow=_sickAllowance(st);
-  var prevSick=(_absTally(st.id, prev.startISO, prev.endISO).sick_leave||0);
-  var carry=(ABSENCE_POLICY.sick_leave.carry)?Math.max(0,sickAllow-prevSick):0;
-  return {mine:mine, sickAllow:sickAllow, carry:carry, sickTotal:sickAllow+carry,
-    sickUsed:(mine.sick_leave||0), annualUsed:(mine.annual_leave||0),
+  var cap=_sickAllowance(st);                                  // annual entitlement ceiling
+  var iso=function(dt){return dt.getFullYear()+'-'+('0'+(dt.getMonth()+1)).slice(-2)+'-'+('0'+dt.getDate()).slice(-2);};
+  var todayISO=iso((typeof baliNow==='function'?baliNow():new Date()));
+  var start=cyc.startISO; var hire=st.startDate||BUSINESS_START; if(hire>start) start=hire;
+  var endISO=(todayISO<cyc.endISO)?todayISO:cyc.endISO;
+  var hrs=_rosteredHoursBetween(st.id, start, endISO);
+  var rate=ABSENCE_POLICY.sick_leave.ftDays/FT_ANNUAL_HOURS;   // days earned per hour worked
+  var accrued=Math.min(cap, Math.round(hrs*rate*10)/10);      // 1-decimal days, capped at entitlement
+  var sickUsed=(mine.sick_leave||0);
+  return {mine:mine, cap:cap, hrsWorked:hrs, accrualStart:start,
+    sickAccrued:accrued, sickUsed:sickUsed, sickLeft:Math.round((accrued-sickUsed)*10)/10,
+    annualUsed:(mine.annual_leave||0),
     total:Object.keys(mine).reduce(function(a,r){return a+mine[r];},0)};
 }
 function _buildAbsenceBlock(s){
@@ -5790,8 +5819,11 @@ function _buildAbsenceBlock(s){
         +'<span style="color:#f4f4f5;">'+esc(lbl)+'</span>'
         +'<span style="color:'+(warn?'#f87171':'#a6a6ad')+';text-align:right;">'+right+'</span></div>';
     };
-    var rows=rowHtml('Sick Leave', b.sickUsed, b.sickTotal, null);
-    if(b.carry>0 || (s.employment||'full')==='part') rows+='<div style="font-family:\'Space Mono\',monospace;font-size:9px;color:#6b6b72;margin:-6px 0 6px;">base '+b.sickAllow+((s.employment||'full')==='part'?' (part-time pro-rata of 10)':'')+(b.carry>0?(' + '+b.carry+' carried over'):'')+'</div>';
+    var _sickWarn=(b.sickUsed>b.sickAccrued);
+    var rows='<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #232327;font-family:\'Space Mono\',monospace;font-size:12px;">'
+      +'<span style="color:#f4f4f5;">Sick Leave</span>'
+      +'<span style="color:'+(_sickWarn?'#f87171':'#a6a6ad')+';text-align:right;">'+b.sickUsed+' used · '+b.sickAccrued.toFixed(1)+' accrued · '+Math.max(0,b.sickLeft).toFixed(1)+' left</span></div>';
+    rows+='<div style="font-family:\'Space Mono\',monospace;font-size:9px;color:#6b6b72;margin:-6px 0 6px;line-height:1.6;">accrues with hours worked — '+Math.round(b.hrsWorked)+'h logged since '+b.accrualStart+' · full year = '+b.cap+' day'+(b.cap!==1?'s':'')+((s.employment||'full')==='part'?' (part-time)':'')+(_sickWarn?' · used exceeds accrued — refer to management':'')+'</div>';
     rows+=rowHtml('Annual Leave', b.annualUsed, ABSENCE_POLICY.annual_leave.ftDays, null);
     ABSENCE_REASONS.forEach(function(r){
       if(r.id==='sick_leave'||r.id==='annual_leave') return;
@@ -5807,7 +5839,7 @@ function _buildAbsenceBlock(s){
       var trs=STAFF.map(function(st){
         var bb=_absBal(st);
         return '<tr style="border-bottom:1px solid #232327;"><td style="padding:8px 6px;color:#f4f4f5;">'+esc(st.name)+'</td>'
-          +'<td style="padding:8px 6px;text-align:right;color:'+(bb.sickUsed>bb.sickTotal?'#f87171':'#a6a6ad')+';">'+bb.sickUsed+' / '+bb.sickTotal+'</td>'
+          +'<td style="padding:8px 6px;text-align:right;color:'+(bb.sickUsed>bb.sickAccrued?'#f87171':'#a6a6ad')+';">'+bb.sickUsed+' / '+bb.sickAccrued.toFixed(1)+'</td>'
           +'<td style="padding:8px 6px;text-align:right;color:'+(bb.annualUsed>ABSENCE_POLICY.annual_leave.ftDays?'#f87171':'#a6a6ad')+';">'+bb.annualUsed+' / '+ABSENCE_POLICY.annual_leave.ftDays+'</td>'
           +'<td style="padding:8px 6px;text-align:right;color:#a6a6ad;">'+bb.total+'</td></tr>';
       }).join('');
@@ -10191,20 +10223,17 @@ function renderSoldToday(keys){
   const recRows=[], fuelRows=[], supRows=[];
 
   keys.forEach(k=>{
-    // Recovery
+    // Recovery — ledger-driven (recoveryData[k]._sales), keyed to the day the money ARRIVED (bizDate), so a deposit
+    // shows on the pay-day and the balance on the checkout day — matching Recovery revenue exactly (not the session day).
     const r=recoveryData[k];
-    if(r)(r.bookings||[]).forEach(b=>{
-      // Show what was actually COLLECTED (deposit %, discounts, cancellations already baked into clinCollected),
-      // not the sticker price — so this feed matches the Recovery revenue total and never shows a cancelled/held
-      // booking as a full sale. Skip anything that took no money (cancelled, unpaid hold, partner IV/blood).
-      const amt=(typeof clinCollected==='function')?clinCollected(b):(b.price||0);
-      if(!amt) return;
-      let svcName=b.serviceName||b.service||'Session';
+    if(r&&r._sales) r._sales.forEach(row=>{
+      const amt=row.amount; if(!amt) return;
+      let svcName=row.svc||'Session';
       if(typeof svcName==='string'&&svcName.startsWith('svc_')){const svc=SERVICES.find(s=>s.id===svcName.slice(4));if(svc)svcName=svc.name;}
       else if(typeof svcName==='string'&&svcName.startsWith('pkg_')){const pkg=PACKAGES.find(p=>p.id===svcName.slice(4));if(pkg)svcName=pkg.name;}
-      if(b.discPct>0) svcName+=' · −'+b.discPct+'%';
-      if((b.online||b.payType==='deposit')&&!b.balancePaid&&b.status!=='cancelled') svcName+=' · deposit';
-      recRows.push({time:b.time||'—',name:svcName,detail:b.client||'',amount:amt,id:b.id});
+      if(row.discPct>0) svcName+=' · −'+row.discPct+'%';
+      if(row.tag) svcName+=' · '+row.tag;
+      recRows.push({time:row.time||'—',name:svcName,detail:row.client||'',amount:amt,id:row.id});
     });
     // Fuel
     const f=fuelData[k];
@@ -11045,6 +11074,7 @@ function acceptOnlineBooking(id){
         _payDay=(typeof todayKey==='function'?todayKey():r.date);
         try{ var _t=r.depositPaidAt; if(_t){ var _pd=_t.toDate?_t.toDate():(_t.seconds?new Date(_t.seconds*1000):new Date(_t)); if(_pd&&!isNaN(_pd.getTime())){ _payDay=new Date(_pd.getTime()+8*3600000).toISOString().slice(0,10); } } }catch(e){}
       }
+      rec.ledgerDate=_payDay;  // the day the deposit money landed — kept on edits/moves so Sales matches the bank
       if(typeof ledgerWrite==='function') ledgerWrite('recovery', rec.id, _payDay, (_depPaid?_dep:0), 0, 'online', rec, 'confirmed');
       if(typeof clientUpsert==='function' && r.phone) clientUpsert({name:r.name, whatsapp:r.phone, email:r.email, source:'recovery', consent:true});
       if(typeof saveAll==='function') saveAll();
@@ -11459,19 +11489,33 @@ function renderClinicalOrder(){
   if(clinDone){ var dMsg=clinDoneHold?'Tentative — intake pending':'Booking confirmed'; var dIco=clinDoneHold?'<span style="color:#FF2D2D;">●</span>':'✓'; var dSub=clinDoneHold?'<div style="font-family:Space Mono,monospace;font-size:11px;color:#56565b;margin-top:8px;line-height:1.5;">Chair reserved. Confirm once intake is returned &amp; approved.</div>':''; el.innerHTML='<div class="clin-confirm"><div class="clin-confirm-ico">'+dIco+'</div><div class="clin-confirm-msg">'+dMsg+'</div>'+dSub+'<button class="clin-intake-btn" style="background:#0A0A0A;margin-top:14px;" onclick="initRecovery()">New booking</button></div>'; clinSetText('clin-subtotal','—'); clinSetText('clin-tax','—'); clinSetText('clin-total','—'); var b=document.getElementById('clin-confirm-btn'); if(b){b.disabled=true;b.textContent=clinDoneHold?'Tentative':'Confirmed';} return; }
   if(!clinSel){ el.innerHTML='<div class="receipt-empty" style="padding:24px;text-align:center;color:#9a9a9e;font-family:Space Mono,monospace;font-size:11px;">No service selected</div>'; updateClinicalTotals(0); return; }
   var s=clinSvc();
-  var lines='<div class="clin-oline"><span>'+s.name+'</span><span>'+clinFmt(s.price)+'</span></div>';
+  // On a plain edit/move (no new discount) show the ORIGINAL booking's kept figures, not the full sticker price.
+  var _eo2=(clinEditingId&&window._clinEditOrig&&!window.clinPromo)?window._clinEditOrig:null;
+  var _topPrice=_eo2?Math.round(_eo2.price||0):s.price;
+  var lines='<div class="clin-oline"><span>'+s.name+'</span><span>'+clinFmt(_topPrice)+'</span></div>';
   if(clinType==='clinical'){
     lines+=(clinRoom?'<div class="clin-oline sub"><span>Recovery chair</span><span>'+clinRoom+'</span></div>':'')
       +'<div class="clin-oline sub"><span>Clinician</span><span>Nurse · Human+</span></div>'
       +'<div class="clin-oline sub"><span>Internal tag</span><span>Clinical Partner</span></div>';
   } else {
     var rt=clinRoom?roomTherapist(clinRoom):null;
-    var _svcP=(clinSvc()||{}).price||0;
+    var _svcP=_eo2?Math.round(_eo2.price||0):((clinSvc()||{}).price||0);
+    var _payLine;
+    if(_eo2){
+      if(_eo2.depositPaid&&!_eo2.balancePaid){ var _kd=_eo2.deposit||Math.round(_svcP*0.5); _payLine='Deposit paid '+clinFmt(_kd)+' · <span style="opacity:.6;">'+clinFmt(Math.max(0,_svcP-_kd))+' due at checkout</span>'; }
+      else if(_eo2.balancePaid||_svcP===0){ _payLine='Paid in full · '+clinFmt(_svcP); }
+      else if(_eo2.online||_eo2.payType==='deposit'){ _payLine='Deposit 50% · '+clinFmt(_eo2.deposit||Math.round(_svcP*0.5))+' <span style="opacity:.6;">(rest on arrival)</span>'; }
+      else if(_eo2.payType==='later'){ _payLine='Nothing now · <span style="opacity:.6;">full '+clinFmt(_svcP)+' on the day</span>'; }
+      else { _payLine='Full · '+clinFmt(_svcP); }
+      _payLine+=(_eo2.discPct?' <span style="opacity:.6;">('+_eo2.discPct+'% off kept)</span>':'');
+    } else {
+      _payLine=(clinPayType==='deposit'?'Deposit 50% now · '+clinFmt(Math.round(_svcP*0.5))+' <span style="opacity:.6;">(rest on arrival)</span>':(clinPayType==='later'?'Nothing now · <span style="opacity:.6;">full '+clinFmt(_svcP)+' on the day</span>':'Full · '+clinFmt(_svcP)));
+    }
     lines+=(clinRoom?'<div class="clin-oline sub"><span>Room</span><span>'+clinRoom+'</span></div>':'')
       +(rt?'<div class="clin-oline sub"><span>Therapist</span><span>'+rt.therapist+'</span></div>':'')
       +(clinTime?'<div class="clin-oline sub"><span>Time</span><span>'+clinDate.toLocaleDateString('en-US',{weekday:'short'})+' '+clinTime+'</span></div>':'')
       +(clinPressure?'<div class="clin-oline sub"><span>Pressure</span><span style="text-transform:capitalize;">'+clinPressure+'</span></div>':'')
-      +(clinPayType?'<div class="clin-oline sub"><span>Payment</span><span>'+(clinPayType==='deposit'?'Deposit 50% now · '+(typeof clinFmt==='function'?clinFmt(Math.round(_svcP*0.5)):'IDR '+Math.round(_svcP*0.5))+' <span style="opacity:.6;">(rest on arrival)</span>':(clinPayType==='later'?'Nothing now · <span style="opacity:.6;">full '+(typeof clinFmt==='function'?clinFmt(_svcP):'IDR '+_svcP)+' on the day</span>':'Full · '+(typeof clinFmt==='function'?clinFmt(_svcP):'IDR '+_svcP)))+'</span></div>':'');
+      +'<div class="clin-oline sub"><span>Payment</span><span>'+_payLine+'</span></div>';
   }
   el.innerHTML=lines;
   var ob=document.getElementById('clin-online'); if(ob) ob.checked=clinOnline;
@@ -11482,6 +11526,27 @@ window.clinToggleOnline=clinToggleOnline;
 function updateClinicalTotals(base){
   // apply an active Recovery promo (not to Human+ clinical) so the shown total + deposit + button reflect it
   var _dsc=(clinType!=='clinical')?(typeof window._clinEffDiscount==='function'?window._clinEffDiscount():activeDiscount('recovery')):null; var _dp=_dsc?parseFloat(_dsc.pct):0;
+  // EDIT/MOVE with NO new discount entered → show the ORIGINAL booking's price, discount & payment status. They're
+  // carried forward on save (we only change the slot); showing full price here made it look like the deposit/discount were lost.
+  var _eo=(clinEditingId&&window._clinEditOrig)?window._clinEditOrig:null;
+  if(_eo && !(window.clinPromo && _dp>0)){
+    var _et=Math.round(_eo.price||0), _ed=_eo.discPct||0;
+    clinSetText('clin-subtotal', _ed?(clinFmt(_et)+'  ('+_ed+'% off)'):clinFmt(_et)); clinSetText('clin-tax',clinFmt(0)); clinSetText('clin-total',clinFmt(_et));
+    var _edl=document.getElementById('clin-deposit-lines');
+    if(_edl){
+      var _kept='';
+      if(_eo.depositPaid && !_eo.balancePaid){ var _kd=_eo.deposit||Math.round(_et*0.5); _kept='<div class="clin-deposit-line" style="color:#10b981;"><span>Deposit paid (kept)</span><span>'+clinFmt(_kd)+'</span></div><div class="clin-deposit-line bal"><span>Balance due at checkout</span><span>'+clinFmt(Math.max(0,_et-_kd))+'</span></div>'; }
+      else if(_eo.balancePaid || _et===0){ _kept='<div class="clin-deposit-line" style="color:#10b981;"><span>Paid in full (kept)</span><span>'+clinFmt(_et)+'</span></div>'; }
+      else if(_eo.online || _eo.payType==='deposit'){ var _kd2=_eo.deposit||Math.round(_et*0.5); _kept='<div class="clin-deposit-line due"><span>Deposit due (50%)</span><span>'+clinFmt(_kd2)+'</span></div>'; }
+      _edl.innerHTML=_kept+'<div style="font-family:\'Space Mono\',monospace;font-size:9px;color:#9a9a9e;margin-top:6px;line-height:1.5;">Moving only — payment &amp; discount kept. Type a % above to re-price.</div>';
+    }
+    var _eb=document.getElementById('clin-confirm-btn'); if(!_eb) return;
+    var _ecf=(typeof clinCurrentConflict==='function') && clinCurrentConflict();
+    var _eok=(clinType==='clinical'?(clinSel&&clinRoom):(clinSel&&clinRoom&&clinTime));
+    _eb.disabled=!(_eok&&!_ecf);
+    _eb.textContent=_ecf?((clinType==='clinical'?'Chair':'Room')+' busy at that time'):(!clinRoom?(clinType==='clinical'?'Select a chair':'Select a room'):((clinType!=='clinical'&&!clinTime)?'Select a time':'Update booking'));
+    return;
+  }
   if(_dp) base=Math.round(base*(1-_dp/100));
   var tax=0, total=base; // Recovery/spa & clinical: NON-PKP, no PBJT → no consumption tax
   clinSetText('clin-subtotal', _dp?(clinFmt(total)+'  ('+_dp+'% off)'):clinFmt(base)); clinSetText('clin-tax',clinFmt(tax)); clinSetText('clin-total',clinFmt(total));
@@ -11725,7 +11790,7 @@ function confirmClinical(){
       else { rec.online=false; rec.deposit=0; rec.balanceDue=0; rec.balancePaid=(rec.price===0); rec.payType='full'; }
     } else {
       // plain move — keep the money exactly as it was, never re-charge
-      ['online','deposit','balanceDue','balancePaid','depositPaid','price','gross','payType','discPct','discReason','discCode','source','partner','partnerTotal','commission','commissionStatus','commissionPct','provider','tag','clinical','forfeited','onlineRef','payMethod','recommendedBy'].forEach(function(k){ if(_o[k]!==undefined) rec[k]=_o[k]; });
+      ['online','deposit','balanceDue','balancePaid','depositPaid','price','gross','payType','discPct','discReason','discCode','source','partner','partnerTotal','commission','commissionStatus','commissionPct','provider','tag','clinical','forfeited','onlineRef','payMethod','recommendedBy','ledgerDate','depositPaidAt'].forEach(function(k){ if(_o[k]!==undefined) rec[k]=_o[k]; });
     }
     if(_o.status && _o.status!=='cancelled') rec.status=_o.status;   // keep confirmed/hold as it was
   }
@@ -11742,7 +11807,23 @@ function confirmClinical(){
       recoveryData[dateKey].bookings.push(rec);
       // Count only what's actually been collected: online → deposit; walk-in confirmed → full; held → nothing yet
       recoveryData[dateKey].revenue=(recoveryData[dateKey].revenue||0)+clinCollected(rec);
-      if(typeof ledgerWrite==='function') ledgerWrite('recovery', rec.id, (typeof todayKey==='function'?todayKey():dateKey), (typeof clinCollected==='function'?clinCollected(rec):(rec.price||0)), 0, rec.payMethod, rec, rec.status);  // revenue on the day it's collected
+      // Money counts on the day it was actually COLLECTED (so Sales matches the bank). New booking → today. EDIT/move →
+      // keep the original collected-day (never shift a paid deposit onto the edit day).
+      var _bizDate=(typeof todayKey==='function'?todayKey():dateKey);
+      try{
+        if(clinEditingId){
+          // AUTHORITATIVE: find where this booking's money currently sits (its existing ledger bizDate) and keep it there.
+          var _found=false;
+          Object.keys(recoveryData).some(function(d){ var day=recoveryData[d]; if(day&&day._sales&&day._sales.some(function(x){return x.id===clinEditingId;})){ _bizDate=d; _found=true; return true; } return false; });
+          if(!_found){ var _eob=window._clinEditOrig||null;
+            if(_eob){ if(_eob.ledgerDate){ _bizDate=_eob.ledgerDate; }
+              else if(_eob.depositPaidAt){ var _dpd=_eob.depositPaidAt.toDate?_eob.depositPaidAt.toDate():(_eob.depositPaidAt.seconds?new Date(_eob.depositPaidAt.seconds*1000):new Date(_eob.depositPaidAt)); if(_dpd&&!isNaN(_dpd.getTime())) _bizDate=new Date(_dpd.getTime()+8*3600000).toISOString().slice(0,10); }
+            }
+          }
+        }
+      }catch(e){}
+      rec.ledgerDate=_bizDate;
+      if(typeof ledgerWrite==='function') ledgerWrite('recovery', rec.id, _bizDate, (typeof clinCollected==='function'?clinCollected(rec):(rec.price||0)), 0, rec.payMethod, rec, rec.status);
       // auto-save the booking's client into the database (for history / rebooking / promotions)
       if(typeof clientUpsert==='function' && (rec.whatsapp||rec.phone)) clientUpsert({name:rec.client, whatsapp:rec.whatsapp||rec.phone, email:rec.email, source:'recovery', consent:true});
     }
@@ -12037,7 +12118,7 @@ window.showRoomCalendar=showRoomCalendar;
 </div>
 <!-- ── SETTINGS PANEL ─────────────────────────────────────── -->
 <div class="panel" id="panel-settings">
-  <div style="padding:30px 32px 60px;font-family:'Archivo',sans-serif;max-width:1180px;margin:0 auto;"><button onclick="showHome()" class="dk-back">← Index</button>
+  <div style="padding:30px 32px 60px;font-family:'Archivo',sans-serif;max-width:min(1480px,97vw);margin:0 auto;"><button onclick="showHome()" class="dk-back">← Index</button>
     <div class="dk-mast" style="margin-bottom:26px;">
       <div>
         <div class="dk-idx">[ 07 / 07 ]</div>
@@ -12058,13 +12139,15 @@ window.showRoomCalendar=showRoomCalendar;
       </div>
       <div style="padding:12px 14px;">
         <!-- Column headers -->
-        <div style="display:grid;grid-template-columns:20px 28px 1fr 1fr 90px 90px 60px 70px;gap:6px;margin-bottom:8px;padding:0 4px 6px;border-bottom:1px solid #e8e8e8;font-family:'Space Mono',monospace;font-size:9px;color:#999;letter-spacing:1px;text-transform:uppercase;">
+        <div style="display:grid;grid-template-columns:20px 26px 1.2fr 1.2fr 96px 104px 62px 78px 62px 74px;gap:6px;margin-bottom:8px;padding:0 4px 6px;border-bottom:1px solid #e8e8e8;font-family:'Space Mono',monospace;font-size:9px;color:#999;letter-spacing:1px;text-transform:uppercase;">
           <div></div>
           <div></div>
           <div>Name</div>
           <div>Role</div>
           <div>Group</div>
           <div>Salary IDR</div>
+          <div>Hrs/wk</div>
+          <div>Full/Part</div>
           <div>PIN</div>
           <div></div>
         </div>
@@ -12748,6 +12831,11 @@ window.showRoomCalendar=showRoomCalendar;
       // so a delete/clear on ANY device sticks even if that device's other config edits were older.
       try{ res._deletedIds = Object.assign({}, lo._deletedIds||{}, co._deletedIds||{}); }catch(e){}
       try{ res._salesEpoch = Math.max(+lo._salesEpoch||0, +co._salesEpoch||0); }catch(e){}
+      // PER-DATE MAPS survive newest-wins: union roster overrides + absence marks by date, so a device that saved
+      // without a given day's edit can't wipe it. The newer config still wins for any date it actually contains.
+      try{ var _win=(ct>lt)?co:lo, _lose=(ct>lt)?lo:co;
+        ['dailyOverrides','dailyAbsence'].forEach(function(fld){ res[fld]=Object.assign({}, _lose[fld]||{}, _win[fld]||{}); });
+      }catch(e){}
       // always keep LOCAL transactions (they're stripped from the cloud copy anyway)
       tf.forEach(function(f){ res[f]=(lo[f]!==undefined)?lo[f]:(f==='SUPPLY_SALES'?[]:{}); });
       if(k==='distrik_supply') _restoreSupplyImgs(localVal,res);   // keep this device's product photos (never synced)
@@ -13138,6 +13226,11 @@ window.rebuildFromLedger = function(docs){
           var _pm=(r.method||(det&&det.payMethod)||(det&&det.online?'online':'card')).toString().toLowerCase();
           var _pb=(_pm==='card')?'card':((_pm==='qr'||_pm==='qris'||_pm==='gopay'||_pm==='ovo')?'qr':((_pm==='online'||_pm==='xendit')?'online':((_pm==='partner')?'':'other')));
           if(_pb){ rd[date]._pay=rd[date]._pay||{card:0,qr:0,online:0,other:0}; rd[date]._payCnt=rd[date]._payCnt||{card:0,qr:0,online:0,other:0}; rd[date]._pay[_pb]+=_amt; rd[date]._payCnt[_pb]++; }
+          // Per-day "Sold today" rows keyed to the money's day (bizDate) — deposit shows on the pay-day, balance on the
+          // checkout day — so the feed matches revenue instead of dumping the whole booking on its session day.
+          var _isBal=/_bal$/.test(String(r.id||''));
+          var _tag=_isBal?'balance':((det&&(det.online||det.payType==='deposit')&&!det.balancePaid)?'deposit':'');
+          (rd[date]._sales=rd[date]._sales||[]).push({amount:_amt, method:r.method||'', id:r.id, time:(det&&(det.time||det.start))||'', svc:(det&&(det.serviceName||det.service))||'Session', client:(det&&det.client)||'', discPct:(det&&det.discPct)||0, tag:_tag});
         }
       }
       if(!_cxl){
