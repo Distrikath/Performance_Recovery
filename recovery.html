@@ -1112,7 +1112,11 @@ function _bkLoadBusy(dateStr){
       // PENDING online requests only. A CONFIRMED request also lives in the ledger (authoritative, below) — counting it
       // here too double-books the slot AND leaves a "ghost" busy window if it's later cancelled (the ledger updates on
       // cancel, but the public_bookings doc keeps saying 'confirmed'). So confirmed/declined/cancelled never block here.
-      if(res[0])res[0].forEach(function(doc){var r=doc.data()||{};var st=(r.status||'').toLowerCase();if(st==='declined'||st==='cancelled'||st==='confirmed')return;add(r.therapist,_bkTimeToMin(r.time),parseInt(r.duration)||30);if((String(r.pathway||'').toUpperCase()==='COMPRESSION')||r.type==='iv_therapy'||r.type==='blood_work')addChair(_bkTimeToMin(r.time),parseInt(r.duration)||(r.type==='iv_therapy'?60:(r.type==='blood_work'?20:30)));});
+      if(res[0])res[0].forEach(function(doc){var r=doc.data()||{};var st=(r.status||'').toLowerCase();if(st==='declined'||st==='cancelled'||st==='confirmed')return;
+        // 'pending_payment' (deposit not yet paid) holds the slot ONLY during the 1-hour deposit window, so it protects a
+        // customer who's mid-payment but frees the slot again if they never pay. 'tentative' (paid/free) always blocks.
+        if(st==='pending_payment'){var _sub=(r.submittedAt&&r.submittedAt.toMillis)?r.submittedAt.toMillis():((r.submittedAt&&r.submittedAt.seconds)?r.submittedAt.seconds*1000:0);if(!_sub||(Date.now()-_sub)>3600000)return;}
+        add(r.therapist,_bkTimeToMin(r.time),parseInt(r.duration)||30);if((String(r.pathway||'').toUpperCase()==='COMPRESSION')||r.type==='iv_therapy'||r.type==='blood_work')addChair(_bkTimeToMin(r.time),parseInt(r.duration)||(r.type==='iv_therapy'?60:(r.type==='blood_work'?20:30)));});
       // LEDGER = authoritative for CONFIRMED bookings; it reflects cancellations. Skip if EITHER status field says cancelled.
       if(res[1])res[1].forEach(function(doc){var d=doc.data()||{};var det={};try{det=d.detail?JSON.parse(d.detail):{};}catch(e){}if((det.date||d.bizDate)!==dateStr)return;if(det.status==='cancelled'||d.status==='cancelled')return;add(det.therapist,_bkTimeToMin(det.start||det.time),parseInt(det.duration)||30);var _p=String(det.pathway||det.service||'').toUpperCase();if(_p==='COMPRESSION'||det.type==='iv_therapy'||det.type==='blood_work'||det.clinical)addChair(_bkTimeToMin(det.start||det.time),parseInt(det.duration)||(det.type==='iv_therapy'?60:(det.type==='blood_work'?20:30)));});
       _bkBusyByDate[dateStr]=map;_bkChairByDate[dateStr]=chairs;return map;
@@ -1377,7 +1381,10 @@ function submitBk(){
   var _pn=bkPriceNum(bkState.price);
   var _pr=bkState.promo, _ppct=_pr?parseFloat(_pr.pct):0;
   if(_ppct){ _pn=Math.max(0,Math.round(_pn*(1-_ppct/100))); }   // apply customer promo to the price
-  var rec={ref:rnd,pathway:bkState.pathway,duration:bkState.duration,price:bkState.price,priceNum:_pn,deposit:Math.round(_pn/2),discPct:_ppct,discCode:(_pr?(_pr.code||''):''),discReason:(_pr?(_pr.reason||''):''),pressure:bkState.pressure,date:bkState.date,time:bkState.time,therapist:bkState.therapist||null,name:bkState.name.trim(),phone:bkState.phone.trim(),status:'tentative',paymentStatus:'unpaid',submittedAt:firebase.firestore.FieldValue.serverTimestamp()};
+  var rec={ref:rnd,pathway:bkState.pathway,duration:bkState.duration,price:bkState.price,priceNum:_pn,deposit:Math.round(_pn/2),discPct:_ppct,discCode:(_pr?(_pr.code||''):''),discReason:(_pr?(_pr.reason||''):''),pressure:bkState.pressure,date:bkState.date,time:bkState.time,therapist:bkState.therapist||null,name:bkState.name.trim(),phone:bkState.phone.trim(),status:(_pn>0?'pending_payment':'tentative'),paymentStatus:'unpaid',submittedAt:firebase.firestore.FieldValue.serverTimestamp()};
+  // PAYMENT-FIRST: a paying booking is saved as 'pending_payment' (hidden from staff, doesn't hold as a real booking)
+  // until the 50% deposit is paid — the Xendit webhook then promotes it to 'tentative'. Free (100%-off) bookings skip
+  // the deposit and go straight to 'tentative'. This stops unpaid bookings appearing as real bookings.
   bkAuth().then(function(db){
     // ROSTER LOCK: re-check availability against a FRESH roster right before writing, so a stale page, a cache
     // race, or a mid-session roster change can NEVER book a slot with no one rostered. This is the hard lock.
