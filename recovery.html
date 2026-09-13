@@ -860,7 +860,7 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
           <div class="bk-confirm-detail" id="bk-conf-detail"></div>
           <div class="bk-confirm-deposit" id="bk-confirm-deposit"></div>
           <div class="bk-confirm-note" id="bk-confirm-note">pay your 50% deposit to secure this booking.</div>
-          <button class="bk-next" style="margin-top:32px" onclick="closeBk()">done &#x2192;</button>
+          <button class="bk-next" id="bk-done-btn" style="margin-top:32px" onclick="closeBk()">done &#x2192;</button>
         </div>
       </div>
     </div>
@@ -1425,16 +1425,22 @@ function showBkConfirm(ref,rec){
   var titleEl=document.getElementById('bk-confirm-title');
   var noteEl=document.getElementById('bk-confirm-note');
   var depEl=document.getElementById('bk-confirm-deposit');
+  var doneBtn=document.getElementById('bk-done-btn');
   var priceNum=(rec.priceNum!=null)?rec.priceNum:bkPriceNum(rec.price);
   var half=priceNum?Math.round(priceNum/2):0;
   if(!priceNum){
+    // Free (100%-off) booking — no payment, show the confirmed screen with the "done" button.
+    if(doneBtn) doneBtn.style.display='';
     if(titleEl) titleEl.textContent='you’re booked.';
     if(noteEl) noteEl.innerHTML='we’ll confirm your session via whatsapp within a few hours.<br>see you at the canggu lab.';
     if(depEl) depEl.innerHTML='<div style="color:#10b981;letter-spacing:.08em;line-height:1.8;">&#10003; No payment needed — free with code '+(rec.discCode||'')+'.</div>';
     return;
   }
-  if(titleEl) titleEl.textContent='almost there.';
-  if(noteEl) noteEl.textContent='pay your 50% deposit to secure this booking.';
+  // PAID booking — jump STRAIGHT to the Xendit card-payment page. No intermediate "almost there" screen and no
+  // "done" escape, so payment is unavoidable. We show a brief "redirecting" state only while the invoice is created.
+  if(doneBtn) doneBtn.style.display='none';
+  if(titleEl) titleEl.textContent='one moment.';
+  if(noteEl) noteEl.textContent='taking you to secure card payment…';
   if(depEl) depEl.innerHTML='<div style="font-family:var(--mono);font-size:9px;letter-spacing:.05em;color:var(--ink-d);text-transform:none;">preparing secure card payment&hellip;</div>';
   // stash details so the post-payment return screen (?paid=1) can confirm with the same info
   try{ sessionStorage.setItem('bk_last', JSON.stringify({ref:ref, detail:(de?de.innerHTML:''), half:half})); }catch(e){}
@@ -1442,20 +1448,21 @@ function showBkConfirm(ref,rec){
     method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({ref:ref,price:priceNum,name:rec.name,email:rec.email||'',phone:rec.phone,pathway:rec.pathway,date:rec.date,time:rec.time})
   }).then(function(r){return r.json();}).then(function(j){
-    if(!depEl) return;
     if(j&&j.invoice_url){
-      var bs='display:flex;justify-content:space-between;align-items:center;gap:16px;width:100%;padding:16px 18px;margin-top:10px;text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;box-sizing:border-box;';
-      depEl.innerHTML=
-        '<div style="font-family:var(--mono);font-size:9px;letter-spacing:.05em;color:var(--ink-d);text-transform:none;margin-bottom:2px;">secure your booking — pay the 50% deposit by card:</div>'
-        +'<a href="'+j.invoice_url+'" rel="noopener" style="'+bs+'background:var(--r);color:#fff;font-weight:700;"><span>pay 50% deposit by card</span><span>IDR '+half.toLocaleString()+'</span></a>'
-        +'<div style="font-family:var(--mono);font-size:8px;letter-spacing:.05em;color:var(--ink-d);text-transform:none;margin-top:10px;line-height:1.7;">the remaining 50% is paid in person after your treatment. your slot is held once the deposit is paid.</div>';
+      // Send the customer straight to the Xendit hosted card page (same tab).
+      window.location.assign(j.invoice_url);
     } else {
+      // Invoice couldn't be created — don't strand the customer: fall back to a manual WhatsApp link + restore "done".
+      if(titleEl) titleEl.textContent='almost there.';
       if(noteEl) noteEl.textContent='we’ll send your payment link via whatsapp shortly.';
-      depEl.textContent='our team will send your payment link via WhatsApp.';
+      if(depEl) depEl.textContent='our team will send your payment link via WhatsApp.';
+      if(doneBtn) doneBtn.style.display='';
     }
   }).catch(function(){
+    if(titleEl) titleEl.textContent='almost there.';
     if(noteEl) noteEl.textContent='we’ll send your payment link via whatsapp shortly.';
     if(depEl) depEl.textContent='our team will send your payment link via WhatsApp.';
+    if(doneBtn) doneBtn.style.display='';
   });
 }
 // After the customer pays on Xendit, they are redirected back to recovery.html?paid=1&ref=… — show the CONFIRMED screen.
@@ -1469,6 +1476,7 @@ function showBkPaidConfirmed(ref){
   var de=document.getElementById('bk-conf-detail'); if(de&&info.detail) de.innerHTML=info.detail;
   var depEl=document.getElementById('bk-confirm-deposit'); if(depEl) depEl.innerHTML='<div style="color:#10b981;letter-spacing:.1em;font-weight:700;">&#10003; 50% deposit paid'+(info.half?(' · IDR '+Number(info.half).toLocaleString()):'')+'</div>';
   var noteEl=document.getElementById('bk-confirm-note'); if(noteEl) noteEl.innerHTML='the remaining 50% is paid in person after your treatment.<br>see you at the canggu lab.';
+  var doneBtn=document.getElementById('bk-done-btn'); if(doneBtn) doneBtn.style.display='';
   try{ sessionStorage.removeItem('bk_last'); }catch(e){}
   try{ history.replaceState({},'',location.pathname); }catch(e){}
 }
