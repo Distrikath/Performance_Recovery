@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814086;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814087;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -10858,7 +10858,10 @@ function clinSendReminder(id){
     var _dateStr=_dayFull+' '+_rd.getDate()+' '+_monFull;
     var _tm=String(b.start||b.time||'').match(/(\d{1,2}):(\d{2})/);
     var _timeStr=_tm?(((parseInt(_tm[1])%12)||12)+':'+_tm[2]+(parseInt(_tm[1])>=12?'pm':'am')):(b.start||b.time||'');
-    var bal=(b.online&&!b.balancePaid&&b.balanceDue)?('\n\nBalance due on arrival: IDR '+(b.balanceDue||0).toLocaleString('id-ID')+'.'):'';
+    // Show what's ACTUALLY still owed: deposit paid → the 50% balance; nothing paid → the FULL amount; paid in full → nothing.
+    var _rp=(typeof _clinPay==='function')?_clinPay(b):null;
+    var _rdue=_rp?_rp.due:(b.balanceDue||0);
+    var bal=(!b.partner && _rdue>0)?('\n\n'+((_rp&&_rp.depositPaid)?'Balance due on arrival: IDR ':'Amount due on arrival: IDR ')+Math.round(_rdue).toLocaleString('id-ID')+'.'):'';
     var _addr='Jl. Raya Babakan Canggu No. 4, Canggu, Kec. Kuta Utara, Kabupaten Badung, Bali 80351';
     var msg='Hey '+(b.client||'there')+' — just a quick reminder you’re booked for '+svc+' at DISTRIK on '+_dateStr+' at '+_timeStr+'.'
       +'\n\n'+_addr
@@ -11473,11 +11476,12 @@ window.selectRoom=selectRoom; window.sendIntake=sendIntake; window.approveIntake
 
 // Show/hide the normal booking chrome in the Order foot (online checkbox, discount row, deposit lines) and
 // restore the confirm button to its normal booking action. Called with false during checkout, true otherwise.
-function _clinOrderChrome(show){
+function _clinOrderChrome(show, keepDiscount){
   var disp=show?'':'none';
   var ob=document.getElementById('clin-online'); if(ob){ var r=(ob.closest?ob.closest('.clin-online-row'):null); if(r) r.style.display=disp; }
-  var dp=document.getElementById('recovery-disc-pct'); if(dp&&dp.parentElement) dp.parentElement.style.display=disp;
-  var dm=document.getElementById('recovery-disc-msg'); if(dm) dm.style.display=disp;
+  var ddisp=(show||keepDiscount)?'':'none';   // discount stays available at checkout (point-of-sale discount)
+  var dp=document.getElementById('recovery-disc-pct'); if(dp&&dp.parentElement) dp.parentElement.style.display=ddisp;
+  var dm=document.getElementById('recovery-disc-msg'); if(dm) dm.style.display=ddisp;
   if(show){ var btn=document.getElementById('clin-confirm-btn'); if(btn) btn.onclick=function(){ payClinical(); }; }
 }
 // Render a booking into the Order panel as a checkout order + wire the big button to collect. Returns false if nothing to collect.
@@ -11501,13 +11505,19 @@ function _renderCheckoutOrder(el){
     if(det)  lines+='<div class="clin-oline sub"><span>'+(b.clinical?'Service':'Room')+'</span><span>'+_escHtml(det)+'</span></div>';
     if(when) lines+='<div class="clin-oline sub"><span>Time</span><span>'+_escHtml(when)+'</span></div>';
     if(p.depositPaid) lines+='<div class="clin-oline sub"><span>Deposit already paid</span><span>−'+clinFmt(p.paid)+'</span></div>';
+    // Point-of-sale discount at checkout (same discount engine as the booking order) — applied to what's still owed.
+    var _dsc=(typeof window._clinEffDiscount==='function')?window._clinEffDiscount():((typeof activeDiscount==='function')?activeDiscount('recovery'):null);
+    var _dp=_dsc?parseFloat(_dsc.pct):0;
+    var _discAmt=_dp?Math.round(due*_dp/100):0;
+    var _net=due-_discAmt;
+    if(_discAmt>0) lines+='<div class="clin-oline sub" style="color:#10b981;"><span>Discount '+_dp+'%'+(_dsc&&_dsc.reason?(' · '+_escHtml(_dsc.reason)):'')+'</span><span>−'+clinFmt(_discAmt)+'</span></div>';
     el.innerHTML=lines;
-    _clinOrderChrome(false);                                   // hide online/discount rows during checkout
+    _clinOrderChrome(false, true);                             // keep the discount input available during checkout
     var dl=document.getElementById('clin-deposit-lines'); if(dl) dl.innerHTML='';
-    clinSetText('clin-subtotal', clinFmt(due)); clinSetText('clin-tax', clinFmt(0)); clinSetText('clin-total', clinFmt(due));
+    clinSetText('clin-subtotal', _dp?(clinFmt(due)+'  ('+_dp+'% off)'):clinFmt(due)); clinSetText('clin-tax', clinFmt(0)); clinSetText('clin-total', clinFmt(_net));
     if(clinPay!=='card'&&clinPay!=='qr') clinSetPay('card');   // default the method, Card/QR buttons stay live
     var btn=document.getElementById('clin-confirm-btn');
-    if(btn){ btn.disabled=false; btn.textContent='Process · '+clinFmt(due); btn.onclick=function(){ window._clinCheckoutMethod=(clinPay==='qr'?'qr':'card'); clinCheckoutProcess(id); }; }
+    if(btn){ btn.disabled=false; btn.textContent='Process · '+clinFmt(_net); btn.onclick=function(){ window._clinCheckoutMethod=(clinPay==='qr'?'qr':'card'); clinCheckoutProcess(id); }; }
     return true;
   }catch(e){ console.warn('_renderCheckoutOrder',e); window._clinCheckoutRow=null; return false; }
 }
@@ -11929,13 +11939,21 @@ function clinCheckoutProcess(id){
     if(!b){ clinCheckoutCancel(); return; }
     var p=_clinPay(b);
     if(p.fullyPaid){ clinCheckoutCancel(); return; }
+    var due=Math.round(p.due);
+    // Apply any point-of-sale discount entered at checkout to what's owed.
+    var _dsc=(typeof window._clinEffDiscount==='function')?window._clinEffDiscount():((typeof activeDiscount==='function')?activeDiscount('recovery'):null);
+    var _dp=_dsc?parseFloat(_dsc.pct):0;
+    var _discAmt=_dp?Math.round(due*_dp/100):0;
+    var _collect=due-_discAmt;
     b.balancePaid=true; b.depositPaid=true; b.checkedIn=true; b.payMethod=method; b.method=method;   // record the method they actually paid with
-    day.revenue=(day.revenue||0)+p.due;
-    if(typeof ledgerWrite==='function') ledgerWrite('recovery', b.id+'_bal', (typeof todayKey==='function'?todayKey():dk), p.due, 0, method, b, b.status||'confirmed');
+    if(_discAmt>0){ b.price=Math.max(0,(b.price||0)-_discAmt); b.discPct=_dp; b.discReason=(_dsc&&_dsc.reason)||'checkout'; b.discCode=(_dsc&&_dsc.code)||''; }  // reduce final price so revenue matches what was collected
+    day.revenue=(day.revenue||0)+_collect;
+    if(typeof ledgerWrite==='function') ledgerWrite('recovery', b.id+'_bal', (typeof todayKey==='function'?todayKey():dk), _collect, 0, method, b, b.status||'confirmed');
     if(typeof saveAll==='function') saveAll();
     if(typeof syncSalesIncome==='function') syncSalesIncome();
+    try{ window.clinPromo=null; ['recovery-disc-pct','recovery-disc-code'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';}); var _dm=document.getElementById('recovery-disc-msg'); if(_dm)_dm.textContent=''; }catch(e){}  // clear the discount after use
     window._clinCheckoutRow=null; window._clinCheckoutMethod=null;
-    if(typeof clinNotify==='function') clinNotify('Checked out · IDR '+Math.round(p.due).toLocaleString('id-ID')+' via '+String(method).toUpperCase()+' — paid in full ✓');
+    if(typeof clinNotify==='function') clinNotify('Checked out · IDR '+Math.round(_collect).toLocaleString('id-ID')+' via '+String(method).toUpperCase()+(_discAmt>0?(' ('+_dp+'% off)'):'')+' — paid in full ✓');
     renderClinicalBooking(); renderClinicalOrder(); buildClinRoomGrid();
   }catch(e){ console.warn('clinCheckoutProcess',e); }
 }
