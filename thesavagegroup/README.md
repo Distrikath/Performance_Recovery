@@ -1,4 +1,4 @@
-# The Savage Group — thesavagegroup.com
+# The Savage Group — thesavagegroup.org
 
 Static multi-page site for **The Savage Group**, the parent company behind
 Distrik. Performance Recovery (Canggu, Bali) and the group's corporate
@@ -63,14 +63,17 @@ that length runs off the screen.
 
 ## Switching domains
 
-The site currently points at **asquadcalledsavage.com**, as a staging home
-while `thesavagegroup.com` is being set up. Everything domain-specific —
+The site points at **thesavagegroup.org**. Everything domain-specific —
 `CNAME`, canonical tags, `og:url`, the JSON-LD urls, `sitemap.xml`,
 `robots.txt` and every contact address — moves in one command:
 
 ```bash
-./set-domain.sh www.thesavagegroup.com hello@thesavagegroup.com
+./set-domain.sh thesavagegroup.org hello@thesavagegroup.org
 ```
+
+The second argument is optional: pass it only when the contact address
+should move with the domain. Leave it off and the existing address is
+kept, which is what you want while the new mailbox does not exist yet.
 
 It reads the current values out of the files rather than assuming them, so
 it is safe to re-run, and it prints every remaining reference afterwards so
@@ -92,18 +95,35 @@ git add . && git commit -m "The Savage Group site" && git push
 ```
 
 Then in the new repo: **Settings → Pages →** deploy from `main` / root.
-The included `CNAME` sets the custom domain automatically. In your DNS,
-point `www` at `<owner>.github.io` with a CNAME record, and (optionally)
-redirect the apex `thesavagegroup.com` to `www`.
+The included `CNAME` sets the custom domain automatically.
+
+DNS for the apex `thesavagegroup.org` needs **A records**, not a CNAME —
+apex domains cannot be CNAMEs. Point it at GitHub's four Pages
+addresses:
+
+```
+185.199.108.153
+185.199.109.153
+185.199.110.153
+185.199.111.153
+```
+
+Then add a `CNAME` record for `www` → `<owner>.github.io` so both
+spellings resolve; GitHub redirects `www` to the apex automatically once
+the apex is set in `CNAME`. Tick **Enforce HTTPS** after the certificate
+issues (usually minutes, occasionally an hour).
 
 Any static host works equally well — Netlify, Vercel, Cloudflare Pages:
 set this folder as the publish directory, no build command.
 
 ## Before it goes live
 
-- **`hello@asquadcalledsavage.com`** is used across every page and both
-  forms. Confirm that mailbox exists — if the right address is different,
-  `./set-domain.sh asquadcalledsavage.com <real@address>` swaps it everywhere.
+- **The contact address is still `hello@asquadcalledsavage.com`**, used
+  on every page and in both forms. It was deliberately left behind when
+  the site moved to `thesavagegroup.org`, because a working address beats
+  a matching one — every form on the site sends there. Once
+  `hello@thesavagegroup.org` exists, move it:
+  `./set-domain.sh thesavagegroup.org hello@thesavagegroup.org`
 - Both enquiry forms open the visitor's email client (`mailto:`). That
   works everywhere with zero backend, but it loses people who use webmail.
   For real capture, swap the `<form>` action to Formspree, Basin or

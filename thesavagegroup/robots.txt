@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://asquadcalledsavage.com/sitemap.xml
+Sitemap: https://thesavagegroup.org/sitemap.xml
