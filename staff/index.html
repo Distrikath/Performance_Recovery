@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814091;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814092;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -5806,17 +5806,6 @@ function buildMyAccount(el){
       </div>
     </div>
 
-    ${(currentUser?.type==='admin'||currentUser?.role==='2IC')?`
-    <div style="margin-top:28px;border:1px solid #232327;">
-      <div style="padding:13px 16px;border-bottom:1px solid #232327;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6b6b72;">Pay reports · download</div>
-      <div style="padding:14px 16px;display:flex;flex-wrap:wrap;gap:8px;">
-        <button class="dk-ghost" onclick="downloadServiceReport()">↓ Service Fee (15th–14th)</button>
-        <button class="dk-ghost" onclick="downloadCommissionReport()">↓ Commission (15th–14th)</button>
-        <button class="dk-ghost" onclick="downloadSalaryReport()" style="background:#0A0A0A;color:#fff;">↓ Salary + Tax (month)</button>
-      </div>
-      <div style="padding:0 16px 14px;font-family:'Space Mono',monospace;font-size:9px;color:#6b6b72;line-height:1.6;">Service &amp; commission run 15th→14th (paid the 15th). Salary is 1st→last day; the 15th payout is folded into that month's salary for PPh21/BPJS in the Salary + Tax sheet.</div>
-    </div>`:''}
-
     ${(typeof _buildTipsBlock==='function')?_buildTipsBlock(s):''}
 
     ${(typeof _buildCommissionBlock==='function')?_buildCommissionBlock(s):''}
@@ -6002,12 +5991,11 @@ window.TIP_PAYOUTS={};
     firebase.firestore().collection('tip_payouts').onSnapshot(function(snap){ var m={}; snap.forEach(function(d){m[d.id]=d.data();}); window.TIP_PAYOUTS=m; try{ var p=document.querySelector('.panel.on'); if(p&&p.id==='panel-myaccount'&&typeof buildMyAccount==='function') buildMyAccount(); }catch(e){} }, function(e){ console.warn('[payouts] snap',e); }); };
   if(typeof firebase!=='undefined'&&firebase.auth){ firebase.auth().onAuthStateChanged(function(u){ if(u) loadTipPayouts(); }); }
 })();
-function _tipCycleId(){ var per=_tipPeriodKeys(); return per.keys[per.keys.length-1]; }  // the 14th (cycle end) = doc id
+function _tipCycleId(){ var per=_tipPeriodKeys(); return per.keys[per.keys.length-1]; }  // the 14th (current cycle end) = doc id
+function _cycleIdForMonth(ym){ var c=(typeof _cycleKeysForMonth==='function')?_cycleKeysForMonth(ym):[]; return c.length?c[c.length-1]:_tipCycleId(); }  // the 14th of the payroll month
 function _isPaid(staffId, cycleId){ cycleId=cycleId||_tipCycleId(); var doc=(window.TIP_PAYOUTS||{})[cycleId]; return !!(doc&&doc.paid&&doc.paid[staffId]); }
-window._isPaid=_isPaid; window._tipCycleId=_tipCycleId;
-window.payoutTogglePaid=function(staffId){ try{ if(typeof firebase==='undefined'||!firebase.firestore)return; var cid=_tipCycleId(); var cur=_isPaid(staffId,cid); var paidObj={}; paidObj[staffId]=!cur; firebase.firestore().collection('tip_payouts').doc(cid).set({ cycle:cid, paid:paidObj, ts:firebase.firestore.FieldValue.serverTimestamp(), by:((typeof currentUser!=='undefined'&&currentUser&&currentUser.name)||'?') }, {merge:true}); }catch(e){ console.warn('[payouts] toggle',e); } };
-// A "Paid ✓" checkbox for the admin payout sheets.
-function _paidChk(id){ return '<label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;color:#6b6b72;font-size:10px;"><input type="checkbox" onclick="payoutTogglePaid(\''+id+'\')"'+(_isPaid(id)?' checked':'')+' style="cursor:pointer;">paid</label>'; }
+window._isPaid=_isPaid; window._tipCycleId=_tipCycleId; window._cycleIdForMonth=_cycleIdForMonth;
+window.payoutTogglePaid=function(staffId, cycleId){ try{ if(typeof firebase==='undefined'||!firebase.firestore)return; var cid=cycleId||_tipCycleId(); var cur=_isPaid(staffId,cid); var paidObj={}; paidObj[staffId]=!cur; firebase.firestore().collection('tip_payouts').doc(cid).set({ cycle:cid, paid:paidObj, ts:firebase.firestore.FieldValue.serverTimestamp(), by:((typeof currentUser!=='undefined'&&currentUser&&currentUser.name)||'?') }, {merge:true}); }catch(e){ console.warn('[payouts] toggle',e); } };
 
 // ── THREE PAY REPORTS (CSV downloads) ──────────────────────────────────────────────────────────────────
 function _dlCSV(filename, csv){ try{ var a=document.createElement('a'); a.href='data:text/csv;charset=utf-8,'+encodeURIComponent('﻿'+csv); a.download=filename; document.body.appendChild(a); a.click(); setTimeout(function(){document.body.removeChild(a);},100); }catch(e){ console.warn('[report] dl',e); alert('Download failed: '+e.message); } }
@@ -6091,7 +6079,7 @@ function _buildTipsBlock(s){
       var nm=((typeof getStaff==='function'&&getStaff(id))||{}).name||id;
       return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid #1b1b1e;font-family:\'Space Mono\',monospace;font-size:12px;">'
         +'<span style="color:#f4f4f5;flex:1;">'+nm+' <span style="color:#6b6b72;font-size:10px;">· '+daysWorked[id]+' day'+(daysWorked[id]!==1?'s':'')+'</span></span>'
-        +'<span style="color:#22c55e;font-weight:700;">'+f(totals[id])+'</span>'+_paidChk(id)+'</div>';
+        +'<span style="color:#22c55e;font-weight:700;">'+f(totals[id])+'</span></div>';
     }).join('');
     return head
       +'<div style="padding:14px 16px;border-bottom:1px solid #232327;font-family:\'Space Mono\',monospace;font-size:10px;color:#6b6b72;">Pool collected this period: <b style="color:#f4f4f5;">'+f(grand)+'</b> · split each day only among those working (sick/holiday excluded)</div>'
@@ -6156,7 +6144,7 @@ function _buildCommissionBlock(s){
       var nm=((typeof getStaff==='function'&&getStaff(id))||{}).name||id;
       return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid #1b1b1e;font-family:\'Space Mono\',monospace;font-size:12px;">'
         +'<span style="color:#f4f4f5;flex:1;">'+nm+' <span style="color:#6b6b72;font-size:9px;">10% '+f(c.therapy)+' · 2.5% '+f(c.iv)+'</span></span>'
-        +'<span style="color:#22c55e;font-weight:700;">'+f(c.total)+'</span>'+_paidChk(id)+'</div>';
+        +'<span style="color:#22c55e;font-weight:700;">'+f(c.total)+'</span></div>';
     }).join('');
     return head+mrows
       +'<div style="display:flex;justify-content:space-between;padding:11px 16px;font-family:\'Space Mono\',monospace;font-size:12px;background:#111114;"><span style="color:#6b6b72;text-transform:uppercase;letter-spacing:.1em;">Total commission (15th)</span><span style="color:#f4f4f5;font-weight:700;">'+f(grand)+'</span></div>'
@@ -13924,6 +13912,7 @@ window.renderPayroll=function(){
   var C='#232327', MUT='#6b6b72', TX='#f4f4f5';
   var inp='font-family:\'Space Mono\',monospace;font-size:11px;background:#0f0f11;color:'+TX+';border:1px solid '+C+';padding:6px;width:110px;box-sizing:border-box;';
   var hint=function(v){return '<div style="color:'+MUT+';font-size:8px;margin-top:2px;">≈ '+_pf(v)+' (of salary)</div>';};
+  var cid=(typeof _cycleIdForMonth==='function')?_cycleIdForMonth(ym):null;  // the 15th-payout cycle for this month (its 14th)
   var rows=staff.map(function(s){
     var inc=_payrollIncome(s,ym); var adj=_payrollAdj(s.id,ym);
     var bonus=adj.bonus||0, allow=adj.allowance||0, gross=inc.gross+bonus+allow;
@@ -13948,7 +13937,9 @@ window.renderPayroll=function(){
       +'</div>'
       +'<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-top:1px solid '+C+';">'
         +'<span style="font-family:\'Space Mono\',monospace;font-size:9px;color:'+MUT+';">Employee deductions '+_pf(ded)+' · Company contributions '+_pf(kesC+tkC)+'</span>'
-        +'<span><span id="pay_saved_'+s.id+'" style="font-family:\'Space Mono\',monospace;font-size:9px;color:#22c55e;margin-right:8px;"></span><button class="dk-ghost" onclick="payrollSaveRow(\''+s.id+'\')" style="background:#0A0A0A;color:#fff;">Save</button></span>'
+        +'<span style="display:flex;align-items:center;gap:12px;">'
+          +((inc.service>0||inc.commission>0)&&cid?('<label style="font-family:\'Space Mono\',monospace;font-size:10px;color:'+(_isPaid(s.id,cid)?'#22c55e':MUT)+';display:inline-flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" onclick="payoutTogglePaid(\''+s.id+'\',\''+cid+'\')"'+(_isPaid(s.id,cid)?' checked':'')+' style="cursor:pointer;">15th payout paid</label>'):'')
+          +'<span id="pay_saved_'+s.id+'" style="font-family:\'Space Mono\',monospace;font-size:9px;color:#22c55e;"></span><button class="dk-ghost" onclick="payrollSaveRow(\''+s.id+'\')" style="background:#0A0A0A;color:#fff;">Save</button></span>'
       +'</div>'
     +'</div>';
   }).join('');
@@ -13961,6 +13952,15 @@ window.renderPayroll=function(){
       +'<div style="text-align:center;min-width:220px;"><div style="font-family:\'Space Mono\',monospace;font-size:14px;color:'+TX+';">'+mLbl+'</div><div style="font-family:\'Space Mono\',monospace;font-size:9px;color:'+MUT+';">tips/commission cycle '+cycLbl+'</div></div>'
       +'<button onclick="payChangeMonth(1)" class="dk-ghost">›</button>'
       +'<span style="margin-left:auto;font-family:\'Space Mono\',monospace;font-size:9px;color:'+MUT+';">Salary · service fee · commission auto-filled — BPJS &amp; PPh21 are gaps to fill from the accountant</span>'
+    +'</div>'
+    +'<div style="border:1px solid '+C+';border-radius:6px;margin-bottom:16px;">'
+      +'<div style="padding:11px 14px;border-bottom:1px solid '+C+';font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:'+MUT+';">Pay reports · download</div>'
+      +'<div style="padding:12px 14px;display:flex;flex-wrap:wrap;gap:8px;">'
+        +'<button class="dk-ghost" onclick="downloadServiceReport()">↓ Service Fee (15th–14th)</button>'
+        +'<button class="dk-ghost" onclick="downloadCommissionReport()">↓ Commission (15th–14th)</button>'
+        +'<button class="dk-ghost" onclick="downloadSalaryReport()" style="background:#0A0A0A;color:#fff;">↓ Salary + Tax (month)</button>'
+      +'</div>'
+      +'<div style="padding:0 14px 12px;font-family:\'Space Mono\',monospace;font-size:9px;color:'+MUT+';line-height:1.6;">Service &amp; commission run 15th→14th (paid the 15th) — split only among staff working each day (sick/holiday excluded). Salary is 1st→last day; the 15th payout folds into this month for PPh21/BPJS. Tick "15th payout paid" per person as you pay them.</div>'
     +'</div>'+rows
    +'</div></div>';
 };
