@@ -18,8 +18,24 @@ No build step. Plain HTML, one shared stylesheet, one shared script.
 | `404.html` | Not-found page |
 | `assets/site.css` | Entire design system |
 | `assets/site.js` | Mobile nav, scroll reveal, office clocks, form handling |
-| `CNAME` | `www.thesavagegroup.com` |
+| `CNAME` | current live domain (see *Switching domains*) |
+| `set-domain.sh` | one-command domain + contact-address switch |
 | `robots.txt`, `sitemap.xml` | Indexing |
+
+## Switching domains
+
+The site currently points at **asquadcalledsavage.com**, as a staging home
+while `thesavagegroup.com` is being set up. Everything domain-specific —
+`CNAME`, canonical tags, `og:url`, the JSON-LD urls, `sitemap.xml`,
+`robots.txt` and every contact address — moves in one command:
+
+```bash
+./set-domain.sh www.thesavagegroup.com hello@thesavagegroup.com
+```
+
+It reads the current values out of the files rather than assuming them, so
+it is safe to re-run, and it prints every remaining reference afterwards so
+you can confirm nothing was missed.
 
 ## Deploying
 
@@ -46,8 +62,9 @@ set this folder as the publish directory, no build command.
 
 ## Before it goes live
 
-- **`hello@thesavagegroup.com`** is used across every page and both forms.
-  Create that mailbox, or search-and-replace it with the real address.
+- **`hello@asquadcalledsavage.com`** is used across every page and both
+  forms. Confirm that mailbox exists — if the right address is different,
+  `./set-domain.sh asquadcalledsavage.com <real@address>` swaps it everywhere.
 - Both enquiry forms open the visitor's email client (`mailto:`). That
   works everywhere with zero backend, but it loses people who use webmail.
   For real capture, swap the `<form>` action to Formspree, Basin or
