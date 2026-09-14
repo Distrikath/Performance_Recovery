@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814092;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814093;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -5993,6 +5993,12 @@ window.TIP_PAYOUTS={};
 })();
 function _tipCycleId(){ var per=_tipPeriodKeys(); return per.keys[per.keys.length-1]; }  // the 14th (current cycle end) = doc id
 function _cycleIdForMonth(ym){ var c=(typeof _cycleKeysForMonth==='function')?_cycleKeysForMonth(ym):[]; return c.length?c[c.length-1]:_tipCycleId(); }  // the 14th of the payroll month
+// Label a cycle by its 15th→14th date span, e.g. "15 Aug – 14 Sep".
+function _cycleRangeLabel(ym){ var c=(typeof _cycleKeysForMonth==='function')?_cycleKeysForMonth(ym):[]; if(!c.length) return ''; var mon=function(dk){ var p=dk.split('-'); return p[2].replace(/^0/,'')+' '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+p[1]-1]; }; return mon(c[0])+' – '+mon(c[c.length-1]); }
+function _payoutMonthName(ym){ var p=String(ym).split('-'); return ['January','February','March','April','May','June','July','August','September','October','November','December'][+p[1]-1]+' '+p[0]; }
+// The two live cycles: the one just CLOSED/paying out on the 15th, and the one now ACCUMULATING (ends the next 14th).
+function _cycleMonths(){ var d=(typeof baliNow==='function'?baliNow():new Date()); var y=d.getFullYear(), m=d.getMonth()+1, day=d.getDate(); var accY=y, accM=m; if(day>=15){ accM=m+1; if(accM>12){accM=1;accY++;} } var acc=accY+'-'+('0'+accM).slice(-2); var pd=new Date(accY,accM-2,1); var pay=pd.getFullYear()+'-'+('0'+(pd.getMonth()+1)).slice(-2); return {paying:pay, accumulating:acc}; }
+window._cycleRangeLabel=_cycleRangeLabel; window._cycleMonths=_cycleMonths;
 function _isPaid(staffId, cycleId){ cycleId=cycleId||_tipCycleId(); var doc=(window.TIP_PAYOUTS||{})[cycleId]; return !!(doc&&doc.paid&&doc.paid[staffId]); }
 window._isPaid=_isPaid; window._tipCycleId=_tipCycleId; window._cycleIdForMonth=_cycleIdForMonth;
 window.payoutTogglePaid=function(staffId, cycleId){ try{ if(typeof firebase==='undefined'||!firebase.firestore)return; var cid=cycleId||_tipCycleId(); var cur=_isPaid(staffId,cid); var paidObj={}; paidObj[staffId]=!cur; firebase.firestore().collection('tip_payouts').doc(cid).set({ cycle:cid, paid:paidObj, ts:firebase.firestore.FieldValue.serverTimestamp(), by:((typeof currentUser!=='undefined'&&currentUser&&currentUser.name)||'?') }, {merge:true}); }catch(e){ console.warn('[payouts] toggle',e); } };
@@ -6014,7 +6020,7 @@ window.downloadServiceReport=function(){
 // 2) THERAPIST COMMISSION — 15th→14th cycle.
 window.downloadCommissionReport=function(){
   var per=_tipPeriodKeys(); var cid=_tipCycleId();
-  var csv='DISTRIK — THERAPIST COMMISSION PAYOUT\nCycle,'+per.keys[0]+' to '+per.keys[per.keys.length-1]+' (paid 15th)\n10% own therapy + 2.5% recommended IV/blood.\n\n';
+  var csv='DISTRIK — THERAPIST COMMISSION PAYOUT\nCycle,'+per.keys[0]+' to '+per.keys[per.keys.length-1]+' (calculated 15th–14th · paid MONTHLY with salary)\n10% own therapy + 2.5% recommended IV/blood.\n\n';
   csv+='Therapist,Therapy 10% (IDR),IV/Blood 2.5% (IDR),Total (IDR),Paid\n';
   var tot=0; THERAPIST_IDS.forEach(function(id){ var c=_therapistCommPeriod(id); var nm=((typeof getStaff==='function'&&getStaff(id))||{}).name||id; tot+=c.total; csv+='"'+nm+'",'+_rf(c.therapy)+','+_rf(c.iv)+','+_rf(c.total)+','+(_isPaid(id,cid)?'YES':'NO')+'\n'; });
   csv+='TOTAL,,,'+_rf(tot)+',\n';
@@ -6025,7 +6031,7 @@ window.downloadCommissionReport=function(){
 window.downloadSalaryReport=function(){
   var d=(typeof baliNow==='function'?baliNow():new Date()); var ym=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2);
   var cyc=(typeof _cycleKeysForMonth==='function')?_cycleKeysForMonth(ym):[];
-  var csv='DISTRIK — SALARY + TAX BASIS ('+ym+')\nSalary,1st to last day of month\nService fee + commission,'+((cyc[0]||'')+' to '+(cyc[cyc.length-1]||''))+' (paid 15th, folded into this month for PPh21/BPJS)\n\n';
+  var csv='DISTRIK — SALARY + TAX BASIS ('+ym+')\nSalary + commission,paid MONTHLY (end of month)\nService fee + commission cycle,'+((cyc[0]||'')+' to '+(cyc[cyc.length-1]||''))+' (service-fee tips handed out 15th; all folded into this month for PPh21/BPJS)\n\n';
   csv+='Staff,Base salary (IDR),Service fee (IDR),Commission (IDR),Gross taxable (IDR)\n';
   var TS=0,TSv=0,TC=0,TG=0;
   (typeof STAFF!=='undefined'?STAFF:[]).forEach(function(s){ if(!s) return; var inc=_payrollIncome(s,ym); TS+=inc.salary; TSv+=inc.service; TC+=inc.commission; TG+=inc.gross; csv+='"'+(s.name||s.id)+'",'+_rf(inc.salary)+','+_rf(inc.service)+','+_rf(inc.commission)+','+_rf(inc.gross)+'\n'; });
@@ -6121,7 +6127,7 @@ function _buildCommissionBlock(s){
     var head='<div style="margin-top:28px;border:1px solid #232327;">'
       +'<div style="display:flex;justify-content:space-between;align-items:baseline;padding:13px 16px;border-bottom:1px solid #232327;">'
         +'<span style="font-family:\'Space Mono\',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6b6b72;">Therapist commission</span>'
-        +'<span style="font-family:\'Space Mono\',monospace;font-size:10px;color:#6b6b72;">'+periodLbl+' · pay 15th</span>'
+        +'<span style="font-family:\'Space Mono\',monospace;font-size:10px;color:#6b6b72;">'+periodLbl+' · paid monthly</span>'
       +'</div>';
     if(isTher && !isAdmin){
       var c=_therapistCommPeriod(s.id);
@@ -6136,7 +6142,7 @@ function _buildCommissionBlock(s){
         +'<div style="padding:16px;border-bottom:1px solid #232327;">'
           +'<div style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#6b6b72;">Your commission this period</div>'
           +'<div style="font-family:\'Archivo\',sans-serif;font-weight:800;font-size:30px;color:#22c55e;margin-top:4px;">'+f(c.total)+'</div>'
-          +'<div style="font-family:\'Space Mono\',monospace;font-size:10px;color:#6b6b72;margin-top:2px;">10% therapy ('+f(c.therapy)+') · 2.5% IV/blood recommendations ('+f(c.iv)+') · paid 15th</div>'
+          +'<div style="font-family:\'Space Mono\',monospace;font-size:10px;color:#6b6b72;margin-top:2px;">10% therapy ('+f(c.therapy)+') · 2.5% IV/blood recommendations ('+f(c.iv)+') · paid monthly with salary</div>'
         +'</div>'+rows+'</div>';
     }
     var grand=0, mrows=THERAPIST_IDS.map(function(id){
@@ -6147,7 +6153,7 @@ function _buildCommissionBlock(s){
         +'<span style="color:#22c55e;font-weight:700;">'+f(c.total)+'</span></div>';
     }).join('');
     return head+mrows
-      +'<div style="display:flex;justify-content:space-between;padding:11px 16px;font-family:\'Space Mono\',monospace;font-size:12px;background:#111114;"><span style="color:#6b6b72;text-transform:uppercase;letter-spacing:.1em;">Total commission (15th)</span><span style="color:#f4f4f5;font-weight:700;">'+f(grand)+'</span></div>'
+      +'<div style="display:flex;justify-content:space-between;padding:11px 16px;font-family:\'Space Mono\',monospace;font-size:12px;background:#111114;"><span style="color:#6b6b72;text-transform:uppercase;letter-spacing:.1em;">Total commission (monthly)</span><span style="color:#f4f4f5;font-weight:700;">'+f(grand)+'</span></div>'
       +'</div>';
   }catch(e){ return ''; }
 }
@@ -13867,6 +13873,9 @@ function _cycleKeysForMonth(ym){
 }
 // A specific member's service-fee total across the given days — only the days they WORKED (absent/off days excluded).
 function _memberTipsForKeys(keys, memberId){ var tot=0; (keys||[]).forEach(function(k){ var d=(typeof _dayTipShare==='function')?_dayTipShare(k):null; if(d && d.share>0 && d.working.indexOf(memberId)>-1) tot+=d.share; }); return tot; }
+// A member's per-DAY service-fee rows over the given days (only days they worked) — for the payslip daily breakdown.
+function _memberServiceDays(memberId, keys){ var out=[]; (keys||[]).forEach(function(k){ var d=(typeof _dayTipShare==='function')?_dayTipShare(k):null; if(d && d.share>0 && d.working.indexOf(memberId)>-1) out.push({k:k, share:d.share, pool:d.pool, n:d.n}); }); return out; }
+window._memberServiceDays=_memberServiceDays;
 function _therapistCommForKeys(therId,keys){ var th=0,iv=0; (keys||[]).forEach(function(k){ var d=(typeof _therapistCommForDay==='function')?_therapistCommForDay(therId,k):{therapy:0,iv:0}; th+=d.therapy; iv+=d.iv; }); return {therapy:th,iv:iv,total:th+iv}; }
 function _payrollIncome(emp, ym){
   var keys=_cycleKeysForMonth(ym);
@@ -13903,6 +13912,40 @@ window.payrollSaveRow=function(empId){
   window.payrollSave(empId,ym,{ bonus:_payNum('pay_bonus_'+empId), allowance:_payNum('pay_allow_'+empId), bpjsKesEmp:_payNum('pay_kesE_'+empId), bpjsTkEmp:_payNum('pay_tkE_'+empId), bpjsKesCo:_payNum('pay_kesC_'+empId), bpjsTkCo:_payNum('pay_tkC_'+empId), pph21:_payNum('pay_pph_'+empId), note:((document.getElementById('pay_note_'+empId)||{}).value||'') });
   var st=document.getElementById('pay_saved_'+empId); if(st){ st.textContent='saved ✓'; setTimeout(function(){st.textContent='';},1800); }
 };
+// Two live service-fee cycles side by side: the one PAYING OUT on the 15th (with Paid ticks) and the one ACCUMULATING now.
+function _svcCyclesCard(){
+  try{
+    if(typeof _cycleMonths!=='function') return '';
+    var cm=_cycleMonths(); var payY=cm.paying, accY=cm.accumulating;
+    var payKeys=_cycleKeysForMonth(payY), accKeys=_cycleKeysForMonth(accY);
+    var payCid=_cycleIdForMonth(payY);
+    var C='#232327',MUT='#6b6b72',TX='#f4f4f5';
+    var f=function(n){return 'IDR '+Math.round(n||0).toLocaleString('id-ID');};
+    var payTot=0, accTot=0;
+    var rows=TIP_POOL_IDS.map(function(id){
+      var nm=((typeof getStaff==='function'&&getStaff(id))||{}).name||id;
+      var pv=_memberTipsForKeys(payKeys,id), av=_memberTipsForKeys(accKeys,id);
+      payTot+=pv; accTot+=av; var paid=_isPaid(id,payCid);
+      return '<div style="display:grid;grid-template-columns:1.2fr 1fr 90px 1fr;gap:8px;align-items:center;padding:8px 14px;border-top:1px solid #1b1b1e;font-family:\'Space Mono\',monospace;font-size:11px;">'
+        +'<span style="color:'+TX+';">'+nm+'</span>'
+        +'<span style="color:#22c55e;font-weight:700;text-align:right;">'+f(pv)+'</span>'
+        +'<label style="justify-self:center;display:inline-flex;align-items:center;gap:4px;cursor:pointer;color:'+(paid?'#22c55e':MUT)+';font-size:10px;"><input type="checkbox" onclick="payoutTogglePaid(\''+id+'\',\''+payCid+'\')"'+(paid?' checked':'')+' style="cursor:pointer;">paid</label>'
+        +'<span style="color:'+TX+';text-align:right;">'+f(av)+'</span>'
+      +'</div>';
+    }).join('');
+    return '<div style="border:1px solid '+C+';border-radius:6px;margin-bottom:16px;">'
+      +'<div style="padding:11px 14px;border-bottom:1px solid '+C+';font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:'+MUT+';">Service fee · two live cycles</div>'
+      +'<div style="display:grid;grid-template-columns:1.2fr 1fr 90px 1fr;gap:8px;padding:9px 14px;background:#111114;font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:.04em;text-transform:uppercase;color:'+MUT+';">'
+        +'<span>Staff</span><span style="text-align:right;">Paying 15th<br><span style="text-transform:none;letter-spacing:0;">'+_cycleRangeLabel(payY)+'</span></span><span style="text-align:center;">Paid</span><span style="text-align:right;">Accumulating<br><span style="text-transform:none;letter-spacing:0;">'+_cycleRangeLabel(accY)+'</span></span>'
+      +'</div>'
+      +rows
+      +'<div style="display:grid;grid-template-columns:1.2fr 1fr 90px 1fr;gap:8px;padding:10px 14px;border-top:2px solid '+C+';background:#111114;font-family:\'Space Mono\',monospace;font-size:11px;font-weight:700;color:'+TX+';">'
+        +'<span>TOTAL</span><span style="text-align:right;color:#22c55e;">'+f(payTot)+'</span><span></span><span style="text-align:right;">'+f(accTot)+'</span>'
+      +'</div>'
+      +'<div style="padding:8px 14px;font-family:\'Space Mono\',monospace;font-size:9px;color:'+MUT+';line-height:1.6;">Left = the cycle paying out on the 15th (tick as you pay). Right = the new cycle building from the 15th, shown on next month\'s payslip. Sick/holiday days already excluded.</div>'
+    +'</div>';
+  }catch(e){ console.warn('svcCyclesCard',e); return ''; }
+}
 window.renderPayroll=function(){
   var el=document.getElementById('panel-payroll'); if(!el) return;
   var ym=_payMonthNow(); var mp=ym.split('-');
@@ -13938,7 +13981,7 @@ window.renderPayroll=function(){
       +'<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-top:1px solid '+C+';">'
         +'<span style="font-family:\'Space Mono\',monospace;font-size:9px;color:'+MUT+';">Employee deductions '+_pf(ded)+' · Company contributions '+_pf(kesC+tkC)+'</span>'
         +'<span style="display:flex;align-items:center;gap:12px;">'
-          +((inc.service>0||inc.commission>0)&&cid?('<label style="font-family:\'Space Mono\',monospace;font-size:10px;color:'+(_isPaid(s.id,cid)?'#22c55e':MUT)+';display:inline-flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" onclick="payoutTogglePaid(\''+s.id+'\',\''+cid+'\')"'+(_isPaid(s.id,cid)?' checked':'')+' style="cursor:pointer;">15th payout paid</label>'):'')
+          +((inc.service>0)&&cid?('<label style="font-family:\'Space Mono\',monospace;font-size:10px;color:'+(_isPaid(s.id,cid)?'#22c55e':MUT)+';display:inline-flex;align-items:center;gap:5px;cursor:pointer;" title="Service-fee tips are handed out on the 15th">'+'<input type="checkbox" onclick="payoutTogglePaid(\''+s.id+'\',\''+cid+'\')"'+(_isPaid(s.id,cid)?' checked':'')+' style="cursor:pointer;">service fee paid (15th)</label>'):'')
           +'<span id="pay_saved_'+s.id+'" style="font-family:\'Space Mono\',monospace;font-size:9px;color:#22c55e;"></span><button class="dk-ghost" onclick="payrollSaveRow(\''+s.id+'\')" style="background:#0A0A0A;color:#fff;">Save</button></span>'
       +'</div>'
     +'</div>';
@@ -13960,8 +14003,10 @@ window.renderPayroll=function(){
         +'<button class="dk-ghost" onclick="downloadCommissionReport()">↓ Commission (15th–14th)</button>'
         +'<button class="dk-ghost" onclick="downloadSalaryReport()" style="background:#0A0A0A;color:#fff;">↓ Salary + Tax (month)</button>'
       +'</div>'
-      +'<div style="padding:0 14px 12px;font-family:\'Space Mono\',monospace;font-size:9px;color:'+MUT+';line-height:1.6;">Service &amp; commission run 15th→14th (paid the 15th) — split only among staff working each day (sick/holiday excluded). Salary is 1st→last day; the 15th payout folds into this month for PPh21/BPJS. Tick "15th payout paid" per person as you pay them.</div>'
-    +'</div>'+rows
+      +'<div style="padding:0 14px 12px;font-family:\'Space Mono\',monospace;font-size:9px;color:'+MUT+';line-height:1.6;">Service fee &amp; commission are both worked out on the 15th→14th cycle (split only among staff working each day; sick/holiday excluded). Service-fee TIPS are handed out on the 15th (tick them below). Salary AND commission are paid MONTHLY at end of month; everything folds into the month\'s payslip for PPh21/BPJS.</div>'
+    +'</div>'
+    +_svcCyclesCard()
+    +rows
    +'</div></div>';
 };
 // ── EMPLOYEE PAYSLIP (My Account) ──
@@ -13978,9 +14023,10 @@ function _buildPayslipBlock(s){
     var line=function(l,v,em){return '<div style="display:flex;justify-content:space-between;padding:7px 16px;border-bottom:1px solid #1b1b1e;font-family:\'Space Mono\',monospace;font-size:11px;"><span style="color:'+(em?TX:MUT)+';">'+l+'</span><span style="color:'+TX+';'+(em?'font-weight:700;':'')+'">'+v+'</span></div>';};
     return '<div style="margin-top:28px;border:1px solid '+C+';">'
       +'<div style="display:flex;justify-content:space-between;align-items:baseline;padding:13px 16px;border-bottom:1px solid '+C+';"><span style="font-family:\'Space Mono\',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:'+MUT+';">Payslip</span><span style="font-family:\'Space Mono\',monospace;font-size:10px;color:'+MUT+';">'+mLbl+'</span></div>'
-      +line('Basic salary',f(inc.salary))
-      +(inc.service?line('Service fee (tips)',f(inc.service)):'')
-      +(inc.commission?line('Commission',f(inc.commission)):'')
+      +line('Basic salary',f(inc.salary)+' <span style="color:'+MUT+';font-size:9px;">· 1–'+(new Date(+mp[0],+mp[1],0).getDate())+' '+mLbl.split(' ')[0]+'</span>')
+      +(inc.service?line('Service fee (tips) <span style="color:'+MUT+';font-size:9px;">· '+((typeof _cycleRangeLabel==='function')?_cycleRangeLabel(ym):'')+'</span>',f(inc.service)):'')
+      +(inc.service?(function(){ var dd=_memberServiceDays(s.id,_cycleKeysForMonth(ym)); if(!dd.length) return ''; var monD=function(dk){var p=dk.split('-');return p[2].replace(/^0/,'')+' '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+p[1]-1];}; return dd.map(function(x){ return '<div style="display:flex;justify-content:space-between;padding:3px 16px 3px 28px;border-bottom:1px solid #151517;font-family:\'Space Mono\',monospace;font-size:9px;color:'+MUT+';"><span>'+monD(x.k)+' · pool '+f(x.pool)+' ÷'+x.n+'</span><span>'+f(x.share)+'</span></div>'; }).join(''); })():'')
+      +(inc.commission?line('Commission <span style="color:'+MUT+';font-size:9px;">· '+((typeof _cycleRangeLabel==='function')?_cycleRangeLabel(ym):'')+'</span>',f(inc.commission)):'')
       +(bonus?line('Bonus / THR',f(bonus)):'')
       +(allow?line('Allowances',f(allow)):'')
       +line('Gross',f(gross),true)
@@ -14005,9 +14051,10 @@ window.downloadPayslip=function(empId,ym){
     var tot=function(l,v){return '<tr><td style="padding:8px 10px;border-top:2px solid #111;font-weight:700;font-size:15px;">'+l+'</td><td style="padding:8px 10px;border-top:2px solid #111;text-align:right;font-weight:700;font-size:15px;">'+v+'</td></tr>';};
     var html='<html><head><title>Payslip '+s.name+' '+mLbl+'</title><style>body{font-family:Arial,sans-serif;color:#111;max-width:600px;margin:24px auto;padding:0 16px;}h1{font-size:20px;letter-spacing:2px;margin-bottom:2px;}h2{font-size:13px;color:#666;font-weight:400;margin-top:0;}table{width:100%;border-collapse:collapse;font-size:13px;margin-top:12px;}</style></head><body>'
       +'<h1>DISTRIK — PAYSLIP</h1><h2>'+s.name+' · '+(s.role||'')+' · '+mLbl+'</h2><table>'
-      +row('Basic salary',f(inc.salary))
-      +(inc.service?row('Service fee (tips)',f(inc.service)):'')
-      +(inc.commission?row('Commission',f(inc.commission)):'')
+      +row('Basic salary <span style="color:#999;font-size:11px;">(1–'+(new Date(+mp[0],+mp[1],0).getDate())+' '+mLbl.split(' ')[0]+')</span>',f(inc.salary))
+      +(inc.service?row('Service fee (tips) <span style="color:#999;font-size:11px;">('+((typeof _cycleRangeLabel==='function')?_cycleRangeLabel(ym):'')+')</span>',f(inc.service)):'')
+      +(inc.service?(function(){ var dd=_memberServiceDays(empId,_cycleKeysForMonth(ym)); if(!dd.length) return ''; var monD=function(dk){var p=dk.split('-');return p[2].replace(/^0/,'')+' '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+p[1]-1];}; return dd.map(function(x){ return '<tr><td style="padding:2px 10px 2px 26px;color:#888;font-size:11px;border-bottom:1px solid #f4f4f4;">'+monD(x.k)+' · pool '+f(x.pool)+' ÷'+x.n+'</td><td style="padding:2px 10px;text-align:right;color:#888;font-size:11px;border-bottom:1px solid #f4f4f4;">'+f(x.share)+'</td></tr>'; }).join(''); })():'')
+      +(inc.commission?row('Commission <span style="color:#999;font-size:11px;">('+((typeof _cycleRangeLabel==='function')?_cycleRangeLabel(ym):'')+')</span>',f(inc.commission)):'')
       +(bonus?row('Bonus / THR',f(bonus)):'')
       +(allow?row('Allowances',f(allow)):'')
       +tot('GROSS',f(gross))
