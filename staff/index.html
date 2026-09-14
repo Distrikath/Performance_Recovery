@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814093;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814094;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -5806,6 +5806,8 @@ function buildMyAccount(el){
       </div>
     </div>
 
+    ${(typeof _buildStaffPay==='function')?_buildStaffPay(s):''}
+
     ${(typeof _buildTipsBlock==='function')?_buildTipsBlock(s):''}
 
     ${(typeof _buildCommissionBlock==='function')?_buildCommissionBlock(s):''}
@@ -6002,6 +6004,13 @@ window._cycleRangeLabel=_cycleRangeLabel; window._cycleMonths=_cycleMonths;
 function _isPaid(staffId, cycleId){ cycleId=cycleId||_tipCycleId(); var doc=(window.TIP_PAYOUTS||{})[cycleId]; return !!(doc&&doc.paid&&doc.paid[staffId]); }
 window._isPaid=_isPaid; window._tipCycleId=_tipCycleId; window._cycleIdForMonth=_cycleIdForMonth;
 window.payoutTogglePaid=function(staffId, cycleId){ try{ if(typeof firebase==='undefined'||!firebase.firestore)return; var cid=cycleId||_tipCycleId(); var cur=_isPaid(staffId,cid); var paidObj={}; paidObj[staffId]=!cur; firebase.firestore().collection('tip_payouts').doc(cid).set({ cycle:cid, paid:paidObj, ts:firebase.firestore.FieldValue.serverTimestamp(), by:((typeof currentUser!=='undefined'&&currentUser&&currentUser.name)||'?') }, {merge:true}); }catch(e){ console.warn('[payouts] toggle',e); } };
+// Commission paid tracking (paid monthly with salary) — separate map `paidComm` in the same per-cycle doc.
+function _isPaidComm(staffId, cycleId){ cycleId=cycleId||_tipCycleId(); var doc=(window.TIP_PAYOUTS||{})[cycleId]; return !!(doc&&doc.paidComm&&doc.paidComm[staffId]); }
+window._isPaidComm=_isPaidComm;
+window.payoutToggleCommPaid=function(staffId, cycleId){ try{ if(typeof firebase==='undefined'||!firebase.firestore)return; var cid=cycleId||_tipCycleId(); var cur=_isPaidComm(staffId,cid); var o={}; o[staffId]=!cur; firebase.firestore().collection('tip_payouts').doc(cid).set({ cycle:cid, paidComm:o, ts:firebase.firestore.FieldValue.serverTimestamp(), by:((typeof currentUser!=='undefined'&&currentUser&&currentUser.name)||'?') }, {merge:true}); }catch(e){ console.warn('[payouts] toggleComm',e); } };
+// Year-to-date pay for Indonesia's tax year (1 Jan – 31 Dec): sum of each month's salary + service + commission.
+function _ytdPay(s){ try{ var d=(typeof baliNow==='function'?baliNow():new Date()); var y=d.getFullYear(), cm=d.getMonth()+1; var sal=0,svc=0,com=0; for(var m=1;m<=cm;m++){ var ym=y+'-'+('0'+m).slice(-2); var inc=(typeof _payrollIncome==='function')?_payrollIncome(s,ym):{salary:0,service:0,commission:0}; sal+=inc.salary; svc+=inc.service; com+=inc.commission; } return {salary:sal,service:svc,commission:com,total:sal+svc+com,year:y}; }catch(e){ return {salary:0,service:0,commission:0,total:0,year:(new Date()).getFullYear()}; } }
+window._ytdPay=_ytdPay;
 
 // ── THREE PAY REPORTS (CSV downloads) ──────────────────────────────────────────────────────────────────
 function _dlCSV(filename, csv){ try{ var a=document.createElement('a'); a.href='data:text/csv;charset=utf-8,'+encodeURIComponent('﻿'+csv); a.download=filename; document.body.appendChild(a); a.click(); setTimeout(function(){document.body.removeChild(a);},100); }catch(e){ console.warn('[report] dl',e); alert('Download failed: '+e.message); } }
@@ -6042,6 +6051,7 @@ window.downloadSalaryReport=function(){
 function _buildTipsBlock(s){
   try{
     var isAdmin=(currentUser&&(currentUser.type==='admin'||currentUser.role==='2IC'));
+    if(!isAdmin) return '';   // staff see their own pay via _buildStaffPay; this is the admin payout sheet only
     var isMember=s&&TIP_POOL_IDS.indexOf(s.id)>-1;
     if(!isMember && !isAdmin) return '';
     var per=_tipPeriodKeys();
@@ -6118,6 +6128,7 @@ function _therapistCommPeriod(therId){
 function _buildCommissionBlock(s){
   try{
     var isAdmin=(currentUser&&(currentUser.type==='admin'||currentUser.role==='2IC'));
+    if(!isAdmin) return '';   // staff see their own commission via _buildStaffPay; this is the admin payout sheet only
     var isTher=s&&THERAPIST_IDS.indexOf(s.id)>-1;
     if(!isTher && !isAdmin) return '';
     var per=_tipPeriodKeys();
@@ -6157,6 +6168,54 @@ function _buildCommissionBlock(s){
       +'</div>';
   }catch(e){ return ''; }
 }
+
+// ── STAFF PERSONAL PAY (My Account) — This cycle (with PAID badges) · Upcoming · Year-to-date ──
+function _buildStaffPay(s){
+  try{
+    if(!s||!s.id) return '';
+    var inPool=(typeof TIP_POOL_IDS!=='undefined'&&TIP_POOL_IDS.indexOf(s.id)>-1);
+    var isTher=(typeof THERAPIST_IDS!=='undefined'&&THERAPIST_IDS.indexOf(s.id)>-1);
+    if(!inPool && !isTher) return '';   // salary-only staff: their pay is the monthly payslip below
+    var cm=_cycleMonths(); var payY=cm.paying, accY=cm.accumulating;
+    var payKeys=_cycleKeysForMonth(payY), accKeys=_cycleKeysForMonth(accY);
+    var payCid=_cycleIdForMonth(payY);
+    var f=function(n){return 'IDR '+Math.round(n||0).toLocaleString('id-ID');};
+    var C='#232327',MUT='#6b6b72',TX='#f4f4f5';
+    var badge=function(paid){ return paid?'<span style="background:#0f2e1c;color:#22c55e;border:1px solid #1f6b3a;border-radius:3px;padding:2px 8px;font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:.08em;">PAID &#10003;</span>':'<span style="background:#33270f;color:#f59e0b;border:1px solid #6b4a1f;border-radius:3px;padding:2px 8px;font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:.08em;">DUE</span>'; };
+    var row=function(l,v,right){ return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid #1b1b1e;font-family:\'Space Mono\',monospace;font-size:11px;"><span style="color:#a6a6ad;">'+l+'</span><span style="display:flex;align-items:center;gap:10px;"><span style="color:'+TX+';font-weight:700;">'+v+'</span>'+(right||'')+'</span></div>'; };
+    var hdr=function(t,sub){return '<div style="display:flex;justify-content:space-between;align-items:baseline;padding:13px 16px;border-bottom:1px solid '+C+';"><span style="font-family:\'Space Mono\',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:'+MUT+';">'+t+'</span><span style="font-family:\'Space Mono\',monospace;font-size:10px;color:'+MUT+';">'+sub+'</span></div>';};
+    var monD=function(dk){var p=dk.split('-');return p[2].replace(/^0/,'')+' '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+p[1]-1];};
+    // THIS CYCLE (paying out)
+    var svcPay=inPool?_memberTipsForKeys(payKeys,s.id):0;
+    var comPay=isTher?_therapistCommForKeys(s.id,payKeys).total:0;
+    var days=inPool?_memberServiceDays(s.id,payKeys):[];
+    var dayRows=days.map(function(x){return '<div style="display:flex;justify-content:space-between;padding:3px 16px 3px 28px;border-bottom:1px solid #151517;font-family:\'Space Mono\',monospace;font-size:9px;color:'+MUT+';"><span>'+monD(x.k)+' &middot; pool '+f(x.pool)+' &divide;'+x.n+'</span><span>'+f(x.share)+'</span></div>';}).join('');
+    var html='<div style="margin-top:28px;border:1px solid '+C+';">'
+      +hdr('This cycle', _cycleRangeLabel(payY))
+      +(inPool?row('Service fee (tips)', f(svcPay), badge(_isPaid(s.id,payCid)))+dayRows:'')
+      +(isTher?row('Commission', f(comPay), badge(_isPaidComm(s.id,payCid))):'')
+      +'<div style="padding:8px 16px;font-family:\'Space Mono\',monospace;font-size:9px;color:'+MUT+';line-height:1.6;">Service-fee tips are paid on the 15th; commission is paid monthly with your salary. <b style="color:#22c55e;">PAID</b> = already given to you — it won\'t appear again in your monthly pay.</div>'
+    +'</div>';
+    // UPCOMING (accumulating)
+    html+='<div style="margin-top:16px;border:1px solid '+C+';">'
+      +hdr('Upcoming payments', _cycleRangeLabel(accY)+' &middot; building')
+      +(inPool?row('Service fee (tips) so far', f(_memberTipsForKeys(accKeys,s.id)), ''):'')
+      +(isTher?row('Commission so far', f(_therapistCommForKeys(s.id,accKeys).total), ''):'')
+      +'<div style="padding:8px 16px;font-family:\'Space Mono\',monospace;font-size:9px;color:'+MUT+';">Building now — this becomes your next cycle\'s payment.</div>'
+    +'</div>';
+    // YEAR TO DATE (Indonesia tax year 1 Jan – 31 Dec)
+    var ytd=_ytdPay(s);
+    html+='<div style="margin-top:16px;border:1px solid '+C+';">'
+      +hdr('Year to date', '1 Jan &ndash; 31 Dec '+ytd.year)
+      +row('Salary', f(ytd.salary),'')
+      +(ytd.service?row('Service fee (tips)', f(ytd.service),''):'')
+      +(ytd.commission?row('Commission', f(ytd.commission),''):'')
+      +'<div style="display:flex;justify-content:space-between;padding:11px 16px;background:#111114;font-family:\'Space Mono\',monospace;font-size:12px;"><span style="color:'+MUT+';text-transform:uppercase;letter-spacing:.1em;">Total YTD</span><span style="color:#22c55e;font-weight:700;">'+f(ytd.total)+'</span></div>'
+    +'</div>';
+    return html;
+  }catch(e){ console.warn('_buildStaffPay',e); return ''; }
+}
+window._buildStaffPay=_buildStaffPay;
 
 // ── BOOKING SCHEDULE (read-only, everyone) ───────────────────────────
 // A view-only day schedule of recovery bookings that staff (and the tills) can open from Home.
@@ -13982,6 +14041,7 @@ window.renderPayroll=function(){
         +'<span style="font-family:\'Space Mono\',monospace;font-size:9px;color:'+MUT+';">Employee deductions '+_pf(ded)+' · Company contributions '+_pf(kesC+tkC)+'</span>'
         +'<span style="display:flex;align-items:center;gap:12px;">'
           +((inc.service>0)&&cid?('<label style="font-family:\'Space Mono\',monospace;font-size:10px;color:'+(_isPaid(s.id,cid)?'#22c55e':MUT)+';display:inline-flex;align-items:center;gap:5px;cursor:pointer;" title="Service-fee tips are handed out on the 15th">'+'<input type="checkbox" onclick="payoutTogglePaid(\''+s.id+'\',\''+cid+'\')"'+(_isPaid(s.id,cid)?' checked':'')+' style="cursor:pointer;">service fee paid (15th)</label>'):'')
+          +((inc.commission>0)&&cid?('<label style="font-family:\'Space Mono\',monospace;font-size:10px;color:'+(_isPaidComm(s.id,cid)?'#22c55e':MUT)+';display:inline-flex;align-items:center;gap:5px;cursor:pointer;" title="Commission is paid monthly with salary">'+'<input type="checkbox" onclick="payoutToggleCommPaid(\''+s.id+'\',\''+cid+'\')"'+(_isPaidComm(s.id,cid)?' checked':'')+' style="cursor:pointer;">commission paid</label>'):'')
           +'<span id="pay_saved_'+s.id+'" style="font-family:\'Space Mono\',monospace;font-size:9px;color:#22c55e;"></span><button class="dk-ghost" onclick="payrollSaveRow(\''+s.id+'\')" style="background:#0A0A0A;color:#fff;">Save</button></span>'
       +'</div>'
     +'</div>';
