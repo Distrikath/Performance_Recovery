@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814087;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814088;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -2149,6 +2149,18 @@ h1,
       <div class="dk-cell" id="pay-recon-cell" style="border-left:2px solid var(--bd);"><div class="dk-clbl">Total takings</div><div class="dk-v" id="pay-recon-total">IDR 0</div><div class="dk-cs" id="pay-recon-msg"></div></div>
     </div>
 
+    <!-- HUMAN+ agent model (Version B): gross collected is NOT DISTRIK revenue — only the commission is -->
+    <div id="hp-metrics-row" style="display:none;">
+      <div class="dk-clbl" style="margin:2px 2px 6px;letter-spacing:.08em;opacity:.8;">HUMAN+ MEDICAL · agent / collection model — DISTRIK collects, keeps commission only</div>
+      <div class="dk-strip" style="margin-bottom:18px;">
+        <div class="dk-cell"><div class="dk-clbl">HUMAN+ Gross Collected</div><div class="dk-v" id="hp-gross">IDR 0</div><div class="dk-cs">in takings, not revenue</div></div>
+        <div class="dk-cell" style="border-left:2px solid #a855f7;"><div class="dk-clbl">DISTRIK Commission Revenue</div><div class="dk-v" id="hp-comm">IDR 0</div><div class="dk-cs">counted as DISTRIK revenue</div></div>
+        <div class="dk-cell"><div class="dk-clbl">Payable to HUMAN+</div><div class="dk-v" id="hp-payable">IDR 0</div><div class="dk-cs">liability — owed to HUMAN+</div></div>
+        <div class="dk-cell"><div class="dk-clbl">PPh 23 Receivable</div><div class="dk-v" id="hp-pph">IDR 0</div><div class="dk-cs">withheld by HUMAN+ · tax credit</div></div>
+        <div class="dk-cell"><div class="dk-clbl">Net Commission</div><div class="dk-v" id="hp-net">IDR 0</div><div class="dk-cs">after PPh 23</div></div>
+      </div>
+    </div>
+
     <!-- Channel modules (new layout) -->
     <div class="dk-cols3">
       <div class="dk-mod">
@@ -2565,6 +2577,7 @@ h1,
       <button class="dk-ghost" onclick="downloadPLReport('quarterly','current')">Quarterly</button>
       <button class="dk-ghost" onclick="downloadPLReport('annual','current')">FY Annual</button>
       <button class="dk-ghost" onclick="exportXeroCSV()" title="Every transaction from the permanent ledger, as a CSV for Xero / your accountant">⤓ Xero</button>
+      <button class="dk-ghost" onclick="switchTab('hplus')" title="HUMAN+ agent-model settlements — commission, payable, PPh 23, invoice" style="border-color:#a855f7;color:#a855f7;">HUMAN+ Settlements →</button>
       <span style="flex:1"></span>
       <button class="dk-ghost" onclick="openPLModal('income')">+ Income</button>
       <button class="dk-ghost" onclick="openPLModal('expense')">+ Expense</button>
@@ -2831,6 +2844,25 @@ h1,
     <div style="margin-top:8px">
       <button class="pl-cl" onclick="document.getElementById('clearDayModal').classList.remove('on')" style="width:100%;text-align:center">Cancel</button>
     </div>
+  </div>
+</div>
+
+<!-- ── HUMAN+ SETTLEMENTS PANEL (Finance · agent model, admin-only) ─────────── -->
+<div class="panel" id="panel-hplus">
+  <div class="pl-wrap">
+    <button onclick="switchTab('pl')" class="dk-back">← Finance / P&amp;L</button>
+    <div class="dk-mast">
+      <div>
+        <div class="dk-idx">[ FINANCE · HUMAN+ ]</div>
+        <div class="dk-h1">HUMAN+ Settlements</div>
+        <div class="dk-kicker">Agent / collection model — DISTRIK collects, keeps commission, owes the rest.</div>
+      </div>
+      <div class="dk-meta">
+        <div class="dk-mrow">[ <b id="hplus-period-lbl">—</b> ]</div>
+        <div class="dk-mrow">[ cutoff <b>20th</b> of following month ]</div>
+      </div>
+    </div>
+    <div id="hplus-body" style="margin-top:14px;"></div>
   </div>
 </div>
 
@@ -3926,6 +3958,7 @@ function renderSales(){
 
   // Aggregate data across period
   let recRev=0, recBk=0, recCancel=0;
+  let hpGross=0, hpComm=0, hpPayable=0, hpPph=0;  // HUMAN+ agent-model breakdown (Version B)
   let fuelRev=0, fuelTxn=0, fuelItems=0, fuelCash=0, fuelCard=0;
   let supRev=0, supOrders=0, supItems=0, supReturns=0;
   const recBookings=[], fuelTxns=[], supOrderList=[];
@@ -3937,6 +3970,7 @@ function renderSales(){
   keys.forEach(k=>{
     const r=recoveryData[k]; const f=fuelData[k]; const s=supplyData[k];
     if(r){ recRev+=r.revenue||0; recBk+=(r.bookings||[]).length; recCancel+=(r.cancellations||0);
+      hpGross+=r.hpGross||0; hpComm+=r.hpComm||0; hpPayable+=r.hpPayable||0; hpPph+=r.hpPph||0;
       if(r._pay){ recPay.card+=r._pay.card||0; recPay.qr+=r._pay.qr||0; recPay.online+=r._pay.online||0; recPay.other+=r._pay.other||0; }
       if(r._payCnt){ recPayCnt.card+=r._payCnt.card||0; recPayCnt.qr+=r._payCnt.qr||0; recPayCnt.online+=r._payCnt.online||0; recPayCnt.other+=r._payCnt.other||0; }
       (r.bookings||[]).forEach(b=>{ recBookings.push({...b,date:k});
@@ -3997,10 +4031,22 @@ function renderSales(){
   const payGrand=payAmt.card+payAmt.qr+payAmt.online+payAmt.other;
   set('pay-recon-total', fmtFull(payGrand));
   const _rc=document.getElementById('pay-recon-cell'), _rm=document.getElementById('pay-recon-msg');
-  const _diff=payGrand-total; const _ok=Math.abs(_diff)<1;
-  if(_rm){ if(_ok){ _rm.textContent='✓ matches total'; _rm.style.color='#10b981'; }
-    else { _rm.textContent=(_diff>0?'+':'')+fmtFull(_diff)+' vs total'; _rm.style.color='#FF2D2D'; } }
+  // TAKINGS = all cash collected (includes the HUMAN+ 80% DISTRIK holds as a payable). REVENUE (total) excludes that
+  // 80%. So takings should reconcile to revenue PLUS the HUMAN+ payable — not to revenue alone.
+  const _expectTakings=total+hpPayable;
+  const _diff=payGrand-_expectTakings; const _ok=Math.abs(_diff)<1;
+  if(_rm){ if(_ok){ _rm.textContent = hpPayable>0 ? '✓ '+fmtFull(total)+' rev + '+fmtFull(hpPayable)+' HUMAN+' : '✓ matches total'; _rm.style.color='#10b981'; }
+    else { _rm.textContent=(_diff>0?'+':'')+fmtFull(_diff)+' vs expected'; _rm.style.color='#FF2D2D'; } }
   if(_rc) _rc.style.borderLeftColor=(_ok?'#10b981':'#FF2D2D');
+
+  // ── HUMAN+ agent-model metrics (Version B) — gross collected is NOT DISTRIK revenue ──
+  const _hpNet=hpComm-hpPph;
+  set('hp-gross',   hpGross>0?fmtFull(hpGross):'IDR 0');
+  set('hp-comm',    hpComm>0?fmtFull(hpComm):'IDR 0');
+  set('hp-payable', hpPayable>0?fmtFull(hpPayable):'IDR 0');
+  set('hp-pph',     hpPph>0?fmtFull(hpPph):'IDR 0');
+  set('hp-net',     _hpNet>0?fmtFull(_hpNet):'IDR 0');
+  const _hpRow=document.getElementById('hp-metrics-row'); if(_hpRow) _hpRow.style.display=(hpGross>0?'':'none');
 
   // Source cards
   set('r-section-total', fmtFull(recRev));
@@ -5105,8 +5151,8 @@ function buildSettingsTax(){
     +'</div>'
     +'<div style="'+sub+'">Clinical · Human+ (agent)</div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'
-    +'<div><label style="'+lbl+'">Distrik Commission %</label><input id="tx-clinicCommission" type="number" step="1" value="'+P(TAX_CFG.clinicCommission)+'" style="'+inp+'"></div>'
-    +'<div><label style="'+lbl+'">PPh 23 Withholding %</label><input id="tx-pph23" type="number" step="0.5" value="'+P(TAX_CFG.pph23)+'" style="'+inp+'"></div>'
+    +'<div><label style="'+lbl+'">HUMAN+ Commission % (DISTRIK keeps)</label><input id="tx-clinicCommission" type="number" step="1" value="'+P(TAX_CFG.clinicCommission)+'" style="'+inp+'"></div>'
+    +'<div><label style="'+lbl+'">PPh 23 % (on DISTRIK commission)</label><input id="tx-pph23" type="number" step="0.5" value="'+P(TAX_CFG.pph23)+'" style="'+inp+'"></div>'
     +'</div>'
     +'<button onclick="saveSettingsTax()" style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:9px 16px;background:#0A0A0A;color:#fff;border:none;cursor:pointer;margin-top:12px;">Save Tax Config</button>'
     +'<div style="font-family:\'Space Mono\',monospace;font-size:9px;color:#9a9a9e;margin-top:8px;line-height:1.55;">Recovery (spa) &amp; Supply carry no consumption tax while non-PKP. Clinical/medical is PPN-exempt. Switching PKP on re-enables PPN 11% on owned retail.</div>';
@@ -5122,6 +5168,10 @@ function saveSettingsTax(){
   TAX_CFG.clinicCommission=(parseFloat(val('tx-clinicCommission'))||0)/100;
   TAX_CFG.pph23=(parseFloat(val('tx-pph23'))||0)/100;
   saveTaxCfg();
+  // A rate change must re-apply to the HUMAN+ split everywhere: rebuild the ledger-derived figures + re-render.
+  try{ if(typeof rebuildFromLedger==='function'&&typeof window._lastLedgerDocs!=='undefined') rebuildFromLedger(window._lastLedgerDocs); }catch(e){}
+  try{ if(typeof renderSales==='function'&&document.getElementById('panel-sales')&&document.getElementById('panel-sales').classList.contains('on')) renderSales(); }catch(e){}
+  try{ if(typeof renderHumanSettlements==='function'&&document.getElementById('panel-hplus')&&document.getElementById('panel-hplus').classList.contains('on')) renderHumanSettlements(); }catch(e){}
   var n=document.getElementById('notif'); if(n){n.textContent='Tax config saved ✓';n.classList.add('on');setTimeout(function(){n.classList.remove('on');},2000);}
 }
 window.buildSettingsTax=buildSettingsTax; window.saveSettingsTax=saveSettingsTax;
@@ -5537,7 +5587,8 @@ const PAGE_NAMES = {
   'reference': 'REPORTING STRUCTURE',
   sales:'Sales', pl:'Profit & Loss', settings:'Settings',
   roster:'Weekly Roster', booking:'Recovery', fuel:'Fuel', supply:'Supply',
-  myaccount:'My Account', schedule:'Schedule', payroll:'Payroll'
+  myaccount:'My Account', schedule:'Schedule', payroll:'Payroll',
+  hplus:'HUMAN+ Settlements'
 };
 
 // Access control: which login levels may open each module. Enforced on every navigation path
@@ -5566,6 +5617,7 @@ function switchTab(t){
   if(t==='recovery'){ setTimeout(function(){ if(typeof renderClinicalServices==='function'){ renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); } },100); }
   if(t==='sales')   initSales();
   if(t==='pl')      renderPL();
+  if(t==='hplus'){ if(typeof renderHumanSettlements==='function') renderHumanSettlements(); }
   if(t==='settings') buildSettingsPanel();
   if(t==='roster'){
     buildPalette();
@@ -7873,18 +7925,34 @@ const BALI_TZ = 'Asia/Makassar'; // WITA - Bali timezone
 const MONTHLY_TARGET = 200000000; // IDR 200,000,000
 // ── TAX CONFIG (editable in Settings) ──
 // Distrik = PT PMA, NON-PKP. Café: 7% service charge + 10% PBJT. Recovery/Supply: no consumption tax.
-// Clinical · ClinicTerrain = AGENT (Distrik keeps commission %, rest passes through; 2% PPh 23 on payout).
+// Clinical = HUMAN+ AGENT / COLLECTION model (accountant Version B). DISTRIK collects the FULL customer
+// payment (into takings/bank) but recognises ONLY its commission % as revenue; the rest is a Payable to HUMAN+.
+// PPh 23 is 2% of DISTRIK's COMMISSION (withheld by HUMAN+ as a tax credit) — NOT on HUMAN+'s payout.
 var TAX_CFG = {
   entity:'PT PMA', npwp:'', pkp:false,
   cafeService:0.07,        // café service charge (gratuity — revenue, not a tax)
   cafePBJT:0.10,           // café regional F&B tax (PBJT/PB1)
-  clinicCommission:0.20,   // Distrik commission on ClinicTerrain (agent)
-  pph23:0.02,              // withholding on corporate-supplier payouts
+  clinicCommission:0.20,   // DISTRIK commission on HUMAN+ (agent) — the ONLY part that is DISTRIK revenue
+  pph23:0.02,              // PPh 23 withholding rate — applied to DISTRIK's commission (withheld by HUMAN+)
   cit:0.22                 // normal corporate income tax (PPh Badan)
 };
 try{ var _tx=localStorage.getItem('distrik_tax'); if(_tx) Object.assign(TAX_CFG, JSON.parse(_tx)); }catch(e){}
 function saveTaxCfg(){ try{ localStorage.setItem('distrik_tax', JSON.stringify(TAX_CFG)); }catch(e){} }
 window.TAX_CFG=TAX_CFG; window.saveTaxCfg=saveTaxCfg;
+
+// ── HUMAN+ AGENT MODEL (accountant Version B) — one source of truth for the split ──────────────────────
+// A HUMAN+ booking is any clinical/partner recovery booking. DISTRIK is the collecting AGENT:
+//   gross (collected)  → stays 100% in takings / cash-up / bank reconciliation (real money in)
+//   commission (rate)  → the ONLY amount recognised as DISTRIK revenue
+//   payable (1-rate)   → liability "Payable to HUMAN+" (NOT DISTRIK revenue, NOT a DISTRIK expense)
+//   pph23 (on commission) → withheld by HUMAN+ from DISTRIK's commission → a DISTRIK tax credit / receivable
+//   net commission     → commission - pph23 (what DISTRIK actually keeps after withholding)
+// Rates come from TAX_CFG dynamically (defaults 20% / 2%), never hard-coded downstream.
+function _hpRate(){ var r=(typeof TAX_CFG!=='undefined'&&TAX_CFG.clinicCommission!=null)?+TAX_CFG.clinicCommission:0.20; return (isFinite(r)&&r>=0&&r<=1)?r:0.20; }
+function _hpPphRate(){ var r=(typeof TAX_CFG!=='undefined'&&TAX_CFG.pph23!=null)?+TAX_CFG.pph23:0.02; return (isFinite(r)&&r>=0&&r<=1)?r:0.02; }
+function _isHumanPlus(d){ return !!(d && (d.clinical || d.partner)); }
+function _hpSplit(gross){ gross=Math.round(+gross||0); var comm=Math.round(gross*_hpRate()); var pph=Math.round(comm*_hpPphRate()); return {gross:gross, commission:comm, payable:gross-comm, pph23:pph, netCommission:comm-pph}; }
+window._hpRate=_hpRate; window._hpPphRate=_hpPphRate; window._isHumanPlus=_isHumanPlus; window._hpSplit=_hpSplit;
 
 // ── JOB APPLICATIONS API (Distrik recruitment backend) ──
 var APPS_CFG = { base:'', key:'' };
@@ -9780,12 +9848,13 @@ function downloadPLReport(period, which){
     const operatingProfit=grossProfit-payroll-bpjsEmp;
     // ── Revenue-model split (agent vs principal) ──
     const recActive=recBookings.filter(b=>b&&b.status!=='cancelled'&&b.status!=='hold');
-    const clinicalGross=recActive.filter(b=>b.clinical).reduce((a,b)=>a+(b.price||0),0); // ClinicTerrain sales facilitated
-    const spaGross     =recActive.filter(b=>!b.clinical).reduce((a,b)=>a+(b.price||0),0); // Distrik's own spa
-    const clinicalCommission=Math.round(clinicalGross*TAX_CFG.clinicCommission);            // Distrik 20% (legal gross revenue)
-    const clinicalPayout    =clinicalGross-clinicalCommission;                            // 80% pass-through to ClinicTerrain
-    const clinicalPPh23     =Math.round(clinicalPayout*TAX_CFG.pph23);                        // 2% withheld on supplier payment
-    const supPPh23          =Math.round(supPayout*TAX_CFG.pph23);                             // 2% on consignment-brand payouts
+    const clinicalGross=recActive.filter(b=>b.clinical||b.partner).reduce((a,b)=>a+((typeof clinCollected==='function')?clinCollected(b):(b.price||0)),0); // HUMAN+ gross COLLECTED by DISTRIK
+    const spaGross     =recActive.filter(b=>!(b.clinical||b.partner)).reduce((a,b)=>a+((typeof clinCollected==='function')?clinCollected(b):(b.price||0)),0); // Distrik's own spa
+    const clinicalCommission=Math.round(clinicalGross*TAX_CFG.clinicCommission);            // DISTRIK commission (the ONLY part that is DISTRIK revenue)
+    const clinicalPayout    =clinicalGross-clinicalCommission;                            // 80% Payable to HUMAN+ (paid in FULL — no DISTRIK withholding)
+    const clinicalPPh23     =Math.round(clinicalCommission*TAX_CFG.pph23);                    // Version B: 2% PPh 23 on DISTRIK's COMMISSION, withheld by HUMAN+ → DISTRIK tax credit/receivable
+    const clinicalNetComm   =clinicalCommission-clinicalPPh23;                             // DISTRIK commission net of PPh 23
+    const supPPh23          =Math.round(supPayout*TAX_CFG.pph23);                             // 2% on consignment-brand payouts (real supplier withholding by DISTRIK)
     const supplyCommission  =supRev-supPayout;                                             // owned full margin + consignment commission
     // Distrik LEGAL GROSS REVENUE: café ex-PBJT; agent streams netted to commission only
     const legalGrossRev     =spaGross+cafeRevenue+supplyCommission+clinicalCommission;
@@ -9804,7 +9873,7 @@ function downloadPLReport(period, which){
     return {recRev,fuelRev,supRev,totalRev,recVisits,fuelTxns,supUnits,
             supCOGS,fuelCOGS,supPayout,grossProfit,payroll,bpjsEmp,
             pph21,pbjt,pbjtColl,fuelNet,operatingProfit,
-            clinicalGross,spaGross,clinicalCommission,clinicalPayout,clinicalPPh23,
+            clinicalGross,spaGross,clinicalCommission,clinicalPayout,clinicalPPh23,clinicalNetComm,
             supPPh23,supplyCommission,legalGrossRev,passThrough,taxableProfit,
             fuelAvg:fuelTxns>0?Math.round(fuelRev/fuelTxns):0,
             recAvg:recVisits>0?Math.round(recRev/recVisits):0,
@@ -9846,7 +9915,7 @@ function downloadPLReport(period, which){
   ['recRev','fuelRev','supRev','totalRev','recVisits','fuelTxns','supUnits',
    'supCOGS','fuelCOGS','supPayout','grossProfit','payroll','bpjsEmp',
    'pph21','pbjt','pbjtColl','fuelNet','operatingProfit','activeMembers',
-   'clinicalGross','spaGross','clinicalCommission','clinicalPayout','clinicalPPh23',
+   'clinicalGross','spaGross','clinicalCommission','clinicalPayout','clinicalPPh23','clinicalNetComm',
    'supPPh23','supplyCommission','legalGrossRev','passThrough','taxableProfit']
   .forEach(k=>{ T[k]=monthData.reduce((a,d)=>a+(d[k]||0),0); });
   T.fuelAvg=T.fuelTxns>0?Math.round(T.fuelRev/T.fuelTxns):0;
@@ -9877,7 +9946,7 @@ function downloadPLReport(period, which){
   csv+=row('Monthly Target (IDR)','—',fmt(MONTHLY_TARGET),'IDR 200,000,000 per month');
   csv+=row('Gross Revenue Processed (IDR)','—',fmt(T.totalRev),'All money taken (incl. supplier pass-throughs)');
   csv+=row('Distrik LEGAL Gross Revenue (IDR)','—',fmt(T.legalGrossRev),'Agent streams netted to commission — TAX BASIS');
-  csv+=row('  less Supplier Pass-Through (IDR)','—',fmt(T.passThrough),'ClinicTerrain 80% + brand consignment payouts');
+  csv+=row('  less Supplier Pass-Through (IDR)','—',fmt(T.passThrough),'Payable to HUMAN+ '+((1-TAX_CFG.clinicCommission)*100)+'% + brand consignment payouts');
   const targetPct = T.legalGrossRev>0 && MONTHLY_TARGET>0 ? (T.legalGrossRev/MONTHLY_TARGET*100).toFixed(1)+'%' : '—';
   csv+=row('% of Monthly Target','100%',targetPct,T.totalRev>=MONTHLY_TARGET?'TARGET MET':'Below target');
   csv+=row('Gross Margin %','>40%',T.grossMargin!==null?T.grossMargin+'%':'Insufficient data','');
@@ -9958,26 +10027,29 @@ function downloadPLReport(period, which){
     }
   }
 
-  // ── 3b. CLINICAL · CLINICTERRAIN (AGENT / COMMISSION MODEL) ─
-  csv+=section('3b. Clinical · ClinicTerrain — Agent / Commission Model');
-  csv+=row('Distrik is the booking AGENT/facilitator (not the principal). Only the '+(TAX_CFG.clinicCommission*100)+'% commission is Distrik legal gross revenue;');
-  csv+=row('the remaining '+((1-TAX_CFG.clinicCommission)*100)+'% is a pass-through belonging to ClinicTerrain. Clinical/medical services are PPN-exempt.');
+  // ── 3b. HUMAN+ MEDICAL (AGENT / COLLECTION MODEL — accountant Version B) ─
+  csv+=section('3b. HUMAN+ Medical — Agent / Collection Model (Version B)');
+  csv+=row('DISTRIK is the collecting AGENT (venue + booking + payment collection). DISTRIK collects the FULL customer');
+  csv+=row('payment but recognises ONLY its '+(TAX_CFG.clinicCommission*100)+'% commission as revenue; the '+((1-TAX_CFG.clinicCommission)*100)+'% is a liability "Payable to HUMAN+".');
+  csv+=row('PPh 23 ('+(TAX_CFG.pph23*100)+'%) is withheld by HUMAN+ from DISTRIK'+"'"+'s COMMISSION (a DISTRIK tax credit) — DISTRIK does NOT withhold from the '+((1-TAX_CFG.clinicCommission)*100)+'% payout. Medical services are PPN-exempt.');
   csv+=blank();
   if(isMulti){
     csv+=row('',...cols,'TOTAL');
-    csv+=row('Gross Clinical Sales Facilitated (IDR)',...monthData.map(d=>fmt(d.clinicalGross)),fmt(T.clinicalGross));
-    csv+=row('Distrik Commission '+(TAX_CFG.clinicCommission*100)+'% (legal gross revenue)',...monthData.map(d=>fmt(d.clinicalCommission)),fmt(T.clinicalCommission));
-    csv+=row('ClinicTerrain Pass-Through '+((1-TAX_CFG.clinicCommission)*100)+'%',...monthData.map(d=>fmt(d.clinicalPayout)),fmt(T.clinicalPayout));
-    csv+=row('PPh 23 to Withhold '+(TAX_CFG.pph23*100)+'%',...monthData.map(d=>fmt(d.clinicalPPh23)),fmt(T.clinicalPPh23));
-    csv+=row('Net Remittance to ClinicTerrain',...monthData.map(d=>fmt(d.clinicalPayout-d.clinicalPPh23)),fmt(T.clinicalPayout-T.clinicalPPh23));
+    csv+=row('HUMAN+ Gross Payments Collected (IDR)',...monthData.map(d=>fmt(d.clinicalGross)),fmt(T.clinicalGross));
+    csv+=row('DISTRIK Commission '+(TAX_CFG.clinicCommission*100)+'% (DISTRIK revenue)',...monthData.map(d=>fmt(d.clinicalCommission)),fmt(T.clinicalCommission));
+    csv+=row('Payable to HUMAN+ '+((1-TAX_CFG.clinicCommission)*100)+'% (liability)',...monthData.map(d=>fmt(d.clinicalPayout)),fmt(T.clinicalPayout));
+    csv+=row('PPh 23 on DISTRIK commission '+(TAX_CFG.pph23*100)+'% (withheld by HUMAN+ · receivable)',...monthData.map(d=>fmt(d.clinicalPPh23)),fmt(T.clinicalPPh23));
+    csv+=row('Net DISTRIK Commission after PPh 23',...monthData.map(d=>fmt(d.clinicalNetComm)),fmt(T.clinicalNetComm));
+    csv+=row('Amount Payable to HUMAN+ (full 80%, no withholding)',...monthData.map(d=>fmt(d.clinicalPayout)),fmt(T.clinicalPayout));
   } else {
     const d=monthData[0];
     csv+=row('Line Item','Amount (IDR)','Tax Treatment');
-    csv+=row('Gross Clinical Sales Facilitated',fmt(d.clinicalGross),'Full value processed through Distrik');
-    csv+=row('Distrik Commission '+(TAX_CFG.clinicCommission*100)+'%',fmt(d.clinicalCommission),'LEGAL GROSS REVENUE — taxable to Distrik');
-    csv+=row('ClinicTerrain Pass-Through '+((1-TAX_CFG.clinicCommission)*100)+'%',fmt(d.clinicalPayout),'Supplier money — NOT Distrik revenue');
-    csv+=row('PPh 23 Withholding '+(TAX_CFG.pph23*100)+'%',fmt(d.clinicalPPh23),'Withheld on corporate-supplier payout; remit to DJP by 10th');
-    csv+=row('Net Remittance to ClinicTerrain',fmt(d.clinicalPayout-d.clinicalPPh23),'Payout less PPh 23');
+    csv+=row('HUMAN+ Gross Payments Collected',fmt(d.clinicalGross),'Collected by DISTRIK — in TAKINGS, not DISTRIK revenue');
+    csv+=row('DISTRIK Commission '+(TAX_CFG.clinicCommission*100)+'%',fmt(d.clinicalCommission),'DISTRIK REVENUE — taxable to Distrik');
+    csv+=row('Payable to HUMAN+ '+((1-TAX_CFG.clinicCommission)*100)+'%',fmt(d.clinicalPayout),'LIABILITY — money owed to HUMAN+ (not revenue, not expense)');
+    csv+=row('PPh 23 on DISTRIK commission '+(TAX_CFG.pph23*100)+'%',fmt(d.clinicalPPh23),'Withheld by HUMAN+ from DISTRIK commission → DISTRIK tax credit / receivable');
+    csv+=row('Net DISTRIK Commission after PPh 23',fmt(d.clinicalNetComm),'Commission less PPh 23');
+    csv+=row('Amount Payable to HUMAN+',fmt(d.clinicalPayout),'Full 80% — DISTRIK does NOT withhold PPh 23 from this');
     csv+=blank();
     csv+=row('CIT on commission (illustrative)',fmt(Math.round(d.clinicalCommission*TAX_CFG.cit)),(TAX_CFG.cit*100)+'% of commission, BEFORE operating-cost deductions');
   }
@@ -10110,17 +10182,19 @@ function downloadPLReport(period, which){
   if(isMulti){
     csv+=row('PT PMA · NON-PKP (no PPN) · Normal Corporate Tax');
     csv+=row('',...cols,'TOTAL');
-    csv+=row('PPh 23 — Withholding on Suppliers',...monthData.map(d=>fmt(d.clinicalPPh23+d.supPPh23)),fmt(T.clinicalPPh23+T.supPPh23));
+    csv+=row('PPh 23 — Withholding on Suppliers (DISTRIK remits)',...monthData.map(d=>fmt(d.supPPh23)),fmt(T.supPPh23));
+    csv+=row('PPh 23 on DISTRIK commission (withheld by HUMAN+ · RECEIVABLE, not a DISTRIK payable)',...monthData.map(d=>fmt(d.clinicalPPh23)),fmt(T.clinicalPPh23));
     csv+=row('PPh 21 — Employee Income Tax (est.)',...monthData.map(d=>fmt(d.pph21)),fmt(T.pph21));
     csv+=row('PBJT — Café F&B 10%',...monthData.map(d=>fmt(d.pbjt)),fmt(T.pbjt));
     csv+=row('CIT (PPh Badan) 22% on net profit',...monthData.map(d=>fmt(Math.round(Math.max(0,d.taxableProfit)*TAX_CFG.cit))),fmt(Math.round(Math.max(0,T.taxableProfit)*TAX_CFG.cit)));
-    csv+=row('Total for Review',...monthData.map(d=>fmt(d.pph21+d.pbjt+d.clinicalPPh23+d.supPPh23+Math.round(Math.max(0,d.taxableProfit)*TAX_CFG.cit))),fmt(T.pph21+T.pbjt+T.clinicalPPh23+T.supPPh23+Math.round(Math.max(0,T.taxableProfit)*TAX_CFG.cit)));
+    csv+=row('Total DISTRIK Remits (excl. HUMAN+-withheld receivable)',...monthData.map(d=>fmt(d.pph21+d.pbjt+d.supPPh23+Math.round(Math.max(0,d.taxableProfit)*TAX_CFG.cit))),fmt(T.pph21+T.pbjt+T.supPPh23+Math.round(Math.max(0,T.taxableProfit)*TAX_CFG.cit)));
   } else {
     const d=monthData[0];
     csv+=row('Entity: PT PMA  ·  Status: NON-PKP (no PPN)  ·  Income tax: Normal Corporate (PPh Badan)');
     csv+=blank();
     csv+=row('Tax Type','Base (IDR)','Amount (IDR)','Due Date','Notes');
-    csv+=row('PPh 23 — Withholding on Suppliers',fmt(d.clinicalPayout+d.supPayout),fmt(d.clinicalPPh23+d.supPPh23),'10th following month','2% on ClinicTerrain '+((1-TAX_CFG.clinicCommission)*100)+'% payout + consignment-brand payouts');
+    csv+=row('PPh 23 — Withholding on Suppliers (DISTRIK remits)',fmt(d.supPayout),fmt(d.supPPh23),'10th following month','2% on consignment-brand payouts only');
+    csv+=row('PPh 23 on DISTRIK commission (RECEIVABLE)',fmt(d.clinicalCommission),fmt(d.clinicalPPh23),'—','Withheld by HUMAN+ from DISTRIK'+"'"+'s commission → DISTRIK tax credit. DISTRIK does NOT remit this. Obtain Bukti Potong from HUMAN+.');
     csv+=row('PPh 21 — Employee Income Tax',fmt(d.payroll),fmt(d.pph21),'10th following month','ESTIMATE only — apply TER/PTKP; staff < IDR 4.5m/mo likely NIL');
     csv+=row('PBJT — Café F&B (10%)',fmt(d.fuelRev),fmt(d.pbjt),'per Badung Perda','Regional tax — CAFÉ ONLY. Recovery & Retail: NO PBJT.');
     csv+=row('PPN',' — ','NOT APPLICABLE','—','Distrik is NON-PKP: no PPN charged, no input credits.');
@@ -10135,9 +10209,9 @@ function downloadPLReport(period, which){
   csv+=section('9. Supplier Payables — Agent / Consignment Settlement');
   csv+=row('Supplier','Split','Units / Bkgs','Sales (IDR)','Payout Due (IDR)',
            'less PPh 23 2% (IDR)','Net Remit (IDR)','Distrik Commission (IDR)');
-  csv+=row('ClinicTerrain (clinical agent)',((1-TAX_CFG.clinicCommission)*100)+'%',T.clinicalGross>0?'—':'0',
-           fmt(T.clinicalGross),fmt(T.clinicalPayout),fmt(T.clinicalPPh23),
-           fmt(T.clinicalPayout-T.clinicalPPh23),fmt(T.clinicalCommission));
+  csv+=row('HUMAN+ (medical agent · Version B)',((1-TAX_CFG.clinicCommission)*100)+'%',T.clinicalGross>0?'—':'0',
+           fmt(T.clinicalGross),fmt(T.clinicalPayout),'0 (no DISTRIK withholding)',
+           fmt(T.clinicalPayout),fmt(T.clinicalCommission));
   csv+=blank();
   csv+=row('Consignment Brands','Split %','Units Sold','Sales (IDR)','Payout Due (IDR)',
            'less PPh 23 2% (IDR)','Net Remit (IDR)','Distrik Commission (IDR)');
@@ -10430,7 +10504,7 @@ window.dkDelete = function(id){
   try{
     id=String(id||''); if(!id) return;
     window._deletedIds = window._deletedIds||{}; window._deletedIds[id]=Date.now();
-    try{ if(typeof recoveryData==='object') Object.keys(recoveryData).forEach(function(d){ var day=recoveryData[d]; if(day&&day.bookings){ var i=day.bookings.findIndex(function(b){return String(b.id)===id;}); if(i>=0) day.bookings.splice(i,1); day.revenue=(day.bookings||[]).reduce(function(s,b){return s+((typeof clinCollected==='function')?clinCollected(b):0);},0); } }); }catch(e){}
+    try{ if(typeof recoveryData==='object') Object.keys(recoveryData).forEach(function(d){ var day=recoveryData[d]; if(day&&day.bookings){ var i=day.bookings.findIndex(function(b){return String(b.id)===id;}); if(i>=0) day.bookings.splice(i,1); day.revenue=(day.bookings||[]).reduce(function(s,b){return s+((typeof clinRevenue==='function')?clinRevenue(b):0);},0); } }); }catch(e){}
     try{ if(typeof fuelData==='object') Object.keys(fuelData).forEach(function(d){ var day=fuelData[d]; if(day&&day.transactions){ day.transactions=day.transactions.filter(function(t){return String(t.id)!==id;}); day.revenue=day.transactions.reduce(function(s,t){return s+((t&&t.total)||0);},0); } }); }catch(e){}
     try{ if(typeof supplyData==='object') Object.keys(supplyData).forEach(function(d){ var day=supplyData[d]; if(day&&day.orders){ day.orders=day.orders.filter(function(o){return String(o.id)!==id;}); day.revenue=day.orders.reduce(function(s,o){return s+((o&&o.total)||0);},0); } }); }catch(e){}
     try{ if(typeof firebase!=='undefined'&&firebase.firestore) firebase.firestore().collection('ledger').doc(id).delete(); }catch(e){}
@@ -11811,7 +11885,7 @@ function confirmClinical(){
     price:_price, gross:(s?s.price:0), discPct:_rvPct, discReason:(_rvDsc?(_rvDsc.reason||''):''), discCode:(_rvDsc?(_rvDsc.code||''):''), pressure:clinPressure||null, payType:clinPayType||'full',
     source:(clinOnline?'Online':'Walk-in'), status:(isHold?'hold':'confirmed'), payMethod:clinPay, date:dateKey, _ts:Date.now()
   };
-  if(clinType==='clinical'){ rec.clinical=true; rec.tag='ClinicTerrain'; rec.window=clinWindow; rec.intake=(clinIntake?'approved':'pending'); rec.recommendedBy=clinRecommendedBy||''; }
+  if(clinType==='clinical'){ rec.clinical=true; rec.tag='HUMAN+'; rec.provider='HUMAN+'; rec.collector='DISTRIK'; rec.window=clinWindow; rec.intake=(clinIntake?'approved':'pending'); rec.recommendedBy=clinRecommendedBy||''; }
   if(clinOnline){ var _tot=_price; rec.online=true; rec.deposit=Math.round(_tot*0.5); rec.balanceDue=_tot-Math.round(_tot*0.5); rec.balancePaid=false; }
   else if(clinPayType==='deposit'){ rec.deposit=Math.round(_price*0.5); rec.balanceDue=_price-Math.round(_price*0.5); rec.balancePaid=false; rec.depositPaid=true; /* IN-PERSON deposit: paid now at the till (card/QR); balance collected on the treatment day at Check out */ }
   else if(clinPayType==='later'){ rec.deposit=0; rec.balanceDue=_price; rec.balancePaid=false; rec.depositPaid=false; /* PAY ON ARRIVAL: nothing taken now (e.g. WhatsApp booking) — the full amount is collected on the treatment day at Check out */ }
@@ -11839,7 +11913,7 @@ function confirmClinical(){
     // If editing an existing booking, remove the original first (reverse whatever revenue it contributed)
     if(clinEditingId){
       var od=clinEditingDate||dateKey, oday=recoveryData&&recoveryData[od];
-      if(oday&&oday.bookings){ var oi=oday.bookings.findIndex(function(x){return x.id===clinEditingId;}); if(oi>=0){ var orig=oday.bookings[oi]; oday.revenue=Math.max(0,(oday.revenue||0)-clinCollected(orig)); oday.bookings.splice(oi,1); } }
+      if(oday&&oday.bookings){ var oi=oday.bookings.findIndex(function(x){return x.id===clinEditingId;}); if(oi>=0){ var orig=oday.bookings[oi]; oday.revenue=Math.max(0,(oday.revenue||0)-clinRevenue(orig)); oday.bookings.splice(oi,1); } }
       rec.id=clinEditingId; // keep the same booking id
     }
     if(typeof recoveryData!=='undefined'){
@@ -11847,7 +11921,7 @@ function confirmClinical(){
       if(!recoveryData[dateKey].bookings) recoveryData[dateKey].bookings=[];
       recoveryData[dateKey].bookings.push(rec);
       // Count only what's actually been collected: online → deposit; walk-in confirmed → full; held → nothing yet
-      recoveryData[dateKey].revenue=(recoveryData[dateKey].revenue||0)+clinCollected(rec);
+      recoveryData[dateKey].revenue=(recoveryData[dateKey].revenue||0)+clinRevenue(rec); // HUMAN+ → commission only; ledger write below stores the full collected amount
       // Money counts on the day it was actually COLLECTED (so Sales matches the bank). New booking → today. EDIT/move →
       // keep the original collected-day (never shift a paid deposit onto the edit day).
       var _bizDate=(typeof todayKey==='function'?todayKey():dateKey);
@@ -11888,6 +11962,18 @@ function clinCollected(b){
   if(b.status==='hold') return 0;
   return (b.price||0);
 }
+// REVENUE recognised for a booking (accountant Version B). For a HUMAN+ (clinical/partner) booking DISTRIK
+// recognises ONLY its commission on the amount collected; the rest is Payable to HUMAN+, not revenue. For a
+// normal recovery/spa booking the full collected amount is revenue. Takings/cash-up always use clinCollected (full).
+function clinRevenue(b){
+  var c=clinCollected(b);
+  return (typeof _isHumanPlus==='function'&&_isHumanPlus(b)) ? (typeof _hpSplit==='function'?_hpSplit(c).commission:Math.round(c*0.2)) : c;
+}
+window.clinRevenue=clinRevenue;
+// Revenue recognised on a SPECIFIC collected amount for a booking (used by the optimistic day.revenue updates).
+// HUMAN+ → commission portion only; everything else → the full amount. Ledger writes always store the full amount.
+function _hpRev(b,amt){ amt=Math.round(+amt||0); return (typeof _isHumanPlus==='function'&&_isHumanPlus(b))?Math.round(amt*_hpRate()):amt; }
+window._hpRev=_hpRev;
 // Collect the remaining 50% balance when the client arrives
 // ── RECEPTION PAYMENT CLARITY ────────────────────────────────────────
 // One source of truth for what's paid vs what's owed on a booking, so the list, Check in and Check out agree.
@@ -11947,7 +12033,7 @@ function clinCheckoutProcess(id){
     var _collect=due-_discAmt;
     b.balancePaid=true; b.depositPaid=true; b.checkedIn=true; b.payMethod=method; b.method=method;   // record the method they actually paid with
     if(_discAmt>0){ b.price=Math.max(0,(b.price||0)-_discAmt); b.discPct=_dp; b.discReason=(_dsc&&_dsc.reason)||'checkout'; b.discCode=(_dsc&&_dsc.code)||''; }  // reduce final price so revenue matches what was collected
-    day.revenue=(day.revenue||0)+_collect;
+    day.revenue=(day.revenue||0)+_hpRev(b,_collect); // HUMAN+ → commission only; the full _collect still goes to the ledger (takings)
     if(typeof ledgerWrite==='function') ledgerWrite('recovery', b.id+'_bal', (typeof todayKey==='function'?todayKey():dk), _collect, 0, method, b, b.status||'confirmed');
     if(typeof saveAll==='function') saveAll();
     if(typeof syncSalesIncome==='function') syncSalesIncome();
@@ -11963,7 +12049,7 @@ function clinCollectBalance(id){
     var dk=clinKey(); var day=recoveryData&&recoveryData[dk]; if(!day||!day.bookings) return;
     var b=day.bookings.find(function(x){return x.id===id;}); if(!b||!b.online||b.balancePaid) return;
     var dep=Math.round((b.price||0)*0.5);
-    day.revenue=(day.revenue||0)+((b.price||0)-dep); // remaining pre-tax revenue
+    day.revenue=(day.revenue||0)+_hpRev(b,(b.price||0)-dep); // HUMAN+ → commission only on the balance; ledger stores the full balance (takings)
     b.balancePaid=true;
     // Balance = its OWN ledger entry on the day it's collected (today), so daily cash matches. Deposit entry stays on its own day.
     var _balAmt=(b.price||0)-Math.round((b.price||0)*0.5);
@@ -12013,9 +12099,9 @@ function clinCancelBooking(id){
     // Revenue adjustment
     if(b.online){
       var dep=Math.round((b.price||0)*0.5);
-      if(late){ b.forfeited=true; /* keep deposit revenue; reverse any collected balance */ if(b.balancePaid) day.revenue=Math.max(0,(day.revenue||0)-((b.price||0)-dep)); }
-      else { day.revenue=Math.max(0,(day.revenue||0)-clinCollected(b)); } // refund everything collected
-    } else if(b.status==='confirmed'){ day.revenue=Math.max(0,(day.revenue||0)-(b.price||0)); }
+      if(late){ b.forfeited=true; /* keep deposit revenue; reverse any collected balance */ if(b.balancePaid) day.revenue=Math.max(0,(day.revenue||0)-_hpRev(b,(b.price||0)-dep)); }
+      else { day.revenue=Math.max(0,(day.revenue||0)-clinRevenue(b)); } // refund everything collected (HUMAN+ → reverse commission only)
+    } else if(b.status==='confirmed'){ day.revenue=Math.max(0,(day.revenue||0)-clinRevenue(b)); }
     b.status='cancelled';
     if(typeof ledgerWrite==='function') ledgerWrite('recovery', b.id, dk, clinCollected(b), 0, b.payMethod, b, 'cancelled');
     if(typeof saveAll==='function') saveAll();
@@ -12056,7 +12142,7 @@ function clinConfirmHold(id){
     var dk=clinKey(); var day=recoveryData&&recoveryData[dk]; if(!day||!day.bookings) return;
     var b=day.bookings.find(function(x){return x.id===id;}); if(!b||b.status!=='hold') return;
     b.status='confirmed'; b.intake='approved';
-    day.revenue=(day.revenue||0)+(b.price||0); // now counts as revenue
+    day.revenue=(day.revenue||0)+_hpRev(b,(b.price||0)); // now counts as revenue (HUMAN+ → commission only)
     if(typeof ledgerWrite==='function') ledgerWrite('recovery', b.id, dk, clinCollected(b), 0, b.payMethod, b, b.status);
     if(typeof saveAll==='function') saveAll();
     if(typeof syncSalesIncome==='function') syncSalesIncome();
@@ -13253,6 +13339,7 @@ window.rebuildFromLedger = function(docs){
   });
   var lids={}; (docs||[]).forEach(function(r){ if(r&&r.id!=null) lids[String(r.id)]=1; });
   window._lastLedgerIds = lids;  // latest known ledger ids — used by the 30s safety flush
+  window._lastLedgerDocs = docs; // cache the raw docs so a tax-rate change can re-apply the HUMAN+ split without a resync
   (docs||[]).forEach(function(r){
     if(!r) return; var date=r.bizDate||''; if(!date) return;
     var det={}; try{ det=r.detail?JSON.parse(r.detail):{}; }catch(e){}
@@ -13268,9 +13355,21 @@ window.rebuildFromLedger = function(docs){
       if(!rd[date])rd[date]={revenue:0,bookings:[]};
       if(!_cxl || (det&&det.forfeited)){
         var _amt=(parseFloat(r.amount)||0);
-        rd[date]._rev=(rd[date]._rev||0)+_amt;
-        // Payment-by-method for the end-of-day cash-up, keyed to the day the money ARRIVED (bizDate) so the breakdown
-        // reconciles with revenue exactly — even when an online deposit is paid on a different day than the session.
+        // HUMAN+ AGENT MODEL (Version B): DISTRIK collected _amt in full (it stays in takings/_pay below), but only
+        // the commission is DISTRIK revenue; the rest is Payable to HUMAN+, and PPh 23 (on the commission) is a
+        // withholding receivable. Normal recovery/spa bookings recognise the full amount as revenue.
+        if(_isHumanPlus(det)){
+          var _sp=_hpSplit(_amt);
+          rd[date]._rev=(rd[date]._rev||0)+_sp.commission;
+          rd[date]._hpGross=(rd[date]._hpGross||0)+_sp.gross;
+          rd[date]._hpComm=(rd[date]._hpComm||0)+_sp.commission;
+          rd[date]._hpPayable=(rd[date]._hpPayable||0)+_sp.payable;
+          rd[date]._hpPph=(rd[date]._hpPph||0)+_sp.pph23;
+        } else {
+          rd[date]._rev=(rd[date]._rev||0)+_amt;
+        }
+        // Payment-by-method for the end-of-day cash-up, keyed to the day the money ARRIVED (bizDate). This is TAKINGS
+        // (real cash collected) so it always uses the FULL amount — including the HUMAN+ 80% DISTRIK holds as payable.
         if(_amt>0){
           var _pm=(r.method||(det&&det.payMethod)||(det&&det.online?'online':'card')).toString().toLowerCase();
           var _pb=(_pm==='card')?'card':((_pm==='qr'||_pm==='qris'||_pm==='gopay'||_pm==='ovo')?'qr':((_pm==='online'||_pm==='xendit')?'online':((_pm==='partner')?'':'other')));
@@ -13313,7 +13412,7 @@ window.rebuildFromLedger = function(docs){
   }catch(e){ console.warn('[ledger] safety-net',e); }
   Object.keys(fd).forEach(function(d){ fd[d].revenue=(fd[d].transactions||[]).reduce(function(s,t){return s+((t&&t.total)||0);},0); });
   Object.keys(sd).forEach(function(d){ sd[d].revenue=(sd[d].orders||[]).reduce(function(s,o){return s+((o&&o.total)||0);},0); });
-  Object.keys(rd).forEach(function(d){ rd[d].revenue=(rd[d]._rev||0); delete rd[d]._rev; delete rd[d]._seen; });  // revenue = ledger amounts on the payment day
+  Object.keys(rd).forEach(function(d){ rd[d].revenue=(rd[d]._rev||0); rd[d].hpGross=(rd[d]._hpGross||0); rd[d].hpComm=(rd[d]._hpComm||0); rd[d].hpPayable=(rd[d]._hpPayable||0); rd[d].hpPph=(rd[d]._hpPph||0); delete rd[d]._rev; delete rd[d]._hpGross; delete rd[d]._hpComm; delete rd[d]._hpPayable; delete rd[d]._hpPph; delete rd[d]._seen; });  // revenue = DISTRIK revenue (HUMAN+ counted at commission only); hp* = agent-model breakdown; takings live in _pay
   try{
     if(typeof fuelData==='object'&&fuelData){ Object.keys(fuelData).forEach(function(k){delete fuelData[k];}); Object.assign(fuelData,fd); }
     if(typeof supplyData==='object'&&supplyData){ Object.keys(supplyData).forEach(function(k){delete supplyData[k];}); Object.assign(supplyData,sd); }
@@ -13756,6 +13855,165 @@ window.downloadPayslip=function(empId,ym){
       +'<p style="font-size:10px;color:#aaa;">Generated '+new Date().toLocaleDateString('en-GB')+' · DISTRIK Canggu</p></body></html>';
     var w=window.open('','_blank'); if(w){ w.document.write(html); w.document.close(); setTimeout(function(){ try{w.print();}catch(e){} },300); }
   }catch(e){ console.warn('payslip',e); }
+};
+</script>
+
+<!-- ===== HUMAN+ SETTLEMENTS (Finance · agent/collection model, accountant Version B, admin-only) ===== -->
+<script>
+// Per-period settlement STATUS lives in its own Firestore collection `human_settlements` (like `settlements`).
+// The TOTALS + per-booking breakdown are derived live from the ledger (recoveryData) so they always match Sales.
+window.HP_SETTLEMENTS={};
+(function(){
+  function loadHP(){ try{ if(typeof firebase==='undefined'||!firebase.firestore)return;
+    firebase.firestore().collection('human_settlements').onSnapshot(function(snap){ var m={}; snap.forEach(function(d){ m[d.id]=d.data(); }); window.HP_SETTLEMENTS=m; try{ if(document.getElementById('panel-hplus')&&document.getElementById('panel-hplus').classList.contains('on')) renderHumanSettlements(); }catch(e){} }, function(e){ console.warn('[hplus] snap',e); }); }catch(e){ console.warn('[hplus] load',e); } }
+  if(typeof firebase!=='undefined'&&firebase.auth){ firebase.auth().onAuthStateChanged(function(u){ if(u) loadHP(); }); }
+})();
+window.hplusSetStatus=function(period, patch){ try{ if(typeof firebase==='undefined'||!firebase.firestore)return; var doc={period:period, ts:firebase.firestore.FieldValue.serverTimestamp(), by:((typeof currentUser!=='undefined'&&currentUser&&currentUser.name)||'?')}; Object.assign(doc,patch||{}); firebase.firestore().collection('human_settlements').doc(String(period)).set(doc,{merge:true}); }catch(e){ console.warn('[hplus] set',e); } };
+
+var _hpMonth=null;
+function _hpMonthNow(){ if(!_hpMonth){ var d=(typeof baliNow==='function'?baliNow():new Date()); _hpMonth=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2); } return _hpMonth; }
+window.hplusChangeMonth=function(n){ var p=_hpMonthNow().split('-'); var d=new Date(+p[0],+p[1]-1+n,1); _hpMonth=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2); renderHumanSettlements(); };
+window.hplusThisMonth=function(){ _hpMonth=null; renderHumanSettlements(); };
+
+// Enumerate HUMAN+ bookings whose SESSION date falls in month ym, with the Version B split on the amount DISTRIK collected.
+function _hplusRows(ym){
+  var rows=[];
+  try{ if(typeof recoveryData!=='object'||!recoveryData) return rows;
+    Object.keys(recoveryData).forEach(function(k){ if(String(k).slice(0,7)!==ym) return; var day=recoveryData[k]; if(!day||!day.bookings) return;
+      day.bookings.forEach(function(b){ if(!b||b.status==='cancelled'||b.status==='hold') return; if(!(typeof _isHumanPlus==='function'&&_isHumanPlus(b))) return;
+        var gross=(typeof clinCollected==='function')?clinCollected(b):(b.price||0); if(!(gross>0)) return;
+        var sp=(typeof _hpSplit==='function')?_hpSplit(gross):{gross:gross,commission:Math.round(gross*0.2),payable:gross-Math.round(gross*0.2),pph23:Math.round(Math.round(gross*0.2)*0.02),netCommission:0};
+        rows.push({id:b.id||'', date:k, client:b.client||'—', service:(b.serviceName||b.service||'HUMAN+ treatment'), gross:sp.gross, commission:sp.commission, payable:sp.payable, pph23:sp.pph23, netComm:sp.netCommission!=null?sp.netCommission:(sp.commission-sp.pph23)});
+      });
+    });
+  }catch(e){ console.warn('[hplus] rows',e); }
+  rows.sort(function(a,b){ return String(a.date).localeCompare(String(b.date)); });
+  return rows;
+}
+window._hplusRows=_hplusRows;
+
+window.renderHumanSettlements=function(){
+  var el=document.getElementById('hplus-body'); if(!el) return;
+  var isAdmin=(typeof currentUser==='undefined')||!currentUser||currentUser.access==='admin';
+  if(!isAdmin){ el.innerHTML='<div style="padding:20px;color:#888;font-family:\'Space Mono\',monospace;font-size:12px;">Admin only.</div>'; return; }
+  var ym=_hpMonthNow(), mp=ym.split('-');
+  var MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var mLbl=MN[+mp[1]-1]+' '+mp[0];
+  var lblEl=document.getElementById('hplus-period-lbl'); if(lblEl) lblEl.textContent=mLbl;
+  var f=function(n){ return 'IDR '+Math.round(n||0).toLocaleString('id-ID'); };
+  var rows=_hplusRows(ym);
+  var T={gross:0,commission:0,payable:0,pph23:0,netComm:0}; rows.forEach(function(r){ T.gross+=r.gross; T.commission+=r.commission; T.payable+=r.payable; T.pph23+=r.pph23; T.netComm+=r.netComm; });
+  var rate=(typeof _hpRate==='function')?_hpRate():0.20, pph=(typeof _hpPphRate==='function')?_hpPphRate():0.02;
+  var st=(window.HP_SETTLEMENTS&&window.HP_SETTLEMENTS[ym])||{};
+  var paid=(st.status==='paid');
+  var pphDoc=(st.pphDoc==='received');
+  var C='#232327', MUT='#6b6b72', TX='#f4f4f5', PUR='#a855f7';
+  // KPI strip
+  var kpi=function(lbl,val,sub,accent){ return '<div class="dk-cell"'+(accent?(' style="border-left:2px solid '+accent+';"'):'')+'><div class="dk-clbl">'+lbl+'</div><div class="dk-v">'+val+'</div><div class="dk-cs">'+(sub||'')+'</div></div>'; };
+  var html=''
+   +'<div style="display:flex;align-items:center;gap:10px;margin:0 2px 12px;">'
+     +'<button class="dk-ghost" onclick="hplusChangeMonth(-1)">‹</button>'
+     +'<div style="font-family:\'Archivo\',sans-serif;font-weight:700;letter-spacing:1px;min-width:170px;text-align:center;">'+mLbl+'</div>'
+     +'<button class="dk-ghost" onclick="hplusChangeMonth(1)">›</button>'
+     +'<button class="dk-ghost" onclick="hplusThisMonth()">This month</button>'
+     +'<span style="flex:1"></span>'
+     +'<button class="dk-ghost" style="border-color:'+PUR+';color:'+PUR+';" onclick="hplusInvoice(\''+ym+'\')">⤓ Generate commission invoice</button>'
+   +'</div>'
+   +'<div class="dk-strip" style="margin-bottom:16px;">'
+     +kpi('HUMAN+ Gross Collected', f(T.gross), rows.length+' booking'+(rows.length!==1?'s':''))
+     +kpi('DISTRIK Commission '+(rate*100)+'%', f(T.commission), 'DISTRIK revenue', PUR)
+     +kpi('Payable to HUMAN+ '+((1-rate)*100)+'%', f(T.payable), 'liability')
+     +kpi('PPh 23 '+(pph*100)+'% (receivable)', f(T.pph23), 'withheld by HUMAN+')
+     +kpi('Net DISTRIK Commission', f(T.netComm), 'after PPh 23')
+   +'</div>';
+  // Settlement status controls
+  html+='<div style="border:1px solid '+C+';border-radius:6px;margin-bottom:16px;">'
+     +'<div style="display:flex;flex-wrap:wrap;align-items:center;gap:14px;padding:12px 14px;font-family:\'Space Mono\',monospace;font-size:11px;">'
+       +'<span style="color:'+MUT+';">Settlement to HUMAN+:</span>'
+       +'<b style="color:'+(paid?'#22c55e':'#f59e0b')+';">'+(paid?'PAID':'PENDING')+'</b>'
+       +'<button class="dk-ghost" onclick="hplusSetStatus(\''+ym+'\',{status:\''+(paid?'pending':'paid')+'\',settledAmount:'+T.payable+',settledDate:\''+(paid?'':(new Date().toISOString().slice(0,10)))+'\'})">'+(paid?'Mark pending':'Mark PAID ('+f(T.payable)+')')+'</button>'
+       +(st.settledDate?('<span style="color:'+MUT+';">settled '+st.settledDate+(st.settledAmount?(' · '+f(st.settledAmount)):'')+'</span>'):'')
+       +'<span style="flex:1"></span>'
+       +'<span style="color:'+MUT+';">PPh 23 Bukti Potong:</span>'
+       +'<b style="color:'+(pphDoc?'#22c55e':'#f59e0b')+';">'+(pphDoc?'RECEIVED':'PENDING')+'</b>'
+       +'<button class="dk-ghost" onclick="hplusSetStatus(\''+ym+'\',{pphDoc:\''+(pphDoc?'pending':'received')+'\'})">'+(pphDoc?'Mark pending':'Mark received')+'</button>'
+     +'</div>'
+   +'</div>';
+  // Booking drill-down
+  html+='<div style="border:1px solid '+C+';border-radius:6px;overflow:hidden;">'
+     +'<div style="display:grid;grid-template-columns:78px 1.3fr 1.4fr .9fr .8fr .9fr .8fr .9fr;gap:8px;padding:9px 14px;background:#141416;font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:'+MUT+';">'
+       +'<div>Date</div><div>Customer</div><div>Service</div><div style="text-align:right;">Gross</div><div style="text-align:right;">Comm '+(rate*100)+'%</div><div style="text-align:right;">Payable</div><div style="text-align:right;">PPh23</div><div style="text-align:right;">Net comm</div>'
+     +'</div>';
+  if(!rows.length){ html+='<div style="padding:16px 14px;color:'+MUT+';font-family:\'Space Mono\',monospace;font-size:11px;">No HUMAN+ bookings collected in '+mLbl+'.</div>'; }
+  else { rows.forEach(function(r){
+    var dd=String(r.date).slice(8), mm=['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+String(r.date).slice(5,7)]||'';
+    html+='<div style="display:grid;grid-template-columns:78px 1.3fr 1.4fr .9fr .8fr .9fr .8fr .9fr;gap:8px;padding:8px 14px;border-top:1px solid #1b1b1e;font-family:\'Space Mono\',monospace;font-size:11px;color:'+TX+';">'
+      +'<div style="color:'+MUT+';">'+dd+' '+mm+'</div>'
+      +'<div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+(r.client||'—')+'</div>'
+      +'<div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:'+MUT+';">'+(r.service||'')+'</div>'
+      +'<div style="text-align:right;">'+f(r.gross)+'</div>'
+      +'<div style="text-align:right;color:'+PUR+';">'+f(r.commission)+'</div>'
+      +'<div style="text-align:right;">'+f(r.payable)+'</div>'
+      +'<div style="text-align:right;color:'+MUT+';">'+f(r.pph23)+'</div>'
+      +'<div style="text-align:right;">'+f(r.netComm)+'</div>'
+    +'</div>';
+  });
+    html+='<div style="display:grid;grid-template-columns:78px 1.3fr 1.4fr .9fr .8fr .9fr .8fr .9fr;gap:8px;padding:10px 14px;border-top:2px solid '+C+';background:#141416;font-family:\'Space Mono\',monospace;font-size:11px;font-weight:700;color:'+TX+';">'
+      +'<div></div><div>TOTAL</div><div></div>'
+      +'<div style="text-align:right;">'+f(T.gross)+'</div>'
+      +'<div style="text-align:right;color:'+PUR+';">'+f(T.commission)+'</div>'
+      +'<div style="text-align:right;">'+f(T.payable)+'</div>'
+      +'<div style="text-align:right;">'+f(T.pph23)+'</div>'
+      +'<div style="text-align:right;">'+f(T.netComm)+'</div>'
+    +'</div>';
+  }
+  html+='</div>';
+  html+='<div style="padding:10px 4px;color:'+MUT+';font-family:\'Space Mono\',monospace;font-size:9px;line-height:1.7;">Version B (agent/collection): DISTRIK collects the full customer payment (in Takings), recognises only the '+(rate*100)+'% commission as revenue, and owes HUMAN+ the '+((1-rate)*100)+'% payable in full. PPh 23 ('+(pph*100)+'%) is withheld by HUMAN+ from DISTRIK'+"'"+'s commission — a DISTRIK tax credit, not a DISTRIK withholding. Settle by the 20th of the following month; obtain the Bukti Potong PPh 23 from HUMAN+.</div>';
+  el.innerHTML=html;
+};
+
+// Printable DISTRIK→HUMAN+ commission invoice for the period (matches the Option B template).
+window.hplusInvoice=function(ym){
+  try{
+    var rows=_hplusRows(ym); var mp=ym.split('-');
+    var MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
+    var mLbl=MN[+mp[1]-1]+' '+mp[0];
+    var lastDay=new Date(+mp[0],+mp[1],0).getDate();
+    var rate=(typeof _hpRate==='function')?_hpRate():0.20, pph=(typeof _hpPphRate==='function')?_hpPphRate():0.02;
+    var pkp=(typeof TAX_CFG!=='undefined'&&TAX_CFG.pkp);
+    var f=function(n){ return 'IDR '+Math.round(n||0).toLocaleString('id-ID'); };
+    var T={gross:0,commission:0}; rows.forEach(function(r){ T.gross+=r.gross; T.commission+=r.commission; });
+    var pphAmt=Math.round(T.commission*pph), net=T.commission-pphAmt;
+    var body=rows.map(function(r){ return '<tr><td>'+r.date+'</td><td>'+(r.client||'—')+'</td><td>'+(r.service||'')+'</td><td class="r">'+f(r.gross)+'</td><td class="r">'+(rate*100)+'%</td><td class="r">'+f(r.commission)+'</td></tr>'; }).join('');
+    var npwp=(typeof TAX_CFG!=='undefined'&&TAX_CFG.npwp)?TAX_CFG.npwp:'XX.XXX.XXX.X-XXX.XXX';
+    var html='<html><head><meta charset="utf-8"><title>DISTRIK Commission Invoice — '+mLbl+'</title>'
+      +'<style>body{font-family:Arial,Helvetica,sans-serif;color:#111;max-width:760px;margin:24px auto;padding:0 20px;font-size:13px;}h1{font-size:18px;margin:0;}h2{font-size:13px;font-weight:normal;color:#555;margin:2px 0 18px;}table{width:100%;border-collapse:collapse;margin:10px 0;}th,td{padding:7px 8px;border-bottom:1px solid #ddd;text-align:left;font-size:12px;}th{background:#f4f4f4;}td.r,th.r{text-align:right;}.tot td{font-weight:bold;border-top:2px solid #333;}.meta td{border:none;padding:2px 8px;}.box{border:1px solid #ccc;border-radius:6px;padding:12px 14px;margin:14px 0;}.note{font-size:10px;color:#666;line-height:1.6;margin-top:16px;}.sig{margin-top:40px;display:flex;justify-content:space-between;}</style></head><body>'
+      +'<h1>PT THE SAVAGE GROUP (DISTRIK)</h1>'
+      +'<h2>Commission Invoice — Agent / Collection Model ('+(rate*100)+'%) · accountant Version B</h2>'
+      +'<table><tr class="meta"><td style="width:170px;color:#666;">Invoice Date</td><td>'+lastDay+' '+mLbl+'</td></tr>'
+      +'<tr class="meta"><td style="color:#666;">Period Covered</td><td>1 – '+lastDay+' '+mLbl+'</td></tr>'
+      +'<tr class="meta"><td style="color:#666;">Billed To</td><td>PT Biohacking Klinik Indonesia (HUMAN+)</td></tr>'
+      +'<tr class="meta"><td style="color:#666;">DISTRIK NPWP</td><td>'+npwp+'</td></tr></table>'
+      +'<table><thead><tr><th>Date</th><th>Customer / Ref</th><th>Treatment</th><th class="r">Gross Value (100%)</th><th class="r">Rate</th><th class="r">Commission</th></tr></thead>'
+      +'<tbody>'+(body||'<tr><td colspan="6" style="color:#888;">No HUMAN+ bookings collected this period.</td></tr>')+'</tbody>'
+      +'<tfoot><tr class="tot"><td colspan="3">Subtotal (Total Commission Due)</td><td class="r">'+f(T.gross)+'</td><td></td><td class="r">'+f(T.commission)+'</td></tr></tfoot></table>'
+      +'<div class="box"><table>'
+      +'<tr class="meta"><td style="width:60%;color:#333;">Total Commission Invoiced</td><td class="r">'+f(T.commission)+'</td></tr>'
+      +'<tr class="meta"><td style="color:#333;">Less: PPh 23 Withholding ('+(pph*100)+'%) — withheld by HUMAN+</td><td class="r">− '+f(pphAmt)+'</td></tr>'
+      +'<tr class="meta" style="border-top:1px solid #ccc;"><td style="color:#333;font-weight:bold;">NET AMOUNT RECEIVABLE BY DISTRIK</td><td class="r" style="font-weight:bold;">'+f(net)+'</td></tr>'
+      +'</table></div>'
+      +'<div class="note">'
+      +'1. This invoice documents DISTRIK'+"'"+'s '+(rate*100)+'% commission for booking, venue and payment-collection services provided to HUMAN+, calculated on the gross treatment value collected via DISTRIK'+"'"+'s POS during the period.<br>'
+      +'2. As an agency/commission service fee, this commission is subject to Art. 23 withholding tax ('+(pph*100)+'%) — HUMAN+, as the payor, withholds this amount when settling DISTRIK'+"'"+'s commission.<br>'
+      +'3. '+(pkp?('DISTRIK is PKP: VAT (PPN) treatment applies to this commission — confirm with accountant.'):('No VAT applies to this commission while DISTRIK remains non-PKP.'))+'<br>'
+      +'4. The invoiced/service value is the full '+(rate*100)+'% commission BEFORE withholding; the '+(pph*100)+'% is a DISTRIK tax credit.<br>'
+      +'5. HUMAN+ to issue a withholding tax certificate (Bukti Potong PPh 23) to DISTRIK for the amount withheld.'
+      +'</div>'
+      +'<div class="sig"><div>Prepared by (DISTRIK):<br><br>_____________________</div><div>Acknowledged by (HUMAN+):<br><br>_____________________</div></div>'
+      +'</body></html>';
+    var w=window.open('','_blank'); if(w){ w.document.write(html); w.document.close(); setTimeout(function(){ try{w.print();}catch(e){} },300); }
+    else { alert('Please allow pop-ups to generate the invoice.'); }
+  }catch(e){ console.warn('[hplus] invoice',e); alert('Invoice error: '+e.message); }
 };
 </script>
 
