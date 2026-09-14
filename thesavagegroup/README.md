@@ -32,18 +32,34 @@ difference`.
 
 Two ideas carry the group:
 
-- **The group is monochrome; each venture brings its own colour.** The
-  page grade is white/neutral by default. Hovering a venture row floods
-  it with that brand's hue — Distrik red, corporate blue — and the
-  `.grade` layer tracks whichever section is in view. A brand asserting
-  itself over a neutral parent is the house-of-brands idea made visual.
+- **Everything grades red.** Photography runs as a red duotone: the
+  image is desaturated and darkened, then a `mix-blend-mode: color`
+  layer floods it with the house red. Ventures shift within that family
+  — Distrik `#FF2D2D`, corporate `#C4161C`, the unbuilt one a muted
+  `#7A4A48` — so rows still separate without leaving red. The `.grade`
+  layer tracks whichever section is in view.
 - **Big graded image, small glass panel.** The `.plate` sections run a
-  full-bleed duotone photograph with a compact frosted card floating over
-  it carrying a counter, a statement and a figures row.
+  full-bleed duotone photograph with a genuinely translucent card
+  floating over it — heavy `backdrop-filter` blur so the colour behind
+  reads through, a 20px radius, a light hairline border.
+
+Glass only stays legible over a controlled ground. Every image under a
+card is darkened (`brightness(.46)`) with a directional scrim where the
+card sits. Text inside the cards measures 6.5:1 to 18.7:1 — **re-check
+those numbers before lightening any plate image.**
 
 Set a venture's colour with one inline custom property:
 `style="--grade:#FF2D2D"`, plus `data-grade="#FF2D2D"` so the page grade
 follows it on scroll.
+
+### Type
+
+Display marks — `Savage.`, page headlines, drawer items, venture names,
+the footer — are set in **Drunk Wide Italic**, the Distrik. logotype
+face. It is self-hosted and **the file is not in the repo yet**; see
+`assets/fonts/README.md`. Until it lands, everything falls back to Inter
+900 italic. Running statements stay in Inter on purpose: a wide face at
+that length runs off the screen.
 
 ## Switching domains
 
