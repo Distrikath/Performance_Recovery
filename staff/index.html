@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814088;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814089;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -1787,6 +1787,25 @@ h1,
 .clin-card{border:1px solid #e8e8e8;padding:14px;margin-bottom:8px;cursor:pointer;background:#fff;transition:border-color .12s;}
 .clin-card:hover{border-color:#FF2D2D;}
 .clin-card.sel{border-color:#0A0A0A;box-shadow:inset 0 0 0 1px #0A0A0A;}
+/* Grouped Recovery pathway card: name once, duration/price chips underneath (simplifies the long flat list) */
+.clin-grp-card{border:1px solid #e8e8e8;padding:12px 14px;margin-bottom:8px;background:#fff;}
+.clin-grp-name{font-family:'Archivo',sans-serif;font-weight:700;font-size:15px;letter-spacing:.02em;color:#0A0A0A;margin-bottom:9px;}
+.clin-dur-row{display:flex;flex-wrap:wrap;gap:6px;}
+.clin-dur-opt{display:flex;flex-direction:column;align-items:flex-start;gap:1px;border:1px solid #e0e0e0;background:#fafafa;padding:7px 11px;cursor:pointer;font-family:'Space Mono',monospace;line-height:1.2;transition:border-color .12s,background .12s;}
+.clin-dur-opt:hover{border-color:#FF2D2D;}
+.clin-dur-opt.sel{border-color:#0A0A0A;background:#0A0A0A;}
+.clin-dur-opt.sel .clin-dur-t,.clin-dur-opt.sel .clin-dur-p{color:#fff;}
+.clin-dur-t{font-size:11px;font-weight:700;color:#0A0A0A;letter-spacing:.02em;}
+.clin-dur-p{font-size:10px;color:#777;}
+/* IV enhancements multi-select (shown once an IV is chosen) */
+.clin-enh-wrap{margin:6px 0 2px;}
+.clin-enh-opt{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid #e0e0e0;background:#fafafa;padding:8px 11px;margin-bottom:5px;cursor:pointer;font-family:'Space Mono',monospace;font-size:11px;color:#0A0A0A;transition:border-color .12s,background .12s;}
+.clin-enh-opt:hover{border-color:#a855f7;}
+.clin-enh-opt.sel{border-color:#a855f7;background:#faf5ff;box-shadow:inset 0 0 0 1px #a855f7;}
+.clin-enh-opt .clin-enh-p{color:#777;white-space:nowrap;}
+.clin-enh-opt.sel .clin-enh-p{color:#a855f7;}
+.clin-enh-tick{width:15px;height:15px;border:1px solid #c8c8c8;border-radius:3px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;color:#fff;flex-shrink:0;}
+.clin-enh-opt.sel .clin-enh-tick{background:#a855f7;border-color:#a855f7;}
 .clin-card-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
 .clin-name{font-family:'Archivo',sans-serif;font-weight:700;font-size:15px;letter-spacing:-.01em;color:#0A0A0A;}
 .clin-price{font-family:'Archivo',sans-serif;font-weight:700;font-size:15px;color:#0A0A0A;white-space:nowrap;}
@@ -10687,7 +10706,7 @@ var clinRecommendedBy=''; // IV/blood: therapist (TC/TB/TD) who recommended it �
 var clinPayType='full'; // 'deposit' | 'full'
 var clinPatient='', clinEmail='', clinWhatsapp='', clinTime='';
 var clinDate=(typeof baliNow==='function'?baliNow():new Date());
-var clinGroupOpen={recovery:true,clinical:true};
+var clinGroupOpen={recovery:true,iv:true,blood:true};
 var clinViewYear=null, clinViewMonth=null;
 function clinKey(){ try{ return clinDate.toLocaleDateString('en-CA',(typeof BALI_TZ!=='undefined'?{timeZone:BALI_TZ}:undefined)); }catch(e){ return clinDate.toLocaleDateString('en-CA'); } }
 function clinDayName(){ try{ return clinDate.toLocaleDateString('en-US',Object.assign({weekday:'long'},(typeof BALI_TZ!=='undefined'?{timeZone:BALI_TZ}:{}))); }catch(e){ return clinDate.toLocaleDateString('en-US',{weekday:'long'}); } }
@@ -10741,6 +10760,19 @@ function clinRestoreInputs(){ var p=document.getElementById('clin-patient'); if(
 function clinFmt(n){ return 'IDR '+Math.round(n||0).toLocaleString('id-ID'); }
 function clinSetText(id,t){ var e=document.getElementById(id); if(e) e.textContent=t; }
 function clinSvc(){ if(!clinSel) return null; return (clinType==='clinical'?CLINICAL_SERVICES:SERVICES).find(function(x){return x.id===clinSel;}); }
+// HUMAN+ service category: explicit svc.cat ('iv'|'blood') wins; otherwise infer 'iv' from the name (IV / infusion / drip / NAD),
+// else 'blood'. Lets us show IV and Blood Work as separate lists without a data migration.
+function _clinCat(svc){ if(!svc) return 'blood'; if(svc.cat==='iv'||svc.cat==='blood') return svc.cat; return (/\b(iv|infusion|drip|nad)\b/i.test(String(svc.name||'')))?'iv':'blood'; }
+// IV ENHANCEMENTS (add-ons) — selectable only when an IV service is chosen; they add to the treatment price.
+var clinAddons=[]; // selected addon ids for the current booking
+function clinAddonList(){ return (clinAddons||[]).map(function(id){ return (CLINICAL_ADDONS||[]).find(function(a){return a.id===id;}); }).filter(Boolean); }
+function clinAddonTotal(){ return clinAddonList().reduce(function(t,a){ return t+(a.price||0); },0); }
+function _clinSelIsIV(){ return clinType==='clinical' && _clinCat(clinSvc())==='iv'; }
+function toggleClinAddon(id){ if(typeof clinCaptureInputs==='function') clinCaptureInputs(); var i=clinAddons.indexOf(id); if(i>=0) clinAddons.splice(i,1); else clinAddons.push(id); renderClinicalBooking(); renderClinicalOrder(); }
+window.toggleClinAddon=toggleClinAddon;
+// Effective base price for the current selection: recovery/blood = sticker; IV = sticker + selected enhancements.
+function clinBasePrice(){ var s=clinSvc(); var base=s?(s.price||0):0; return base + (_clinSelIsIV()?clinAddonTotal():0); }
+window.clinBasePrice=clinBasePrice; window.clinAddonList=clinAddonList; window.clinAddonTotal=clinAddonTotal; window._clinSelIsIV=_clinSelIsIV;
 
 /* Who's in what room today — cross-referenced against Roster + Room Settings */
 function getRoomsToday(){
@@ -10954,7 +10986,7 @@ function clinSendReminder(id){
 // Resend guard — the button becomes "Reminder sent ✓"; re-sending asks first so no accidental double message.
 function clinResendReminder(id){ if(confirm('A reminder was already sent to this client via WhatsApp.\n\nSend another one?')) clinSendReminder(id); }
 window.clinSendReminder=clinSendReminder; window.clinResendReminder=clinResendReminder;
-function initRecovery(){ if(typeof loadClinical==='function') loadClinical(); clinSel=null;clinType=null;clinIntake=false;clinWindow=null;clinRoom=null;clinPay='card';clinDone=false;clinDoneHold=false;clinEditingId=null;clinEditingDate=null;clinOnline=false;clinPressure='';clinRecommendedBy='';clinPayType='full';clinPatient='';clinEmail='';clinWhatsapp='';clinTime=''; clinDate=(typeof baliNow==='function'?baliNow():new Date()); clinViewYear=null;clinViewMonth=null; clinGroupOpen={recovery:true,clinical:true}; try{window.clinPromo=null; ['recovery-disc-pct','recovery-disc-code'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';}); var _m=document.getElementById('recovery-disc-msg');if(_m)_m.textContent='';}catch(e){} clinSyncDateUI(); renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); startBookingListener(); }
+function initRecovery(){ if(typeof loadClinical==='function') loadClinical(); clinSel=null;clinType=null;clinIntake=false;clinWindow=null;clinRoom=null;clinPay='card';clinDone=false;clinDoneHold=false;clinEditingId=null;clinEditingDate=null;clinOnline=false;clinPressure='';clinRecommendedBy='';clinPayType='full';clinPatient='';clinEmail='';clinWhatsapp='';clinTime=''; clinAddons=[]; clinDate=(typeof baliNow==='function'?baliNow():new Date()); clinViewYear=null;clinViewMonth=null; clinGroupOpen={recovery:true,iv:true,blood:true}; try{window.clinPromo=null; ['recovery-disc-pct','recovery-disc-code'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';}); var _m=document.getElementById('recovery-disc-msg');if(_m)_m.textContent='';}catch(e){} clinSyncDateUI(); renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); startBookingListener(); }
 window.initRecovery=initRecovery;
 
 // ── Online Booking Requests (public_bookings Firestore collection) ──────
@@ -11278,24 +11310,46 @@ function svcCard(s,type){
     +'<div class="clin-meta">'+meta+'</div>'
     +'<div class="clin-tags">'+tags+'</div></div>';
 }
+// Group a service list by name (RECOVER / PERFORM / MOVE / COMPRESSION), preserving first-seen order.
+function _svcGroupByName(list){ var order=[],map={}; (list||[]).forEach(function(s){ var k=s.name||'—'; if(!map[k]){map[k]=[];order.push(k);} map[k].push(s); }); return order.map(function(k){ return {name:k, items:map[k]}; }); }
+// A grouped Recovery card: the pathway name once, then a compact row of duration · price options to pick from.
+function recGroupCard(g){
+  var opts=g.items.slice().sort(function(a,b){return (a.duration||0)-(b.duration||0);}).map(function(s){
+    var sel=(clinSel===s.id&&clinType==='recovery');
+    return '<button class="clin-dur-opt'+(sel?' sel':'')+'" onclick="selectService(\''+s.id+'\',\'recovery\')">'
+      +'<span class="clin-dur-t">'+(s.duration||0)+' min</span><span class="clin-dur-p">'+clinFmt(s.price)+'</span></button>';
+  }).join('');
+  return '<div class="clin-grp-card"><div class="clin-grp-name">'+g.name+'</div><div class="clin-dur-row">'+opts+'</div></div>';
+}
 function renderClinicalServices(){
   var el=document.getElementById('clin-services'); if(!el) return;
-  var rOpen=clinGroupOpen.recovery, cOpen=clinGroupOpen.clinical;
+  var rOpen=clinGroupOpen.recovery, ivOpen=clinGroupOpen.iv, blOpen=clinGroupOpen.blood;
   var rSvcs=(typeof SERVICES!=='undefined'?SERVICES:[]);
   var cSvcs=CLINICAL_SERVICES||[];
+  var ivSvcs=cSvcs.filter(function(s){return _clinCat(s)==='iv';});
+  var blSvcs=cSvcs.filter(function(s){return _clinCat(s)==='blood';});
+  var rGroups=_svcGroupByName(rSvcs);
   el.innerHTML=
+    // ── Recovery — grouped by pathway name, each with its duration/price options ──
     '<div class="clin-acc-hdr" onclick="toggleClinGroup(\'recovery\')">'
       +'<span class="clin-acc-title">Recovery Options</span>'
-      +'<span><span class="clin-acc-count">'+rSvcs.length+'</span><span class="clin-acc-arrow'+(rOpen?' open':'')+'">›</span></span>'
+      +'<span><span class="clin-acc-count">'+rGroups.length+'</span><span class="clin-acc-arrow'+(rOpen?' open':'')+'">›</span></span>'
     +'</div>'
-    +'<div class="clin-acc-body'+(rOpen?' open':'')+'">'+rSvcs.map(function(s){return svcCard(s,'recovery');}).join('')+'</div>'
-    +'<div class="clin-acc-hdr" onclick="toggleClinGroup(\'clinical\')">'
-      +'<span class="clin-acc-title">Clinical · Human+</span>'
-      +'<span><span class="clin-acc-count">'+cSvcs.length+'</span><span class="clin-acc-arrow'+(cOpen?' open':'')+'">›</span></span>'
+    +'<div class="clin-acc-body'+(rOpen?' open':'')+'">'+rGroups.map(recGroupCard).join('')+'</div>'
+    // ── HUMAN+ IV Therapy (+ enhancements shown once an IV is picked) ──
+    +'<div class="clin-acc-hdr" onclick="toggleClinGroup(\'iv\')">'
+      +'<span class="clin-acc-title">IV Therapy · Human+</span>'
+      +'<span><span class="clin-acc-count">'+ivSvcs.length+'</span><span class="clin-acc-arrow'+(ivOpen?' open':'')+'">›</span></span>'
     +'</div>'
-    +'<div class="clin-acc-body'+(cOpen?' open':'')+'">'+cSvcs.map(function(s){return svcCard(s,'clinical');}).join('')+'</div>';
+    +'<div class="clin-acc-body'+(ivOpen?' open':'')+'">'+ivSvcs.map(function(s){return svcCard(s,'clinical');}).join('')+'</div>'
+    // ── HUMAN+ Blood Work & clinical ──
+    +'<div class="clin-acc-hdr" onclick="toggleClinGroup(\'blood\')">'
+      +'<span class="clin-acc-title">Blood Work · Human+</span>'
+      +'<span><span class="clin-acc-count">'+blSvcs.length+'</span><span class="clin-acc-arrow'+(blOpen?' open':'')+'">›</span></span>'
+    +'</div>'
+    +'<div class="clin-acc-body'+(blOpen?' open':'')+'">'+blSvcs.map(function(s){return svcCard(s,'clinical');}).join('')+'</div>';
 }
-function selectService(id,type){ if(typeof clinCaptureInputs==='function') clinCaptureInputs(); /* keep whatever's typed */ clinSel=id;clinType=type;clinIntake=false;clinWindow=null;clinRoom=null;clinDone=false;clinOnline=false;clinPayType='full';clinTime='';clinRecommendedBy=''; window._clinOnlineReqId=null; /* PRESERVE client name/email/WhatsApp + pressure when changing the session type — a full reset only happens via initRecovery / New booking */ renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); }
+function selectService(id,type){ if(typeof clinCaptureInputs==='function') clinCaptureInputs(); /* keep whatever's typed */ clinSel=id;clinType=type;clinIntake=false;clinWindow=null;clinRoom=null;clinDone=false;clinOnline=false;clinPayType='full';clinTime='';clinRecommendedBy='';clinAddons=[]; window._clinOnlineReqId=null; /* PRESERVE client name/email/WhatsApp + pressure when changing the session type — a full reset only happens via initRecovery / New booking */ renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); }
 window.selectService=selectService;
 
 // Which rooms can the currently-selected service be booked in (with roster therapist + eligibility)
@@ -11470,9 +11524,20 @@ function renderClinicalBooking(){
         +'<div style="display:flex;gap:6px;"><button class="clin-intake-btn" onclick="sendIntake()">Contact Human+ &#x2192;</button><button class="clin-intake-btn" style="background:#0A0A0A;" onclick="approveIntake()">Booking Approved ✓</button></div>'
         +'</div>';
     }
+    // IV ENHANCEMENTS — multi-select add-ons, only for an IV service; they add to the treatment price.
+    var enhBlock='';
+    if(_clinSelIsIV()){
+      var _addTot=clinAddonTotal();
+      enhBlock='<div style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#56565b;margin:16px 0 8px;padding-top:14px;border-top:1px solid #f0f0f0;">Enhancements <span style="text-transform:none;color:#9a9a9e">· add to this IV · ask the clinician about compatibility</span></div>'
+        +'<div class="clin-enh-wrap">'
+        +(CLINICAL_ADDONS||[]).map(function(a){ var on=clinAddons.indexOf(a.id)>=0; return '<div class="clin-enh-opt'+(on?' sel':'')+'" onclick="toggleClinAddon(\''+a.id+'\')"><span class="clin-enh-tick">'+(on?'✓':'')+'</span><span style="flex:1;">'+a.name+'</span><span class="clin-enh-p">+'+clinFmt(a.price)+'</span></div>'; }).join('')
+        +'</div>'
+        +(_addTot>0?'<div style="font-family:\'Space Mono\',monospace;font-size:11px;color:#a855f7;margin:6px 0 2px;">+ '+clinFmt(_addTot)+' enhancements · treatment total '+clinFmt(clinBasePrice())+'</div>':'');
+    }
     el.innerHTML=renderClinMiniCal()+roomGridDiv+dateBar
       +'<div style="padding:0 16px 16px;">'
       +'<div class="clin-bk-hdr" style="margin-top:12px;">'+s.name+'</div>'
+      +enhBlock
       +'<div class="clin-field"><label>3 · Recovery chair</label>'+roomLine+'</div>'
       +'<div style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#56565b;margin:18px 0 10px;padding-top:14px;border-top:1px solid #f0f0f0;">4 · Patient details</div>'
       +contactBlock
@@ -11611,6 +11676,7 @@ function renderClinicalOrder(){
   if(clinType==='clinical'){
     lines+=(clinRoom?'<div class="clin-oline sub"><span>Recovery chair</span><span>'+clinRoom+'</span></div>':'')
       +'<div class="clin-oline sub"><span>Clinician</span><span>Nurse · Human+</span></div>'
+      +(!_eo2?clinAddonList().map(function(a){return '<div class="clin-oline sub"><span>+ '+a.name+'</span><span>+'+clinFmt(a.price)+'</span></div>';}).join(''):'')
       +'<div class="clin-oline sub"><span>Internal tag</span><span>Clinical Partner</span></div>';
   } else {
     var rt=clinRoom?roomTherapist(clinRoom):null;
@@ -11634,7 +11700,7 @@ function renderClinicalOrder(){
   }
   el.innerHTML=lines;
   var ob=document.getElementById('clin-online'); if(ob) ob.checked=clinOnline;
-  updateClinicalTotals(s.price);
+  updateClinicalTotals(clinType==='clinical'?clinBasePrice():s.price);
 }
 function clinToggleOnline(v){ clinCaptureInputs(); clinOnline=!!v; renderClinicalOrder(); }
 window.clinToggleOnline=clinToggleOnline;
@@ -11779,7 +11845,7 @@ function sendDepositLink(){
   var xLink=getXenditLink(); if(!xLink) return alert('No Xendit link set — add it in Settings → Payments.');
   var ph=(clinWhatsapp||'').replace(/\D/g,''); if(!ph) return alert('Enter the patient\'s WhatsApp number first.');
   var s=clinSvc(); if(!s) return;
-  var dep=Math.round(s.price*0.5);
+  var dep=Math.round(clinBasePrice()*0.5);
   var svcName=s.name||'your session';
   var date=clinDate?clinDate.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}):'';
   var msg='Hi '+(clinPatient||'there')+' — DISTRIK here. To confirm your '+svcName+(date?' on '+date:'')+', please pay your 50% deposit of IDR '+dep.toLocaleString('id-ID')+' via the link below.\n\n'+xLink+'\n\nOnce received we\'ll confirm your booking. See you soon 🙏';
@@ -11856,7 +11922,9 @@ function confirmClinical(){
   // Recovery promo discount — applies to recovery sessions only, NOT Human+ clinical (partner commission)
   var _rvDsc=(clinType!=='clinical')?(typeof window._clinEffDiscount==='function'?window._clinEffDiscount():activeDiscount('recovery')):null;
   var _rvPct=_rvDsc?parseFloat(_rvDsc.pct):0;
-  var _price=(_rvPct && s && s.price)?Math.round(s.price*(1-_rvPct/100)):(s?s.price:0);
+  // Base = sticker for recovery/blood; sticker + selected enhancements for an IV. Discount applies to recovery only.
+  var _base=(clinType==='clinical')?clinBasePrice():(s?s.price:0);
+  var _price=(_rvPct)?Math.round(_base*(1-_rvPct/100)):_base;
   var patient=clinPatient||'Walk-in';
   var dateKey=clinKey();
   // resolve room id from the chosen room name
@@ -11882,10 +11950,10 @@ function confirmClinical(){
     therapist:therapistId, therapistName:therapistName,
     start:startTime, time:startTime, duration:duration,
     client:patient, email:clinEmail||'', whatsapp:clinWhatsapp||'', phone:clinWhatsapp||'',
-    price:_price, gross:(s?s.price:0), discPct:_rvPct, discReason:(_rvDsc?(_rvDsc.reason||''):''), discCode:(_rvDsc?(_rvDsc.code||''):''), pressure:clinPressure||null, payType:clinPayType||'full',
+    price:_price, gross:_base, discPct:_rvPct, discReason:(_rvDsc?(_rvDsc.reason||''):''), discCode:(_rvDsc?(_rvDsc.code||''):''), pressure:clinPressure||null, payType:clinPayType||'full',
     source:(clinOnline?'Online':'Walk-in'), status:(isHold?'hold':'confirmed'), payMethod:clinPay, date:dateKey, _ts:Date.now()
   };
-  if(clinType==='clinical'){ rec.clinical=true; rec.tag='HUMAN+'; rec.provider='HUMAN+'; rec.collector='DISTRIK'; rec.window=clinWindow; rec.intake=(clinIntake?'approved':'pending'); rec.recommendedBy=clinRecommendedBy||''; }
+  if(clinType==='clinical'){ rec.clinical=true; rec.tag='HUMAN+'; rec.provider='HUMAN+'; rec.collector='DISTRIK'; rec.cat=_clinCat(s); rec.window=clinWindow; rec.intake=(clinIntake?'approved':'pending'); rec.recommendedBy=clinRecommendedBy||''; if(_clinSelIsIV()&&clinAddons.length){ rec.addons=clinAddonList().map(function(a){return {id:a.id,name:a.name,price:a.price};}); rec.addonTotal=clinAddonTotal(); } }
   if(clinOnline){ var _tot=_price; rec.online=true; rec.deposit=Math.round(_tot*0.5); rec.balanceDue=_tot-Math.round(_tot*0.5); rec.balancePaid=false; }
   else if(clinPayType==='deposit'){ rec.deposit=Math.round(_price*0.5); rec.balanceDue=_price-Math.round(_price*0.5); rec.balancePaid=false; rec.depositPaid=true; /* IN-PERSON deposit: paid now at the till (card/QR); balance collected on the treatment day at Check out */ }
   else if(clinPayType==='later'){ rec.deposit=0; rec.balanceDue=_price; rec.balancePaid=false; rec.depositPaid=false; /* PAY ON ARRIVAL: nothing taken now (e.g. WhatsApp booking) — the full amount is collected on the treatment day at Check out */ }
@@ -11905,7 +11973,7 @@ function confirmClinical(){
       else { rec.online=false; rec.deposit=0; rec.balanceDue=0; rec.balancePaid=(rec.price===0); rec.payType='full'; }
     } else {
       // plain move — keep the money exactly as it was, never re-charge
-      ['online','deposit','balanceDue','balancePaid','depositPaid','price','gross','payType','discPct','discReason','discCode','source','partner','partnerTotal','commission','commissionStatus','commissionPct','provider','tag','clinical','forfeited','onlineRef','payMethod','recommendedBy','ledgerDate','depositPaidAt'].forEach(function(k){ if(_o[k]!==undefined) rec[k]=_o[k]; });
+      ['online','deposit','balanceDue','balancePaid','depositPaid','price','gross','payType','discPct','discReason','discCode','source','partner','partnerTotal','commission','commissionStatus','commissionPct','provider','tag','clinical','cat','addons','addonTotal','forfeited','onlineRef','payMethod','recommendedBy','ledgerDate','depositPaidAt'].forEach(function(k){ if(_o[k]!==undefined) rec[k]=_o[k]; });
     }
     if(_o.status && _o.status!=='cancelled') rec.status=_o.status;   // keep confirmed/hold as it was
   }
@@ -12124,6 +12192,7 @@ function clinEditBooking(id){
     var list=(clinType==='clinical'?CLINICAL_SERVICES:(typeof SERVICES!=='undefined'?SERVICES:[]));
     var svc=list.find(function(x){return x.id===b.service;})||list.find(function(x){return x.name===b.serviceName;});
     clinSel=svc?svc.id:b.service;
+    clinAddons=(b.addons&&b.addons.length)?b.addons.map(function(a){return a.id;}):[];  // restore IV enhancements for the move
     clinRoom=b.roomName||null;
     clinWindow=b.clinical?(b.window||null):null;
     clinTime=b.clinical?'':(b.start||'');
