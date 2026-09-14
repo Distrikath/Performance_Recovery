@@ -17,10 +17,33 @@ No build step. Plain HTML, one shared stylesheet, one shared script.
 | `contact.html` | Enquiry routing + contact form |
 | `404.html` | Not-found page |
 | `assets/site.css` | Entire design system |
-| `assets/site.js` | Mobile nav, scroll reveal, office clocks, form handling |
+| `assets/site.js` | Film reel, drawer, reveals, office clocks, forms |
+| `assets/img/` | Reel frames and venture stills (placeholder — see below) |
 | `CNAME` | current live domain (see *Switching domains*) |
 | `set-domain.sh` | one-command domain + contact-address switch |
 | `robots.txt`, `sitemap.xml` | Indexing |
+
+## The design system
+
+Built in the Distrik. visual language so the parent reads as the same
+house, not a neighbour: black ground, Inter 900 italic marks, Space Mono
+micro-labels, film-plane imagery, grain, and a nav in `mix-blend-mode:
+difference`.
+
+Two ideas carry the group:
+
+- **The group is monochrome; each venture brings its own colour.** The
+  page grade is white/neutral by default. Hovering a venture row floods
+  it with that brand's hue — Distrik red, corporate blue — and the
+  `.grade` layer tracks whichever section is in view. A brand asserting
+  itself over a neutral parent is the house-of-brands idea made visual.
+- **Big graded image, small glass panel.** The `.plate` sections run a
+  full-bleed duotone photograph with a compact frosted card floating over
+  it carrying a counter, a statement and a figures row.
+
+Set a venture's colour with one inline custom property:
+`style="--grade:#FF2D2D"`, plus `data-grade="#FF2D2D"` so the page grade
+follows it on scroll.
 
 ## Switching domains
 
@@ -71,8 +94,11 @@ set this folder as the publish directory, no build command.
   Netlify Forms — the markup is ready for it.
 - **Social + OG image.** There is no `og:image` yet; add a 1200×630 image
   to `assets/` and reference it from each page's `<meta property="og:image">`.
-- **Photography.** The design is typographic on purpose so it stands up with
-  no imagery. Group photography can drop into the hero and venture rows.
+- **Photography is Distrik's, used as placeholder.** Everything in
+  `assets/img/` is from the Distrik. shoot, so the group currently looks
+  like its Bali studio. Group-level and Sydney/Melbourne corporate
+  imagery should replace it — drop in files at the same names and
+  nothing else changes.
 - **Legal.** Add an ABN / registered entity line to the footer, and privacy
   and terms pages if the forms start collecting data server-side.
 - **Analytics.** Nothing is tracked. Add a tag to each page's `<head>` if wanted.
