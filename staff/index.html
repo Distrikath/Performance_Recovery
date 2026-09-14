@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814089;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814091;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -5806,6 +5806,17 @@ function buildMyAccount(el){
       </div>
     </div>
 
+    ${(currentUser?.type==='admin'||currentUser?.role==='2IC')?`
+    <div style="margin-top:28px;border:1px solid #232327;">
+      <div style="padding:13px 16px;border-bottom:1px solid #232327;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6b6b72;">Pay reports · download</div>
+      <div style="padding:14px 16px;display:flex;flex-wrap:wrap;gap:8px;">
+        <button class="dk-ghost" onclick="downloadServiceReport()">↓ Service Fee (15th–14th)</button>
+        <button class="dk-ghost" onclick="downloadCommissionReport()">↓ Commission (15th–14th)</button>
+        <button class="dk-ghost" onclick="downloadSalaryReport()" style="background:#0A0A0A;color:#fff;">↓ Salary + Tax (month)</button>
+      </div>
+      <div style="padding:0 16px 14px;font-family:'Space Mono',monospace;font-size:9px;color:#6b6b72;line-height:1.6;">Service &amp; commission run 15th→14th (paid the 15th). Salary is 1st→last day; the 15th payout is folded into that month's salary for PPh21/BPJS in the Salary + Tax sheet.</div>
+    </div>`:''}
+
     ${(typeof _buildTipsBlock==='function')?_buildTipsBlock(s):''}
 
     ${(typeof _buildCommissionBlock==='function')?_buildCommissionBlock(s):''}
@@ -5940,10 +5951,11 @@ function _buildAbsenceBlock(s){
 // Computed live from the ledger (fuelData) — no stored balances to reset; the window just moves.
 var TIP_POOL_IDS=['SA','SC','HS','SD','SE'];  // Jason, Valen, Jordann, Markus, Sella
 function _tipPeriodKeys(){
+  // Service fee + commission run 15th → 14th and pay out on the 15th (so the 14th is the last day of a cycle).
   var d=(typeof baliNow==='function'?baliNow():new Date());
   var y=d.getFullYear(), m=d.getMonth(), day=d.getDate(), s, e;
-  if(day>=16){ s=new Date(y,m,16,12,0,0); e=new Date(y,m+1,15,12,0,0); }
-  else { s=new Date(y,m-1,16,12,0,0); e=new Date(y,m,15,12,0,0); }
+  if(day>=15){ s=new Date(y,m,15,12,0,0); e=new Date(y,m+1,14,12,0,0); }
+  else { s=new Date(y,m-1,15,12,0,0); e=new Date(y,m,14,12,0,0); }
   var keys=[], t=new Date(s.getTime());
   while(t<=e){ keys.push(t.getFullYear()+'-'+('0'+(t.getMonth()+1)).slice(-2)+'-'+('0'+t.getDate()).slice(-2)); t.setDate(t.getDate()+1); }
   return {keys:keys, start:s, end:e};
@@ -5954,6 +5966,84 @@ function _dayServicePool(dateKey){
     return f.transactions.reduce(function(sum,t){ return sum + ((t&&t.serviceTax)||0); }, 0);
   }catch(e){ return 0; }
 }
+// ── SERVICE-FEE SPLIT BY WHO WORKED (absence-aware) ────────────────────────────────────────────────────
+// The service-charge tip pool for a day is split ONLY among the front-of-house/supply members who WORKED that
+// day: scheduled on the roster AND not marked sick/holiday/leave. Someone marked absent gets nothing that day and
+// their share is spread across the others working. (Justin: off-sick staff shouldn't share the service fee.)
+function _tipDayGrid(dateKey){
+  try{
+    if(typeof dailyOverrides!=='undefined' && dailyOverrides && dailyOverrides[dateKey]) return dailyOverrides[dateKey];
+    var d=new Date(dateKey+'T12:00:00'); if(isNaN(d)) return null;
+    var idx=(d.getDay()+6)%7; var dayName=DAYS[idx];
+    if(typeof _baseGrid!=='undefined' && _baseGrid && _baseGrid[dayName]) return _baseGrid[dayName];
+    if(typeof grid!=='undefined' && grid && grid[dayName]) return grid[dayName];
+  }catch(e){}
+  return null;
+}
+function _tipScheduledSet(dateKey){ var set={}; try{ var g=_tipDayGrid(dateKey); if(g){ getLeafZones().forEach(function(z){ (g[z.id]||[]).forEach(function(row){ (row||[]).forEach(function(cell){ var id=(typeof staffId==='function')?staffId(cell):(cell&&cell.replace('Break:','')); if(id) set[id]=1; }); }); }); } }catch(e){} return set; }
+function _tipAbsentSet(dateKey){ var set={}; try{ var day=(typeof dailyAbsence!=='undefined'&&dailyAbsence)?dailyAbsence[dateKey]:null; if(day){ Object.keys(day).forEach(function(k){ var a=day[k]; if(a&&a.staffId) set[a.staffId]=1; }); } }catch(e){} return set; }
+// TIP_POOL members WORKING on a date = scheduled AND not marked absent. Roster gap for that day → fall back to the
+// full pool; absentees are always removed. So a sick/holiday member is never counted, and the split is among the rest.
+function _tipMembersWorkingOn(dateKey){
+  var absent=_tipAbsentSet(dateKey), sched=_tipScheduledSet(dateKey);
+  var poolSched=TIP_POOL_IDS.filter(function(id){return sched[id];});
+  var base=poolSched.length?poolSched:TIP_POOL_IDS.slice();
+  return base.filter(function(id){return !absent[id];});
+}
+// One day's pool + how it splits: {pool, working:[ids], n, share} — share = pool / (members working that day).
+function _dayTipShare(dateKey){ var pool=_dayServicePool(dateKey); var working=_tipMembersWorkingOn(dateKey); var n=working.length; return {pool:pool, working:working, n:n, share:(n>0?Math.round(pool/n):0)}; }
+window._dayTipShare=_dayTipShare; window._tipMembersWorkingOn=_tipMembersWorkingOn;
+
+// ── PAYOUT "PAID" TRACKING (service + commission, per 15th→14th cycle) ──────────────────────────────────
+// One tick per person per cycle, stored in the `tip_payouts` collection (doc id = the cycle-end date, the 14th).
+window.TIP_PAYOUTS={};
+(function(){ var subbed=false;
+  window.loadTipPayouts=function(){ if(subbed)return; if(typeof firebase==='undefined'||!firebase.firestore)return; subbed=true;
+    firebase.firestore().collection('tip_payouts').onSnapshot(function(snap){ var m={}; snap.forEach(function(d){m[d.id]=d.data();}); window.TIP_PAYOUTS=m; try{ var p=document.querySelector('.panel.on'); if(p&&p.id==='panel-myaccount'&&typeof buildMyAccount==='function') buildMyAccount(); }catch(e){} }, function(e){ console.warn('[payouts] snap',e); }); };
+  if(typeof firebase!=='undefined'&&firebase.auth){ firebase.auth().onAuthStateChanged(function(u){ if(u) loadTipPayouts(); }); }
+})();
+function _tipCycleId(){ var per=_tipPeriodKeys(); return per.keys[per.keys.length-1]; }  // the 14th (cycle end) = doc id
+function _isPaid(staffId, cycleId){ cycleId=cycleId||_tipCycleId(); var doc=(window.TIP_PAYOUTS||{})[cycleId]; return !!(doc&&doc.paid&&doc.paid[staffId]); }
+window._isPaid=_isPaid; window._tipCycleId=_tipCycleId;
+window.payoutTogglePaid=function(staffId){ try{ if(typeof firebase==='undefined'||!firebase.firestore)return; var cid=_tipCycleId(); var cur=_isPaid(staffId,cid); var paidObj={}; paidObj[staffId]=!cur; firebase.firestore().collection('tip_payouts').doc(cid).set({ cycle:cid, paid:paidObj, ts:firebase.firestore.FieldValue.serverTimestamp(), by:((typeof currentUser!=='undefined'&&currentUser&&currentUser.name)||'?') }, {merge:true}); }catch(e){ console.warn('[payouts] toggle',e); } };
+// A "Paid ✓" checkbox for the admin payout sheets.
+function _paidChk(id){ return '<label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;color:#6b6b72;font-size:10px;"><input type="checkbox" onclick="payoutTogglePaid(\''+id+'\')"'+(_isPaid(id)?' checked':'')+' style="cursor:pointer;">paid</label>'; }
+
+// ── THREE PAY REPORTS (CSV downloads) ──────────────────────────────────────────────────────────────────
+function _dlCSV(filename, csv){ try{ var a=document.createElement('a'); a.href='data:text/csv;charset=utf-8,'+encodeURIComponent('﻿'+csv); a.download=filename; document.body.appendChild(a); a.click(); setTimeout(function(){document.body.removeChild(a);},100); }catch(e){ console.warn('[report] dl',e); alert('Download failed: '+e.message); } }
+function _rf(n){ return Math.round(n||0); }
+// 1) SERVICE FEE — FOH/supply, 15th→14th cycle, per-day-worked split.
+window.downloadServiceReport=function(){
+  var per=_tipPeriodKeys(); var cid=_tipCycleId();
+  var totals={}, days={}; TIP_POOL_IDS.forEach(function(id){ totals[id]=0; days[id]=0; });
+  per.keys.forEach(function(k){ var d=_dayTipShare(k); if(d.share>0) d.working.forEach(function(id){ if(totals[id]!==undefined){ totals[id]+=d.share; days[id]++; } }); });
+  var csv='DISTRIK — SERVICE FEE (TIPS) PAYOUT\nCycle,'+per.keys[0]+' to '+per.keys[per.keys.length-1]+' (paid 15th)\nSplit only among FOH/Supply working each day; sick/holiday excluded.\n\n';
+  csv+='Staff,Days worked,Service fee (IDR),Paid\n';
+  var tot=0; TIP_POOL_IDS.forEach(function(id){ var nm=((typeof getStaff==='function'&&getStaff(id))||{}).name||id; tot+=totals[id]; csv+='"'+nm+'",'+days[id]+','+_rf(totals[id])+','+(_isPaid(id,cid)?'YES':'NO')+'\n'; });
+  csv+='TOTAL,,'+_rf(tot)+',\n';
+  _dlCSV('Distrik_ServiceFee_'+per.keys[per.keys.length-1]+'.csv', csv);
+};
+// 2) THERAPIST COMMISSION — 15th→14th cycle.
+window.downloadCommissionReport=function(){
+  var per=_tipPeriodKeys(); var cid=_tipCycleId();
+  var csv='DISTRIK — THERAPIST COMMISSION PAYOUT\nCycle,'+per.keys[0]+' to '+per.keys[per.keys.length-1]+' (paid 15th)\n10% own therapy + 2.5% recommended IV/blood.\n\n';
+  csv+='Therapist,Therapy 10% (IDR),IV/Blood 2.5% (IDR),Total (IDR),Paid\n';
+  var tot=0; THERAPIST_IDS.forEach(function(id){ var c=_therapistCommPeriod(id); var nm=((typeof getStaff==='function'&&getStaff(id))||{}).name||id; tot+=c.total; csv+='"'+nm+'",'+_rf(c.therapy)+','+_rf(c.iv)+','+_rf(c.total)+','+(_isPaid(id,cid)?'YES':'NO')+'\n'; });
+  csv+='TOTAL,,,'+_rf(tot)+',\n';
+  _dlCSV('Distrik_Commission_'+per.keys[per.keys.length-1]+'.csv', csv);
+};
+// 3) SALARY + TAX — calendar month (1st→last day), with the service/commission that pays out on the 15th folded in
+//    (so PPh21/BPJS are computed on the full month's pay). This mirrors the Payroll tab's _payrollIncome.
+window.downloadSalaryReport=function(){
+  var d=(typeof baliNow==='function'?baliNow():new Date()); var ym=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2);
+  var cyc=(typeof _cycleKeysForMonth==='function')?_cycleKeysForMonth(ym):[];
+  var csv='DISTRIK — SALARY + TAX BASIS ('+ym+')\nSalary,1st to last day of month\nService fee + commission,'+((cyc[0]||'')+' to '+(cyc[cyc.length-1]||''))+' (paid 15th, folded into this month for PPh21/BPJS)\n\n';
+  csv+='Staff,Base salary (IDR),Service fee (IDR),Commission (IDR),Gross taxable (IDR)\n';
+  var TS=0,TSv=0,TC=0,TG=0;
+  (typeof STAFF!=='undefined'?STAFF:[]).forEach(function(s){ if(!s) return; var inc=_payrollIncome(s,ym); TS+=inc.salary; TSv+=inc.service; TC+=inc.commission; TG+=inc.gross; csv+='"'+(s.name||s.id)+'",'+_rf(inc.salary)+','+_rf(inc.service)+','+_rf(inc.commission)+','+_rf(inc.gross)+'\n'; });
+  csv+='TOTAL,'+_rf(TS)+','+_rf(TSv)+','+_rf(TC)+','+_rf(TG)+'\n';
+  _dlCSV('Distrik_Salary_Tax_'+ym+'.csv', csv);
+};
 // Build the My Account tips section. Pool member → their running total + daily rows. Admin/2IC → all 5 + grand total.
 function _buildTipsBlock(s){
   try{
@@ -5965,9 +6055,9 @@ function _buildTipsBlock(s){
     var mon=function(dk){ var p=dk.split('-'); return p[2].replace(/^0/,'')+' '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+p[1]-1]; };
     var startK=per.keys[0], endK=per.keys[per.keys.length-1];
     var periodLbl=mon(startK)+' – '+mon(endK);
-    // per-day pools across the period
+    // per-day pools across the period, each split ONLY among members who worked that day (absentees excluded)
     var dayPools=[], grand=0;
-    per.keys.forEach(function(k){ var pool=_dayServicePool(k); if(pool>0){ dayPools.push({k:k,pool:pool,share:Math.round(pool/5)}); grand+=pool; } });
+    per.keys.forEach(function(k){ var d=_dayTipShare(k); if(d.pool>0){ dayPools.push({k:k,pool:d.pool,share:d.share,working:d.working,n:d.n}); grand+=d.pool; } });
     var head='<div style="margin-top:28px;border:1px solid #232327;">'
       +'<div style="display:flex;justify-content:space-between;align-items:baseline;padding:13px 16px;border-bottom:1px solid #232327;">'
         +'<span style="font-family:\'Space Mono\',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6b6b72;">Service charge · tips</span>'
@@ -5977,33 +6067,36 @@ function _buildTipsBlock(s){
       return head+'<div style="padding:18px 16px;font-family:\'Space Mono\',monospace;font-size:11px;color:#6b6b72;text-align:center;">No café service charge collected this period yet.</div></div>';
     }
     if(isMember && !isAdmin){
-      // this staffer's own share (pool ÷ 5 each day)
-      var myTotal=dayPools.reduce(function(a,d){return a+d.share;},0);
+      // this staffer's own share — only on days they actually WORKED (absent/off days earn nothing)
+      var myTotal=dayPools.reduce(function(a,d){return a+((d.working.indexOf(s.id)>-1)?d.share:0);},0);
       var rows=dayPools.slice().reverse().map(function(d){
+        var worked=(d.working.indexOf(s.id)>-1);
         return '<div style="display:flex;justify-content:space-between;padding:9px 16px;border-bottom:1px solid #1b1b1e;font-family:\'Space Mono\',monospace;font-size:11px;">'
           +'<span style="color:#a6a6ad;">'+mon(d.k)+'</span>'
-          +'<span style="color:#6b6b72;font-size:10px;">pool '+f(d.pool)+' ÷5</span>'
-          +'<span style="color:#f4f4f5;font-weight:700;">'+f(d.share)+'</span></div>';
+          +'<span style="color:#6b6b72;font-size:10px;">pool '+f(d.pool)+' ÷'+d.n+(worked?'':' · off')+'</span>'
+          +'<span style="color:'+(worked?'#f4f4f5':'#4a4a4f')+';font-weight:700;">'+(worked?f(d.share):'—')+'</span></div>';
       }).join('');
       return head
         +'<div style="padding:16px;border-bottom:1px solid #232327;">'
           +'<div style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#6b6b72;">Your tips this period</div>'
           +'<div style="font-family:\'Archivo\',sans-serif;font-weight:800;font-size:30px;color:#22c55e;margin-top:4px;">'+f(myTotal)+'</div>'
-          +'<div style="font-family:\'Space Mono\',monospace;font-size:10px;color:#6b6b72;margin-top:2px;">even 1/5 share · paid out on the 15th</div>'
+          +'<div style="font-family:\'Space Mono\',monospace;font-size:10px;color:#6b6b72;margin-top:2px;">even share among those working each day · paid out on the 15th</div>'
         +'</div>'+rows+'</div>';
     }
-    // admin / 2IC → payout sheet: all 5 members + grand total.
-    // per-member = sum of each day's rounded 1/5 share (identical to what each member sees in My Account).
-    var perMember=dayPools.reduce(function(a,d){return a+d.share;},0);
+    // admin / 2IC → payout sheet: each member = sum of the days they WORKED (absent days excluded), + grand total.
+    var totals={}, daysWorked={}; TIP_POOL_IDS.forEach(function(id){ totals[id]=0; daysWorked[id]=0; });
+    dayPools.forEach(function(d){ d.working.forEach(function(id){ if(totals[id]!==undefined){ totals[id]+=d.share; daysWorked[id]++; } }); });
+    var totalPay=TIP_POOL_IDS.reduce(function(a,id){return a+totals[id];},0);
     var mrows=TIP_POOL_IDS.map(function(id){
       var nm=((typeof getStaff==='function'&&getStaff(id))||{}).name||id;
-      return '<div style="display:flex;justify-content:space-between;padding:9px 16px;border-bottom:1px solid #1b1b1e;font-family:\'Space Mono\',monospace;font-size:12px;">'
-        +'<span style="color:#f4f4f5;">'+nm+'</span><span style="color:#22c55e;font-weight:700;">'+f(perMember)+'</span></div>';
+      return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid #1b1b1e;font-family:\'Space Mono\',monospace;font-size:12px;">'
+        +'<span style="color:#f4f4f5;flex:1;">'+nm+' <span style="color:#6b6b72;font-size:10px;">· '+daysWorked[id]+' day'+(daysWorked[id]!==1?'s':'')+'</span></span>'
+        +'<span style="color:#22c55e;font-weight:700;">'+f(totals[id])+'</span>'+_paidChk(id)+'</div>';
     }).join('');
     return head
-      +'<div style="padding:14px 16px;border-bottom:1px solid #232327;font-family:\'Space Mono\',monospace;font-size:10px;color:#6b6b72;">Pool collected this period: <b style="color:#f4f4f5;">'+f(grand)+'</b> · ÷5 each</div>'
+      +'<div style="padding:14px 16px;border-bottom:1px solid #232327;font-family:\'Space Mono\',monospace;font-size:10px;color:#6b6b72;">Pool collected this period: <b style="color:#f4f4f5;">'+f(grand)+'</b> · split each day only among those working (sick/holiday excluded)</div>'
       +mrows
-      +'<div style="display:flex;justify-content:space-between;padding:11px 16px;font-family:\'Space Mono\',monospace;font-size:12px;background:#111114;"><span style="color:#6b6b72;text-transform:uppercase;letter-spacing:.1em;">Total to pay (15th)</span><span style="color:#f4f4f5;font-weight:700;">'+f(perMember*5)+'</span></div>'
+      +'<div style="display:flex;justify-content:space-between;padding:11px 16px;font-family:\'Space Mono\',monospace;font-size:12px;background:#111114;"><span style="color:#6b6b72;text-transform:uppercase;letter-spacing:.1em;">Total to pay (15th)</span><span style="color:#f4f4f5;font-weight:700;">'+f(totalPay)+'</span></div>'
       +'</div>';
   }catch(e){ return ''; }
 }
@@ -6061,9 +6154,9 @@ function _buildCommissionBlock(s){
     var grand=0, mrows=THERAPIST_IDS.map(function(id){
       var c=_therapistCommPeriod(id); grand+=c.total;
       var nm=((typeof getStaff==='function'&&getStaff(id))||{}).name||id;
-      return '<div style="display:flex;justify-content:space-between;padding:9px 16px;border-bottom:1px solid #1b1b1e;font-family:\'Space Mono\',monospace;font-size:12px;">'
-        +'<span style="color:#f4f4f5;">'+nm+' <span style="color:#6b6b72;font-size:9px;">10% '+f(c.therapy)+' · 2.5% '+f(c.iv)+'</span></span>'
-        +'<span style="color:#22c55e;font-weight:700;">'+f(c.total)+'</span></div>';
+      return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid #1b1b1e;font-family:\'Space Mono\',monospace;font-size:12px;">'
+        +'<span style="color:#f4f4f5;flex:1;">'+nm+' <span style="color:#6b6b72;font-size:9px;">10% '+f(c.therapy)+' · 2.5% '+f(c.iv)+'</span></span>'
+        +'<span style="color:#22c55e;font-weight:700;">'+f(c.total)+'</span>'+_paidChk(id)+'</div>';
     }).join('');
     return head+mrows
       +'<div style="display:flex;justify-content:space-between;padding:11px 16px;font-family:\'Space Mono\',monospace;font-size:12px;background:#111114;"><span style="color:#6b6b72;text-transform:uppercase;letter-spacing:.1em;">Total commission (15th)</span><span style="color:#f4f4f5;font-weight:700;">'+f(grand)+'</span></div>'
@@ -13776,18 +13869,21 @@ function _escSettle(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(
 // the cycle that PAID OUT on the 15th of that month (16th prev → 15th this). BPJS + PPh21 are editable gaps the
 // accountant fills with exact figures. Stored per employee-month in the `payroll` collection. Feeds My Account payslip.
 function _cycleKeysForMonth(ym){
+  // The service/commission cycle that PAYS OUT on the 15th of month `ym` = 15th of the previous month → 14th of `ym`.
+  // (This is the amount folded into that month's end-of-month salary for PPh21/BPJS.)
   var p=String(ym).split('-'); var y=+p[0], m=+p[1]; if(!y||!m) return [];
-  var start=new Date(y,m-2,16,12,0,0), end=new Date(y,m-1,15,12,0,0);
+  var start=new Date(y,m-2,15,12,0,0), end=new Date(y,m-1,14,12,0,0);
   var keys=[], t=new Date(start.getTime());
   while(t<=end){ keys.push(t.getFullYear()+'-'+('0'+(t.getMonth()+1)).slice(-2)+'-'+('0'+t.getDate()).slice(-2)); t.setDate(t.getDate()+1); }
   return keys;
 }
-function _memberTipsForKeys(keys){ var tot=0; (keys||[]).forEach(function(k){ var pool=(typeof _dayServicePool==='function')?_dayServicePool(k):0; if(pool>0) tot+=Math.round(pool/5); }); return tot; }
+// A specific member's service-fee total across the given days — only the days they WORKED (absent/off days excluded).
+function _memberTipsForKeys(keys, memberId){ var tot=0; (keys||[]).forEach(function(k){ var d=(typeof _dayTipShare==='function')?_dayTipShare(k):null; if(d && d.share>0 && d.working.indexOf(memberId)>-1) tot+=d.share; }); return tot; }
 function _therapistCommForKeys(therId,keys){ var th=0,iv=0; (keys||[]).forEach(function(k){ var d=(typeof _therapistCommForDay==='function')?_therapistCommForDay(therId,k):{therapy:0,iv:0}; th+=d.therapy; iv+=d.iv; }); return {therapy:th,iv:iv,total:th+iv}; }
 function _payrollIncome(emp, ym){
   var keys=_cycleKeysForMonth(ym);
   var salary=(emp&&emp.salary)||0;
-  var service=(typeof TIP_POOL_IDS!=='undefined'&&TIP_POOL_IDS.indexOf(emp.id)>-1)?_memberTipsForKeys(keys):0;
+  var service=(typeof TIP_POOL_IDS!=='undefined'&&TIP_POOL_IDS.indexOf(emp.id)>-1)?_memberTipsForKeys(keys, emp.id):0;
   var comm=(typeof THERAPIST_IDS!=='undefined'&&THERAPIST_IDS.indexOf(emp.id)>-1)?_therapistCommForKeys(emp.id,keys).total:0;
   return {salary:salary, service:service, commission:comm, gross:salary+service+comm};
 }
