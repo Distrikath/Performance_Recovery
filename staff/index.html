@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814095;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814096;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -5990,7 +5990,7 @@ window._dayTipShare=_dayTipShare; window._tipMembersWorkingOn=_tipMembersWorking
 window.TIP_PAYOUTS={};
 (function(){ var subbed=false;
   window.loadTipPayouts=function(){ if(subbed)return; if(typeof firebase==='undefined'||!firebase.firestore)return; subbed=true;
-    firebase.firestore().collection('tip_payouts').onSnapshot(function(snap){ var m={}; snap.forEach(function(d){m[d.id]=d.data();}); window.TIP_PAYOUTS=m; try{ var p=document.querySelector('.panel.on'); if(p&&p.id==='panel-myaccount'&&typeof buildMyAccount==='function') buildMyAccount(); }catch(e){} }, function(e){ console.warn('[payouts] snap',e); }); };
+    firebase.firestore().collection('tip_payouts').onSnapshot(function(snap){ var m={}; snap.forEach(function(d){m[d.id]=d.data();}); window.TIP_PAYOUTS=m; try{ var p=document.querySelector('.panel.on'); if(p&&p.id==='panel-myaccount'&&typeof buildMyAccount==='function') buildMyAccount(); else if(p&&p.id==='panel-payroll'&&typeof renderPayroll==='function') renderPayroll(); }catch(e){} }, function(e){ console.warn('[payouts] snap',e); }); };
   if(typeof firebase!=='undefined'&&firebase.auth){ firebase.auth().onAuthStateChanged(function(u){ if(u) loadTipPayouts(); }); }
 })();
 function _tipCycleId(){ var per=_tipPeriodKeys(); return per.keys[per.keys.length-1]; }  // the 14th (current cycle end) = doc id
@@ -6003,11 +6003,16 @@ function _cycleMonths(){ var d=(typeof baliNow==='function'?baliNow():new Date()
 window._cycleRangeLabel=_cycleRangeLabel; window._cycleMonths=_cycleMonths;
 function _isPaid(staffId, cycleId){ cycleId=cycleId||_tipCycleId(); var doc=(window.TIP_PAYOUTS||{})[cycleId]; return !!(doc&&doc.paid&&doc.paid[staffId]); }
 window._isPaid=_isPaid; window._tipCycleId=_tipCycleId; window._cycleIdForMonth=_cycleIdForMonth;
-window.payoutTogglePaid=function(staffId, cycleId){ try{ if(typeof firebase==='undefined'||!firebase.firestore)return; var cid=cycleId||_tipCycleId(); var cur=_isPaid(staffId,cid); var paidObj={}; paidObj[staffId]=!cur; firebase.firestore().collection('tip_payouts').doc(cid).set({ cycle:cid, paid:paidObj, ts:firebase.firestore.FieldValue.serverTimestamp(), by:((typeof currentUser!=='undefined'&&currentUser&&currentUser.name)||'?') }, {merge:true}); }catch(e){ console.warn('[payouts] toggle',e); } };
+window.payoutTogglePaid=function(staffId, cycleId){ try{ if(typeof firebase==='undefined'||!firebase.firestore)return; var cid=cycleId||_tipCycleId(); var cur=_isPaid(staffId,cid); var nv=!cur; var paidObj={}; paidObj[staffId]=nv;
+    // optimistic local update so the tick sticks immediately even before the snapshot round-trips (or if it's slow)
+    window.TIP_PAYOUTS=window.TIP_PAYOUTS||{}; var d=window.TIP_PAYOUTS[cid]||{cycle:cid}; d.paid=d.paid||{}; d.paid[staffId]=nv; window.TIP_PAYOUTS[cid]=d;
+    firebase.firestore().collection('tip_payouts').doc(cid).set({ cycle:cid, paid:paidObj, ts:firebase.firestore.FieldValue.serverTimestamp(), by:((typeof currentUser!=='undefined'&&currentUser&&currentUser.name)||'?') }, {merge:true}); }catch(e){ console.warn('[payouts] toggle',e); } };
 // Commission paid tracking (paid monthly with salary) — separate map `paidComm` in the same per-cycle doc.
 function _isPaidComm(staffId, cycleId){ cycleId=cycleId||_tipCycleId(); var doc=(window.TIP_PAYOUTS||{})[cycleId]; return !!(doc&&doc.paidComm&&doc.paidComm[staffId]); }
 window._isPaidComm=_isPaidComm;
-window.payoutToggleCommPaid=function(staffId, cycleId){ try{ if(typeof firebase==='undefined'||!firebase.firestore)return; var cid=cycleId||_tipCycleId(); var cur=_isPaidComm(staffId,cid); var o={}; o[staffId]=!cur; firebase.firestore().collection('tip_payouts').doc(cid).set({ cycle:cid, paidComm:o, ts:firebase.firestore.FieldValue.serverTimestamp(), by:((typeof currentUser!=='undefined'&&currentUser&&currentUser.name)||'?') }, {merge:true}); }catch(e){ console.warn('[payouts] toggleComm',e); } };
+window.payoutToggleCommPaid=function(staffId, cycleId){ try{ if(typeof firebase==='undefined'||!firebase.firestore)return; var cid=cycleId||_tipCycleId(); var cur=_isPaidComm(staffId,cid); var nv=!cur; var o={}; o[staffId]=nv;
+    window.TIP_PAYOUTS=window.TIP_PAYOUTS||{}; var d=window.TIP_PAYOUTS[cid]||{cycle:cid}; d.paidComm=d.paidComm||{}; d.paidComm[staffId]=nv; window.TIP_PAYOUTS[cid]=d;
+    firebase.firestore().collection('tip_payouts').doc(cid).set({ cycle:cid, paidComm:o, ts:firebase.firestore.FieldValue.serverTimestamp(), by:((typeof currentUser!=='undefined'&&currentUser&&currentUser.name)||'?') }, {merge:true}); }catch(e){ console.warn('[payouts] toggleComm',e); } };
 // Year-to-date pay for Indonesia's tax year (1 Jan – 31 Dec): sum of each month's salary + service + commission.
 function _ytdPay(s){ try{ var d=(typeof baliNow==='function'?baliNow():new Date()); var y=d.getFullYear(), cm=d.getMonth()+1; var sal=0,svc=0,com=0; for(var m=1;m<=cm;m++){ var ym=y+'-'+('0'+m).slice(-2); var inc=(typeof _payrollIncome==='function')?_payrollIncome(s,ym):{salary:0,service:0,commission:0}; sal+=inc.salary; svc+=inc.service; com+=inc.commission; } return {salary:sal,service:svc,commission:com,total:sal+svc+com,year:y}; }catch(e){ return {salary:0,service:0,commission:0,total:0,year:(new Date()).getFullYear()}; } }
 window._ytdPay=_ytdPay;
