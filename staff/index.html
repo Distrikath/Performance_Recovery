@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814098;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814099;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -2967,6 +2967,7 @@ const ZONES=[
   {id:'Reception', rows:4, start:10, end:22, col:'#3b82f6', label:'Reception', min:'2 staff', rowLabels:['Manager','Reception Open','Reception Close','Club Assistant']},
   {id:'Supply',    rows:2, start:8,  end:20, col:'#10b981', label:'Supply',    min:'1 staff', rowLabels:['Supply','Supply Cover']},
   {id:'Therapy',   rows:3, start:10, end:22, col:'#8b5cf6', label:'Therapy',   min:'3 rooms', rowLabels:['Room 1','Room 2','Room 3']},
+  {id:'Event',     rows:3, start:6,  end:21, col:'#14b8a6', label:'Event',     min:'not bookable', rowLabels:['Event 1','Event 2','Event 3']},
 ];
 
 const STAFF=[
@@ -3085,6 +3086,8 @@ function loadGridFromData(){
     } else {
       grid[dayName] = _baseGrid ? JSON.parse(JSON.stringify(_baseGrid[dayName])) : emptyGrid()[dayName];
     }
+    // Backfill any zone missing from older saved rosters (e.g. a newly-added zone like Event) so nothing crashes.
+    getLeafZones().forEach(function(z){ if(!grid[dayName][z.id]) grid[dayName][z.id]=Array.from({length:z.rows},function(){return Array(TOTAL_SLOTS).fill(null);}); });
   });
 }
 
@@ -4954,6 +4957,7 @@ let ZONE_HOURS = [
   {id:'Supply',    label:'Supply',       col:'#10b981', wdOpen:10, wdClose:20, weOpen:8,  weClose:18},
   {id:'Therapy',   label:'Therapy',      col:'#8b5cf6', wdOpen:10, wdClose:22, weOpen:10, weClose:22},
   {id:'Recovery',  label:'Recovery',     col:'#f59e0b', wdOpen:10, wdClose:22, weOpen:8,  weClose:20},
+  {id:'Event',     label:'Event',        col:'#14b8a6', wdOpen:6,  wdClose:21, weOpen:6,  weClose:21},
 ];
 
 // Sync ZONE_HOURS into the ZONES array used by the roster
