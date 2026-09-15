@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814097;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814098;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -11910,8 +11910,8 @@ function updateClinicalTotals(base){
 }
 function clinSetPay(m){ clinPay=m; ['clin-pay-card','clin-pay-qr'].forEach(function(id){ var b=document.getElementById(id); if(b) b.classList.toggle('active', id==='clin-pay-'+m); }); }
 window.clinSetPay=clinSetPay;
-function clinSetPressure(p){ clinPressure=p; renderClinicalBooking(); renderClinicalOrder(); }
-function clinSetPayType(t){ clinPayType=t; renderClinicalBooking(); renderClinicalOrder(); }
+function clinSetPressure(p){ if(typeof clinCaptureInputs==='function') clinCaptureInputs(); clinPressure=p; renderClinicalBooking(); renderClinicalOrder(); }
+function clinSetPayType(t){ if(typeof clinCaptureInputs==='function') clinCaptureInputs(); clinPayType=t; renderClinicalBooking(); renderClinicalOrder(); }
 window.clinSetPressure=clinSetPressure; window.clinSetPayType=clinSetPayType;
 function clinSetRecommend(v){ clinRecommendedBy=v||''; } window.clinSetRecommend=clinSetRecommend;
 
