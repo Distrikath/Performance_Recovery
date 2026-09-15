@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814096;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814097;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -13603,7 +13603,17 @@ window.rebuildFromLedger = function(docs){
       }
       if(!_cxl){
         var _sess=(det&&det.date)||date; if(!rd[_sess])rd[_sess]={revenue:0,bookings:[]};
-        var _bid=(det&&det.id); if(_bid){ rd[_sess]._seen=rd[_sess]._seen||{}; if(!rd[_sess]._seen[_bid]){ rd[_sess].bookings.push(det); rd[_sess]._seen[_bid]=1; } }
+        var _bid=(det&&det.id);
+        if(_bid){ rd[_sess]._seen=rd[_sess]._seen||{};
+          var _pi=rd[_sess]._seen[_bid];
+          if(_pi===undefined){ rd[_sess]._seen[_bid]=rd[_sess].bookings.length; rd[_sess].bookings.push(det); }
+          else {
+            // Same booking recorded more than once (deposit doc + checkout "_bal" doc, or an edit). Keep the MORE
+            // ADVANCED payment state so a checked-out / balance-paid booking never reverts to its deposit-time state.
+            var _score=function(x){ return (x&&x.balancePaid?4:0)+(x&&x.checkedIn?2:0)+(x&&x.depositPaid?1:0); };
+            if(_score(det) >= _score(rd[_sess].bookings[_pi])) rd[_sess].bookings[_pi]=det;
+          }
+        }
       }
     }
   });
@@ -13628,7 +13638,7 @@ window.rebuildFromLedger = function(docs){
   try{
     if(typeof fuelData==='object'&&fuelData){ Object.keys(fuelData).forEach(function(d){ if(d<_snCut)return; var day=fuelData[d]; if(!day||!day.transactions)return; day.transactions.forEach(function(t){ if(t&&t.id&&!lids[String(t.id)]&&_survivesEpoch(t)){ if(!fd[d])fd[d]={revenue:0,transactions:[]}; fd[d].transactions.push(t); if(typeof ledgerWrite==='function') ledgerWrite('fuel',t.id,d,t.total,(t.serviceTax||0)+(t.tax||0),t.method,t,'completed'); } }); }); }
     if(typeof supplyData==='object'&&supplyData){ Object.keys(supplyData).forEach(function(d){ if(d<_snCut)return; var day=supplyData[d]; if(!day||!day.orders)return; day.orders.forEach(function(o){ if(o&&o.id&&!lids[String(o.id)]&&_survivesEpoch(o)){ if(!sd[d])sd[d]={revenue:0,orders:[]}; sd[d].orders.push(o); if(typeof ledgerWrite==='function') ledgerWrite('supply',o.id,d,o.total,0,o.method,{order:o,rows:[]},'completed'); } }); }); }
-    if(typeof recoveryData==='object'&&recoveryData){ Object.keys(recoveryData).forEach(function(d){ if(d<_snCut)return; var day=recoveryData[d]; if(!day||!day.bookings)return; day.bookings.forEach(function(b){ if(b&&b.id&&!lids[String(b.id)]&&_survivesEpoch(b)){ if(!rd[d])rd[d]={revenue:0,bookings:[]}; rd[d].bookings.push(b); if(typeof ledgerWrite==='function') ledgerWrite('recovery',b.id,d,(typeof clinCollected==='function'?clinCollected(b):(b.price||0)),0,b.payMethod,b,b.status); } }); }); }
+    if(typeof recoveryData==='object'&&recoveryData){ Object.keys(recoveryData).forEach(function(d){ if(d<_snCut)return; var day=recoveryData[d]; if(!day||!day.bookings)return; day.bookings.forEach(function(b){ if(b&&b.id&&!lids[String(b.id)]&&_survivesEpoch(b)){ if(!rd[d])rd[d]={revenue:0,bookings:[]}; rd[d].bookings.push(b); if(typeof ledgerWrite==='function') ledgerWrite('recovery',b.id,(b.ledgerDate||d),(typeof clinCollected==='function'?clinCollected(b):(b.price||0)),0,b.payMethod,b,b.status); } }); }); }  // keep the deposit's pay-day (ledgerDate), don't re-date to the session day
   }catch(e){ console.warn('[ledger] safety-net',e); }
   Object.keys(fd).forEach(function(d){ fd[d].revenue=(fd[d].transactions||[]).reduce(function(s,t){return s+((t&&t.total)||0);},0); });
   Object.keys(sd).forEach(function(d){ sd[d].revenue=(sd[d].orders||[]).reduce(function(s,o){return s+((o&&o.total)||0);},0); });
@@ -13674,7 +13684,7 @@ window.rebuildFromLedger = function(docs){
           arr.forEach(function(it){ if(it&&it.id&&!lids[String(it.id)]&&typeof ledgerWrite==='function'){
             if(kind==='fuel') ledgerWrite('fuel',it.id,day,it.total,(it.serviceTax||0)+(it.tax||0),it.method,it,'completed');
             else if(kind==='supply') ledgerWrite('supply',it.id,day,it.total,0,it.method,{order:it,rows:[]},'completed');
-            else if(kind==='recovery') ledgerWrite('recovery',it.id,day,(typeof clinCollected==='function'?clinCollected(it):(it.price||0)),0,it.payMethod,it,it.status);
+            else if(kind==='recovery') ledgerWrite('recovery',it.id,(it.ledgerDate||day),(typeof clinCollected==='function'?clinCollected(it):(it.price||0)),0,it.payMethod,it,it.status);
             n++;
           }});
         });
