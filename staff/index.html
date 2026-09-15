@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814094;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814095;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -13980,28 +13980,37 @@ function _svcCyclesCard(){
     var payCid=_cycleIdForMonth(payY);
     var C='#232327',MUT='#6b6b72',TX='#f4f4f5';
     var f=function(n){return 'IDR '+Math.round(n||0).toLocaleString('id-ID');};
-    var payTot=0, accTot=0;
-    var rows=TIP_POOL_IDS.map(function(id){
+    var GRID='display:grid;grid-template-columns:1.2fr 1fr 90px 1fr;gap:8px;';
+    // One person's row for a given (payAmount, accAmount, paid, toggleFn).
+    var payTot=0, accTot=0, payTotC=0, accTotC=0;
+    var personRow=function(id, pv, av, paid, toggleFn){
       var nm=((typeof getStaff==='function'&&getStaff(id))||{}).name||id;
-      var pv=_memberTipsForKeys(payKeys,id), av=_memberTipsForKeys(accKeys,id);
-      payTot+=pv; accTot+=av; var paid=_isPaid(id,payCid);
-      return '<div style="display:grid;grid-template-columns:1.2fr 1fr 90px 1fr;gap:8px;align-items:center;padding:8px 14px;border-top:1px solid #1b1b1e;font-family:\'Space Mono\',monospace;font-size:11px;">'
+      return '<div style="'+GRID+'align-items:center;padding:8px 14px;border-top:1px solid #1b1b1e;font-family:\'Space Mono\',monospace;font-size:11px;">'
         +'<span style="color:'+TX+';">'+nm+'</span>'
         +'<span style="color:#22c55e;font-weight:700;text-align:right;">'+f(pv)+'</span>'
-        +'<label style="justify-self:center;display:inline-flex;align-items:center;gap:4px;cursor:pointer;color:'+(paid?'#22c55e':MUT)+';font-size:10px;"><input type="checkbox" onclick="payoutTogglePaid(\''+id+'\',\''+payCid+'\')"'+(paid?' checked':'')+' style="cursor:pointer;">paid</label>'
+        +'<label style="justify-self:center;display:inline-flex;align-items:center;gap:4px;cursor:pointer;color:'+(paid?'#22c55e':MUT)+';font-size:10px;"><input type="checkbox" onclick="'+toggleFn+'(\''+id+'\',\''+payCid+'\')"'+(paid?' checked':'')+' style="cursor:pointer;">paid</label>'
         +'<span style="color:'+TX+';text-align:right;">'+f(av)+'</span>'
       +'</div>';
-    }).join('');
+    };
+    var subHdr=function(t){ return '<div style="padding:9px 14px 5px;font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:'+MUT+';border-top:1px solid '+C+';background:#0d0d0f;">'+t+'</div>'; };
+    // SERVICE FEE (FOH / Supply) — paid on the 15th
+    var svcRows=TIP_POOL_IDS.map(function(id){ var pv=_memberTipsForKeys(payKeys,id), av=_memberTipsForKeys(accKeys,id); payTot+=pv; accTot+=av; return personRow(id,pv,av,_isPaid(id,payCid),'payoutTogglePaid'); }).join('');
+    // COMMISSION (Therapists) — paid monthly with salary
+    var comRows=THERAPIST_IDS.map(function(id){ var pv=_therapistCommForKeys(id,payKeys).total, av=_therapistCommForKeys(id,accKeys).total; payTotC+=pv; accTotC+=av; return personRow(id,pv,av,_isPaidComm(id,payCid),'payoutToggleCommPaid'); }).join('');
+    var totRow=function(l,a,b){ return '<div style="'+GRID+'padding:9px 14px;border-top:2px solid '+C+';background:#111114;font-family:\'Space Mono\',monospace;font-size:11px;font-weight:700;color:'+TX+';"><span>'+l+'</span><span style="text-align:right;color:#22c55e;">'+f(a)+'</span><span></span><span style="text-align:right;">'+f(b)+'</span></div>'; };
     return '<div style="border:1px solid '+C+';border-radius:6px;margin-bottom:16px;">'
-      +'<div style="padding:11px 14px;border-bottom:1px solid '+C+';font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:'+MUT+';">Service fee · two live cycles</div>'
-      +'<div style="display:grid;grid-template-columns:1.2fr 1fr 90px 1fr;gap:8px;padding:9px 14px;background:#111114;font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:.04em;text-transform:uppercase;color:'+MUT+';">'
-        +'<span>Staff</span><span style="text-align:right;">Paying 15th<br><span style="text-transform:none;letter-spacing:0;">'+_cycleRangeLabel(payY)+'</span></span><span style="text-align:center;">Paid</span><span style="text-align:right;">Accumulating<br><span style="text-transform:none;letter-spacing:0;">'+_cycleRangeLabel(accY)+'</span></span>'
+      +'<div style="padding:11px 14px;border-bottom:1px solid '+C+';font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:'+MUT+';">Service fee &amp; commission · two live cycles</div>'
+      +'<div style="'+GRID+'padding:9px 14px;background:#111114;font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:.04em;text-transform:uppercase;color:'+MUT+';">'
+        +'<span>Staff</span><span style="text-align:right;">Paying / due<br><span style="text-transform:none;letter-spacing:0;">'+_cycleRangeLabel(payY)+'</span></span><span style="text-align:center;">Paid</span><span style="text-align:right;">Accumulating<br><span style="text-transform:none;letter-spacing:0;">'+_cycleRangeLabel(accY)+'</span></span>'
       +'</div>'
-      +rows
-      +'<div style="display:grid;grid-template-columns:1.2fr 1fr 90px 1fr;gap:8px;padding:10px 14px;border-top:2px solid '+C+';background:#111114;font-family:\'Space Mono\',monospace;font-size:11px;font-weight:700;color:'+TX+';">'
-        +'<span>TOTAL</span><span style="text-align:right;color:#22c55e;">'+f(payTot)+'</span><span></span><span style="text-align:right;">'+f(accTot)+'</span>'
-      +'</div>'
-      +'<div style="padding:8px 14px;font-family:\'Space Mono\',monospace;font-size:9px;color:'+MUT+';line-height:1.6;">Left = the cycle paying out on the 15th (tick as you pay). Right = the new cycle building from the 15th, shown on next month\'s payslip. Sick/holiday days already excluded.</div>'
+      +subHdr('Service fee · FOH / Supply · paid 15th')
+      +svcRows
+      +totRow('Service subtotal',payTot,accTot)
+      +subHdr('Commission · Therapists · paid monthly with salary')
+      +comRows
+      +totRow('Commission subtotal',payTotC,accTotC)
+      +totRow('TOTAL',payTot+payTotC,accTot+accTotC)
+      +'<div style="padding:8px 14px;font-family:\'Space Mono\',monospace;font-size:9px;color:'+MUT+';line-height:1.6;">Left = the closing cycle ('+_cycleRangeLabel(payY)+') — service-fee tips paid on the 15th, commission paid monthly with salary; tick as you pay. Right = the new cycle building from the 15th, shown on next month\'s payslip. Sick/holiday days already excluded from the service split.</div>'
     +'</div>';
   }catch(e){ console.warn('svcCyclesCard',e); return ''; }
 }
