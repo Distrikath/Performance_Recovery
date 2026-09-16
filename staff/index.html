@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814107;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814108;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -4581,11 +4581,20 @@ function calcWages(period, start, end){
       amt  = Math.round(s.salary/26);
       note = 'Daily rate (on roster today)';
     } else if(period==='week'){
-      // Actual rostered hours this week
+      // Actual rostered hours across the SELECTED week's dates (honours PREV/NEXT via start/end).
+      // Rate = monthly salary ÷ full-time monthly hours (48h/wk × 52/12 ≈ 208) so a full 48h week = one week's salary.
+      const _ftMonthHrs = (typeof FT_WEEKLY_HOURS!=='undefined'?FT_WEEKLY_HOURS:48) * 52/12;
       let hrs = 0;
-      DAYS.forEach(dayName=>{ getLeafZones().forEach(z=>{ (grid[dayName]?.[z.id]||[]).forEach(row=>{ row.forEach(cell=>{ if(cell===s.id) hrs+=0.5; }); }); }); });
+      try{
+        const _s=new Date(start+'T12:00:00'), _e=new Date(end+'T12:00:00');
+        for(let _dt=new Date(_s); _dt<=_e; _dt.setDate(_dt.getDate()+1)){
+          const _dk=_dt.toLocaleDateString('en-CA',{timeZone:BALI_TZ});
+          const _g=(typeof _tipDayGrid==='function')?_tipDayGrid(_dk):null; if(!_g) continue;
+          getLeafZones().forEach(z=>{ (_g[z.id]||[]).forEach(row=>{ (row||[]).forEach(cell=>{ if(cell===s.id) hrs+=0.5; }); }); });
+        }
+      }catch(e){}
       if(hrs===0) return;
-      amt  = Math.round(s.salary/160*hrs);
+      amt  = Math.round(s.salary/_ftMonthHrs*hrs);
       note = hrs+'h rostered';
     } else if(period==='month'){
       amt  = s.salary;
@@ -9401,16 +9410,16 @@ function getPLDateRange(period){
     const rfKey = rfDate ? rfDate.toLocaleDateString('en-CA',{timeZone:BALI_TZ}) : today;
     start = end = rfKey;
   } else if(period==='week'){
-    // Mon–Sun of current week
+    // Mon–Sun of the week the PREV/NEXT nav is pointing at (plWeekOffset: 0 = this week, -1 = last week, …)
+    var _wo=(typeof plWeekOffset!=='undefined'?plWeekOffset:0);
     const d = baliNow();
+    d.setDate(d.getDate()+_wo*7);
     const day = d.getDay(), diff = day===0?-6:1-day;
-    d.setDate(d.getDate()+diff);
-    start = d.toLocaleDateString('en-CA',{timeZone:BALI_TZ});
-    // End = Sunday
-    const sun = baliNow();
-    sun.setDate(sun.getDate()+(day===0?0:7-day));
+    const mon = baliNow(); mon.setDate(mon.getDate()+_wo*7+diff);
+    start = mon.toLocaleDateString('en-CA',{timeZone:BALI_TZ});
+    const sun = new Date(mon); sun.setDate(mon.getDate()+6);
     end = sun.toLocaleDateString('en-CA',{timeZone:BALI_TZ});
-    if(end > today) end = today; // don't go into future
+    if(_wo===0 && end > today) end = today; // only clamp the CURRENT week to today; past/future weeks show full Mon–Sun
   } else if(period==='month'){
     start = today.slice(0,7)+'-01';
     end   = today;
@@ -9559,19 +9568,22 @@ function renderPLExpenses(allExpenses, period){
     });
 
   } else if(period === 'week'){
-    // Week: sum actual rostered hours × hourly rate (salary / 160hrs month)
+    // Week: sum the SELECTED week's rostered hours (honours PREV/NEXT) × hourly rate.
+    // Hourly rate = monthly salary ÷ full-time monthly hours (48h/wk × 52/12 ≈ 208) so a full 48h week = one week's salary.
+    const _ftMonthHrs = (typeof FT_WEEKLY_HOURS!=='undefined'?FT_WEEKLY_HOURS:48) * 52/12;
+    const _hrs = {};
+    try{
+      const _s=new Date(start+'T12:00:00'), _e=new Date(end+'T12:00:00');
+      for(let _dt=new Date(_s); _dt<=_e; _dt.setDate(_dt.getDate()+1)){
+        const _dk=_dt.toLocaleDateString('en-CA',{timeZone:BALI_TZ});
+        const _g=(typeof _tipDayGrid==='function')?_tipDayGrid(_dk):null; if(!_g) continue;
+        getLeafZones().forEach(z=>{ (_g[z.id]||[]).forEach(row=>{ (row||[]).forEach(cell=>{ if(cell && !(''+cell).startsWith('Break:')) _hrs[cell]=(_hrs[cell]||0)+0.5; }); }); });
+      }
+    }catch(e){}
     STAFF.forEach(s=>{
-      let totalHrs = 0;
-      DAYS.forEach(dayName=>{
-        getLeafZones().forEach(z=>{
-          grid[dayName][z.id].forEach(row=>{
-            row.forEach(cell=>{ if(cell===s.id) totalHrs+=0.5; });
-          });
-        });
-      });
+      const totalHrs = _hrs[s.id]||0;
       if(totalHrs > 0){
-        const hourlyRate = s.salary / 160;
-        const weekWage = Math.round(hourlyRate * totalHrs);
+        const weekWage = Math.round((s.salary / _ftMonthHrs) * totalHrs);
         wagesTotal += weekWage;
         wagesDetail.push({name:s.name, amount:weekWage, note:totalHrs+'h this week'});
       }
