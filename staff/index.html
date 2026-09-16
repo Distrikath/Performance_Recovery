@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814100;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814102;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -11617,21 +11617,21 @@ function buildClinRoomGrid(){
   var hdr = canSel
     ? '<div class="clin-roomgrid-hdr">3 · Tap a '+(clinType==='clinical'?'chair':'room')+' · '+clinDateWord()+'</div>'
     : '<div class="clin-roomgrid-hdr">On the floor · '+clinDateWord()+'</div>';
-  // EVENTS lane — group classes/events for this date (shown under the chairs). Read-only info: time, spots left, cost.
+  // EVENTS lane — always shown under the chairs so the space is visible; lists this date's group classes (or empty state).
   var _evHtml='';
   try{
     var _evs=(typeof eventsForDate==='function')?eventsForDate(key):[];
-    if(_evs.length){
-      _evHtml='<div class="rf-room-row" style="border-radius:0;box-shadow:none;border-left:none;border-right:none;">'
-        +'<div class="rf-room-hdr" style="background:#f0fdfa;"><div><div class="rf-room-name" style="display:flex;align-items:center;gap:6px;"><div style="width:7px;height:7px;border-radius:50%;background:#14b8a6;flex-shrink:0;"></div>Events</div><div class="rf-room-type" style="margin-top:3px;font-family:\'Space Mono\',monospace;color:#0f766e;">group classes · '+clinDateWord()+'</div></div></div>'
-        +'<div style="padding:8px 12px 10px;">'
-        + _evs.map(function(ev){ var left=(typeof eventSpotsLeft==='function')?eventSpotsLeft(ev):(ev.capacity||0); var booked=(typeof eventSpotsBooked==='function')?eventSpotsBooked(ev.id):0;
-            return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #f0f0f0;font-family:\'Space Mono\',monospace;font-size:11px;">'
-              +'<span style="color:#0A0A0A;font-weight:700;">'+(ev.time||'')+' <span style="font-weight:400;color:#56565b;">'+(ev.title||'Event')+'</span></span>'
-              +'<span style="color:'+(left<=0?'#FF2D2D':'#0f766e')+';">'+booked+'/'+(ev.capacity||0)+' booked · '+left+' left'+((+ev.price>0)?(' · '+clinFmt(ev.price)):' · free')+'</span>'
-            +'</div>'; }).join('')
-        +'</div></div>';
-    }
+    var _isAdmin=(typeof currentUser==='undefined')||!currentUser||currentUser.type==='admin'||currentUser.role==='2IC';
+    var _body = _evs.length
+      ? _evs.map(function(ev){ var left=(typeof eventSpotsLeft==='function')?eventSpotsLeft(ev):(ev.capacity||0); var booked=(typeof eventSpotsBooked==='function')?eventSpotsBooked(ev.id):0;
+          return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #f0f0f0;font-family:\'Space Mono\',monospace;font-size:11px;">'
+            +'<span style="color:#0A0A0A;font-weight:700;">'+(ev.time||'')+' <span style="font-weight:400;color:#56565b;">'+(ev.title||'Event')+'</span></span>'
+            +'<span style="color:'+(left<=0?'#FF2D2D':'#0f766e')+';">'+booked+'/'+(ev.capacity||0)+' booked · '+left+' left'+((+ev.price>0)?(' · '+clinFmt(ev.price)):' · free')+'</span>'
+          +'</div>'; }).join('')
+      : ('<div style="padding:8px 0;font-family:\'Space Mono\',monospace;font-size:11px;color:#9a9a9e;">No events this day.'+(_isAdmin?' <a onclick="openEventsMgr()" style="color:#0f766e;cursor:pointer;text-decoration:underline;">Add in Settings → Events</a>':'')+'</div>');
+    _evHtml='<div class="rf-room-row" style="border-radius:0;box-shadow:none;border-left:none;border-right:none;">'
+      +'<div class="rf-room-hdr" style="background:#f0fdfa;"><div><div class="rf-room-name" style="display:flex;align-items:center;gap:6px;"><div style="width:7px;height:7px;border-radius:50%;background:#14b8a6;flex-shrink:0;"></div>Events</div><div class="rf-room-type" style="margin-top:3px;font-family:\'Space Mono\',monospace;color:#0f766e;">group classes · '+clinDateWord()+'</div></div>'+(_isAdmin?'<span onclick="openEventsMgr()" style="cursor:pointer;font-family:\'Space Mono\',monospace;font-size:10px;color:#0f766e;border:1px solid #99f6e4;padding:4px 9px;border-radius:3px;">+ Event</span>':'')+'</div>'
+      +'<div style="padding:8px 12px 10px;">'+_body+'</div></div>';
   }catch(e){}
   el.innerHTML=hdr+rooms.map(function(room){
     var realRoom=(typeof ROOMS!=='undefined'?ROOMS.find(function(x){return x.id===room.id;}):null)||{id:room.id,name:room.name,color:room.color||'#0A0A0A'};
@@ -14369,7 +14369,10 @@ function _eventsRerender(){ try{ var p=document.querySelector('.panel.on'); if(!
 window.eventSpotsBooked=function(eventId){ var n=0; var b=window.EVENT_BOOKINGS||{}; Object.keys(b).forEach(function(k){ var x=b[k]; if(x&&x.eventId===eventId&&x.status!=='cancelled') n+=(+x.spots||1); }); return n; };
 window.eventSpotsLeft=function(ev){ return Math.max(0,(+ev.capacity||0)-eventSpotsBooked(ev.id)); };
 window.eventsForDate=function(dk){ var out=[]; var e=window.EVENTS||{}; Object.keys(e).forEach(function(k){ var x=e[k]; if(x&&x.active!==false&&x.date===dk) out.push(x); }); out.sort(function(a,b){return String(a.time||'').localeCompare(String(b.time||''));}); return out; };
-window.eventSave=function(o){ try{ if(typeof firebase==='undefined'||!firebase.firestore)return; var id=o.id||('ev_'+Date.now()+'_'+Math.random().toString(36).slice(2,6)); firebase.firestore().collection('events').doc(id).set({ id:id, title:o.title||'Event', date:o.date||'', time:o.time||'', capacity:Math.round(+o.capacity||0), price:Math.round(+o.price||0), duration:Math.round(+o.duration||60), active:(o.active!==false), note:o.note||'', ts:firebase.firestore.FieldValue.serverTimestamp(), by:((typeof currentUser!=='undefined'&&currentUser&&currentUser.name)||'?') }, {merge:true}); }catch(e){ console.warn('[events] save',e); } };
+window.eventSave=function(o){ try{ if(typeof firebase==='undefined'||!firebase.firestore)return; var id=o.id||('ev_'+Date.now()+'_'+(window._evSeq=((window._evSeq||0)+1))+'_'+Math.random().toString(36).slice(2,6)); var rec={ id:id, title:o.title||'Event', date:o.date||'', time:o.time||'', capacity:Math.round(+o.capacity||0), price:Math.round(+o.price||0), duration:Math.round(+o.duration||60), active:(o.active!==false), note:o.note||'' };
+  // optimistic local add so the new event shows in the list instantly (multi-add works even before the snapshot lands)
+  window.EVENTS=window.EVENTS||{}; window.EVENTS[id]=Object.assign({}, window.EVENTS[id], rec);
+  firebase.firestore().collection('events').doc(id).set(Object.assign({}, rec, { ts:firebase.firestore.FieldValue.serverTimestamp(), by:((typeof currentUser!=='undefined'&&currentUser&&currentUser.name)||'?') }), {merge:true}); return id; }catch(e){ console.warn('[events] save',e); } };
 window.eventDelete=function(id){ try{ if(typeof firebase==='undefined'||!firebase.firestore)return; if(!confirm('Delete this event?'))return; firebase.firestore().collection('events').doc(String(id)).delete(); }catch(e){} };
 </script>
 
@@ -14424,9 +14427,11 @@ window.renderEventsMgr=function(){
 };
 window.evMgrAdd=function(){ var g=function(id){var e=document.getElementById(id);return e?e.value:'';};
   var t=g('ev_new_title'), d=g('ev_new_date'); if(!t||!d){ alert('Title and date are required.'); return; }
-  eventSave({title:t,date:d,time:g('ev_new_time'),capacity:g('ev_new_cap'),price:g('ev_new_price'),duration:60});
+  eventSave({title:t,date:d,time:g('ev_new_time'),capacity:(g('ev_new_cap')||6),price:(g('ev_new_price')||0),duration:60});
+  // Clear only title + time; KEEP the date/spots/price so you can add several classes to the same day quickly.
   ['ev_new_title','ev_new_time'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';});
-  setTimeout(renderEventsMgr,400);
+  renderEventsMgr();  // optimistic list already updated in eventSave — shows the new one immediately
+  var b=document.getElementById('ev_new_title'); if(b){ b.placeholder='✓ Added — add another for this day'; setTimeout(function(){b.placeholder='Stretch Class';},1800); try{b.focus();}catch(e){} }
 };
 window.evMgrSaveRow=function(id){ var g=function(k){var e=document.getElementById('ev_'+k+'_'+id);return e?e.value:'';};
   var cur=(window.EVENTS||{})[id]||{};
