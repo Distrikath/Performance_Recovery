@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814099;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814100;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -3001,6 +3001,13 @@ let dailyOverrides={}; // {'2026-08-08': {Therapy:[[...]], ...}} — per specifi
 // Per-date absence markers: {'2026-09-12': {'Reception:0': {reason,staffId,note}}}. The person stays fully
 // rostered (payroll/hours unaffected) — this just greys the row for the day so the team knows they're off.
 let dailyAbsence={};
+// Per-date EVENT bookable flag: {'2026-09-20': true}. Default (absent) = NOT bookable — anyone in the EVENT rows that
+// day is removed from Distrik booking availability (offsite event). Set true (Bookable) to leave normal availability intact.
+let dailyEventBookable={};
+function _eventBookableOn(dk){ return !!dailyEventBookable[dk]; }
+// Staff ids sitting in the EVENT zone on a date, to REMOVE from booking availability — only when that day is NOT bookable.
+function _eventBlockedStaffOn(dk){ var out={}; try{ if(_eventBookableOn(dk)) return out; var g=(dailyOverrides[dk])||(grid[DAYS[(new Date(dk+'T12:00:00').getDay()+6)%7]]); if(g&&g.Event){ g.Event.forEach(function(row){ (row||[]).forEach(function(cell){ var id=staffId(cell); if(id) out[id]=1; }); }); } }catch(e){} return out; }
+window.toggleEventBookable=function(){ try{ var dk=getDateKey(activeDay, rosterWeekOffset); dailyEventBookable[dk]=!dailyEventBookable[dk]; if(!dailyEventBookable[dk]) delete dailyEventBookable[dk]; if(typeof saveAll==='function') saveAll(); if(typeof window.dkHardSave==='function') window.dkHardSave(); if(typeof buildGrid==='function') buildGrid(); }catch(e){ console.warn('toggleEventBookable',e); } };
 // Authoritative DISTRIK absence reasons (see DISTRIK_absence_policy.json). Dropdown order = most-common first.
 const ABSENCE_REASONS=[
   {id:'sick_leave',label:'Sick Leave'},
@@ -3522,12 +3529,18 @@ function buildGrid(){
   }
 
   ZONES.forEach(zone=>{
+    let _evBtn='';
+    if(zone.id==='Event'){
+      const _edk=(typeof getDateKey==='function')?getDateKey(activeDay, rosterWeekOffset):'';
+      const _bk=_eventBookableOn(_edk);
+      _evBtn=`<button onclick="toggleEventBookable()" title="Offsite? set Not bookable so these staff are removed from Distrik booking availability that day" style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.06em;text-transform:uppercase;padding:5px 10px;border:1px solid ${_bk?'#10b981':'#FF2D2D'};color:${_bk?'#10b981':'#FF2D2D'};background:#fff;border-radius:3px;cursor:pointer;">${_bk?'Bookable ✓':'Not bookable'}</button>`;
+    }
     html+=`<div class="zone-header">
       <div class="zone-label" style="border-color:${zone.col}">
         <h4>${zone.id.toUpperCase()}</h4>
         <p>${fmtH(zone.start)} — ${fmtH(zone.end)} · ${zone.min}</p>
       </div>
-      <div class="zone-hours">${fmtH(zone.start)} — ${fmtH(zone.end)}</div>
+      ${_evBtn?`<div style="margin-left:auto;">${_evBtn}</div>`:`<div class="zone-hours">${fmtH(zone.start)} — ${fmtH(zone.end)}</div>`}
     </div>`;
     renderZoneRows(zone.id, zone.col, zone.start, zone.end, zone.rows, zone.rowLabels);
   });
@@ -3805,6 +3818,7 @@ function saveAll(){
       grid: _baseGrid || grid, // always save base template, not current week
       dailyOverrides,
       dailyAbsence,
+      dailyEventBookable,
       plEntries,
       sData,
       roomBookings,
@@ -3836,6 +3850,7 @@ function loadAll(){
     }
     // Restore per-date overrides; migrate from legacy weeklyGrids format if present
     if(data.dailyAbsence) dailyAbsence = data.dailyAbsence;
+    if(data.dailyEventBookable) dailyEventBookable = data.dailyEventBookable;
     if(data.dailyOverrides){
       dailyOverrides = data.dailyOverrides;
     } else if(data.weeklyGrids){
@@ -5204,6 +5219,7 @@ function buildSettingsManagers(){
   const roomBtns=rooms.map(r=>`<button onclick="openRoomConfig('${r.id}')" class="set-room-btn">${r.name}</button>`).join('');
   const cards=[
     {t:'Recovery — Services &amp; Treatments', d:'Treatment prices, RRP, duration, eligible rooms &amp; therapists, clinical (Human+) menu &amp; packages.', a:`<button onclick="openServicesMgr()" class="set-mgr-btn">Open →</button>`},
+    {t:'Events &amp; Classes', d:'Group classes / events (title, date, time, spots, price). Show on the website Events tab &amp; the Recovery day grid. Price 0 = free.', a:`<button onclick="openEventsMgr()" class="set-mgr-btn">Open →</button>`},
     {t:'Fuel — Café Menu &amp; Add-ons', d:'Drinks, food, RRP / cost / price, plus sizes, milks &amp; add-on rules.', a:`<button onclick="openMenuMgr()" class="set-mgr-btn">Open →</button>`},
     {t:'Supply — Brands &amp; Products', d:'Brands &amp; split %, products, per-size stock, pricing &amp; tax.', a:`<div class="set-mgr-actions"><button onclick="goToModule('supply')" class="set-mgr-btn">Open →</button><button onclick="openAddBrand()" class="set-mgr-btn alt">+ Brand</button></div>`},
     {t:'Rooms &amp; Recovery Chairs', d:'Set which services each room/chair can host, assigned staff &amp; type.', a:`<div class="set-room-list">${roomBtns||'<span style="color:#6b6b72;font-family:Space Mono,monospace;font-size:10px;">No rooms configured</span>'}</div>`},
@@ -11524,6 +11540,8 @@ function clinRoomsForService(){
   } else {
     pool=allRooms;
   }
+  // Staff on an OFFSITE event (EVENT zone + that day set Not-bookable) are removed from Distrik availability.
+  var _evBlk=(typeof _eventBlockedStaffOn==='function')?_eventBlockedStaffOn((typeof clinKey==='function')?clinKey():''):{};
   return pool.map(function(room){
     var rost=rosterFor(room.name);
     var isChair=room.type==='recovery';
@@ -11540,6 +11558,8 @@ function clinRoomsForService(){
       if(!info.therapist) info.eligible=false; // unstaffed today
       else if(needs) info.eligible=(rost&&rost.therapistId&&needs.indexOf(rost.therapistId)>=0);
       else info.eligible=true;
+      // Offsite event override: this therapist is out on an event today → not bookable.
+      if(info.eligible && rost && rost.therapistId && _evBlk[rost.therapistId]){ info.eligible=false; info.therapist=(rost.therapist||'')+' · on event'; }
     }
     return info;
   });
@@ -11597,6 +11617,22 @@ function buildClinRoomGrid(){
   var hdr = canSel
     ? '<div class="clin-roomgrid-hdr">3 · Tap a '+(clinType==='clinical'?'chair':'room')+' · '+clinDateWord()+'</div>'
     : '<div class="clin-roomgrid-hdr">On the floor · '+clinDateWord()+'</div>';
+  // EVENTS lane — group classes/events for this date (shown under the chairs). Read-only info: time, spots left, cost.
+  var _evHtml='';
+  try{
+    var _evs=(typeof eventsForDate==='function')?eventsForDate(key):[];
+    if(_evs.length){
+      _evHtml='<div class="rf-room-row" style="border-radius:0;box-shadow:none;border-left:none;border-right:none;">'
+        +'<div class="rf-room-hdr" style="background:#f0fdfa;"><div><div class="rf-room-name" style="display:flex;align-items:center;gap:6px;"><div style="width:7px;height:7px;border-radius:50%;background:#14b8a6;flex-shrink:0;"></div>Events</div><div class="rf-room-type" style="margin-top:3px;font-family:\'Space Mono\',monospace;color:#0f766e;">group classes · '+clinDateWord()+'</div></div></div>'
+        +'<div style="padding:8px 12px 10px;">'
+        + _evs.map(function(ev){ var left=(typeof eventSpotsLeft==='function')?eventSpotsLeft(ev):(ev.capacity||0); var booked=(typeof eventSpotsBooked==='function')?eventSpotsBooked(ev.id):0;
+            return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #f0f0f0;font-family:\'Space Mono\',monospace;font-size:11px;">'
+              +'<span style="color:#0A0A0A;font-weight:700;">'+(ev.time||'')+' <span style="font-weight:400;color:#56565b;">'+(ev.title||'Event')+'</span></span>'
+              +'<span style="color:'+(left<=0?'#FF2D2D':'#0f766e')+';">'+booked+'/'+(ev.capacity||0)+' booked · '+left+' left'+((+ev.price>0)?(' · '+clinFmt(ev.price)):' · free')+'</span>'
+            +'</div>'; }).join('')
+        +'</div></div>';
+    }
+  }catch(e){}
   el.innerHTML=hdr+rooms.map(function(room){
     var realRoom=(typeof ROOMS!=='undefined'?ROOMS.find(function(x){return x.id===room.id;}):null)||{id:room.id,name:room.name,color:room.color||'#0A0A0A'};
     var roomBks=dayBks.filter(function(b){return b.room===room.id&&b.status!=='cancelled'&&b.start;});
@@ -11623,7 +11659,7 @@ function buildClinRoomGrid(){
       +'</div>'
       +'<div style="padding:6px 12px 8px;">'+buildTimeline(realRoom,roomBks)+'</div>'
       +'</div>';
-  }).join('');
+  }).join('')+_evHtml;
 }
 function clinSelectRoom(rid,rname){ clinCaptureInputs(); if(clinRoom!==rname) clinTime=''; clinRoom=rname; renderClinicalBooking(); renderClinicalOrder(); }
 window.clinSelectRoom=clinSelectRoom; window.buildClinRoomGrid=buildClinRoomGrid;
@@ -13193,7 +13229,7 @@ window.showRoomCalendar=showRoomCalendar;
       // PER-DATE MAPS survive newest-wins: union roster overrides + absence marks by date, so a device that saved
       // without a given day's edit can't wipe it. The newer config still wins for any date it actually contains.
       try{ var _win=(ct>lt)?co:lo, _lose=(ct>lt)?lo:co;
-        ['dailyOverrides','dailyAbsence'].forEach(function(fld){ res[fld]=Object.assign({}, _lose[fld]||{}, _win[fld]||{}); });
+        ['dailyOverrides','dailyAbsence','dailyEventBookable'].forEach(function(fld){ res[fld]=Object.assign({}, _lose[fld]||{}, _win[fld]||{}); });
       }catch(e){}
       // always keep LOCAL transactions (they're stripped from the cloud copy anyway)
       tf.forEach(function(f){ res[f]=(lo[f]!==undefined)?lo[f]:(f==='SUPPLY_SALES'?[]:{}); });
@@ -14314,6 +14350,88 @@ window.hplusInvoice=function(ym){
     var w=window.open('','_blank'); if(w){ w.document.write(html); w.document.close(); setTimeout(function(){ try{w.print();}catch(e){} },300); }
     else { alert('Please allow pop-ups to generate the invoice.'); }
   }catch(e){ console.warn('[hplus] invoice',e); alert('Invoice error: '+e.message); }
+};
+</script>
+
+<!-- ===== EVENTS (admin-managed group classes/events; read by the website + Recovery grid) ===== -->
+<script>
+// Events live in Firestore `events` (admin writes; website + dashboard read). Bookings in `event_bookings`.
+window.EVENTS={};          // id -> {id,title,date,time,capacity,price,duration,active,note}
+window.EVENT_BOOKINGS={};  // id -> {id,eventId,name,phone,email,spots,status,paid,ts}
+(function(){ var s1=false,s2=false;
+  window.loadEvents=function(){ if(typeof firebase==='undefined'||!firebase.firestore)return;
+    if(!s1){ s1=true; firebase.firestore().collection('events').onSnapshot(function(snap){ var m={}; snap.forEach(function(d){m[d.id]=d.data();}); window.EVENTS=m; _eventsRerender(); }, function(e){ console.warn('[events] snap',e); }); }
+    if(!s2){ s2=true; firebase.firestore().collection('event_bookings').onSnapshot(function(snap){ var m={}; snap.forEach(function(d){m[d.id]=d.data();}); window.EVENT_BOOKINGS=m; _eventsRerender(); }, function(e){ console.warn('[event_bookings] snap',e); }); }
+  };
+  if(typeof firebase!=='undefined'&&firebase.auth){ firebase.auth().onAuthStateChanged(function(u){ if(u) loadEvents(); }); }
+})();
+function _eventsRerender(){ try{ var p=document.querySelector('.panel.on'); if(!p) return; if(p.id==='panel-recovery'&&typeof buildClinRoomGrid==='function') buildClinRoomGrid(); if(p.id==='panel-settings'&&typeof renderEventsMgr==='function'&&document.getElementById('ev-mgr-list')) renderEventsMgr(); }catch(e){} }
+window.eventSpotsBooked=function(eventId){ var n=0; var b=window.EVENT_BOOKINGS||{}; Object.keys(b).forEach(function(k){ var x=b[k]; if(x&&x.eventId===eventId&&x.status!=='cancelled') n+=(+x.spots||1); }); return n; };
+window.eventSpotsLeft=function(ev){ return Math.max(0,(+ev.capacity||0)-eventSpotsBooked(ev.id)); };
+window.eventsForDate=function(dk){ var out=[]; var e=window.EVENTS||{}; Object.keys(e).forEach(function(k){ var x=e[k]; if(x&&x.active!==false&&x.date===dk) out.push(x); }); out.sort(function(a,b){return String(a.time||'').localeCompare(String(b.time||''));}); return out; };
+window.eventSave=function(o){ try{ if(typeof firebase==='undefined'||!firebase.firestore)return; var id=o.id||('ev_'+Date.now()+'_'+Math.random().toString(36).slice(2,6)); firebase.firestore().collection('events').doc(id).set({ id:id, title:o.title||'Event', date:o.date||'', time:o.time||'', capacity:Math.round(+o.capacity||0), price:Math.round(+o.price||0), duration:Math.round(+o.duration||60), active:(o.active!==false), note:o.note||'', ts:firebase.firestore.FieldValue.serverTimestamp(), by:((typeof currentUser!=='undefined'&&currentUser&&currentUser.name)||'?') }, {merge:true}); }catch(e){ console.warn('[events] save',e); } };
+window.eventDelete=function(id){ try{ if(typeof firebase==='undefined'||!firebase.firestore)return; if(!confirm('Delete this event?'))return; firebase.firestore().collection('events').doc(String(id)).delete(); }catch(e){} };
+</script>
+
+<!-- ═══ EVENTS MANAGER (Settings, admin) ═══ -->
+<div id="eventsMgrModal" style="display:none;position:fixed;inset:0;z-index:99998;align-items:center;justify-content:center;background:rgba(10,10,10,.6);">
+  <div style="background:#fff;color:#0A0A0A;width:min(860px,96vw);max-height:90vh;overflow:auto;border-radius:6px;font-family:'Space Mono',monospace;box-shadow:0 20px 60px rgba(0,0,0,.4);">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid #eee;">
+      <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:17px;letter-spacing:1px;">Events &amp; Classes</div>
+      <button onclick="closeEventsMgr()" style="border:none;background:none;font-size:20px;cursor:pointer;color:#999;">&times;</button>
+    </div>
+    <div style="padding:10px 20px 0;font-size:10px;color:#888;line-height:1.6;">Group classes / events. These show on the website Events tab and in the Recovery day grid. Price 0 = free (no Xendit at checkout). Capacity = total spots.</div>
+    <div style="padding:12px 20px;border-bottom:1px solid #f0f0f0;">
+      <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#0A0A0A;margin-bottom:8px;">+ New event</div>
+      <div style="display:grid;grid-template-columns:1.6fr 1fr .8fr .7fr 1fr 1fr;gap:8px;align-items:end;">
+        <div><label style="font-size:9px;color:#888;">Title</label><input id="ev_new_title" placeholder="Stretch Class" style="font-family:'Space Mono',monospace;font-size:11px;border:1px solid #d3d3ce;padding:7px 8px;background:#fafafa;width:100%;box-sizing:border-box;"></div>
+        <div><label style="font-size:9px;color:#888;">Date</label><input id="ev_new_date" type="date" style="font-family:'Space Mono',monospace;font-size:11px;border:1px solid #d3d3ce;padding:7px 8px;background:#fafafa;width:100%;box-sizing:border-box;"></div>
+        <div><label style="font-size:9px;color:#888;">Time</label><input id="ev_new_time" type="time" style="font-family:'Space Mono',monospace;font-size:11px;border:1px solid #d3d3ce;padding:7px 8px;background:#fafafa;width:100%;box-sizing:border-box;"></div>
+        <div><label style="font-size:9px;color:#888;">Spots</label><input id="ev_new_cap" type="number" value="6" style="font-family:'Space Mono',monospace;font-size:11px;border:1px solid #d3d3ce;padding:7px 8px;background:#fafafa;width:100%;box-sizing:border-box;"></div>
+        <div><label style="font-size:9px;color:#888;">Price IDR (0=free)</label><input id="ev_new_price" type="number" value="0" style="font-family:'Space Mono',monospace;font-size:11px;border:1px solid #d3d3ce;padding:7px 8px;background:#fafafa;width:100%;box-sizing:border-box;"></div>
+        <div><button onclick="evMgrAdd()" class="set-mgr-btn" style="background:#0A0A0A;color:#fff;border:none;padding:9px 12px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;width:100%;">+ Add</button></div>
+      </div>
+    </div>
+    <div id="ev-mgr-list" style="padding:14px 20px;"></div>
+    <div style="display:flex;gap:10px;padding:16px 20px;border-top:1px solid #eee;">
+      <button onclick="closeEventsMgr()" style="flex:1;padding:12px;border:1px solid #e0e0e0;background:#fff;color:#777;cursor:pointer;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;">Close</button>
+    </div>
+  </div>
+</div>
+<script>
+window.openEventsMgr=function(){ if(typeof loadEvents==='function') loadEvents(); var m=document.getElementById('eventsMgrModal'); if(m) m.style.display='flex'; renderEventsMgr(); };
+window.closeEventsMgr=function(){ var m=document.getElementById('eventsMgrModal'); if(m) m.style.display='none'; };
+window.renderEventsMgr=function(){
+  var el=document.getElementById('ev-mgr-list'); if(!el) return;
+  var f=function(n){return 'IDR '+Math.round(n||0).toLocaleString('id-ID');};
+  var evs=Object.keys(window.EVENTS||{}).map(function(k){return window.EVENTS[k];}).sort(function(a,b){return (String(a.date||'')+String(a.time||'')).localeCompare(String(b.date||'')+String(b.time||''));});
+  if(!evs.length){ el.innerHTML='<div style="color:#999;font-size:11px;padding:8px 0;">No events yet — add one above.</div>'; return; }
+  var ist='font-family:Space Mono,monospace;font-size:11px;border:1px solid #d3d3ce;padding:6px 7px;background:#fafafa;color:#0A0A0A;width:100%;box-sizing:border-box;';
+  el.innerHTML=evs.map(function(ev){
+    var booked=(typeof eventSpotsBooked==='function')?eventSpotsBooked(ev.id):0;
+    return '<div style="border:1px solid #eee;border-radius:4px;padding:10px 12px;margin-bottom:8px;">'
+      +'<div style="display:grid;grid-template-columns:1.6fr 1fr .8fr .7fr 1fr 1fr;gap:8px;align-items:end;">'
+        +'<div><label style="font-size:9px;color:#888;">Title</label><input id="ev_title_'+ev.id+'" value="'+String(ev.title||'').replace(/"/g,"&quot;")+'" style="'+ist+'"></div>'
+        +'<div><label style="font-size:9px;color:#888;">Date</label><input id="ev_date_'+ev.id+'" type="date" value="'+(ev.date||'')+'" style="'+ist+'"></div>'
+        +'<div><label style="font-size:9px;color:#888;">Time</label><input id="ev_time_'+ev.id+'" type="time" value="'+(ev.time||'')+'" style="'+ist+'"></div>'
+        +'<div><label style="font-size:9px;color:#888;">Spots</label><input id="ev_cap_'+ev.id+'" type="number" value="'+(ev.capacity||0)+'" style="'+ist+'"></div>'
+        +'<div><label style="font-size:9px;color:#888;">Price (0=free)</label><input id="ev_price_'+ev.id+'" type="number" value="'+(ev.price||0)+'" style="'+ist+'"></div>'
+        +'<div style="display:flex;gap:6px;"><button onclick="evMgrSaveRow(\''+ev.id+'\')" class="set-mgr-btn" style="background:#0A0A0A;color:#fff;border:none;padding:8px 10px;font-size:10px;cursor:pointer;flex:1;">Save</button><button onclick="eventDelete(\''+ev.id+'\')" style="background:#fff;border:1px solid #e0e0e0;color:#FF2D2D;padding:8px 9px;font-size:12px;cursor:pointer;">&times;</button></div>'
+      +'</div>'
+      +'<div style="font-size:9px;color:#888;margin-top:6px;">'+booked+' / '+(ev.capacity||0)+' spots booked · '+((+ev.price>0)?f(ev.price):'free')+(ev.active===false?' · <span style="color:#FF2D2D;">hidden</span>':'')+'</div>'
+    +'</div>';
+  }).join('');
+};
+window.evMgrAdd=function(){ var g=function(id){var e=document.getElementById(id);return e?e.value:'';};
+  var t=g('ev_new_title'), d=g('ev_new_date'); if(!t||!d){ alert('Title and date are required.'); return; }
+  eventSave({title:t,date:d,time:g('ev_new_time'),capacity:g('ev_new_cap'),price:g('ev_new_price'),duration:60});
+  ['ev_new_title','ev_new_time'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';});
+  setTimeout(renderEventsMgr,400);
+};
+window.evMgrSaveRow=function(id){ var g=function(k){var e=document.getElementById('ev_'+k+'_'+id);return e?e.value:'';};
+  var cur=(window.EVENTS||{})[id]||{};
+  eventSave({id:id,title:g('title'),date:g('date'),time:g('time'),capacity:g('cap'),price:g('price'),duration:cur.duration||60,active:cur.active,note:cur.note});
+  var b=document.getElementById('ev_title_'+id); if(b){ b.style.borderColor='#10b981'; setTimeout(function(){b.style.borderColor='#d3d3ce';},1200); }
 };
 </script>
 
