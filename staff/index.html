@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814102;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814103;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -14394,6 +14394,7 @@ window.eventDelete=function(id){ try{ if(typeof firebase==='undefined'||!firebas
         <div><label style="font-size:9px;color:#888;">Price IDR (0=free)</label><input id="ev_new_price" type="number" value="0" style="font-family:'Space Mono',monospace;font-size:11px;border:1px solid #d3d3ce;padding:7px 8px;background:#fafafa;width:100%;box-sizing:border-box;"></div>
         <div><button onclick="evMgrAdd()" class="set-mgr-btn" style="background:#0A0A0A;color:#fff;border:none;padding:9px 12px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;width:100%;">+ Add</button></div>
       </div>
+      <div style="margin-top:8px;"><label style="font-size:9px;color:#888;">Description <span style="text-transform:none;">(shown on the website)</span></label><textarea id="ev_new_desc" rows="2" placeholder="A 45-minute guided stretch class to help you move better…" style="font-family:'Space Mono',monospace;font-size:11px;border:1px solid #d3d3ce;padding:7px 8px;background:#fafafa;width:100%;box-sizing:border-box;resize:vertical;"></textarea></div>
     </div>
     <div id="ev-mgr-list" style="padding:14px 20px;"></div>
     <div style="display:flex;gap:10px;padding:16px 20px;border-top:1px solid #eee;">
@@ -14421,13 +14422,14 @@ window.renderEventsMgr=function(){
         +'<div><label style="font-size:9px;color:#888;">Price (0=free)</label><input id="ev_price_'+ev.id+'" type="number" value="'+(ev.price||0)+'" style="'+ist+'"></div>'
         +'<div style="display:flex;gap:6px;"><button onclick="evMgrSaveRow(\''+ev.id+'\')" class="set-mgr-btn" style="background:#0A0A0A;color:#fff;border:none;padding:8px 10px;font-size:10px;cursor:pointer;flex:1;">Save</button><button onclick="eventDelete(\''+ev.id+'\')" style="background:#fff;border:1px solid #e0e0e0;color:#FF2D2D;padding:8px 9px;font-size:12px;cursor:pointer;">&times;</button></div>'
       +'</div>'
+      +'<div style="margin-top:8px;"><label style="font-size:9px;color:#888;">Description (website)</label><textarea id="ev_desc_'+ev.id+'" rows="2" style="'+ist+'resize:vertical;">'+String(ev.note||'').replace(/</g,"&lt;")+'</textarea></div>'
       +'<div style="font-size:9px;color:#888;margin-top:6px;">'+booked+' / '+(ev.capacity||0)+' spots booked · '+((+ev.price>0)?f(ev.price):'free')+(ev.active===false?' · <span style="color:#FF2D2D;">hidden</span>':'')+'</div>'
     +'</div>';
   }).join('');
 };
 window.evMgrAdd=function(){ var g=function(id){var e=document.getElementById(id);return e?e.value:'';};
   var t=g('ev_new_title'), d=g('ev_new_date'); if(!t||!d){ alert('Title and date are required.'); return; }
-  eventSave({title:t,date:d,time:g('ev_new_time'),capacity:(g('ev_new_cap')||6),price:(g('ev_new_price')||0),duration:60});
+  eventSave({title:t,date:d,time:g('ev_new_time'),capacity:(g('ev_new_cap')||6),price:(g('ev_new_price')||0),duration:60,note:g('ev_new_desc')});
   // Clear only title + time; KEEP the date/spots/price so you can add several classes to the same day quickly.
   ['ev_new_title','ev_new_time'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';});
   renderEventsMgr();  // optimistic list already updated in eventSave — shows the new one immediately
@@ -14435,7 +14437,7 @@ window.evMgrAdd=function(){ var g=function(id){var e=document.getElementById(id)
 };
 window.evMgrSaveRow=function(id){ var g=function(k){var e=document.getElementById('ev_'+k+'_'+id);return e?e.value:'';};
   var cur=(window.EVENTS||{})[id]||{};
-  eventSave({id:id,title:g('title'),date:g('date'),time:g('time'),capacity:g('cap'),price:g('price'),duration:cur.duration||60,active:cur.active,note:cur.note});
+  eventSave({id:id,title:g('title'),date:g('date'),time:g('time'),capacity:g('cap'),price:g('price'),duration:cur.duration||60,active:cur.active,note:g('desc')});
   var b=document.getElementById('ev_title_'+id); if(b){ b.style.borderColor='#10b981'; setTimeout(function(){b.style.borderColor='#d3d3ce';},1200); }
 };
 </script>
