@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814105;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814107;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -3050,7 +3050,7 @@ const ABSENCE_POLICY={
   partner_miscarriage:{capType:'per_event', days:2},
   menstrual_leave:{capType:'per_month', days:2}
 };
-const FT_WEEKLY_HOURS=42;  // full-time reference for the part-time sick pro-rata (10 × hrs ÷ 42)
+const FT_WEEKLY_HOURS=48;  // full-time reference (6 days × 8h) for the part-time sick pro-rata (10 × hrs ÷ 48)
 const FT_ANNUAL_HOURS=FT_WEEKLY_HOURS*52;  // full-time hours to earn the full year's sick entitlement (accrual basis)
 const BUSINESS_START='2026-09-01';          // DISTRIK opened — default hire date; nothing accrues before this
 function _absLabelOf(id){ var r=ABSENCE_REASONS.find(function(x){return x.id===id;}); return r?r.label:id; }
@@ -3829,7 +3829,7 @@ function saveAll(){
       fuelData,
       supplyData,
       DISCOUNTS,
-      STAFF: STAFF.map(s=>({id:s.id,name:s.name,abbr:s.abbr,role:s.role,col:s.col,salary:s.salary,group:s.group||'Operations',pin:s.pin||'1234',weeklyHours:(s.weeklyHours!=null?s.weeklyHours:42),employment:(s.employment||'full'),startDate:(s.startDate||'2026-09-01')})),
+      STAFF: STAFF.map(s=>({id:s.id,name:s.name,abbr:s.abbr,role:s.role,col:s.col,salary:s.salary,group:s.group||'Operations',pin:s.pin||'1234',weeklyHours:(s.weeklyHours!=null?s.weeklyHours:48),employment:(s.employment||'full'),startDate:(s.startDate||'2026-09-01')})),
       _cfgTs: _prevCfgTs,
       _salesEpoch: (window._salesEpoch||0),   // "cleared watermark" — devices won't resurrect sales created before this
       _deletedIds: (window._deletedIds||{}),  // tombstones — ids permanently deleted; no device ever resurrects them
@@ -5267,7 +5267,7 @@ function buildSettingsStaff(){
         <option value="Therapy"    ${grp==='Therapy'   ?'selected':''}>Therapy</option>
       </select>
       <input class="svc-input" id="stf_sal_${i}" value="${s.salary||''}" type="number" placeholder="Salary IDR" style="font-family:'Space Mono',monospace;font-size:10px;">
-      <input class="svc-input" id="stf_hrs_${i}" value="${s.weeklyHours!=null?s.weeklyHours:42}" type="number" title="Contracted weekly hours (full-time = 42)" placeholder="hrs/wk" style="font-family:'Space Mono',monospace;font-size:10px;">
+      <input class="svc-input" id="stf_hrs_${i}" value="${s.weeklyHours!=null?s.weeklyHours:48}" type="number" title="Contracted weekly hours (full-time = 48 · 6 days × 8h)" placeholder="hrs/wk" style="font-family:'Space Mono',monospace;font-size:10px;">
       <select class="svc-input" id="stf_emp_${i}" title="Full-time / Part-time" style="font-family:'Space Mono',monospace;font-size:9px;padding:6px 4px;">
         <option value="full" ${(s.employment||'full')==='full'?'selected':''}>Full-t</option>
         <option value="part" ${s.employment==='part'?'selected':''}>Part-t</option>
@@ -5327,7 +5327,7 @@ function buildSettingsZones(){
 function settingsAddStaff(){
   const colors = ['#e879f9','#fb923c','#a3e635','#38bdf8','#f472b6','#34d399'];
   const col = colors[STAFF.length % colors.length];
-  const newS = {id:'new'+Date.now(), col, group:'Operations', name:'New Staff', abbr:'NS', role:'Staff', salary:3900000, weeklyHours:42, employment:'full'};
+  const newS = {id:'new'+Date.now(), col, group:'Operations', name:'New Staff', abbr:'NS', role:'Staff', salary:3900000, weeklyHours:48, employment:'full'};
   STAFF.push(newS);
   STAFF_MAP[newS.id] = newS;
   buildSettingsStaff();
@@ -8406,6 +8406,13 @@ function applySupplyImages(){
   try{ SUPPLY_ITEMS.forEach(function(it){ if(it&&it.id&&window.SUPPLY_IMG[it.id]&&window.SUPPLY_IMG[it.id].length) it.images=window.SUPPLY_IMG[it.id]; }); }catch(e){}
 }
 window.applySupplyImages=applySupplyImages;
+// ── SHARED LIVE STOCK ──────────────────────────────────────────────────────────────────────────────────
+// Stock counts live in the admin-only config, so a POS/iPad can't push them. Instead we sync stock per-item via
+// the `supply_stock` collection (like supply_img) — ANY device can write it on a sale, and every device reads it
+// and overrides its config baseline. This is what keeps office + fuel + supply-iPad stock in agreement.
+window.SUPPLY_STOCK = window.SUPPLY_STOCK || {};
+function applySupplyStock(){ try{ var ss=window.SUPPLY_STOCK||{}; SUPPLY_ITEMS.forEach(function(it){ if(it&&it.id&&ss[it.id]&&ss[it.id].sizes){ it.sizes=Object.assign({}, it.sizes, ss[it.id].sizes); } }); }catch(e){} }
+window.applySupplyStock=applySupplyStock;
 // repaint whichever Supply view is on screen once photos arrive from the cloud
 window.dkRerenderSupply=function(){
   try{ if(typeof supView!=='undefined' && supView==='pos' && typeof buildSupPOSItems==='function') buildSupPOSItems(); }catch(e){}
@@ -8422,6 +8429,7 @@ function loadSupplyFromStorage(){
     }
   }catch(e){}
   applySupplyImages();   // re-attach synced photos onto the freshly-loaded items (config carries no photos)
+  applySupplyStock();    // override config baseline stock with the live shared counts (supply_stock)
 }
 function saveSupplyToStorage(){
   try{ localStorage.setItem('distrik_supply', JSON.stringify({BRANDS,SUPPLY_ITEMS,SUPPLY_SALES})); }catch(e){}
@@ -8429,6 +8437,8 @@ function saveSupplyToStorage(){
   try{ SUPPLY_ITEMS.forEach(function(it){ if(it&&it.id){ var im=(it.images||[]).filter(Boolean); if(im.length) window.SUPPLY_IMG[it.id]=im; } }); }catch(e){}
   try{ if(typeof window.dkHardSave==='function') window.dkHardSave(['distrik_supply']); }catch(e){}       // config (no photos) → cloud, tiny
   try{ if(typeof window.dkPushSupplyImages==='function') window.dkPushSupplyImages(); }catch(e){}          // photos → per-item docs so the iPad sees them
+  // Admin edits to stock (restock, corrections) → push to the shared supply_stock so every device matches.
+  try{ if(typeof currentUser!=='undefined'&&currentUser&&currentUser.type==='admin'&&typeof window.dkPushSupplyStock==='function') window.dkPushSupplyStock(SUPPLY_ITEMS); }catch(e){}
 }
 
 // ── TABS & NAV ────────────────────────────────────────────────────
@@ -8686,6 +8696,7 @@ function supProcessSale(){
   const _taxTotal = _subEx>0?Math.round(_grossTax*_net/_subEx):0; // tax recalculated on the discounted amount
   const total = _net+_taxTotal;
   const _supRows = []; // capture the exact SUPPLY_SALES line items for a complete ledger record
+  const _soldStk = []; // items whose stock was decremented → push to the shared supply_stock so all 3 devices update
 
   supCart.forEach(c=>{
     // Deduct stock from the LIVE inventory item (look it up by id — the cart's item reference can go stale if
@@ -8693,6 +8704,7 @@ function supProcessSale(){
     var _liveItem=(typeof SUPPLY_ITEMS!=='undefined'&&c.item)?SUPPLY_ITEMS.find(function(i){return i.id===c.item.id;}):null;
     var _stockTgt=_liveItem||c.item;
     if(_stockTgt&&_stockTgt.sizes&&_stockTgt.sizes[c.size]>0) _stockTgt.sizes[c.size]--;
+    if(_stockTgt&&_stockTgt.id&&_soldStk.indexOf(_stockTgt)<0) _soldStk.push(_stockTgt);
     const brand = BRANDS.find(b=>b.id===c.item.brandId);
     const itemBrandSplit = (c.item.brandSplit !== undefined && c.item.brandSplit !== null) ? c.item.brandSplit : (brand?.split !== undefined ? brand.split : 60);
     const payoutBase = c.item.priceRRP || c.item.priceFull || c.price || 0; // payout = % of RRP, not sale price
@@ -8723,6 +8735,9 @@ function supProcessSale(){
   if(typeof ledgerWrite==='function') ledgerWrite('supply', _sord.id, dateKey, total, _taxTotal, supPosPayMethod, {order:_sord, rows:_supRows}, 'completed');
 
   saveSupplyToStorage();
+  // Push the decremented stock to the shared supply_stock collection so the office + fuel + supply iPad all update
+  // (config is admin-only, so the iPad can't push the config blob — this per-item path is allowed from any device).
+  try{ if(typeof dkPushSupplyStock==='function') dkPushSupplyStock(_soldStk); }catch(e){}
   const conf = document.getElementById('sup-confirm');
   const right = document.querySelector('.sup-split-right');
   if(conf&&right){ conf.style.display='flex'; conf.style.flexDirection='column'; conf.style.position='absolute'; }
@@ -13413,6 +13428,24 @@ window.showRoomCalendar=showRoomCalendar;
       if(chg){ try{ if(typeof window.applySupplyImages==='function') window.applySupplyImages(); if(typeof window.dkRerenderSupply==='function') window.dkRerenderSupply(); }catch(e){} }
     }, function(e){ console.warn('[supply_img] sub',e); });
   }
+  // ── SHARED LIVE STOCK: per-item docs any device can write on a sale (config is admin-only, this path isn't) ──
+  window.dkPushSupplyStock=function(items){
+    if(!ready||!db) return;
+    var list=Array.isArray(items)?items:(items?[items]:[]); if(!list.length) return;
+    var batch=db.batch(), n=0, touched=false;
+    list.forEach(function(it){ if(!it||!it.id||!it.sizes) return; batch.set(db.collection('supply_stock').doc(String(it.id)), { id:String(it.id), sizes:it.sizes, ts:firebase.firestore.FieldValue.serverTimestamp(), by:((typeof currentUser!=='undefined'&&currentUser&&currentUser.name)||'?') }); n++; touched=true; if(n>=100){ try{batch.commit();}catch(e){} batch=db.batch(); n=0; } });
+    if(touched){ (n>0?batch.commit():Promise.resolve()).then(function(){ try{setPill('✓ Stock synced','#10b981');}catch(e){} }).catch(function(e){ console.warn('[supply_stock] push',e); }); }
+  };
+  function subscribeSupplyStock(){
+    db.collection('supply_stock').onSnapshot(function(snap){
+      var chg=false; window.SUPPLY_STOCK=window.SUPPLY_STOCK||{};
+      snap.docChanges().forEach(function(c){
+        if(c.type==='removed'){ if(window.SUPPLY_STOCK[c.doc.id]){ delete window.SUPPLY_STOCK[c.doc.id]; chg=true; } }
+        else { var d=c.doc.data(); if(d&&d.sizes){ window.SUPPLY_STOCK[c.doc.id]=d; chg=true; } }
+      });
+      if(chg){ try{ if(typeof window.applySupplyStock==='function') window.applySupplyStock(); if(typeof window.dkRerenderSupply==='function') window.dkRerenderSupply(); }catch(e){} }
+    }, function(e){ console.warn('[supply_stock] sub',e); });
+  }
   function subscribe(){
     db.collection(COLL).onSnapshot(function(snap){
       var changed=false;
@@ -13442,6 +13475,7 @@ window.showRoomCalendar=showRoomCalendar;
       if(changed){ rerender(); setPill("✓ Synced","#10b981"); }
     }, function(e){ console.warn('[sync] snap',e); setPill("⚠ Offline","#FF2D2D"); });
     subscribeSupplyImages();   // live-pull product photos to every device (esp. the POS/iPad)
+    subscribeSupplyStock();    // live-pull shared stock counts so office + fuel + supply iPad stay in agreement
   }
 
   function reconcile(){
