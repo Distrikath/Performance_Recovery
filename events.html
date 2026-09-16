@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-18443940569"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","AW-18443940569");gtag("config","G-W76EC6Y48D");</script>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Distrik. — Events</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,700;0,800;0,900;1,900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --b:#0A0A0A; --b2:#000; --b3:#161616;
+  --ink:#F2F2F0; --ink-d:#787878; --ink-dd:#3a3936;
+  --r:#FF2D2D; --teal:#14b8a6;
+  --line:rgba(242,242,240,.06); --line-mid:rgba(242,242,240,.12);
+  --display:'Inter',ui-sans-serif,system-ui,sans-serif;
+  --mono:'Space Mono',ui-monospace,'SF Mono',Menlo,monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--b);color:var(--ink);font-family:var(--display);overflow-x:hidden}
+a{color:inherit}
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:22px 28px;display:grid;grid-template-columns:1fr 1fr 1fr;align-items:center;background:linear-gradient(to bottom, rgba(10,10,10,.92), rgba(10,10,10,0));}
+.nav-logo{font-family:var(--display);font-size:17px;font-weight:900;font-style:italic;letter-spacing:-.02em;color:var(--ink);text-decoration:none;justify-self:start}
+.back-btn{justify-self:center;background:none;border:none;cursor:pointer;font-family:var(--mono);font-weight:400;font-size:11px;color:var(--ink);letter-spacing:.28em;text-transform:lowercase;display:flex;align-items:center;gap:14px;padding:8px 0;text-decoration:none}
+.back-btn:hover{color:var(--r)}
+.page-label{position:fixed;top:88px;right:50%;transform:translateX(50%);z-index:999;font-family:var(--mono);font-weight:400;font-size:10px;letter-spacing:.45em;color:var(--r)}
+
+.ev-hero{padding:150px 48px 40px;border-bottom:1px solid var(--line)}
+.ev-hero-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:.45em;color:var(--teal);margin-bottom:20px;text-transform:lowercase}
+.ev-hero-h{font-family:var(--display);font-size:clamp(34px,6vw,72px);font-weight:900;letter-spacing:-.04em;line-height:.95;text-transform:uppercase}
+.ev-hero-sub{font-family:var(--mono);font-size:12px;letter-spacing:.04em;color:var(--ink-d);line-height:1.85;max-width:520px;margin-top:28px}
+
+.ev-wrap{padding:48px;max-width:1100px;margin:0 auto}
+.ev-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
+.ev-card{background:var(--b3);border:1px solid var(--line-mid);border-radius:10px;padding:26px 24px 22px;display:flex;flex-direction:column;gap:14px;transition:border-color .3s}
+.ev-card:hover{border-color:var(--teal)}
+.ev-card-date{font-family:var(--mono);font-size:10px;letter-spacing:.28em;color:var(--teal);text-transform:uppercase}
+.ev-card-title{font-family:var(--display);font-size:24px;font-weight:900;letter-spacing:-.03em;text-transform:uppercase;line-height:1.05}
+.ev-card-desc{font-family:var(--mono);font-size:11px;line-height:1.8;color:var(--ink-d);flex:1}
+.ev-card-meta{display:flex;flex-direction:column;gap:7px;border-top:1px solid var(--line);padding-top:14px;font-family:var(--mono);font-size:11px}
+.ev-card-row{display:flex;justify-content:space-between;color:var(--ink-d)}
+.ev-card-row b{color:var(--ink);font-weight:700}
+.ev-book-btn{margin-top:6px;font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;padding:14px;background:var(--teal);color:#04231f;border:none;font-weight:700;cursor:pointer;transition:opacity .25s}
+.ev-book-btn:hover{opacity:.88}
+.ev-book-btn:disabled{background:#232323;color:#666;cursor:not-allowed}
+.ev-empty{font-family:var(--mono);font-size:12px;color:var(--ink-d);text-align:center;padding:60px 0;line-height:2}
+
+/* Booking overlay */
+.evbk-ov{position:fixed;inset:0;background:rgba(10,10,10,.97);z-index:1900;display:none;align-items:center;justify-content:center;backdrop-filter:blur(5px);padding:20px}
+.evbk-ov.open{display:flex}
+.evbk-box{background:var(--b3);border:1px solid var(--line-mid);border-radius:12px;width:min(460px,96vw);max-height:92vh;overflow:auto;padding:36px 32px}
+.evbk-close{position:absolute;top:24px;right:28px;background:none;border:none;color:var(--ink-d);font-size:26px;cursor:pointer;line-height:1}
+.evbk-close:hover{color:var(--r)}
+.evbk-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:.4em;color:var(--teal);text-transform:uppercase;margin-bottom:14px}
+.evbk-title{font-family:var(--display);font-size:30px;font-weight:900;letter-spacing:-.03em;text-transform:uppercase;line-height:1;margin-bottom:8px}
+.evbk-detail{font-family:var(--mono);font-size:11px;color:var(--ink-d);line-height:1.9;margin-bottom:22px}
+.evbk-field{margin-bottom:14px}
+.evbk-field label{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-d);margin-bottom:6px}
+.evbk-field input{width:100%;background:var(--b);border:1px solid var(--line-mid);color:var(--ink);font-family:var(--mono);font-size:13px;padding:12px 13px;box-sizing:border-box}
+.evbk-field input:focus{outline:none;border-color:var(--teal)}
+.evbk-cta{width:100%;font-family:var(--mono);font-size:12px;letter-spacing:.2em;text-transform:uppercase;padding:16px;background:var(--teal);color:#04231f;border:none;font-weight:700;cursor:pointer;margin-top:8px}
+.evbk-cta:hover{opacity:.9}
+.evbk-note{font-family:var(--mono);font-size:9px;color:var(--ink-dd);line-height:1.7;margin-top:14px;text-align:center}
+.evbk-ok-ico{font-size:40px;color:var(--teal);text-align:center}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">DISTRIK.</a>
+  <a href="index.html" class="back-btn">
+    <svg width="16" height="10" viewBox="0 0 16 10" fill="none"><path d="M0 5h15M5 1L1 5l4 4" stroke="currentColor" stroke-width="1"/></svg>
+    back
+  </a>
+</nav>
+<div class="page-label">events</div>
+
+<section class="ev-hero">
+  <div class="ev-hero-eyebrow">[ events &amp; classes ]</div>
+  <h1 class="ev-hero-h">Move<br>together.</h1>
+  <p class="ev-hero-sub">Group classes and events at the Canggu lab. Reserve your spot below — a few places only, so book ahead.</p>
+</section>
+
+<div class="ev-wrap">
+  <div class="ev-grid" id="ev-grid"><div class="ev-empty">Loading events…</div></div>
+</div>
+
+<!-- Booking overlay -->
+<div class="evbk-ov" id="evbk-ov">
+  <div class="evbk-box" style="position:relative;">
+    <button class="evbk-close" onclick="evbkClose()">&times;</button>
+    <div id="evbk-body"></div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script>
+var _fbApp=null,_fbDb=null,_fbAuthP=null;
+function evFdb(){ if(!_fbApp){var c={apiKey:'AIzaSyC9amKPhl2s_-7qN_Ej0VV7nDkJ7BIXMRc',authDomain:'distrikath80361.firebaseapp.com',projectId:'distrikath80361',storageBucket:'distrikath80361.firebasestorage.app',messagingSenderId:'1039015029135',appId:'1:1039015029135:web:db7583ff1131aed86d03fa'};_fbApp=firebase.apps.length?firebase.app():firebase.initializeApp(c);} if(!_fbDb)_fbDb=_fbApp.firestore(); return _fbDb; }
+function evAuth(){ var db=evFdb(); if(!_fbAuthP){ _fbAuthP=(_fbApp.auth?_fbApp.auth().signInAnonymously():Promise.resolve()).then(function(){return db;}).catch(function(e){console.warn('[ev] auth',e&&e.code);return db;}); } return _fbAuthP; }
+
+var EVENTS={}, BOOKINGS={};
+function _todayKey(){ var d=new Date(new Date().getTime()+8*3600000); return d.toISOString().slice(0,10); } // Bali date
+function spotsBooked(id){ var n=0; Object.keys(BOOKINGS).forEach(function(k){var x=BOOKINGS[k]; if(x&&x.eventId===id&&x.status!=='cancelled') n+=(+x.spots||1);}); return n; }
+function fmtIDR(n){ return 'IDR '+Math.round(n||0).toLocaleString('id-ID'); }
+function fmtDate(dk){ try{var p=dk.split('-');var d=new Date(+p[0],+p[1]-1,+p[2]);return d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});}catch(e){return dk;} }
+function fmtTime(t){ if(!t)return''; var p=t.split(':'); var h=+p[0], m=p[1]; var ap=h>=12?'pm':'am'; var hh=h%12; if(hh===0)hh=12; return hh+(m&&m!=='00'?(':'+m):'')+ap; }
+
+function renderEvents(){
+  var el=document.getElementById('ev-grid'); if(!el) return;
+  var today=_todayKey();
+  var list=Object.keys(EVENTS).map(function(k){return EVENTS[k];})
+    .filter(function(e){ return e && e.active!==false && e.date && e.date>=today; })
+    .sort(function(a,b){ return (String(a.date)+String(a.time||'')).localeCompare(String(b.date)+String(b.time||'')); });
+  if(!list.length){ el.innerHTML='<div class="ev-empty">No upcoming events right now.<br>Follow us on Instagram for the next one.</div>'; return; }
+  el.innerHTML=list.map(function(ev){
+    var left=Math.max(0,(+ev.capacity||0)-spotsBooked(ev.id));
+    var full=left<=0;
+    var cost=(+ev.price>0)?fmtIDR(ev.price):'Free';
+    return '<div class="ev-card">'
+      +'<div class="ev-card-date">'+fmtDate(ev.date)+' · '+fmtTime(ev.time)+'</div>'
+      +'<div class="ev-card-title">'+esc(ev.title||'Event')+'</div>'
+      +(ev.note?'<div class="ev-card-desc">'+esc(ev.note)+'</div>':'<div class="ev-card-desc"></div>')
+      +'<div class="ev-card-meta">'
+        +'<div class="ev-card-row"><span>Spaces</span><b style="color:'+(full?'#FF2D2D':'var(--teal)')+'">'+(full?'Fully booked':(left+' left'))+'</b></div>'
+        +'<div class="ev-card-row"><span>Cost</span><b>'+cost+'</b></div>'
+      +'</div>'
+      +'<button class="ev-book-btn" '+(full?'disabled':'onclick="evbkOpen(\''+ev.id+'\')"')+'>'+(full?'Fully booked':'Book this class')+'</button>'
+    +'</div>';
+  }).join('');
+}
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── Booking flow ──
+var _evbkId=null;
+function evbkOpen(id){ _evbkId=id; var ev=EVENTS[id]; if(!ev) return;
+  var left=Math.max(0,(+ev.capacity||0)-spotsBooked(id));
+  var body=document.getElementById('evbk-body');
+  body.innerHTML=''
+    +'<div class="evbk-eyebrow">reserve your spot</div>'
+    +'<div class="evbk-title">'+esc(ev.title||'Event')+'</div>'
+    +'<div class="evbk-detail">'+fmtDate(ev.date)+' · '+fmtTime(ev.time)+'<br>'+((+ev.price>0)?fmtIDR(ev.price):'Free class')+' · '+left+' space'+(left!==1?'s':'')+' left</div>'
+    +'<div class="evbk-field"><label>Full name</label><input id="evbk-name" type="text" placeholder="Your name" autocomplete="name"></div>'
+    +'<div class="evbk-field"><label>WhatsApp</label><input id="evbk-phone" type="tel" placeholder="+62 8xx xxxx xxxx" autocomplete="tel"></div>'
+    +'<div class="evbk-field"><label>Email</label><input id="evbk-email" type="email" placeholder="name@email.com" autocomplete="email"></div>'
+    +'<button class="evbk-cta" onclick="evbkSubmit()">'+((+ev.price>0)?'Continue to payment':'Confirm booking')+'</button>'
+    +'<div class="evbk-note">'+((+ev.price>0)?'Payment secures your spot.':'No payment needed — just turn up. We\'ll send a WhatsApp reminder.')+'</div>';
+  document.getElementById('evbk-ov').classList.add('open'); document.body.style.overflow='hidden';
+}
+function evbkClose(){ document.getElementById('evbk-ov').classList.remove('open'); document.body.style.overflow=''; }
+function evbkSubmit(){
+  var ev=EVENTS[_evbkId]; if(!ev) return;
+  var name=(document.getElementById('evbk-name').value||'').trim();
+  var phone=(document.getElementById('evbk-phone').value||'').trim();
+  var email=(document.getElementById('evbk-email').value||'').trim();
+  if(!name||!phone){ alert('Please enter your name and WhatsApp number.'); return; }
+  var btn=document.querySelector('#evbk-body .evbk-cta'); if(btn){btn.disabled=true;btn.textContent='Booking…';}
+  evAuth().then(function(db){
+    // Re-check capacity against a fresh read so we never oversell the last spot.
+    return db.collection('event_bookings').where('eventId','==',ev.id).get().then(function(snap){
+      var booked=0; snap.forEach(function(d){var x=d.data(); if(x&&x.status!=='cancelled') booked+=(+x.spots||1);});
+      var left=(+ev.capacity||0)-booked;
+      if(left<=0){ throw new Error('full'); }
+      var rec={ eventId:ev.id, eventTitle:ev.title||'Event', eventDate:ev.date||'', eventTime:ev.time||'',
+        name:name, phone:phone, email:email, spots:1, price:(+ev.price||0),
+        status:'confirmed', paid:((+ev.price||0)===0), paymentStatus:((+ev.price||0)===0?'free':'unpaid'),
+        submittedAt:firebase.firestore.FieldValue.serverTimestamp() };
+      return db.collection('event_bookings').add(rec);
+    });
+  }).then(function(){
+    try{ if(typeof gtag==='function') gtag('event','conversion',{'send_to':'AW-18443940569/GXsgCP3R3fUcENnl4NpE','value':(+ev.price||0),'currency':'IDR'}); }catch(e){}
+    // FREE → straight to confirmation (no payment screen). PRICED → we note a payment link follows (no live event-payment yet).
+    var priced=(+ev.price>0);
+    var body=document.getElementById('evbk-body');
+    body.innerHTML='<div class="evbk-ok-ico">&#10003;</div>'
+      +'<div class="evbk-title" style="text-align:center;margin-top:14px;">You\'re booked.</div>'
+      +'<div class="evbk-detail" style="text-align:center;">'+esc(ev.title||'Event')+'<br>'+fmtDate(ev.date)+' · '+fmtTime(ev.time)+'</div>'
+      +'<div class="evbk-note">'+(priced?'Our team will WhatsApp you a payment link to secure your spot.':'See you at the Canggu lab. We\'ll send a WhatsApp reminder.')+'</div>'
+      +'<button class="evbk-cta" style="margin-top:18px;" onclick="evbkClose()">Done</button>';
+  }).catch(function(e){
+    if(btn){btn.disabled=false;btn.textContent='Confirm booking';}
+    if(e&&e.message==='full'){ alert('Sorry — that class just filled up.'); evbkClose(); renderEvents(); return; }
+    alert('Booking error: '+(e&&e.message||e)+'\n\nPlease WhatsApp us: +62 819 9480 1516');
+  });
+}
+window.evbkOpen=evbkOpen; window.evbkClose=evbkClose; window.evbkSubmit=evbkSubmit;
+document.getElementById('evbk-ov').addEventListener('click',function(e){ if(e.target===this) evbkClose(); });
+
+// ── Live data ──
+evAuth().then(function(db){
+  db.collection('events').onSnapshot(function(snap){ var m={}; snap.forEach(function(d){m[d.id]=d.data();}); EVENTS=m; renderEvents(); }, function(e){ console.warn('[ev] events',e); document.getElementById('ev-grid').innerHTML='<div class="ev-empty">Couldn\'t load events. Please refresh.</div>'; });
+  db.collection('event_bookings').onSnapshot(function(snap){ var m={}; snap.forEach(function(d){m[d.id]=d.data();}); BOOKINGS=m; renderEvents(); }, function(e){ console.warn('[ev] bookings',e); });
+});
+</script>
+</body>
+</html>
