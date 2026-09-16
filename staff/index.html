@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814104;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814105;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -3005,8 +3005,10 @@ let dailyAbsence={};
 // day is removed from Distrik booking availability (offsite event). Set true (Bookable) to leave normal availability intact.
 let dailyEventBookable={};
 function _eventBookableOn(dk){ return !!dailyEventBookable[dk]; }
-// Staff ids sitting in the EVENT zone on a date, to REMOVE from booking availability — only when that day is NOT bookable.
-function _eventBlockedStaffOn(dk){ var out={}; try{ if(_eventBookableOn(dk)) return out; var g=(dailyOverrides[dk])||(grid[DAYS[(new Date(dk+'T12:00:00').getDay()+6)%7]]); if(g&&g.Event){ g.Event.forEach(function(row){ (row||[]).forEach(function(cell){ var id=staffId(cell); if(id) out[id]=1; }); }); } }catch(e){} return out; }
+// Staff ids sitting in the EVENT zone on a date (regardless of the bookable flag) — they're running the event.
+function _eventStaffOn(dk){ var out={}; try{ var g=(dailyOverrides[dk])||(grid[DAYS[(new Date(dk+'T12:00:00').getDay()+6)%7]]); if(g&&g.Event){ g.Event.forEach(function(row){ (row||[]).forEach(function(cell){ var id=staffId(cell); if(id) out[id]=1; }); }); } }catch(e){} return out; }
+// Staff to fully REMOVE from booking availability that day — only when the day is NOT bookable (offsite event).
+function _eventBlockedStaffOn(dk){ return _eventBookableOn(dk) ? {} : _eventStaffOn(dk); }
 window.toggleEventBookable=function(){ try{ var dk=getDateKey(activeDay, rosterWeekOffset); dailyEventBookable[dk]=!dailyEventBookable[dk]; if(!dailyEventBookable[dk]) delete dailyEventBookable[dk]; if(typeof saveAll==='function') saveAll(); if(typeof window.dkHardSave==='function') window.dkHardSave(); if(typeof buildGrid==='function') buildGrid(); }catch(e){ console.warn('toggleEventBookable',e); } };
 // Authoritative DISTRIK absence reasons (see DISTRIK_absence_policy.json). Dropdown order = most-common first.
 const ABSENCE_REASONS=[
@@ -11594,6 +11596,11 @@ function clinAvailableTimes(){
   var occ=dayBks.filter(function(b){return b.room===roomId&&b.status!=='cancelled'&&b.start&&b.id!==clinEditingId;}).map(function(b){
     var st=parseTime(b.start); return [st, st+((b.duration||60)/60)+buf];
   });
+  // EVENT LOCK: if this room's therapist is running events that day (they're in the EVENT roster rows), block the
+  // class time windows so they can't also be booked for a 1:1 during their class.
+  try{ if(!isChair && rt && rt.therapistId && typeof _eventStaffOn==='function' && _eventStaffOn(key)[rt.therapistId] && typeof eventsForDate==='function'){
+    eventsForDate(key).forEach(function(ev){ var es=parseTime(ev.time); if(es!=null&&!isNaN(es)){ occ.push([es, es+((+ev.duration||60)/60)+buf]); } });
+  } }catch(e){}
   var isToday=(key===((typeof todayKey==='function')?todayKey():''));
   var nowH=-1; if(isToday){ var _bn=(typeof baliNow==='function'?baliNow():new Date()); nowH=_bn.getHours()+_bn.getMinutes()/60; }
   var slots=[];
