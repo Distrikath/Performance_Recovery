@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814108;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814109;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -9139,6 +9139,58 @@ function downloadBrandReport(brandId, reportType, period){
   document.getElementById('brandReportModal').classList.remove('open');
 }
 
+// ── COMBINED (ALL BRANDS) REPORT — one file across every brand, with a Brand column ──
+function downloadCombinedReport(reportType, period){
+  const baliNowD=baliNow();
+  const monthKey=baliNowD.toLocaleDateString('en-CA',{timeZone:BALI_TZ}).slice(0,7);
+  const weekStart=(()=>{const d=baliNow();const day=d.getDay();d.setDate(d.getDate()-(day===0?6:day-1));return d.toLocaleDateString('en-CA',{timeZone:BALI_TZ});})();
+  let sales=(typeof SUPPLY_SALES!=='undefined'?SUPPLY_SALES:[]).slice();
+  if(period==='month') sales=sales.filter(s=>s.date&&s.date.startsWith(monthKey));
+  if(period==='week')  sales=sales.filter(s=>s.date&&s.date>=weekStart);
+  const periodLabel=period==='month'?baliNowD.toLocaleDateString('en-GB',{timeZone:BALI_TZ,month:'long',year:'numeric'}):period==='week'?'Week of '+weekStart:'All Time';
+  const bname=id=>{const b=BRANDS.find(x=>x.id===id);return b?b.name:'';};
+  const fmt=n=>Math.round(n).toLocaleString('id-ID');
+  let csv='',filename='';
+  if(reportType==='restock'){
+    csv='DISTRIK - RESTOCK REQUEST (ALL BRANDS)\nPeriod: '+periodLabel+'\n\n';
+    csv+='Brand,Item,SKU,Colour,Category,Size,Qty Sold,Current Stock\n';
+    const sold={};
+    sales.forEach(s=>{const k=s.itemId+'__'+s.size;sold[k]=(sold[k]||0)+1;});
+    Object.entries(sold).sort((a,b)=>a[0].localeCompare(b[0])).forEach(([k,qty])=>{
+      const [itemId,size]=k.split('__');
+      const item=SUPPLY_ITEMS.find(i=>i.id===itemId); if(!item) return;
+      const sl=size.replace('sz','').replace('_','/');
+      const stock=item.sizes&&item.sizes[size]!=null?item.sizes[size]:0;
+      csv+='"'+bname(item.brandId)+'","'+item.name+'","'+(item.sku||'')+'","'+(item.colour||'')+'","'+(item.category||'')+'","'+sl.toUpperCase()+'",'+qty+','+stock+'\n';
+    });
+    csv+='\n--- ZERO STOCK (all brands) ---\nBrand,Item,SKU,Colour,Size\n';
+    SUPPLY_ITEMS.forEach(item=>{ Object.entries(item.sizes||{}).forEach(([sz,qty])=>{ if(qty===0){const sl=sz.replace('sz','').replace('_','/');csv+='"'+bname(item.brandId)+'","'+item.name+'","'+(item.sku||'')+'","'+(item.colour||'')+'","'+sl.toUpperCase()+'"\n';} }); });
+    filename='Distrik_AllBrands_Restock_'+periodLabel.replace(/\s+/g,'_')+'.csv';
+  } else if(reportType==='payout'){
+    csv='DISTRIK - BRAND PAYOUT STATEMENT (ALL BRANDS)\nPeriod: '+periodLabel+'\n\n';
+    csv+='Brand,Date,Item,Size,RRP (IDR),Payout (IDR)\n';
+    let totPayout=0;
+    sales.sort((a,b)=>(bname(a.brandId)+a.date).localeCompare(bname(b.brandId)+b.date)).forEach(s=>{
+      const item=SUPPLY_ITEMS.find(i=>i.id===s.itemId);const rrp=(item&&(item.priceRRP||item.priceFull))||0;const b=BRANDS.find(x=>x.id===s.brandId);const ibs=(item&&item.brandSplit!==undefined)?item.brandSplit:((b&&b.split)||60);const payout=rrp>0?Math.round(rrp*ibs/100):0;totPayout+=payout;const sl=s.size.replace('sz','').replace('_','/');
+      csv+='"'+bname(s.brandId)+'",'+s.date+',"'+s.itemName+'","'+sl.toUpperCase()+'",'+Math.round(rrp)+','+Math.round(payout)+'\n';
+    });
+    csv+='\nItems Sold,'+sales.length+'\nTotal Payout Due,'+Math.round(totPayout)+'\n';
+    filename='Distrik_AllBrands_Payout_'+monthKey+'.csv';
+  } else if(reportType==='internal'){
+    csv='DISTRIK - INTERNAL P&L (ALL BRANDS) - CONFIDENTIAL\nPeriod: '+periodLabel+'\n\n';
+    csv+='Brand,Date,Item,Size,Sale Price,Cost,Tax,Brand Payout,Distrik Profit,Method\n';
+    let tS=0,tC=0,tT=0,tP=0,tPr=0;
+    sales.sort((a,b)=>(bname(a.brandId)+a.date).localeCompare(bname(b.brandId)+b.date)).forEach(s=>{
+      const item=SUPPLY_ITEMS.find(i=>i.id===s.itemId);const cost=(item&&item.priceCost)||0,tax=s.tax||0,payout=s.brandPayout||0;const profit=(s.price||0)-cost-tax-payout;tS+=s.price||0;tC+=cost;tT+=tax;tP+=payout;tPr+=profit;const sl=s.size.replace('sz','').replace('_','/');
+      csv+='"'+bname(s.brandId)+'",'+s.date+',"'+s.itemName+'","'+sl.toUpperCase()+'",'+Math.round(s.price||0)+','+Math.round(cost)+','+Math.round(tax)+','+Math.round(payout)+','+Math.round(profit)+','+(s.method||'')+'\n';
+    });
+    csv+='\nTotal Sales,'+Math.round(tS)+'\nTotal Cost,'+Math.round(tC)+'\nTotal Tax,'+Math.round(tT)+'\nBrand Payouts,'+Math.round(tP)+'\nNET PROFIT,'+Math.round(tPr)+'\nMargin,'+(tS>0?Math.round(tPr/tS*100):0)+'%\n';
+    filename='Distrik_AllBrands_Internal_'+periodLabel.replace(/\s+/g,'_')+'.csv';
+  }
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent('﻿'+csv);a.download=filename;document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);},100);
+  document.getElementById('brandReportModal').classList.remove('open');
+}
+
 
 function openBrandReportMenu(brandId){
   const modal = document.getElementById('brandReportModal');
@@ -9835,8 +9887,8 @@ function runReport(reportType, period){
   const sel = document.getElementById('brm-brand-select');
   const brandId = sel ? sel.value : 'all';
   if(brandId === 'all'){
-    // Run for all brands
-    BRANDS.forEach(b => downloadBrandReport(b.id, reportType, period));
+    // One combined file across every brand (with a Brand column) — not a file per brand.
+    downloadCombinedReport(reportType, period);
   } else {
     downloadBrandReport(brandId, reportType, period);
   }
