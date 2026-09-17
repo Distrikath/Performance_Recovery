@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814109;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814110;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -9089,10 +9089,10 @@ function downloadBrandReport(brandId, reportType, period){
       const stock=item.sizes?.[size]??0;
       csv+='"'+item.name+'","'+(item.sku||'')+'","'+(item.colour||'')+'","'+(item.category||'')+'","'+sl.toUpperCase()+'",'+qty+','+stock+'\n';
     });
-    csv += '\n--- ZERO STOCK ---\nItem,SKU,Colour,Size\n';
+    csv += '\n--- CURRENT STOCK TAKE ---\nItem,SKU,Colour,Size,Current Stock\n';
     SUPPLY_ITEMS.filter(i=>i.brandId===brandId).forEach(item=>{
       Object.entries(item.sizes||{}).forEach(([sz,qty])=>{
-        if(qty===0){ const sl=sz.replace('sz','').replace('_','/'); csv+='"'+item.name+'","'+(item.sku||'')+'","'+(item.colour||'')+'","'+sl.toUpperCase()+'"\n'; }
+        const sl=sz.replace('sz','').replace('_','/'); csv+='"'+item.name+'","'+(item.sku||'')+'","'+(item.colour||'')+'","'+sl.toUpperCase()+'",'+(qty||0)+'\n';
       });
     });
     filename='Distrik_'+brand.name.replace(/\s+/g,'_')+'_Restock_'+periodLabel.replace(/\s+/g,'_')+'.csv';
@@ -9163,8 +9163,10 @@ function downloadCombinedReport(reportType, period){
       const stock=item.sizes&&item.sizes[size]!=null?item.sizes[size]:0;
       csv+='"'+bname(item.brandId)+'","'+item.name+'","'+(item.sku||'')+'","'+(item.colour||'')+'","'+(item.category||'')+'","'+sl.toUpperCase()+'",'+qty+','+stock+'\n';
     });
-    csv+='\n--- ZERO STOCK (all brands) ---\nBrand,Item,SKU,Colour,Size\n';
-    SUPPLY_ITEMS.forEach(item=>{ Object.entries(item.sizes||{}).forEach(([sz,qty])=>{ if(qty===0){const sl=sz.replace('sz','').replace('_','/');csv+='"'+bname(item.brandId)+'","'+item.name+'","'+(item.sku||'')+'","'+(item.colour||'')+'","'+sl.toUpperCase()+'"\n';} }); });
+    csv+='\n--- CURRENT STOCK TAKE (all brands) ---\nBrand,Item,SKU,Colour,Size,Current Stock\n';
+    SUPPLY_ITEMS.slice().sort((a,b)=>(bname(a.brandId)+(a.name||'')).localeCompare(bname(b.brandId)+(b.name||''))).forEach(item=>{
+      Object.entries(item.sizes||{}).forEach(([sz,qty])=>{ const sl=sz.replace('sz','').replace('_','/'); csv+='"'+bname(item.brandId)+'","'+item.name+'","'+(item.sku||'')+'","'+(item.colour||'')+'","'+sl.toUpperCase()+'",'+(qty||0)+'\n'; });
+    });
     filename='Distrik_AllBrands_Restock_'+periodLabel.replace(/\s+/g,'_')+'.csv';
   } else if(reportType==='payout'){
     csv='DISTRIK - BRAND PAYOUT STATEMENT (ALL BRANDS)\nPeriod: '+periodLabel+'\n\n';
