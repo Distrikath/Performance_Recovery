@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814110;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814111;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -8448,6 +8448,8 @@ function saveSupplyToStorage(){
   try{ if(typeof window.dkPushSupplyImages==='function') window.dkPushSupplyImages(); }catch(e){}          // photos → per-item docs so the iPad sees them
   // Admin edits to stock (restock, corrections) → push to the shared supply_stock so every device matches.
   try{ if(typeof currentUser!=='undefined'&&currentUser&&currentUser.type==='admin'&&typeof window.dkPushSupplyStock==='function') window.dkPushSupplyStock(SUPPLY_ITEMS); }catch(e){}
+  // Admin save also republishes the public shop catalog (customer-safe fields only) for shop.html
+  try{ if(typeof currentUser!=='undefined'&&currentUser&&currentUser.type==='admin'&&typeof window.dkPushShopCatalog==='function') window.dkPushShopCatalog(); }catch(e){}
 }
 
 // ── TABS & NAV ────────────────────────────────────────────────────
@@ -9409,6 +9411,7 @@ function deleteItem(itemId){
   if(!confirm(`Delete "${item.name}"? This cannot be undone.`)) return;
   const idx = SUPPLY_ITEMS.findIndex(i=>i.id===itemId);
   if(idx>=0) SUPPLY_ITEMS.splice(idx,1);
+  try{ if(typeof window.dkRemoveShopCatalog==='function') window.dkRemoveShopCatalog(itemId); }catch(e){}  // drop it from the public shop too
   saveSupplyToStorage();
   renderSupInvSplit();
   buildSupPOSItems();
@@ -13502,6 +13505,28 @@ window.showRoomCalendar=showRoomCalendar;
     list.forEach(function(it){ if(!it||!it.id||!it.sizes) return; batch.set(db.collection('supply_stock').doc(String(it.id)), { id:String(it.id), sizes:it.sizes, ts:firebase.firestore.FieldValue.serverTimestamp(), by:((typeof currentUser!=='undefined'&&currentUser&&currentUser.name)||'?') }); n++; touched=true; if(n>=100){ try{batch.commit();}catch(e){} batch=db.batch(); n=0; } });
     if(touched){ (n>0?batch.commit():Promise.resolve()).then(function(){ try{setPill('✓ Stock synced','#10b981');}catch(e){} }).catch(function(e){ console.warn('[supply_stock] push',e); }); }
   };
+  // ── PUBLIC SHOP CATALOG: admin publishes ONLY customer-safe fields (no cost/margin) for the public shop.html page ──
+  window.dkPushShopCatalog=function(){
+    if(!ready||!db) return;
+    if(typeof currentUser==='undefined'||!currentUser||currentUser.type!=='admin') return; // admin curates the shop
+    var items=(window.SUPPLY_ITEMS||[]); if(!items.length) return;
+    var brands=(window.BRANDS||[]);
+    var bName=function(bid){ var b=brands.find(function(x){return x.id===bid;}); return b?(b.name||''):''; };
+    var live=(window.SUPPLY_STOCK||{});
+    var batch=db.batch(), n=0, touched=false;
+    items.forEach(function(it){ if(!it||!it.id) return;
+      var sizes=(live[it.id]&&live[it.id].sizes)?live[it.id].sizes:(it.sizes||{}); // publish live counts when we have them
+      batch.set(db.collection('shop_catalog').doc(String(it.id)), {
+        id:String(it.id), name:it.name||'', sku:it.sku||'', brandId:it.brandId||'', brandName:bName(it.brandId),
+        colour:it.colour||'', category:it.category||'', price:Math.round(it.priceFull||it.priceRRP||0),
+        sizes:sizes, active:(it.shopHidden?false:true),
+        ts:firebase.firestore.FieldValue.serverTimestamp()
+      });
+      n++; touched=true; if(n>=100){ try{batch.commit();}catch(e){} batch=db.batch(); n=0; }
+    });
+    if(touched){ (n>0?batch.commit():Promise.resolve()).then(function(){ try{setPill('✓ Shop published','#10b981');}catch(e){} }).catch(function(e){ console.warn('[shop_catalog] push',e); }); }
+  };
+  window.dkRemoveShopCatalog=function(id){ if(!ready||!db||!id) return; try{ db.collection('shop_catalog').doc(String(id)).delete(); }catch(e){} };
   function subscribeSupplyStock(){
     db.collection('supply_stock').onSnapshot(function(snap){
       var chg=false; window.SUPPLY_STOCK=window.SUPPLY_STOCK||{};
