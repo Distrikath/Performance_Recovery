@@ -7,7 +7,7 @@
 
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Distrik. — Shop</title>
+<title>DISTRIK. — Shop</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,700;0,800;0,900;1,900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -120,7 +120,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:22px 28px;display:g
 </head>
 <body>
 <nav>
-  <a href="/" class="nav-logo">Distrik.</a>
+  <a href="/" class="nav-logo">DISTRIK.</a>
   <a href="/" class="back-btn">&larr; &nbsp;home</a>
   <button class="bag-btn" onclick="cartOpen()">Bag <span class="bag-count empty" id="bag-count">0</span></button>
 </nav>
@@ -171,7 +171,8 @@ function pickSize(id,size,el){ if(freeOf(id,size)<=0) return; _sel[id]=size; var
 
 function render(){
   var el=document.getElementById('sh-content'); if(!el) return;
-  var items=Object.keys(CATALOG).map(function(k){return CATALOG[k];}).filter(function(it){ return it && it.active!==false; });
+  // Only show items that are active AND have stock — a sold-out or deleted item drops off automatically.
+  var items=Object.keys(CATALOG).map(function(k){return CATALOG[k];}).filter(function(it){ return it && it.active!==false && totalStock(it.id)>0; });
   if(!items.length){ el.innerHTML='<div class="sh-empty">The shop is being stocked.<br>Check back soon.</div>'; renderBrands(); return; }
   // group by brand
   var byBrand={};
@@ -199,7 +200,7 @@ function cardHtml(it){
   var sizeChips=keys.map(function(k){ var free=freeOf(it.id,k); var gone=free<=0; return '<button class="sh-size'+(gone?' gone':'')+(_sel[it.id]===k?' sel':'')+'" '+(gone?'':'onclick="pickSize(\''+it.id+'\',\''+esc(k)+'\',this)"')+'>'+esc(String(k).toUpperCase())+'</button>'; }).join('');
   var canAdd=!oos && !!_sel[it.id];
   return '<div class="sh-card'+(oos?' oos':'')+'">'
-    +'<div class="sh-thumb">'+(img?'<img src="'+img+'" alt="'+esc(it.name||'')+'" loading="lazy">':'<span class="sh-thumb-ph">Distrik.</span>')+(oos?'<span class="sh-oos-tag">Sold out</span>':'')+'</div>'
+    +'<div class="sh-thumb">'+(img?'<img src="'+img+'" alt="'+esc(it.name||'')+'" loading="lazy">':'<span class="sh-thumb-ph">DISTRIK.</span>')+(oos?'<span class="sh-oos-tag">Sold out</span>':'')+'</div>'
     +'<div class="sh-body">'
       +(it.category?'<div class="sh-cat">'+esc(it.category)+'</div>':'')
       +'<div class="sh-name">'+esc(it.name||'')+'</div>'
@@ -212,7 +213,7 @@ function cardHtml(it){
 }
 function renderBrands(){
   var el=document.getElementById('sh-brands'); if(!el) return;
-  var items=Object.keys(CATALOG).map(function(k){return CATALOG[k];}).filter(function(it){return it&&it.active!==false;});
+  var items=Object.keys(CATALOG).map(function(k){return CATALOG[k];}).filter(function(it){return it&&it.active!==false&&totalStock(it.id)>0;});
   var bset={}; items.forEach(function(it){ if(it.brandId) bset[it.brandId]=1; });
   var brands=Object.keys(bset).sort(function(a,b){return (nameB(a)||'').localeCompare(nameB(b)||'');});
   var tabs=['<button class="sh-btab'+(activeBrand==='all'?' on':'')+'" onclick="setBrand(\'all\')">All</button>']
