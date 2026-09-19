@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814111;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814113;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -14713,7 +14713,10 @@ window.injectWaCapture = function(confirmId, sale){
     HOME_TILES.push({id:'clients', icon:'', name:'Clients', desc:'Database · WhatsApp\nHistory · promotions', col:'#25D366', admin:true, staff:false});
   }catch(e){}
 
-  var cSearch='', cConsentOnly=false, cSeenDays=0;
+  var cSearch='', cConsentOnly=false, cSeenDays=0, cRepeatOnly=false, cTab='past';
+  var ldSearch='';
+  // ledger tally (loaded once per panel open) — distinct-day visits + total spend, keyed by clientId (WhatsApp)
+  var _ledgerLoaded=false, _visitsByCid={}, _spendByCid={};
 
   function esc(s){ return (''+(s==null?'':s)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
   function tsDate(v){ try{ return v&&v.toDate?v.toDate():(v&&v.seconds?new Date(v.seconds*1000):null); }catch(e){ return null; } }
@@ -14725,27 +14728,93 @@ window.injectWaCapture = function(confirmId, sale){
     var anchor=document.getElementById('panel-sales')||document.querySelector('.panel'); if(!anchor) return;
     var p=document.createElement('div'); p.className='panel'; p.id='panel-clients';
     p.style.cssText='background:#0a0a0b;min-height:100vh;';
+    var tabBtn=function(id,label){ return '<button id="cl-tab-'+id+'" onclick="switchClientTab(\''+id+'\')" style="padding:10px 18px;background:none;border:none;border-bottom:2px solid transparent;color:#6b6b72;font-family:\'Space Mono\',monospace;font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">'+label+'</button>'; };
     p.innerHTML=''+
     '<div style="max-width:1180px;margin:0 auto;padding:34px 26px 80px;">'+
       '<div style="font-family:\'Space Mono\',monospace;font-size:12px;letter-spacing:.2em;color:#25D366;margin-bottom:10px;">[ CLIENTS ]</div>'+
       '<div style="font-family:\'Archivo\',sans-serif;font-weight:700;font-size:46px;letter-spacing:-.02em;color:#f4f4f5;line-height:1;">Clients</div>'+
-      '<div style="font-family:\'Fraunces\',serif;font-style:italic;font-size:18px;color:#a6a6ad;margin-top:10px;">Your people — every booking and sale in one place.</div>'+
-      '<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:22px 0 14px;">'+
-        '<input id="cl-search" placeholder="Search name or number…" oninput="clientSetSearch(this.value)" style="flex:1;min-width:200px;padding:10px 12px;background:#141417;border:1px solid #2c2c31;border-radius:5px;color:#f4f4f5;font-family:\'Space Mono\',monospace;font-size:13px;">'+
-        '<label style="display:flex;align-items:center;gap:6px;font-family:\'Space Mono\',monospace;font-size:11px;color:#a6a6ad;cursor:pointer;"><input type="checkbox" id="cl-consent" onchange="clientSetConsent(this.checked)"> Opted-in only</label>'+
-        '<select id="cl-seen" onchange="clientSetSeen(this.value)" style="padding:9px 10px;background:#141417;border:1px solid #2c2c31;border-radius:5px;color:#f4f4f5;font-family:\'Space Mono\',monospace;font-size:11px;">'+
-          '<option value="0">Any time</option><option value="30">Not seen 30d+</option><option value="60">Not seen 60d+</option><option value="90">Not seen 90d+</option></select>'+
-        '<button onclick="exportClientsCSV()" style="padding:9px 14px;background:#141417;border:1px solid #2c2c31;border-radius:5px;color:#f4f4f5;font-family:\'Space Mono\',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;">⤓ Export CSV</button>'+
+      '<div style="font-family:\'Fraunces\',serif;font-style:italic;font-size:18px;color:#a6a6ad;margin-top:10px;">Your people — past customers and leads in one place.</div>'+
+      // ── Tabs ──
+      '<div style="display:flex;gap:6px;border-bottom:1px solid #232327;margin:24px 0 18px;">'+tabBtn('past','Past Customers')+tabBtn('leads','Leads')+'</div>'+
+      // ── PAST CUSTOMERS ──
+      '<div id="cl-past-wrap">'+
+        '<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 14px;">'+
+          '<input id="cl-search" placeholder="Search name or number…" oninput="clientSetSearch(this.value)" style="flex:1;min-width:200px;padding:10px 12px;background:#141417;border:1px solid #2c2c31;border-radius:5px;color:#f4f4f5;font-family:\'Space Mono\',monospace;font-size:13px;">'+
+          '<label style="display:flex;align-items:center;gap:6px;font-family:\'Space Mono\',monospace;font-size:11px;color:#a6a6ad;cursor:pointer;"><input type="checkbox" id="cl-consent" onchange="clientSetConsent(this.checked)"> Opted-in only</label>'+
+          '<label style="display:flex;align-items:center;gap:6px;font-family:\'Space Mono\',monospace;font-size:11px;color:#a6a6ad;cursor:pointer;"><input type="checkbox" id="cl-repeat" onchange="clientSetRepeat(this.checked)"> Repeat only</label>'+
+          '<select id="cl-seen" onchange="clientSetSeen(this.value)" style="padding:9px 10px;background:#141417;border:1px solid #2c2c31;border-radius:5px;color:#f4f4f5;font-family:\'Space Mono\',monospace;font-size:11px;">'+
+            '<option value="0">Any time</option><option value="30">Not seen 30d+</option><option value="60">Not seen 60d+</option><option value="90">Not seen 90d+</option></select>'+
+          '<button onclick="exportClientsCSV()" style="padding:9px 14px;background:#141417;border:1px solid #2c2c31;border-radius:5px;color:#f4f4f5;font-family:\'Space Mono\',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;">⤓ Export CSV</button>'+
+        '</div>'+
+        '<div id="cl-stats" style="font-family:\'Space Mono\',monospace;font-size:11px;color:#6b6b72;margin-bottom:14px;"></div>'+
+        '<div id="clients-list"></div>'+
       '</div>'+
-      '<div id="cl-stats" style="font-family:\'Space Mono\',monospace;font-size:11px;color:#6b6b72;margin-bottom:14px;"></div>'+
-      '<div id="clients-list"></div>'+
+      // ── LEADS ──
+      '<div id="cl-leads-wrap" style="display:none;">'+
+        '<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 14px;">'+
+          '<input id="ld-search" placeholder="Search leads…" oninput="leadSetSearch(this.value)" style="flex:1;min-width:200px;padding:10px 12px;background:#141417;border:1px solid #2c2c31;border-radius:5px;color:#f4f4f5;font-family:\'Space Mono\',monospace;font-size:13px;">'+
+          '<button onclick="leadAdd()" style="padding:9px 16px;background:#25D366;border:none;border-radius:5px;color:#fff;font-family:\'Space Mono\',monospace;font-size:11px;font-weight:700;letter-spacing:1px;cursor:pointer;">+ Add lead</button>'+
+          '<button onclick="exportLeadsCSV()" style="padding:9px 14px;background:#141417;border:1px solid #2c2c31;border-radius:5px;color:#f4f4f5;font-family:\'Space Mono\',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;">⤓ Export CSV</button>'+
+        '</div>'+
+        '<div id="ld-stats" style="font-family:\'Space Mono\',monospace;font-size:11px;color:#6b6b72;margin-bottom:14px;"></div>'+
+        '<div id="leads-list"></div>'+
+      '</div>'+
     '</div>';
     anchor.parentNode.appendChild(p);
+    switchClientTab(cTab);
   };
 
   window.clientSetSearch=function(v){ cSearch=(v||'').toLowerCase(); renderClients(); };
   window.clientSetConsent=function(b){ cConsentOnly=!!b; renderClients(); };
   window.clientSetSeen=function(v){ cSeenDays=parseInt(v)||0; renderClients(); };
+  window.clientSetRepeat=function(b){ cRepeatOnly=!!b; renderClients(); };
+  window.leadSetSearch=function(v){ ldSearch=(v||'').toLowerCase(); renderLeads(); };
+
+  window.switchClientTab=function(t){
+    cTab=(t==='leads')?'leads':'past';
+    var pw=document.getElementById('cl-past-wrap'), lw=document.getElementById('cl-leads-wrap');
+    if(pw) pw.style.display=(cTab==='past')?'':'none';
+    if(lw) lw.style.display=(cTab==='leads')?'':'none';
+    ['past','leads'].forEach(function(id){ var b=document.getElementById('cl-tab-'+id); if(b){ var on=(id===cTab); b.style.color=on?'#f4f4f5':'#6b6b72'; b.style.borderBottomColor=on?'#25D366':'transparent'; b.style.fontWeight=on?'700':'400'; } });
+    renderClients();
+  };
+
+  // Load the ledger ONCE and tally per-client distinct-day visits + total spend.
+  function loadLedgerOnce(cb){
+    if(_ledgerLoaded){ cb&&cb(); return; }
+    if(typeof firebase==='undefined'||!firebase.firestore){ _ledgerLoaded=true; cb&&cb(); return; }
+    firebase.firestore().collection('ledger').get().then(function(snap){
+      var days={}; _spendByCid={};
+      snap.forEach(function(d){ var r=d.data(); var cid=r&&r.clientId; if(!cid||r.status==='cancelled') return;
+        (days[cid]=days[cid]||{})[r.bizDate||('_'+(d.id))]=1;
+        _spendByCid[cid]=(_spendByCid[cid]||0)+(r.amount||0);
+      });
+      _visitsByCid={}; Object.keys(days).forEach(function(cid){ _visitsByCid[cid]=Object.keys(days[cid]).length; });
+      _ledgerLoaded=true; cb&&cb();
+    }).catch(function(e){ console.warn('[clients] ledger tally',e); _ledgerLoaded=true; cb&&cb(); });
+  }
+
+  // Merge client records that are the SAME person (same normalised name) into one grouped card.
+  function normName(s){ return (''+(s==null?'':s)).trim().toLowerCase().replace(/\s+/g,' '); }
+  function groupedCustomers(){
+    var byKey={};
+    Object.keys(window.CLIENTS||{}).forEach(function(k){
+      var c=window.CLIENTS[k]; if(!c) return;
+      var nk=normName(c.name); var key=nk?('n:'+nk):('w:'+(c.whatsapp||k)); // no name → keep separate by number
+      (byKey[key]=byKey[key]||[]).push(c);
+    });
+    return Object.keys(byKey).map(function(key){
+      var recs=byKey[key];
+      var name=recs.map(function(r){return r.name;}).filter(Boolean).sort(function(a,b){return b.length-a.length;})[0]||'(no name)';
+      var numbers=[]; recs.forEach(function(r){ if(r.whatsapp&&numbers.indexOf(r.whatsapp)<0) numbers.push(r.whatsapp); });
+      var srcMap={}; recs.forEach(function(r){ (r.sources||[]).forEach(function(s){srcMap[s]=1;}); });
+      var emails=[]; recs.forEach(function(r){ if(r.email&&emails.indexOf(r.email)<0) emails.push(r.email); });
+      var lastSeen=recs.map(function(r){return tsDate(r.lastSeen);}).filter(Boolean).sort(function(a,b){return b-a;})[0]||null;
+      var consent=recs.some(function(r){return r.consentMarketing;});
+      var visits=0, spend=0; numbers.forEach(function(wa){ visits+=(_visitsByCid[wa]||0); spend+=(_spendByCid[wa]||0); });
+      return { key:key, name:name, numbers:numbers, sources:Object.keys(srcMap), emails:emails, lastSeen:lastSeen, consent:consent, visits:visits, spend:spend, primaryId:(recs[0].id||numbers[0]||'') };
+    });
+  }
 
   function filtered(){
     var list=Object.keys(window.CLIENTS||{}).map(function(k){return window.CLIENTS[k];});
@@ -14760,32 +14829,174 @@ window.injectWaCapture = function(confirmId, sale){
 
   window.renderClients=function(){
     injectClientsPanel();
+    if(cTab==='leads'){ renderLeads(); return; }
+    // Past customers → make sure ledger visit tally is ready, then render grouped.
+    loadLedgerOnce(renderPast);
+  };
+
+  function renderPast(){
     var host=document.getElementById('clients-list'); if(!host) return;
-    var all=Object.keys(window.CLIENTS||{}).length;
-    var rows=filtered();
-    var opted=Object.keys(window.CLIENTS||{}).filter(function(k){return window.CLIENTS[k].consentMarketing;}).length;
-    var st=document.getElementById('cl-stats'); if(st) st.textContent=all+' clients · '+opted+' opted-in for offers · showing '+rows.length;
-    if(!rows.length){ host.innerHTML='<div style="font-family:\'Space Mono\',monospace;font-size:12px;color:#6b6b72;padding:30px 0;text-align:center;">'+(all?'No clients match this filter.':'No clients yet — they\'ll appear here as bookings and WhatsApp receipts come in.')+'</div>'; return; }
-    host.innerHTML=rows.map(function(c){
-      var da=daysAgo(tsDate(c.lastSeen));
+    var groups=groupedCustomers();
+    var totalPeople=groups.length;
+    var repeatCount=groups.filter(function(g){return g.visits>1;}).length;
+    // apply filters
+    var rows=groups.filter(function(g){
+      if(cConsentOnly && !g.consent) return false;
+      if(cRepeatOnly && !(g.visits>1)) return false;
+      if(cSeenDays>0){ var da=daysAgo(g.lastSeen); if(da==null || da<cSeenDays) return false; }
+      if(cSearch){ var hay=(g.name+' '+g.numbers.join(' ')+' '+g.emails.join(' ')).toLowerCase(); if(hay.indexOf(cSearch)<0) return false; }
+      return true;
+    }).sort(function(a,b){ if(b.visits!==a.visits) return b.visits-a.visits; return (b.lastSeen?b.lastSeen.getTime():0)-(a.lastSeen?a.lastSeen.getTime():0); });
+    var st=document.getElementById('cl-stats'); if(st) st.textContent=totalPeople+' people · '+repeatCount+' repeat · showing '+rows.length;
+    if(!rows.length){ host.innerHTML='<div style="font-family:\'Space Mono\',monospace;font-size:12px;color:#6b6b72;padding:30px 0;text-align:center;">'+(totalPeople?'No customers match this filter.':'No customers yet — they\'ll appear here as bookings and receipts come in.')+'</div>'; return; }
+    host.innerHTML=rows.map(function(g){
+      var da=daysAgo(g.lastSeen);
       var seen=da==null?'—':(da===0?'today':(da+'d ago'));
-      var src=(c.sources||[]).map(function(s){return s;}).join(' · ')||'—';
-      var badge=c.consentMarketing?'<span style="font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:1px;color:#25D366;border:1px solid #1e5c34;border-radius:3px;padding:2px 6px;">OFFERS ✓</span>':'';
+      var src=(g.sources||[]).join(' · ')||'—';
+      var offers=g.consent?'<span style="font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:1px;color:#25D366;border:1px solid #1e5c34;border-radius:3px;padding:2px 6px;">OFFERS ✓</span>':'';
+      var repeat=(g.visits>1)?'<span style="font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:1px;color:#f0b429;border:1px solid #6b5410;border-radius:3px;padding:2px 6px;margin-right:6px;">REPEAT ×'+g.visits+'</span>':'';
+      var nums=g.numbers.map(function(w){return '+'+esc(w);}).join('  ·  ');
+      var multi=(g.numbers.length>1)?' <span style="color:#6b6b72;">('+g.numbers.length+' numbers merged)</span>':'';
+      var spendLine=(g.spend>0)?('  ·  '+fmtIDR(g.spend)+' total'):'';
+      var msgId=g.numbers[0]||g.primaryId;
       return '<div style="border:1px solid #232327;border-radius:8px;padding:14px 16px;margin-bottom:10px;background:#0f0f11;">'+
         '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">'+
-          '<div>'+
-            '<div style="font-family:\'Archivo\',sans-serif;font-weight:700;font-size:17px;color:#f4f4f5;">'+esc(c.name||'(no name)')+'</div>'+
-            '<div style="font-family:\'Space Mono\',monospace;font-size:12px;color:#a6a6ad;margin-top:3px;">+'+esc(c.whatsapp||'')+(c.email?('  ·  '+esc(c.email)):'')+'</div>'+
-            '<div style="font-family:\'Space Mono\',monospace;font-size:10px;color:#6b6b72;margin-top:4px;">'+esc(src)+'  ·  last seen '+seen+'  '+badge+'</div>'+
+          '<div style="min-width:0;">'+
+            '<div style="font-family:\'Archivo\',sans-serif;font-weight:700;font-size:17px;color:#f4f4f5;">'+repeat+esc(g.name)+'</div>'+
+            '<div style="font-family:\'Space Mono\',monospace;font-size:12px;color:#a6a6ad;margin-top:3px;">'+nums+multi+'</div>'+
+            '<div style="font-family:\'Space Mono\',monospace;font-size:10px;color:#6b6b72;margin-top:4px;">'+esc(src)+'  ·  last seen '+seen+spendLine+'  '+offers+'</div>'+
           '</div>'+
           '<div style="display:flex;gap:7px;flex-shrink:0;">'+
-            '<button onclick="clientHistoryView(\''+esc(c.id)+'\')" style="padding:7px 11px;background:#141417;border:1px solid #2c2c31;border-radius:5px;color:#f4f4f5;font-family:\'Space Mono\',monospace;font-size:11px;cursor:pointer;">History</button>'+
-            '<button onclick="clientMessage(\''+esc(c.id)+'\')" style="padding:7px 11px;background:#25D366;border:none;border-radius:5px;color:#fff;font-family:\'Space Mono\',monospace;font-size:11px;font-weight:700;cursor:pointer;">Message</button>'+
+            '<button onclick="groupHistoryView(this,\''+esc(g.numbers.join(','))+'\')" style="padding:7px 11px;background:#141417;border:1px solid #2c2c31;border-radius:5px;color:#f4f4f5;font-family:\'Space Mono\',monospace;font-size:11px;cursor:pointer;">History</button>'+
+            '<button onclick="clientMessage(\''+esc(msgId)+'\')" style="padding:7px 11px;background:#25D366;border:none;border-radius:5px;color:#fff;font-family:\'Space Mono\',monospace;font-size:11px;font-weight:700;cursor:pointer;">Message</button>'+
           '</div>'+
         '</div>'+
-        '<div id="cl-hist-'+esc(c.id)+'" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid #232327;font-family:\'Space Mono\',monospace;font-size:12px;color:#a6a6ad;"></div>'+
+        '<div class="cl-grp-hist" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid #232327;font-family:\'Space Mono\',monospace;font-size:12px;color:#a6a6ad;"></div>'+
       '</div>';
     }).join('');
+  }
+
+  // History across ALL of a merged customer's numbers.
+  window.groupHistoryView=function(btn,numbersCsv){
+    var box=btn.closest('div').parentNode.parentNode.querySelector('.cl-grp-hist'); if(!box) return;
+    if(box.style.display==='block'){ box.style.display='none'; return; }
+    box.style.display='block'; box.textContent='Loading history…';
+    var nums=(numbersCsv||'').split(',').filter(Boolean);
+    Promise.all(nums.map(function(w){ return clientHistory(w); })).then(function(lists){
+      var rows=[]; lists.forEach(function(l){ rows=rows.concat(l||[]); });
+      rows.sort(function(a,b){ return (a.bizDate||'')<(b.bizDate||'')?1:-1; });
+      var spend=0, days={}; rows.forEach(function(r){ if(r.status!=='cancelled'){ spend+=(r.amount||0); days[r.bizDate||Math.random()]=1; } });
+      var lines=rows.slice(0,20).map(function(r){
+        return '<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #1a1a1d;"><span>'+esc(r.bizDate||'')+' · '+esc((r.kind||'').toUpperCase())+(r.status==='cancelled'?' (cancelled)':'')+'</span><span>'+fmtIDR(r.amount)+'</span></div>';
+      }).join('');
+      box.innerHTML='<div style="color:#f4f4f5;margin-bottom:8px;">'+Object.keys(days).length+' visits · total spend '+fmtIDR(spend)+'</div>'+(lines||'<div style="color:#6b6b72;">No linked transactions yet.</div>');
+    });
+  };
+
+  // ───────────────────────── LEADS ─────────────────────────
+  window.LEADS={};
+  (function(){ var subbed=false;
+    window.loadLeads=function(){
+      if(subbed) return; if(typeof firebase==='undefined'||!firebase.firestore) return; subbed=true;
+      firebase.firestore().collection('leads').onSnapshot(function(snap){
+        var m={}; snap.forEach(function(d){ m[d.id]=d.data(); }); window.LEADS=m;
+        try{ var p=document.querySelector('.panel.on'); if(p&&p.id==='panel-clients'&&cTab==='leads') renderLeads(); }catch(e){}
+      }, function(e){ console.warn('[leads] snap',e); });
+    };
+    if(typeof firebase!=='undefined'&&firebase.auth){ firebase.auth().onAuthStateChanged(function(u){ if(u) loadLeads(); }); }
+  })();
+
+  // A lead's number is "incomplete" if flagged, or too short/long to be a real international number.
+  function leadIncomplete(l){ var d=(''+((l&&l.whatsapp)||'')).replace(/[^0-9]/g,''); return !!(l&&l.incomplete) || d.length<10 || d.length>15; }
+
+  function leadCard(l){
+    var id=esc(l.id||l.whatsapp||'');
+    var bad=leadIncomplete(l);
+    var badge=bad?'<span style="font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:1px;color:#f0b429;border:1px solid #6b5410;border-radius:3px;padding:2px 6px;margin-right:6px;">INCOMPLETE</span>':'';
+    var actions = bad
+      ? '<button onclick="leadFixNumber(\''+id+'\')" style="padding:7px 11px;background:#f0b429;border:none;border-radius:5px;color:#1a1a1d;font-family:\'Space Mono\',monospace;font-size:11px;font-weight:700;cursor:pointer;">Fix number</button>'+
+        '<button onclick="leadDelete(\''+id+'\')" title="Remove lead" style="padding:7px 10px;background:#141417;border:1px solid #3a2326;border-radius:5px;color:#e06b6b;font-family:\'Space Mono\',monospace;font-size:11px;cursor:pointer;">✕</button>'
+      : '<button onclick="leadMessage(\''+id+'\')" style="padding:7px 11px;background:#25D366;border:none;border-radius:5px;color:#fff;font-family:\'Space Mono\',monospace;font-size:11px;font-weight:700;cursor:pointer;">Message</button>'+
+        '<button onclick="leadConvert(\''+id+'\')" style="padding:7px 11px;background:#141417;border:1px solid #2c2c31;border-radius:5px;color:#f4f4f5;font-family:\'Space Mono\',monospace;font-size:11px;cursor:pointer;">→ Customer</button>'+
+        '<button onclick="leadFixNumber(\''+id+'\')" title="Edit number" style="padding:7px 10px;background:#141417;border:1px solid #2c2c31;border-radius:5px;color:#a6a6ad;font-family:\'Space Mono\',monospace;font-size:11px;cursor:pointer;">Edit</button>'+
+        '<button onclick="leadDelete(\''+id+'\')" title="Remove lead" style="padding:7px 10px;background:#141417;border:1px solid #3a2326;border-radius:5px;color:#e06b6b;font-family:\'Space Mono\',monospace;font-size:11px;cursor:pointer;">✕</button>';
+    return '<div style="border:1px solid '+(bad?'#4a3a12':'#232327')+';border-radius:8px;padding:14px 16px;margin-bottom:10px;background:#0f0f11;'+(bad?'opacity:.9;':'')+'">'+
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">'+
+        '<div style="min-width:0;">'+
+          '<div style="font-family:\'Archivo\',sans-serif;font-weight:700;font-size:17px;color:#f4f4f5;">'+badge+esc(l.name||'(no name)')+'</div>'+
+          '<div style="font-family:\'Space Mono\',monospace;font-size:12px;color:'+(bad?'#f0b429':'#a6a6ad')+';margin-top:3px;">'+(l.whatsapp?('+'+esc(l.whatsapp)):'—')+'</div>'+
+          (l.note?'<div style="font-family:\'Space Mono\',monospace;font-size:10px;color:#6b6b72;margin-top:4px;">'+esc(l.note)+'</div>':'')+
+        '</div>'+
+        '<div style="display:flex;gap:7px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;">'+actions+'</div>'+
+      '</div>'+
+    '</div>';
+  }
+
+  function renderLeads(){
+    var host=document.getElementById('leads-list'); if(!host) return;
+    var list=Object.keys(window.LEADS||{}).map(function(k){return window.LEADS[k];}).filter(Boolean);
+    var all=list.length;
+    if(ldSearch){ list=list.filter(function(l){ return ((l.name||'')+' '+(l.whatsapp||'')+' '+(l.note||'')).toLowerCase().indexOf(ldSearch)>=0; }); }
+    var good=list.filter(function(l){return !leadIncomplete(l);}).sort(function(a,b){ var da=tsDate(a.addedAt),db=tsDate(b.addedAt); return (db?db.getTime():0)-(da?da.getTime():0); });
+    var bad=list.filter(leadIncomplete).sort(function(a,b){ return (a.name||'').localeCompare(b.name||''); });
+    var st=document.getElementById('ld-stats'); if(st) st.textContent=all+' leads · '+bad.length+' incomplete · showing '+list.length;
+    if(!list.length){ host.innerHTML='<div style="font-family:\'Space Mono\',monospace;font-size:12px;color:#6b6b72;padding:30px 0;text-align:center;">'+(all?'No leads match this search.':'No leads yet — tap “+ Add lead”, or send me a file to import.')+'</div>'; return; }
+    var html=good.map(leadCard).join('');
+    if(bad.length){
+      html+='<div style="display:flex;align-items:center;gap:10px;margin:22px 0 12px;"><div style="flex:1;height:1px;background:#2c2c31;"></div><div style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:2px;color:#f0b429;text-transform:uppercase;">Incomplete numbers · '+bad.length+' — need fixing</div><div style="flex:1;height:1px;background:#2c2c31;"></div></div>';
+      html+=bad.map(leadCard).join('');
+    }
+    host.innerHTML=html;
+  }
+
+  // Fix / edit a lead's WhatsApp number. Re-keys the doc to the normalised number.
+  window.leadFixNumber=function(id){
+    var l=(window.LEADS||{})[id]; if(!l) return;
+    var num=prompt('Correct WhatsApp number for '+(l.name||'this lead')+'\n(e.g. 0812…, +62…, or full international):', ('+'+(l.whatsapp||''))); if(num==null) return;
+    var wa=(typeof normWA==='function')?normWA(num):(''+num).replace(/[^0-9]/g,'');
+    if(!wa || wa.length<10){ alert('That number still doesn’t look complete — please include the country code.'); return; }
+    var db=firebase.firestore();
+    var doc={ id:wa, name:l.name||'', whatsapp:wa, note:(l.note||'').replace(/ · ⚠[^]*$/,'').replace(/ · auto-added[^]*$/,''), source:l.source||'manual', addedAt:l.addedAt||firebase.firestore.FieldValue.serverTimestamp() };
+    var p=db.collection('leads').doc(wa).set(doc,{merge:true});
+    if(wa!==id){ p=p.then(function(){ return db.collection('leads').doc(id).delete(); }); } // re-keyed → drop the old doc
+    p.then(function(){ if(cTab==='leads') renderLeads(); }).catch(function(e){ alert('Couldn’t update: '+(e&&e.message||e)); });
+  };
+
+  window.leadMessage=function(id){ var l=(window.LEADS||{})[id]; if(!l||!l.whatsapp) return; var first=((l.name||'').split(' ')[0])||'there'; var text='Hi '+first+'! 🙏 This is Distrik. in Canggu — '; window.open('https://wa.me/'+l.whatsapp+'?text='+encodeURIComponent(text),'_blank'); };
+
+  window.leadAdd=function(){
+    var name=prompt('Lead name:'); if(name==null) return; name=name.trim();
+    var num=prompt('WhatsApp number (e.g. 0812… or +62…):'); if(num==null) return;
+    var wa=(typeof normWA==='function')?normWA(num):(''+num).replace(/[^0-9]/g,'');
+    if(!wa){ alert('That number doesn’t look valid — please try again.'); return; }
+    var note=prompt('Note / where they came from (optional):')||'';
+    if(typeof firebase==='undefined'||!firebase.firestore){ alert('Not connected.'); return; }
+    firebase.firestore().collection('leads').doc(wa).set({ id:wa, name:name, whatsapp:wa, note:note.trim(), source:'manual', addedAt:firebase.firestore.FieldValue.serverTimestamp() },{merge:true})
+      .then(function(){ if(cTab==='leads') renderLeads(); })
+      .catch(function(e){ alert('Couldn’t save: '+(e&&e.message||e)); });
+  };
+
+  window.leadConvert=function(id){
+    var l=(window.LEADS||{})[id]; if(!l) return;
+    if(!confirm('Move “'+(l.name||'this lead')+'” into Past Customers?')) return;
+    if(typeof clientUpsert==='function') clientUpsert({ name:l.name, whatsapp:l.whatsapp, source:'lead' });
+    firebase.firestore().collection('leads').doc(id).delete().then(function(){ if(cTab==='leads') renderLeads(); }).catch(function(e){ console.warn('[leads] convert del',e); });
+  };
+
+  window.leadDelete=function(id){
+    var l=(window.LEADS||{})[id]; if(!l) return;
+    if(!confirm('Delete lead “'+(l.name||id)+'”? This can’t be undone.')) return;
+    firebase.firestore().collection('leads').doc(id).delete().then(function(){ if(cTab==='leads') renderLeads(); }).catch(function(e){ alert('Couldn’t delete: '+(e&&e.message||e)); });
+  };
+
+  window.exportLeadsCSV=function(){
+    var list=Object.keys(window.LEADS||{}).map(function(k){return window.LEADS[k];}).filter(Boolean);
+    var SEP=',', NL='\n'; function cell(v){ var s=(''+(v==null?'':v)); return (s.indexOf(SEP)>=0||s.indexOf('"')>=0||s.indexOf('\n')>=0)?'"'+s.replace(/"/g,'""')+'"':s; }
+    var csv='﻿'+['Name','WhatsApp','Note','Source'].join(SEP)+NL;
+    list.forEach(function(l){ csv+=[cell(l.name),cell('+'+(l.whatsapp||'')),cell(l.note),cell(l.source)].join(SEP)+NL; });
+    var a=document.createElement('a'); a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+    a.download='Distrik_Leads_'+(typeof todayKey==='function'?todayKey():'export')+'.csv';
+    document.body.appendChild(a); a.click(); setTimeout(function(){document.body.removeChild(a);},100);
   };
 
   window.clientHistoryView=function(id){
