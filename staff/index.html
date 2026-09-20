@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260814113;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260814115;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -11685,11 +11685,11 @@ function clinAvailableTimes(){
   try{ if(!isChair && rt && rt.therapistId && typeof _eventStaffOn==='function' && _eventStaffOn(key)[rt.therapistId] && typeof eventsForDate==='function'){
     eventsForDate(key).forEach(function(ev){ var es=parseTime(ev.time); if(es!=null&&!isNaN(es)){ occ.push([es, es+((+ev.duration||60)/60)+buf]); } });
   } }catch(e){}
-  var isToday=(key===((typeof todayKey==='function')?todayKey():''));
-  var nowH=-1; if(isToday){ var _bn=(typeof baliNow==='function'?baliNow():new Date()); nowH=_bn.getHours()+_bn.getMinutes()/60; }
   var slots=[];
   for(var t=winStart; t+dur<=winEnd+1e-9; t+=0.25){
-    if(isToday && t < nowH) continue;   // can't book a time that has already passed today
+    // Staff dashboard: times already passed TODAY are offered too — so reception can re-time or extend a
+    // booking that has already started, or log a walk-in after the fact. (Past DATES were always fully open,
+    // and the customer website keeps its own future-only rule.) Past slots are shown muted in the picker.
     var newEnd=t+dur+buf;
     var clash=occ.some(function(r){ return t<r[1]-1e-9 && newEnd>r[0]+1e-9; });
     if(!clash) slots.push(t);
@@ -11841,8 +11841,10 @@ function renderClinicalBooking(){
         timeField='<div class="clin-field"><label>4 · Time</label><div class="clin-placeholder" style="padding:8px 0;text-align:left;color:#FF2D2D;">No open slots in '+clinRoom+' '+clinDateWord()+'.</div></div>';
       } else {
         var dayAb=clinDate.toLocaleDateString('en-US',{weekday:'short'});
+        var _isTodaySel=(clinKey()===((typeof todayKey==='function')?todayKey():''));
+        var _nowHr=-1; if(_isTodaySel){ var _bnw=(typeof baliNow==='function'?baliNow():new Date()); _nowHr=_bnw.getHours()+_bnw.getMinutes()/60; }
         timeField='<div class="clin-field"><label>4 · Time <span style="text-transform:none;color:#9a9a9e">· '+(s.duration||60)+' min + '+CLIN_BUFFER_MIN+' min buffer after</span></label><div class="clin-windows">'
-          +times.map(function(t){ var hh=clinHHMM(t); return '<button class="clin-win'+(clinTime===hh?' sel':'')+'" onclick="clinSelectTime(\''+hh+'\')">'+dayAb+' '+hh+'</button>'; }).join('')
+          +times.map(function(t){ var hh=clinHHMM(t); var _pst=(_isTodaySel && t < _nowHr - 1e-9); return '<button class="clin-win'+(clinTime===hh?' sel':'')+'"'+(_pst?' style="opacity:.5;" title="already passed — for edits or after-the-fact walk-ins"':'')+' onclick="clinSelectTime(\''+hh+'\')">'+dayAb+' '+hh+(_pst?' ·past':'')+'</button>'; }).join('')
           +'</div></div>';
       }
     }
@@ -11952,7 +11954,8 @@ function renderClinicalOrder(){
   if(!clinSel){ el.innerHTML='<div class="receipt-empty" style="padding:24px;text-align:center;color:#9a9a9e;font-family:Space Mono,monospace;font-size:11px;">No service selected</div>'; updateClinicalTotals(0); return; }
   var s=clinSvc();
   // On a plain edit/move (no new discount) show the ORIGINAL booking's kept figures, not the full sticker price.
-  var _eo2=(clinEditingId&&window._clinEditOrig&&!window.clinPromo)?window._clinEditOrig:null;
+  // Keep the original figures ONLY on a plain move; if the duration/service was changed (an extend), show the new price.
+  var _eo2=(clinEditingId&&window._clinEditOrig&&!window.clinPromo&&clinSel===window._clinEditOrig.service)?window._clinEditOrig:null;
   var _topPrice=_eo2?Math.round(_eo2.price||0):s.price;
   var lines='<div class="clin-oline"><span>'+s.name+'</span><span>'+clinFmt(_topPrice)+'</span></div>';
   if(clinType==='clinical'){
@@ -12245,6 +12248,9 @@ function confirmClinical(){
     var _o=window._clinEditOrig;
     // Did the user ACTIVELY apply a discount/promo during this edit? (window.clinPromo is only set by applyRegDisc)
     var _editRepr=!!(window.clinPromo && _rvPct>0);
+    // EXTEND / adjust duration: the chosen service (and its duration) differs from the original booking.
+    var _durChanged=(clinType!=='clinical') && ((rec.service!==_o.service) || ((rec.duration||0)!==(_o.duration||0)));
+    var _collectedO=(typeof clinCollected==='function')?Math.round(clinCollected(_o)||0):0;
     if(_editRepr){
       // RE-PRICE from the new discount instead of restoring the old amount owing (promo-day 100% off, etc.)
       ['source','partner','partnerTotal','commission','commissionStatus','commissionPct','provider','tag','clinical','payMethod','onlineRef','depositPaid','recommendedBy'].forEach(function(k){ if(_o[k]!==undefined) rec[k]=_o[k]; });
@@ -12253,6 +12259,23 @@ function confirmClinical(){
       rec.discPct=_rvPct; rec.discReason=(_rvDsc?(_rvDsc.reason||''):''); rec.discCode=(_rvDsc?(_rvDsc.code||''):'');
       if(_o.online){ rec.online=true; rec.deposit=Math.round(rec.price*0.5); rec.balanceDue=Math.max(0,rec.price-rec.deposit); rec.balancePaid=(rec.price===0); }
       else { rec.online=false; rec.deposit=0; rec.balanceDue=0; rec.balancePaid=(rec.price===0); rec.payType='full'; }
+    } else if(_durChanged){
+      // EXTEND / change duration → re-price to the NEW duration (keeping the original % discount). Money already
+      // collected is preserved; only the difference is due, collected at Check out. Shortening → nothing extra due.
+      ['source','partner','partnerTotal','commission','commissionStatus','commissionPct','provider','tag','clinical','cat','onlineRef','payMethod','recommendedBy'].forEach(function(k){ if(_o[k]!==undefined) rec[k]=_o[k]; });
+      var _od=_o.discPct||0;
+      rec.gross=_base;                                        // new service sticker
+      rec.discPct=_od; rec.discReason=(_o.discReason||''); rec.discCode=(_o.discCode||'');
+      rec.price=Math.round(_base*(1-_od/100));                // new duration, original discount kept
+      rec.online=false;
+      if(_collectedO<=0){
+        rec.payType='later'; rec.deposit=0; rec.depositPaid=false; rec.balanceDue=rec.price; rec.balancePaid=(rec.price<=0);
+      } else {
+        // keep what was already paid, collect only the remainder at Check out
+        rec.payType='deposit'; rec.deposit=_collectedO; rec.depositPaid=true;
+        rec.balanceDue=Math.max(0, rec.price-_collectedO); rec.balancePaid=(rec.balanceDue<=0);
+        rec._repriceClearBal=true;                            // clear any stale <id>_bal so takings never transiently double
+      }
     } else {
       // plain move — keep the money exactly as it was, never re-charge
       ['online','deposit','balanceDue','balancePaid','depositPaid','price','gross','payType','discPct','discReason','discCode','source','partner','partnerTotal','commission','commissionStatus','commissionPct','provider','tag','clinical','cat','addons','addonTotal','forfeited','onlineRef','payMethod','recommendedBy','ledgerDate','depositPaidAt'].forEach(function(k){ if(_o[k]!==undefined) rec[k]=_o[k]; });
@@ -12289,6 +12312,9 @@ function confirmClinical(){
       }catch(e){}
       rec.ledgerDate=_bizDate;
       if(typeof ledgerWrite==='function') ledgerWrite('recovery', rec.id, _bizDate, (typeof clinCollected==='function'?clinCollected(rec):(rec.price||0)), 0, rec.payMethod, rec, rec.status);
+      // On an EXTEND of an already-paid booking we moved the collected money into the base doc above; clear any stale
+      // <id>_bal so it isn't counted twice. Check out then writes the real difference back into <id>_bal.
+      if(rec._repriceClearBal && typeof ledgerWrite==='function'){ ledgerWrite('recovery', rec.id+'_bal', _bizDate, 0, 0, rec.payMethod, rec, rec.status); delete rec._repriceClearBal; }
       // auto-save the booking's client into the database (for history / rebooking / promotions)
       if(typeof clientUpsert==='function' && (rec.whatsapp||rec.phone)) clientUpsert({name:rec.client, whatsapp:rec.whatsapp||rec.phone, email:rec.email, source:'recovery', consent:true});
     }
@@ -12308,7 +12334,7 @@ function clinCollected(b){
   if(!b) return 0;
   if(b.status==='cancelled') return ((b.online||b.payType==='deposit') && b.forfeited) ? Math.round((b.price||0)*0.5) : 0;
   if(b.payType==='later') return b.balancePaid?(b.price||0):0;   // pay-on-arrival: nothing now, full when collected at Check out
-  if(b.online||b.payType==='deposit'){ var dep=Math.round((b.price||0)*0.5); return (b.depositPaid?dep:0) + (b.balancePaid?((b.price||0)-dep):0); }  // count the deposit only once it's ACTUALLY paid (Xendit not live → depositPaid false → 0 collected)
+  if(b.online||b.payType==='deposit'){ var dep=(b.deposit!=null?Math.round(b.deposit):Math.round((b.price||0)*0.5)); return (b.depositPaid?dep:0) + (b.balancePaid?((b.price||0)-dep):0); }  // count the deposit only once it's ACTUALLY paid; use the stored deposit when set (e.g. an extend keeps the already-collected amount, not a 50% assumption)
   if(b.status==='hold') return 0;
   return (b.price||0);
 }
