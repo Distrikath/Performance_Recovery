@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260921220;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260921240;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -11313,6 +11313,8 @@ function renderTodayBookings(){
     var _canDelBk=(typeof currentUser==='undefined'||!currentUser||!currentUser.type||currentUser.type==='admin');
     var _notArrived=(!b.checkedIn && b.status!=='cancelled' && !isHold);
     var _needsPay=(!isHold && b.status!=='cancelled' && !b.partner && !_pinf.free && !_pinf.fullyPaid && (_pinf.isDepositFlow||_pinf.isLater));
+    // Shows money as collected — offer a way to undo that when it never actually arrived.
+    var _wronglyPaid=(!isHold && b.status!=='cancelled' && !b.partner && !_pinf.free && (_pinf.fullyPaid || b.depositPaid));
     var acts='<div class="clin-bk-acts">'
       +(isHold?'<button class="clin-bk-act go" onclick="clinConfirmHold(\''+id+'\')">Intake back · confirm ✓</button>':'')
       +_bDepLink
@@ -11320,6 +11322,7 @@ function renderTodayBookings(){
       +(_notArrived?'<button class="clin-bk-act go" onclick="clinCheckIn(\''+id+'\')">Check in</button>':'')
       +((b.checkedIn && b.status!=='cancelled')?'<button class="clin-bk-act" onclick="clinUndoCheckIn(\''+id+'\')" title="Undo an accidental check-in">Undo check-in</button>':'')
       +(_needsPay?'<button class="clin-bk-act go" onclick="clinCheckOut(\''+id+'\')">Check out · IDR '+Math.round(_pinf.due).toLocaleString('id-ID')+'</button>':'')
+      +(_wronglyPaid?'<button class="clin-bk-act" onclick="clinMarkUnpaid(\''+id+'\')" title="The money never actually arrived (expired link, declined card, booked as Full by mistake) — put it back to pay-on-arrival and take it out of the books">Not paid · collect on arrival</button>':'')
       +'<button class="clin-bk-act" onclick="clinEditBooking(\''+id+'\')">Edit / move</button>'
       +'<button class="clin-bk-act" onclick="clinRebookFromId(\''+id+'\')" title="Start a new booking pre-filled with this client\'s name, WhatsApp, treatment &amp; pressure">↻ Rebook</button>'
       +'<button class="clin-bk-act danger" onclick="clinCancelBooking(\''+id+'\')">Cancel</button>'
@@ -11376,6 +11379,47 @@ function renderTodayBookings(){
   return localHtml+onlineHtml;
 }
 
+// A booking can end up marked paid when the money never arrived — the deposit link expired, the card was
+// declined, or it was confirmed on "Full" by mistake. This puts it back to pay-on-arrival and takes the money
+// back out of the books, WITHOUT touching the schedule. It never invents a payment; it only removes one.
+function clinMarkUnpaid(id){
+  try{
+    var dk=clinKey(); var day=recoveryData&&recoveryData[dk]; if(!day||!day.bookings) return;
+    var b=day.bookings.find(function(x){return x.id===id;}); if(!b) return;
+    // Booked as one order with other treatments? Offer to put the whole booking right in one go.
+    var sibs=b.orderId?day.bookings.filter(function(x){return x.orderId===b.orderId&&x.status!=='cancelled';}):[b];
+    if(!sibs.length) sibs=[b];
+    var targets=sibs.filter(function(x){
+      if(x.partner) return false;                       // HUMAN+ collects those — nothing of ours to reverse
+      var p=_clinPay(x); return !p.free && (p.fullyPaid || x.depositPaid);
+    });
+    if(!targets.length){ clinNotify('Nothing recorded as paid on this booking.'); return; }
+    var back=targets.reduce(function(t,x){ return t+(typeof clinCollected==='function'?clinCollected(x):0); },0);
+    var owed=targets.reduce(function(t,x){ return t+(x.price||0); },0);
+    var f=function(n){ return 'IDR '+Math.round(n).toLocaleString('id-ID'); };
+    if(!confirm('Mark '+targets.length+' treatment'+(targets.length!==1?'s':'')+' for '+(b.client||'this client')+' as NOT paid?\n\n'
+      +f(back)+' comes back out of the books.\n'
+      +'The guest pays '+f(owed)+' on arrival — Check out will ask for it.\n\n'
+      +'The date, time, chair and price are untouched.')) return;
+    targets.forEach(function(x){
+      var before=(typeof clinRevenue==='function')?clinRevenue(x):0;
+      x.payType='later'; x.online=false; x.deposit=0; x.depositPaid=false;
+      x.balancePaid=false; x.balanceDue=(x.price||0); x.forfeited=false;
+      var after=(typeof clinRevenue==='function')?clinRevenue(x):0;
+      day.revenue=Math.max(0,(day.revenue||0)-before+after);
+      var bd=x.ledgerDate||(typeof todayKey==='function'?todayKey():dk);
+      if(typeof ledgerWrite==='function'){
+        ledgerWrite('recovery', x.id, bd, 0, 0, x.payMethod||'', x, x.status||'confirmed');
+        ledgerWrite('recovery', x.id+'_bal', bd, 0, 0, x.payMethod||'', x, x.status||'confirmed');  // clear any collected balance
+      }
+    });
+    if(typeof saveAll==='function') saveAll();
+    if(typeof syncSalesIncome==='function') syncSalesIncome();
+    clinNotify(f(back)+' taken back out — '+f(owed)+' now due on arrival.');
+    renderClinicalBooking(); renderClinicalOrder(); buildClinRoomGrid();
+  }catch(e){ console.warn('clinMarkUnpaid',e); }
+}
+window.clinMarkUnpaid=clinMarkUnpaid;
 function clinCheckIn(id){
   // IV / Blood check-in: mark the client as arrived. No money changes hands (HUMAN+ collects it);
   // the 20% commission stays on hold until the monthly payout.
@@ -12492,11 +12536,32 @@ window.sendDepositLink=sendDepositLink;
 // A room/chair is occupied for [start, start+duration+buffer). Held AND confirmed both block.
 // The order currently being edited, if any — its own treatments never block each other.
 function _clinEditOrderId(){ try{ return (window._clinEditOrig&&window._clinEditOrig.orderId)||null; }catch(e){ return null; } }
-// Is this booking part of the order we're building / editing right now?
+// Who a booking is for. Phone wins; a name is only trusted when it isn't one of the stand-ins we give a booking
+// with nobody named, otherwise every 'Walk-in' would look like the same person and stop blocking the others.
+var _CLIN_ANON=['walk-in','walkin','walk in','guest','client','patient','someone','test','—','-'];
+function _clinClientKey(x){
+  if(!x) return '';
+  var ph=String(x.whatsapp||x.phone||'').replace(/\D/g,'');
+  if(ph.length>=8) return 'p:'+ph.slice(-9);
+  var n=String(x.client||'').trim().toLowerCase().replace(/\s+/g,' ');
+  if(!n || _CLIN_ANON.indexOf(n)>=0) return '';
+  return 'n:'+n;
+}
+// The guest this booking is being built or moved for.
+function _clinCurrentClientKey(){
+  var o=window._clinEditOrig;
+  if(o) return _clinClientKey(o);
+  return _clinClientKey({client:clinPatient, whatsapp:clinWhatsapp});
+}
+// Is this existing booking the SAME guest we're working on? One guest can be in a chair with their boots on
+// while the drip runs, so their own bookings never block each other — whether they were taken as one order or
+// added separately. Two DIFFERENT guests on one chair is still a clash.
 function _clinSameOrder(b){
   if(!b) return false;
   var oid=_clinEditOrderId();
-  return !!(oid && b.orderId===oid);
+  if(oid && b.orderId===oid) return true;
+  var who=_clinCurrentClientKey();
+  return !!(who && _clinClientKey(b)===who);
 }
 // Double-booking guard. It exists to stop two DIFFERENT guests landing on one chair or room — NOT to stop one
 // guest having two things at once. A guest can sit in a recovery chair with their boots on while the drip runs,
