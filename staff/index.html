@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260921140;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260921160;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -11152,6 +11152,38 @@ function clinOrderNames(){
   var s=clinSvc(); if(s && clinCurrentComplete()) n.push(s.name);
   return n;
 }
+// The same list with each treatment's OWN date and time — an order can run across the day, or across days, so
+// one date at the end of a sentence isn't enough: the client needs the time against each treatment.
+function clinOrderLines(){
+  var out=(clinCart||[]).map(function(it){ return {name:clinItemName(it), dateKey:it.dateKey, time:clinItemStart(it)}; });
+  var s=clinSvc();
+  if(s && clinCurrentComplete()) out.push({name:s.name, dateKey:clinKey(), time:clinCurrentStart()});
+  return out;
+}
+window.clinOrderLines=clinOrderLines;
+// '19:00' → '7:00pm'
+function _clin12hm(hhmm){
+  var m=String(hhmm||'').match(/(\d{1,2}):(\d{2})/); if(!m) return '';
+  var h=parseInt(m[1],10), ap=(h>=12?'pm':'am'), hh=(h%12)||12;
+  return hh+':'+m[2]+ap;
+}
+// 'Thu 1 Oct at 7:00pm'
+function _clinWhenWord(dateKey, time){
+  var d='';
+  try{ d=new Date(dateKey+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}); }catch(e){ d=dateKey||''; }
+  var t=_clin12hm(time);
+  return d+(t?(' at '+t):'');
+}
+// Opening of a client message. One treatment reads as a sentence; several read as a list with each own time,
+// and the sentence that follows starts fresh so it never runs into the last bullet.
+function _clinGreeting(name, lines){
+  var hi='Hi '+(name||'there')+' — DISTRIK here. ';
+  if(!lines||!lines.length) return hi+'To confirm your booking, ';
+  if(lines.length===1) return hi+'To confirm your '+lines[0].name+' on '+_clinWhenWord(lines[0].dateKey, lines[0].time)+', ';
+  return hi+'To confirm your booking:\n\n'
+    +lines.map(function(l){ return '• '+l.name+' — '+_clinWhenWord(l.dateKey, l.time); }).join('\n')
+    +'\n\n';
+}
 window.clinOrderTotal=clinOrderTotal; window.clinOrderDue=clinOrderDue;
 // What's already on this booking, shown at the top of the builder so staff never lose track of the order.
 function _clinCartStrip(){
@@ -11392,7 +11424,7 @@ function clinSendReminder(id){
 // Resend guard — the button becomes "Reminder sent ✓"; re-sending asks first so no accidental double message.
 function clinResendReminder(id){ if(confirm('A reminder was already sent to this client via WhatsApp.\n\nSend another one?')) clinSendReminder(id); }
 window.clinSendReminder=clinSendReminder; window.clinResendReminder=clinResendReminder;
-function initRecovery(){ if(typeof loadClinical==='function') loadClinical(); clinSel=null;clinType=null;clinIntake=false;clinWindow=null;clinRoom=null;clinPay='card';clinDone=false;clinDoneHold=false;clinEditingId=null;clinEditingDate=null;clinOnline=false;clinPressure='';clinRecommendedBy='';clinPayType='full';clinPatient='';clinEmail='';clinWhatsapp='';clinTime=''; clinAddons=[]; clinComp=false; clinCart=[]; window._clinDoneCount=0; clinDate=(typeof baliNow==='function'?baliNow():new Date()); clinViewYear=null;clinViewMonth=null; clinGroupOpen={recovery:true,iv:true,blood:true}; try{window.clinPromo=null; ['recovery-disc-pct','recovery-disc-code'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';}); var _m=document.getElementById('recovery-disc-msg');if(_m)_m.textContent='';}catch(e){} clinSyncDateUI(); renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); startBookingListener(); }
+function initRecovery(){ if(typeof loadClinical==='function') loadClinical(); clinSel=null;clinType=null;clinIntake=false;clinWindow=null;clinRoom=null;clinPay='card';clinDone=false;clinDoneHold=false;clinEditingId=null;clinEditingDate=null;clinOnline=false;clinPressure='';clinRecommendedBy='';clinPayType='full';clinPatient='';clinEmail='';clinWhatsapp='';clinTime=''; clinAddons=[]; clinComp=false; clinCart=[]; window._clinDoneCount=0; window._clinDepositRef=null; clinDate=(typeof baliNow==='function'?baliNow():new Date()); clinViewYear=null;clinViewMonth=null; clinGroupOpen={recovery:true,iv:true,blood:true}; try{window.clinPromo=null; ['recovery-disc-pct','recovery-disc-code'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';}); var _m=document.getElementById('recovery-disc-msg');if(_m)_m.textContent='';}catch(e){} clinSyncDateUI(); renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); startBookingListener(); }
 window.initRecovery=initRecovery;
 
 // ── Online Booking Requests (public_bookings Firestore collection) ──────
@@ -12236,7 +12268,7 @@ function updateClinicalTotals(base){
       var xLink=getXenditLink();
       if(xLink){
         depHtml+='<button class="clin-intake-btn" style="margin-top:10px;background:#0A0A0A;" onclick="sendDepositLink()">Send deposit link via WhatsApp &#x2192;</button>'
-          +'<div style="font-family:\'Space Mono\',monospace;font-size:9px;color:#9a9a9e;margin-top:5px;line-height:1.5;">The Xendit page opens blank — the message tells them to enter '+clinFmt(dep)+'.</div>';
+          +'<div style="font-family:\'Space Mono\',monospace;font-size:9px;color:#9a9a9e;margin-top:5px;line-height:1.5;">Creates a Xendit invoice for '+clinFmt(dep)+' — the amount is on the page, nothing to type. If that fails it sends the manual link instead and says so.</div>';
       }
     }
     dl.innerHTML=depHtml;
@@ -12343,29 +12375,79 @@ function clinRebookFromId(id){
 window.clinRebookSearch=clinRebookSearch; window.clinRebookPick=clinRebookPick; window.clinRebookClient=clinRebookClient; window.clinRebookFromId=clinRebookFromId;
 // The Xendit link in Settings is a REUSABLE OPEN-AMOUNT page: it opens blank and the guest types the figure in
 // themselves. So this message is the only place the number appears — make it impossible to miss or mistype.
-function _clinDepositMsg(name, what, dateStr, dep, total, count, xLink){
+function _clinDepositMsg(name, lines, dep, total, xLink){
   var f=function(n){ return 'IDR '+Math.round(n).toLocaleString('id-ID'); };
-  return 'Hi '+(name||'there')+' — DISTRIK here. To confirm your '+what+(dateStr?(' on '+dateStr):'')+', please pay your 50% deposit.'
+  var count=(lines||[]).length, g=_clinGreeting(name, lines);
+  return g+(count>1?'P':'p')+'lease pay your 50% deposit'+((count>1)?(' — 50% of '+f(total)+' for the '+count+' treatments'):'')+'.'
     +'\n\n*AMOUNT TO ENTER: '+f(dep)+'*'
-    +((count>1)?('\n(50% of '+f(total)+' for the '+count+' treatments)'):'')
     +'\n\n'+xLink
     +'\n\nThe payment page opens blank and asks you to type the amount — please enter '+Math.round(dep).toLocaleString('id-ID')+' exactly.'
     +'\n\nOnce received we\'ll confirm your booking. See you soon 🙏';
 }
+// ── PER-BOOKING XENDIT INVOICE ──────────────────────────────────────────────
+// The link in Settings → Payments is ONE reusable open-amount page: it opens blank and the guest types the figure
+// in, which is how they end up paying 0 or the wrong amount. The public booking page never uses it — it calls our
+// Cloud Function, which mints a one-off Xendit invoice with the amount already on it. Staff now do the same, and
+// the Settings link is only the fallback for when that call fails.
+var XENDIT_INVOICE_FN='https://asia-southeast2-distrikath80361.cloudfunctions.net/createDepositInvoice';
+// Called exactly as recovery.html calls it: hand it the FULL price, it invoices the 50% deposit.
+function clinCreateDepositInvoice(o){
+  return fetch(XENDIT_INVOICE_FN,{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({ref:o.ref, price:o.total, name:o.name||'', email:o.email||'', phone:o.phone||'', pathway:o.what||'', date:o.date||'', time:o.time||''})
+  }).then(function(r){ return r.json(); }).then(function(j){
+    if(!j||!j.invoice_url) throw new Error('no invoice_url in response');
+    // SAFETY: if the function tells us what it actually charged, it must match the deposit we quoted the client.
+    // Never send a link for an amount they weren't told — fall back to the manual one instead.
+    var amt=(j.amount!=null)?Math.round(+j.amount):((j.invoice&&j.invoice.amount!=null)?Math.round(+j.invoice.amount):null);
+    if(amt!=null && Math.abs(amt-Math.round(o.deposit))>1) throw new Error('amount mismatch — invoice '+amt+', quoted '+Math.round(o.deposit));
+    return j.invoice_url;
+  });
+}
+// Open WhatsApp in a tab we grabbed on the click itself, so the pop-up blocker doesn't eat it after the await.
+function _clinOpenWa(win, phone, msg){
+  var url='https://wa.me/'+phone+'?text='+encodeURIComponent(msg);
+  if(win && !win.closed){ try{ win.location.href=url; return; }catch(e){} }
+  window.open(url,'_blank');
+}
+// Message when the link already carries the amount — nothing for the guest to type.
+function _clinInvoiceMsg(name, lines, dep, total, url){
+  var f=function(n){ return 'IDR '+Math.round(n).toLocaleString('id-ID'); };
+  var count=(lines||[]).length, g=_clinGreeting(name, lines);
+  return g+(count>1?'H':'h')+'ere\'s your 50% deposit of '+f(dep)+((count>1)?(' — 50% of '+f(total)+' for the '+count+' treatments'):'')+'.'
+    +'\n\nThe amount is already on the page — just tap the link and pay by card:'
+    +'\n\n'+url
+    +'\n\nOnce it\'s through we\'ll confirm your booking. See you soon 🙏';
+}
 function sendDepositLink(){
   clinCaptureInputs();
-  var xLink=getXenditLink(); if(!xLink) return alert('No Xendit link set — add it in Settings → Payments.');
   var ph=(clinWhatsapp||'').replace(/\D/g,''); if(!ph) return alert('Enter the patient\'s WhatsApp number first.');
   // 50% of the WHOLE booking — every treatment queued with "Add another" plus the one in the builder
-  var names=clinOrderNames();
-  if(!names.length) return alert('Add a treatment to the booking first.');
+  var lines=clinOrderLines();
+  if(!lines.length) return alert('Add a treatment to the booking first.');
   var total=clinOrderDue();
   if(!(total>0)) return alert('Nothing to take a deposit on — this booking is free.');
   var dep=Math.round(total*0.5);
-  var svcName=(names.length>1)?(names.slice(0,-1).join(', ')+' and '+names[names.length-1]):names[0];
-  var date=clinDate?clinDate.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}):'';
-  var msg=_clinDepositMsg(clinPatient, svcName, date, dep, total, names.length, xLink);
-  window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(msg),'_blank');
+  var xLink=getXenditLink();
+  // Grab the tab on the click itself so the pop-up blocker can't eat it once the invoice call returns.
+  var w=window.open('','_blank');
+  try{ if(w) w.document.write('<p style="font-family:monospace;padding:24px;color:#555;">Creating the payment link…</p>'); }catch(e){}
+  var ref=(window._clinDepositRef||('STF-'+(typeof genId==='function'?genId():Date.now())));
+  window._clinDepositRef=ref;   // carried onto the booking when it's confirmed, so payments can be matched up
+  clinNotify('Creating a payment link for '+clinFmt(dep)+'…');
+  clinCreateDepositInvoice({ref:ref, total:total, deposit:dep, name:clinPatient, email:clinEmail,
+                            phone:ph, what:lines.map(function(l){return l.name;}).join(' + '),
+                            date:lines[0].dateKey, time:lines[0].time||''})
+    .then(function(url){
+      _clinOpenWa(w, ph, _clinInvoiceMsg(clinPatient, lines, dep, total, url));
+      clinNotify('Payment link sent · '+clinFmt(dep)+' already on the page.');
+    })
+    .catch(function(err){
+      console.warn('[xendit] deposit invoice failed',err);
+      if(!xLink){ try{ if(w&&!w.closed) w.close(); }catch(e){} alert('Couldn\'t create the payment link, and there\'s no fallback link in Settings → Payments.\n\n('+(err&&err.message||err)+')'); return; }
+      _clinOpenWa(w, ph, _clinDepositMsg(clinPatient, lines, dep, total, xLink));
+      clinNotify('Couldn\'t create a payment link — sent the manual one, they must type '+clinFmt(dep)+'.');
+    });
 }
 window.sendDepositLink=sendDepositLink;
 // ── Double-booking guard ───────────────────────────────────────────
@@ -12477,6 +12559,7 @@ function _clinSaveOne(orderId, sendEmail){
     source:(clinOnline?'Online':'Walk-in'), status:(isHold?'hold':'confirmed'), payMethod:clinPay, date:dateKey, _ts:Date.now()
   };
   if(orderId) rec.orderId=orderId;   // several treatments confirmed together as one booking
+  if(window._clinDepositRef) rec.depositRef=window._clinDepositRef;   // ties the Xendit invoice back to this booking
   if(clinType==='clinical'){ rec.clinical=true; rec.tag='HUMAN+'; rec.provider='HUMAN+'; rec.collector='DISTRIK'; rec.cat=_clinCat(s); rec.window=clinWindow; rec.intake=(clinIntake?'approved':'pending'); rec.recommendedBy=clinRecommendedBy||''; if(_clinSelIsIV()&&clinAddons.length){ rec.addons=clinAddonList().map(function(a){return {id:a.id,name:a.name,price:a.price};}); rec.addonTotal=clinAddonTotal(); } if(clinCompOn()) rec.compression=clinCompRec(); }
   if(clinOnline){ var _tot=_price; rec.online=true; rec.deposit=Math.round(_tot*0.5); rec.balanceDue=_tot-Math.round(_tot*0.5); rec.balancePaid=false; }
   else if(clinPayType==='deposit'){ rec.deposit=Math.round(_price*0.5); rec.balanceDue=_price-Math.round(_price*0.5); rec.balancePaid=false; rec.depositPaid=true; /* IN-PERSON deposit: paid now at the till (card/QR); balance collected on the treatment day at Check out */ }
@@ -12517,7 +12600,7 @@ function _clinSaveOne(orderId, sendEmail){
       }
     } else {
       // plain move — keep the money exactly as it was, never re-charge
-      ['online','deposit','balanceDue','balancePaid','depositPaid','price','gross','payType','discPct','discReason','discCode','source','partner','partnerCollect','partnerTotal','commission','commissionStatus','commissionPct','provider','tag','clinical','cat','addons','addonTotal','compression','orderId','forfeited','onlineRef','payMethod','recommendedBy','ledgerDate','depositPaidAt'].forEach(function(k){ if(_o[k]!==undefined) rec[k]=_o[k]; });
+      ['online','deposit','balanceDue','balancePaid','depositPaid','price','gross','payType','discPct','discReason','discCode','source','partner','partnerCollect','partnerTotal','commission','commissionStatus','commissionPct','provider','tag','clinical','cat','addons','addonTotal','compression','orderId','depositRef','forfeited','onlineRef','payMethod','recommendedBy','ledgerDate','depositPaidAt'].forEach(function(k){ if(_o[k]!==undefined) rec[k]=_o[k]; });
       // BOOTS ADDED / REMOVED during the move → adjust by the boots fee only; the rest of the money is kept as it was.
       var _compWas=(_o.compression&&_o.compression.price)||0, _compNow=clinCompPrice();
       if(clinType==='clinical' && _compNow!==_compWas){
@@ -12728,7 +12811,7 @@ function clinCollectBalance(id){
 }
 window.clinCollectBalance=clinCollectBalance;
 function resendDepositLink(id){
-  var xLink=getXenditLink(); if(!xLink) return alert('No Xendit link set — add it in Settings → Payments.');
+  var xLink=getXenditLink();   // only the fallback now — the invoice below carries the amount
   var dk=clinKey(); var day=recoveryData&&recoveryData[dk]; if(!day||!day.bookings) return;
   var b=day.bookings.find(function(x){return x.id===id;}); if(!b) return;
   var ph=(b.whatsapp||b.phone||'').replace(/\D/g,''); if(!ph) return alert('No WhatsApp number on this booking.');
@@ -12737,11 +12820,25 @@ function resendDepositLink(id){
   if(!sibs.length) sibs=[b];
   var gross=sibs.reduce(function(t,x){ return t+(x.price||0); },0);
   var dep=Math.round(gross*0.5);
-  var _nm=sibs.map(function(x){ return x.serviceName||'session'; });
-  var what=(_nm.length>1)?(_nm.slice(0,-1).join(', ')+' and '+_nm[_nm.length-1]):(_nm[0]||'session');
-  var date=clinDate.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
-  var msg=_clinDepositMsg(b.client, what, date, dep, gross, _nm.length, xLink);
-  window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(msg),'_blank');
+  var lines=sibs.map(function(x){ return {name:(x.serviceName||'session'), dateKey:(x.date||dk), time:(x.start||x.time||'')}; });
+  var w=window.open('','_blank');
+  try{ if(w) w.document.write('<p style="font-family:monospace;padding:24px;color:#555;">Creating the payment link…</p>'); }catch(e){}
+  var ref=b.depositRef||('STF-'+b.id);
+  clinNotify('Creating a payment link for '+clinFmt(dep)+'…');
+  clinCreateDepositInvoice({ref:ref, total:gross, deposit:dep, name:b.client, email:b.email,
+                            phone:ph, what:lines.map(function(l){return l.name;}).join(' + '),
+                            date:lines[0].dateKey, time:lines[0].time||''})
+    .then(function(url){
+      _clinOpenWa(w, ph, _clinInvoiceMsg(b.client, lines, dep, gross, url));
+      try{ b.depositRef=ref; if(typeof ledgerUpdate==='function') ledgerUpdate(b.id,{detail:JSON.stringify(b)}); if(typeof saveAll==='function') saveAll(); }catch(e){}
+      clinNotify('Payment link sent · '+clinFmt(dep)+' already on the page.');
+    })
+    .catch(function(err){
+      console.warn('[xendit] deposit invoice failed',err);
+      if(!xLink){ try{ if(w&&!w.closed) w.close(); }catch(e){} alert('Couldn\'t create the payment link, and there\'s no fallback link in Settings → Payments.\n\n('+(err&&err.message||err)+')'); return; }
+      _clinOpenWa(w, ph, _clinDepositMsg(b.client, lines, dep, gross, xLink));
+      clinNotify('Couldn\'t create a payment link — sent the manual one, they must type '+clinFmt(dep)+'.');
+    });
 }
 window.resendDepositLink=resendDepositLink;
 // Hours from now until a booking starts (Bali time)
