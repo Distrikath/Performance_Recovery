@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260921300;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260921320;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -15111,10 +15111,11 @@ window.renderEventAttendees=function(id){
     <div style="padding:10px 20px 0;font-size:10px;color:#888;line-height:1.6;">Group classes / events. These show on the website Events tab and in the Recovery day grid. Price 0 = free (no Xendit at checkout). Capacity = total spots.</div>
     <div style="padding:12px 20px;border-bottom:1px solid #f0f0f0;">
       <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#0A0A0A;margin-bottom:8px;">+ New event</div>
-      <div style="display:grid;grid-template-columns:1.6fr 1fr .8fr .7fr 1fr 1fr;gap:8px;align-items:end;">
+      <div style="display:grid;grid-template-columns:1.5fr 1fr .8fr .8fr .6fr .9fr .9fr;gap:8px;align-items:end;">
         <div><label style="font-size:9px;color:#888;">Title</label><input id="ev_new_title" placeholder="Stretch Class" style="font-family:'Space Mono',monospace;font-size:11px;border:1px solid #d3d3ce;padding:7px 8px;background:#fafafa;width:100%;box-sizing:border-box;"></div>
         <div><label style="font-size:9px;color:#888;">Date</label><input id="ev_new_date" type="date" style="font-family:'Space Mono',monospace;font-size:11px;border:1px solid #d3d3ce;padding:7px 8px;background:#fafafa;width:100%;box-sizing:border-box;"></div>
         <div><label style="font-size:9px;color:#888;">Time</label><input id="ev_new_time" type="time" style="font-family:'Space Mono',monospace;font-size:11px;border:1px solid #d3d3ce;padding:7px 8px;background:#fafafa;width:100%;box-sizing:border-box;"></div>
+        <div><label style="font-size:9px;color:#888;">Length</label><select id="ev_new_dur" style="font-family:'Space Mono',monospace;font-size:11px;border:1px solid #d3d3ce;padding:7px 8px;background:#fafafa;width:100%;box-sizing:border-box;"><option value="15">15 min</option><option value="30">30 min</option><option value="45">45 min</option><option value="60" selected>60 min</option><option value="75">75 min</option><option value="90">90 min</option><option value="120">120 min</option></select></div>
         <div><label style="font-size:9px;color:#888;">Spots</label><input id="ev_new_cap" type="number" value="6" style="font-family:'Space Mono',monospace;font-size:11px;border:1px solid #d3d3ce;padding:7px 8px;background:#fafafa;width:100%;box-sizing:border-box;"></div>
         <div><label style="font-size:9px;color:#888;">Price IDR (0=free)</label><input id="ev_new_price" type="number" value="0" style="font-family:'Space Mono',monospace;font-size:11px;border:1px solid #d3d3ce;padding:7px 8px;background:#fafafa;width:100%;box-sizing:border-box;"></div>
         <div><button onclick="evMgrAdd()" class="set-mgr-btn" style="background:#0A0A0A;color:#fff;border:none;padding:9px 12px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;width:100%;">+ Add</button></div>
@@ -15128,6 +15129,15 @@ window.renderEventAttendees=function(id){
   </div>
 </div>
 <script>
+// How long a class runs. Until now every event was stored as 60 minutes with no way to say otherwise, so a
+// 30-minute stretch class blocked an hour of its therapist's diary (plus the turnover buffer on top).
+function _evDurOpts(sel){
+  sel=Math.round(+sel||60);
+  return [15,30,45,60,75,90,120].map(function(m){
+    return '<option value="'+m+'"'+(m===sel?' selected':'')+'>'+m+' min</option>';
+  }).join('');
+}
+window._evDurOpts=_evDurOpts;
 window.openEventsMgr=function(){ if(typeof loadEvents==='function') loadEvents(); var m=document.getElementById('eventsMgrModal'); if(m) m.style.display='flex'; renderEventsMgr(); };
 window.closeEventsMgr=function(){ var m=document.getElementById('eventsMgrModal'); if(m) m.style.display='none'; };
 window.renderEventsMgr=function(){
@@ -15139,10 +15149,11 @@ window.renderEventsMgr=function(){
   el.innerHTML=evs.map(function(ev){
     var booked=(typeof eventSpotsBooked==='function')?eventSpotsBooked(ev.id):0;
     return '<div style="border:1px solid #eee;border-radius:4px;padding:10px 12px;margin-bottom:8px;">'
-      +'<div style="display:grid;grid-template-columns:1.6fr 1fr .8fr .7fr 1fr 1fr;gap:8px;align-items:end;">'
+      +'<div style="display:grid;grid-template-columns:1.5fr 1fr .8fr .8fr .6fr .9fr .9fr;gap:8px;align-items:end;">'
         +'<div><label style="font-size:9px;color:#888;">Title</label><input id="ev_title_'+ev.id+'" value="'+String(ev.title||'').replace(/"/g,"&quot;")+'" style="'+ist+'"></div>'
         +'<div><label style="font-size:9px;color:#888;">Date</label><input id="ev_date_'+ev.id+'" type="date" value="'+(ev.date||'')+'" style="'+ist+'"></div>'
         +'<div><label style="font-size:9px;color:#888;">Time</label><input id="ev_time_'+ev.id+'" type="time" value="'+(ev.time||'')+'" style="'+ist+'"></div>'
+        +'<div><label style="font-size:9px;color:#888;">Length</label><select id="ev_dur_'+ev.id+'" style="'+ist+'">'+_evDurOpts(ev.duration)+'</select></div>'
         +'<div><label style="font-size:9px;color:#888;">Spots</label><input id="ev_cap_'+ev.id+'" type="number" value="'+(ev.capacity||0)+'" style="'+ist+'"></div>'
         +'<div><label style="font-size:9px;color:#888;">Price (0=free)</label><input id="ev_price_'+ev.id+'" type="number" value="'+(ev.price||0)+'" style="'+ist+'"></div>'
         +'<div style="display:flex;gap:6px;"><button onclick="evMgrSaveRow(\''+ev.id+'\')" class="set-mgr-btn" style="background:#0A0A0A;color:#fff;border:none;padding:8px 10px;font-size:10px;cursor:pointer;flex:1;">Save</button><button onclick="eventDelete(\''+ev.id+'\')" style="background:#fff;border:1px solid #e0e0e0;color:#FF2D2D;padding:8px 9px;font-size:12px;cursor:pointer;">&times;</button></div>'
@@ -15154,7 +15165,7 @@ window.renderEventsMgr=function(){
 };
 window.evMgrAdd=function(){ var g=function(id){var e=document.getElementById(id);return e?e.value:'';};
   var t=g('ev_new_title'), d=g('ev_new_date'); if(!t||!d){ alert('Title and date are required.'); return; }
-  eventSave({title:t,date:d,time:g('ev_new_time'),capacity:(g('ev_new_cap')||6),price:(g('ev_new_price')||0),duration:60,note:g('ev_new_desc')});
+  eventSave({title:t,date:d,time:g('ev_new_time'),capacity:(g('ev_new_cap')||6),price:(g('ev_new_price')||0),duration:(g('ev_new_dur')||60),note:g('ev_new_desc')});
   // Clear only title + time; KEEP the date/spots/price so you can add several classes to the same day quickly.
   ['ev_new_title','ev_new_time'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';});
   renderEventsMgr();  // optimistic list already updated in eventSave — shows the new one immediately
@@ -15162,7 +15173,7 @@ window.evMgrAdd=function(){ var g=function(id){var e=document.getElementById(id)
 };
 window.evMgrSaveRow=function(id){ var g=function(k){var e=document.getElementById('ev_'+k+'_'+id);return e?e.value:'';};
   var cur=(window.EVENTS||{})[id]||{};
-  eventSave({id:id,title:g('title'),date:g('date'),time:g('time'),capacity:g('cap'),price:g('price'),duration:cur.duration||60,active:cur.active,note:g('desc')});
+  eventSave({id:id,title:g('title'),date:g('date'),time:g('time'),capacity:g('cap'),price:g('price'),duration:(g('dur')||cur.duration||60),active:cur.active,note:g('desc')});
   var b=document.getElementById('ev_title_'+id); if(b){ b.style.borderColor='#10b981'; setTimeout(function(){b.style.borderColor='#d3d3ce';},1200); }
 };
 </script>
