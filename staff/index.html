@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260921200;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260921220;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -11826,7 +11826,7 @@ function renderClinicalServices(){
     +'</div>'
     +'<div class="clin-acc-body'+(blOpen?' open':'')+'">'+blSvcs.map(function(s){return svcCard(s,'clinical');}).join('')+'</div>';
 }
-function selectService(id,type){ if(typeof clinCaptureInputs==='function') clinCaptureInputs(); /* keep whatever's typed */ clinSel=id;clinType=type;clinIntake=false;clinWindow=null;clinRoom=null;clinDone=false;clinOnline=false;clinPayType='full';clinTime='';clinRecommendedBy='';clinAddons=[];clinComp=false; window._clinOnlineReqId=null; /* PRESERVE client name/email/WhatsApp + pressure when changing the session type — a full reset only happens via initRecovery / New booking */ renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); }
+function selectService(id,type){ if(typeof clinCaptureInputs==='function') clinCaptureInputs(); /* keep whatever's typed */ clinSel=id;clinType=type;clinIntake=false;clinWindow=null;clinRoom=null;clinDone=false;clinOnline=false;clinTime='';/* clinPayType is the BOOKING's, not this treatment's — keep it */clinRecommendedBy='';clinAddons=[];clinComp=false; window._clinOnlineReqId=null; /* PRESERVE client name/email/WhatsApp + pressure when changing the session type — a full reset only happens via initRecovery / New booking */ renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); }
 window.selectService=selectService;
 
 // Which rooms can the currently-selected service be booked in (with roster therapist + eligibility)
@@ -11935,6 +11935,21 @@ function _clinTimeField(stepNo){
         return '<button class="clin-win'+(clinTime===hh?' sel':'')+'"'+(pst?' style="opacity:.5;" title="already passed — for edits or after-the-fact walk-ins"':'')+' onclick="clinSelectTime(\''+hh+'\')">'+dayAb+' '+hh+(pst?' ·past':'')+'</button>'; }).join('')
     +'</div></div>';
 }
+// How the guest is paying is a property of the whole BOOKING, not of one treatment — and for a long time it was
+// only drawn on the recovery form, so an IV (or any order ending on a clinical treatment) was never asked and
+// silently booked itself 'paid in full at the till', with no Check out button left to collect anything.
+function _clinPaymentBlock(stepNo){
+  var sep='<div style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#56565b;margin:18px 0 10px;padding-top:14px;border-top:1px solid #f0f0f0;">'+stepNo+' · Payment</div>';
+  if(clinEditingId) return sep+'<div style="font-family:\'Space Mono\',monospace;font-size:11px;color:#56565b;padding:2px 0 2px;line-height:1.5;">Editing — payment stays as it is. Just move the date, time, room or therapist, then press <b>Update booking</b>.</div>';
+  var total=clinOrderDue(), dep50=Math.round(total*0.5);   // the WHOLE booking, not just the treatment on screen
+  var n=(clinCart||[]).length+(clinCurrentComplete()?1:0);
+  var forAll=(n>1)?'<div style="font-family:\'Space Mono\',monospace;font-size:9px;color:#9a9a9e;margin:-4px 0 8px;">Covers all '+n+' treatments on this booking.</div>':'';
+  return sep+forAll+'<div class="clin-windows">'
+    +'<button class="clin-win'+(clinPayType==='later'?' sel':'')+'" onclick="clinSetPayType(\'later\')" title="Take nothing now — collect the full amount on the treatment day at Check out. Ideal for WhatsApp bookings.">Pay on arrival · nothing now<span style="display:block;font-size:8px;opacity:.7;">full amount on the day</span></button>'
+    +'<button class="clin-win'+(clinPayType==='deposit'?' sel':'')+'" onclick="clinSetPayType(\'deposit\')" title="Client pays 50% now at the till; the balance is collected on the treatment day at Check out">Deposit 50% now · '+clinFmt(dep50)+'<span style="display:block;font-size:8px;opacity:.7;">rest on arrival</span></button>'
+    +'<button class="clin-win'+(clinPayType==='full'?' sel':'')+'" onclick="clinSetPayType(\'full\')">Full · '+clinFmt(total)+'<span style="display:block;font-size:8px;opacity:.7;">paid now at the till</span></button>'
+    +'</div>';
+}
 function clinSelectTime(t){ clinCaptureInputs(); clinTime=t; renderClinicalBooking(); renderClinicalOrder(); }
 window.clinSelectTime=clinSelectTime;
 function buildClinRoomGrid(){
@@ -12009,7 +12024,9 @@ function renderClinicalBooking(){
     el.innerHTML=renderClinMiniCal()+roomGridDiv
       +'<div style="padding:12px 16px 0;">'
       +_clinCartStrip()
-      +'<div class="clin-rooms-lbl">Bookings '+clinDateWord()+' <span>· '+todayBookingCount()+'</span></div>'+renderTodayBookings()
+      // everything queued and nothing in the builder — staff still need to say how the guest is paying
+      +(clinCart.length?_clinPaymentBlock('·'):'')
+      +'<div class="clin-rooms-lbl" style="margin-top:14px;">Bookings '+clinDateWord()+' <span>· '+todayBookingCount()+'</span></div>'+renderTodayBookings()
       +'<div class="clin-placeholder" style="padding-top:10px;text-align:left;">'+(clinCart.length?'Pick the next service for this booking — or press Confirm to take them all.':'Select a service · tap a room to assign.')+'</div>'
       +'</div>';
     buildClinRoomGrid();
@@ -12085,6 +12102,7 @@ function renderClinicalBooking(){
         +'<option value="">— No recommendation (no 2.5%) —</option>'
         +['TC','TB','TD'].map(function(_tid){ var _n=((typeof getStaff==='function'&&getStaff(_tid))||{}).name||_tid; return '<option value="'+_tid+'"'+(clinRecommendedBy===_tid?' selected':'')+'>'+_n+'</option>'; }).join('')
         +'</select>')
+      +_clinPaymentBlock(6)
       +intakeBlock
       +_clinAddAnotherBtn()
       +'<div class="clin-tagline"><span>Internal tag</span><span class="clin-tag">Clinical Partner</span></div>'
@@ -12096,15 +12114,7 @@ function renderClinicalBooking(){
       +[['light','Light · Gentle recovery'],['medium','Medium · Balanced pressure'],['firm','Firm · Deep tissue release']].map(function(p){ return '<button class="clin-win'+(clinPressure===p[0]?' sel':'')+'" onclick="clinSetPressure(\''+p[0]+'\')">'+p[1]+'</button>'; }).join('')
       +'</div>';
     var clientSep='<div style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#56565b;margin:18px 0 10px;padding-top:14px;border-top:1px solid #f0f0f0;">6 · Client details</div>';
-    var svcPrice=s.price||0, dep50=Math.round(svcPrice*0.5);
-    var paymentSep='<div style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#56565b;margin:18px 0 10px;padding-top:14px;border-top:1px solid #f0f0f0;">7 · Payment</div>';
-    var paymentBlock=clinEditingId
-      ? paymentSep+'<div style="font-family:\'Space Mono\',monospace;font-size:11px;color:#56565b;padding:2px 0 2px;line-height:1.5;">Editing — payment stays as it is. Just move the date, time, room or therapist, then press <b>Update booking</b>.</div>'
-      : paymentSep+'<div class="clin-windows">'
-      +'<button class="clin-win'+(clinPayType==='later'?' sel':'')+'" onclick="clinSetPayType(\'later\')" title="Take nothing now — collect the full amount on the treatment day at Check out. Ideal for WhatsApp bookings.">Pay on arrival · nothing now<span style="display:block;font-size:8px;opacity:.7;">full amount on the day</span></button>'
-      +'<button class="clin-win'+(clinPayType==='deposit'?' sel':'')+'" onclick="clinSetPayType(\'deposit\')" title="Client pays 50% now at the till; the balance is collected on the treatment day at Check out">Deposit 50% now · '+(typeof clinFmt==='function'?clinFmt(dep50):'IDR '+dep50)+'<span style="display:block;font-size:8px;opacity:.7;">rest on arrival</span></button>'
-      +'<button class="clin-win'+(clinPayType==='full'?' sel':'')+'" onclick="clinSetPayType(\'full\')">Full · '+(typeof clinFmt==='function'?clinFmt(svcPrice):'IDR '+svcPrice)+'</button>'
-      +'</div>';
+    var paymentBlock=_clinPaymentBlock(7);
     el.innerHTML=renderClinMiniCal()+roomGridDiv+dateBar
       +'<div style="padding:0 16px 16px;">'
       +_clinCartStrip()
