@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260921260;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260921280;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -13869,7 +13869,9 @@ window.showRoomCalendar=showRoomCalendar;
   try{ firebase.initializeApp(cfg); db=firebase.firestore();
     // Force HTTP long-polling: Bali café wifi mangles Firestore's default QUIC/WebChannel transport (ERR_QUIC_PROTOCOL_ERROR),
     // which is what caused the "stuck connecting". Long-polling is a touch slower but connects reliably on flaky/restrictive networks.
-    try{ db.settings({ experimentalForceLongPolling:true, merge:true }); }catch(e){ console.warn('[sync] settings',e&&e.code); }
+    // NB: no `merge` key here — it isn't a valid Firestore setting in SDK 10.x and made the whole call throw
+    // invalid-argument, which silently disabled the long-polling this line exists to switch on.
+    try{ db.settings({ experimentalForceLongPolling:true }); }catch(e){ console.warn('[sync] settings',e&&e.code); }
     setPill("◌ Connecting…","#f59e0b"); }
   catch(e){ console.warn('[sync] init',e); setPill("⚠ Sync off","#FF2D2D"); return; }
   // DURABLE OFFLINE QUEUE: a sale made while offline (Bali wifi drop) is written to disk and
