@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260921160;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260921180;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -11089,8 +11089,9 @@ function clinItemDuration(it){
   return Math.max(s.dur||45, it.comp?clinCompDuration():0);      // boots run during the treatment
 }
 function clinItemStart(it){
-  if(it.type==='clinical'){ var m=String(it.win||'').match(/(\d{1,2}):(\d{2})/); return m?(('0'+m[1]).slice(-2)+':'+m[2]):null; }
-  return it.time||null;
+  if(it.time) return it.time;
+  var m=String(it.win||'').match(/(\d{1,2}):(\d{2})/);   // pre-time-picker bookings carried only the window
+  return m?(('0'+m[1]).slice(-2)+':'+m[2]):null;
 }
 function clinItemRoomId(it){
   var r=(typeof ROOMS!=='undefined')?ROOMS.find(function(x){return x.name===it.room;}):null;
@@ -11112,7 +11113,7 @@ function clinItemPrice(it){
 function clinCartTotal(){ return (clinCart||[]).reduce(function(t,it){ return t+clinItemPrice(it); },0); }
 function clinCartCount(){ return (clinCart||[]).length; }
 // Is the treatment in the builder finished enough to be added / confirmed?
-function clinCurrentComplete(){ return !!(clinType==='clinical' ? (clinSel&&clinRoom) : (clinSel&&clinRoom&&clinTime)); }
+function clinCurrentComplete(){ return !!(clinSel && clinRoom && clinCurrentStart()); }
 function clinAddAnother(){
   if(typeof clinCaptureInputs==='function') clinCaptureInputs();
   if(clinEditingId){ clinNotify('Finish this move first — treatments are added when building a new booking.'); return; }
@@ -11860,7 +11861,7 @@ var CLIN_BUFFER_MIN = 15; // turnover buffer after every session
 // existing bookings, and session duration + 15-min buffer.
 function clinAvailableTimes(){
   var s=clinSvc(); if(!s||!clinRoom) return [];
-  var dur=(s.duration||60)/60, buf=CLIN_BUFFER_MIN/60;
+  var dur=clinCurrentDuration()/60, buf=CLIN_BUFFER_MIN/60;   // clinical uses .dur (+ boots), recovery uses .duration
   var winStart=(typeof SCHED_START!=='undefined'?SCHED_START:10), winEnd=(typeof SCHED_END!=='undefined'?SCHED_END:22);
   var roomObj=(typeof ROOMS!=='undefined')?ROOMS.find(function(r){return r.name===clinRoom;}):null;
   var isChair=roomObj&&roomObj.type==='recovery';
@@ -11893,6 +11894,23 @@ function clinAvailableTimes(){
     if(!clash) slots.push(t);
   }
   return slots;
+}
+// The time picker. Clinical treatments went without one for a long time, which meant every IV silently landed
+// at 09:00 on the chair. Chairs and rooms now pick a time the same way: open slots for THIS treatment's length,
+// honouring the roster, what's already booked and the turnover buffer.
+function _clinTimeField(stepNo){
+  var what=(clinType==='clinical'?'chair':'room');
+  var lbl=stepNo+' · Time';
+  if(!clinRoom) return '<div class="clin-field"><label>'+lbl+'</label><div class="clin-placeholder" style="padding:8px 0;text-align:left;">Pick a '+what+' above first.</div></div>';
+  var times=clinAvailableTimes();
+  if(!times.length) return '<div class="clin-field"><label>'+lbl+'</label><div class="clin-placeholder" style="padding:8px 0;text-align:left;color:#FF2D2D;">No open slots in '+clinRoom+' '+clinDateWord()+'.</div></div>';
+  var dayAb=clinDate.toLocaleDateString('en-US',{weekday:'short'});
+  var isToday=(clinKey()===((typeof todayKey==='function')?todayKey():''));
+  var nowHr=-1; if(isToday){ var _bnw=(typeof baliNow==='function'?baliNow():new Date()); nowHr=_bnw.getHours()+_bnw.getMinutes()/60; }
+  return '<div class="clin-field"><label>'+lbl+' <span style="text-transform:none;color:#9a9a9e">· '+clinCurrentDuration()+' min + '+CLIN_BUFFER_MIN+' min buffer after</span></label><div class="clin-windows">'
+    +times.map(function(t){ var hh=clinHHMM(t); var pst=(isToday && t < nowHr-1e-9);
+        return '<button class="clin-win'+(clinTime===hh?' sel':'')+'"'+(pst?' style="opacity:.5;" title="already passed — for edits or after-the-fact walk-ins"':'')+' onclick="clinSelectTime(\''+hh+'\')">'+dayAb+' '+hh+(pst?' ·past':'')+'</button>'; }).join('')
+    +'</div></div>';
 }
 function clinSelectTime(t){ clinCaptureInputs(); clinTime=t; renderClinicalBooking(); renderClinicalOrder(); }
 window.clinSelectTime=clinSelectTime;
@@ -12036,7 +12054,8 @@ function renderClinicalBooking(){
       +enhBlock
       +compBlock
       +'<div class="clin-field"><label>3 · Recovery chair</label>'+roomLine+'</div>'
-      +'<div style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#56565b;margin:18px 0 10px;padding-top:14px;border-top:1px solid #f0f0f0;">4 · Patient details</div>'
+      +_clinTimeField(4)
+      +'<div style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#56565b;margin:18px 0 10px;padding-top:14px;border-top:1px solid #f0f0f0;">5 · Patient details</div>'
       +contactBlock
       +('<div style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#56565b;margin:18px 0 8px;padding-top:14px;border-top:1px solid #f0f0f0;">Recommended by <span style="text-transform:none;color:#9a9a9e">· therapist earns 2.5%</span></div>'
         +'<select id="clin-recommend" onchange="clinSetRecommend(this.value)" style="width:100%;font-family:\'Space Mono\',monospace;font-size:11px;border:1px solid #d3d3ce;padding:8px;background:#fafafa;color:#0A0A0A;box-sizing:border-box;">'
@@ -12048,22 +12067,7 @@ function renderClinicalBooking(){
       +'<div class="clin-tagline"><span>Internal tag</span><span class="clin-tag">Clinical Partner</span></div>'
       +'</div>';
   } else {
-    var timeField;
-    if(!clinRoom){
-      timeField='<div class="clin-field"><label>4 · Time</label><div class="clin-placeholder" style="padding:8px 0;text-align:left;">Pick a room above first.</div></div>';
-    } else {
-      var times=clinAvailableTimes();
-      if(!times.length){
-        timeField='<div class="clin-field"><label>4 · Time</label><div class="clin-placeholder" style="padding:8px 0;text-align:left;color:#FF2D2D;">No open slots in '+clinRoom+' '+clinDateWord()+'.</div></div>';
-      } else {
-        var dayAb=clinDate.toLocaleDateString('en-US',{weekday:'short'});
-        var _isTodaySel=(clinKey()===((typeof todayKey==='function')?todayKey():''));
-        var _nowHr=-1; if(_isTodaySel){ var _bnw=(typeof baliNow==='function'?baliNow():new Date()); _nowHr=_bnw.getHours()+_bnw.getMinutes()/60; }
-        timeField='<div class="clin-field"><label>4 · Time <span style="text-transform:none;color:#9a9a9e">· '+(s.duration||60)+' min + '+CLIN_BUFFER_MIN+' min buffer after</span></label><div class="clin-windows">'
-          +times.map(function(t){ var hh=clinHHMM(t); var _pst=(_isTodaySel && t < _nowHr - 1e-9); return '<button class="clin-win'+(clinTime===hh?' sel':'')+'"'+(_pst?' style="opacity:.5;" title="already passed — for edits or after-the-fact walk-ins"':'')+' onclick="clinSelectTime(\''+hh+'\')">'+dayAb+' '+hh+(_pst?' ·past':'')+'</button>'; }).join('')
-          +'</div></div>';
-      }
-    }
+    var timeField=_clinTimeField(4);
     var pressureSep='<div style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#56565b;margin:18px 0 10px;padding-top:14px;border-top:1px solid #f0f0f0;">5 · Pressure</div>';
     var pressureBlock=pressureSep+'<div class="clin-windows">'
       +[['light','Light · Gentle recovery'],['medium','Medium · Balanced pressure'],['firm','Firm · Deep tissue release']].map(function(p){ return '<button class="clin-win'+(clinPressure===p[0]?' sel':'')+'" onclick="clinSetPressure(\''+p[0]+'\')">'+p[1]+'</button>'; }).join('')
@@ -12197,6 +12201,7 @@ function renderClinicalOrder(){
   var lines=_clinOrderCartLines()+'<div class="clin-oline"><span>'+s.name+'</span><span>'+clinFmt(_topPrice)+'</span></div>';
   if(clinType==='clinical'){
     lines+=(clinRoom?'<div class="clin-oline sub"><span>Recovery chair</span><span>'+clinRoom+'</span></div>':'')
+      +(clinTime?'<div class="clin-oline sub"><span>Time</span><span>'+clinDate.toLocaleDateString('en-US',{weekday:'short'})+' '+clinTime+'</span></div>':'')
       +'<div class="clin-oline sub"><span>Clinician</span><span>Nurse · Human+</span></div>'
       +(!_eo2?clinAddonList().map(function(a){return '<div class="clin-oline sub"><span>+ '+a.name+'</span><span>+'+clinFmt(a.price)+'</span></div>';}).join(''):'')
       +(clinCompOn()?'<div class="clin-oline sub"><span>+ '+compBootsSvc().name+' <span style="opacity:.6;">· same chair</span></span><span>+'+clinFmt(clinCompPrice())+'</span></div>'
@@ -12247,9 +12252,9 @@ function updateClinicalTotals(base){
     }
     var _eb=document.getElementById('clin-confirm-btn'); if(!_eb) return;
     var _ecf=(typeof clinCurrentConflict==='function') && clinCurrentConflict();
-    var _eok=(clinType==='clinical'?(clinSel&&clinRoom):(clinSel&&clinRoom&&clinTime));
+    var _eok=clinCurrentComplete();
     _eb.disabled=!(_eok&&!_ecf);
-    _eb.textContent=_ecf?((clinType==='clinical'?'Chair':'Room')+' busy at that time'):(!clinRoom?(clinType==='clinical'?'Select a chair':'Select a room'):((clinType!=='clinical'&&!clinTime)?'Select a time':'Update booking'));
+    _eb.textContent=_ecf?((clinType==='clinical'?'Chair':'Room')+' busy at that time'):(!clinRoom?(clinType==='clinical'?'Select a chair':'Select a room'):(!clinTime?'Select a time':'Update booking'));
     return;
   }
   if(_dp) base=Math.round(base*(1-_dp/100));
@@ -12287,7 +12292,7 @@ function updateClinicalTotals(base){
   if(!clinSel && clinCart.length) btn.textContent = depTxt || ('Confirm booking'+multi);
   else if(!clinSel) btn.textContent='Select a service';
   else if(conflict) btn.textContent = (clinType==='clinical'?'Chair':'Room')+' busy at that time';
-  else if(clinType==='clinical') btn.textContent = !clinRoom?'Select a chair':(depTxt||(clinIntake?(clinEditingId?'Update booking':('Confirm booking'+multi)):('Save tentative · intake pending'+multi)));
+  else if(clinType==='clinical') btn.textContent = !clinRoom?'Select a chair':(!clinTime?'Select a time':(depTxt||(clinIntake?(clinEditingId?'Update booking':('Confirm booking'+multi)):('Save tentative · intake pending'+multi))));
   else btn.textContent = !clinRoom?'Select a room':(!clinTime?'Select a time':readyTxt);
 }
 function clinSetPay(m){ clinPay=m; ['clin-pay-card','clin-pay-qr'].forEach(function(id){ var b=document.getElementById(id); if(b) b.classList.toggle('active', id==='clin-pay-'+m); }); }
@@ -12475,8 +12480,10 @@ function clinHasConflict(roomId, startHHMM, durationMin, excludeId){
   }catch(e){ return false; }
 }
 function clinCurrentStart(){
-  if(clinType==='clinical'){ var wm=(clinWindow||'').match(/(\d{1,2}):(\d{2})/); return wm?(('0'+wm[1]).slice(-2)+':'+wm[2]):null; }
-  return clinTime||null;
+  if(clinTime) return clinTime;
+  // bookings made before clinical had a time picker only carry the nurse window, e.g. 'Tue 09:30'
+  var wm=(clinWindow||'').match(/(\d{1,2}):(\d{2})/);
+  return wm?(('0'+wm[1]).slice(-2)+':'+wm[2]):null;
 }
 function clinCurrentDuration(){ var s=clinSvc(); if(!s) return 60; if(clinType!=='clinical') return (s.duration||60);
   // boots run DURING the treatment — the chair is blocked for whichever finishes last, not for the two added up
@@ -12538,9 +12545,10 @@ function _clinSaveOne(orderId, sendEmail){
   // start time + duration + therapist
   var startTime, duration, therapistId=null, therapistName=null;
   if(clinType==='clinical'){
-    var wm=(clinWindow||'').match(/(\d{1,2}):(\d{2})/);
-    startTime=wm?(('0'+wm[1]).slice(-2)+':'+wm[2]):'09:00';
+    startTime=clinCurrentStart()||'09:00';   // the picker guarantees one; the fallback is only for old records
     duration=Math.max(s.dur||45, clinCompOn()?clinCompDuration():0);   // boots run alongside, so the longer of the two
+    // reception reads rec.window as the when — keep it in the 'Thu 19:00' shape it has always been
+    clinWindow=clinDate.toLocaleDateString('en-US',{weekday:'short'})+' '+startTime;
   } else {
     startTime=clinParseTime(clinTime)||'10:00';
     duration=s.duration||60;
@@ -12897,7 +12905,7 @@ function clinEditBooking(id){
     clinComp=!!b.compression;                                                            // ...and the compression boots
     clinRoom=b.roomName||null;
     clinWindow=b.clinical?(b.window||null):null;
-    clinTime=b.clinical?'':(b.start||'');
+    clinTime=b.start||b.time||'';   // clinical included — it has a real time now, not just a nurse window
     clinIntake=(b.intake==='approved');
     clinOnline=!!b.online;
     clinPatient=b.client||''; clinEmail=b.email||''; clinWhatsapp=b.whatsapp||b.phone||'';
