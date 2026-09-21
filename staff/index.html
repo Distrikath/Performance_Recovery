@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260921090;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260921120;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -6617,10 +6617,15 @@ function buildTimeline(room, roomBks){
     const col=therapist?.col||room.color;
     const isDark=['#f5c842','#84cc16','#f59e0b'].includes(col);
     const tc=isDark?'#060606':'#fff';
+    // a treatment queued on the booking being built isn't saved yet: dashed, and not clickable
+    const pend=!!bk._pending;
+    const blockStyle=pend?`left:${left}%;width:${width}%;background:${col}1f;color:#0A0A0A;border:1px dashed ${col};`
+                         :`left:${left}%;width:${width}%;background:${col};color:${tc}`;
+    const blockClick=pend?'':`onclick="openBookingDetail('${bk.id}')"`;
     html+=`<div class="rf-booking-block" 
-      style="left:${left}%;width:${width}%;background:${col};color:${tc}"
-      onclick="openBookingDetail('${bk.id}')"
-      title="${bk.client} · ${svc?.name||bk.serviceName||''} · ${bk.start}${bk.compression?' · + '+bk.compression.name+' (same chair)':''}">
+      style="${blockStyle}"
+      ${blockClick}
+      title="${bk.client} · ${svc?.name||bk.serviceName||''} · ${bk.start}${pend?' · on this booking (not saved yet)':''}${bk.compression?' · + '+bk.compression.name+' (same chair)':''}">
       <span class="rf-block-client">${bk.client}${bk.compression?' <span title="compression boots in this chair">+B</span>':''}</span>
       <span class="rf-block-time">${bk.start}</span>
     </div>`;
@@ -11060,6 +11065,120 @@ function _compShare(b, collected){
 }
 window._compShare=_compShare;
 
+// ── SEVERAL TREATMENTS ON ONE BOOKING ───────────────────────────────────────
+// Finish the steps for a treatment, press "Add another", and it's parked on this order while the next one is set
+// up. They share the client, the date-by-date slots, the payment choice and one total. On Confirm each queued
+// treatment still becomes its own row on the schedule, so every chair/room and therapist is blocked properly.
+var clinCart=[];   // treatments queued onto the booking being built (never used while editing an existing one)
+function _clinSnapItem(){
+  return {type:clinType, sel:clinSel, room:clinRoom, win:clinWindow, time:clinTime,
+          addons:(clinAddons||[]).slice(), comp:!!clinComp, pressure:clinPressure, recBy:clinRecommendedBy,
+          intake:!!clinIntake, online:!!clinOnline, dateKey:clinKey(), date:new Date(clinDate.getTime())};
+}
+function _clinRestoreItem(it){
+  clinType=it.type; clinSel=it.sel; clinRoom=it.room; clinWindow=it.win; clinTime=it.time;
+  clinAddons=(it.addons||[]).slice(); clinComp=!!it.comp; clinPressure=it.pressure||'';
+  clinRecommendedBy=it.recBy||''; clinIntake=!!it.intake; clinOnline=!!it.online;
+  clinDate=new Date(it.date.getTime());
+}
+function _clinItemSvc(it){ return ((it&&it.type==='clinical')?CLINICAL_SERVICES:SERVICES).find(function(x){return x.id===(it||{}).sel;})||null; }
+function clinItemName(it){ var s=_clinItemSvc(it); return s?s.name:'Treatment'; }
+function clinItemDuration(it){
+  var s=_clinItemSvc(it); if(!s) return 60;
+  if(it.type!=='clinical') return (s.duration||60);
+  return Math.max(s.dur||45, it.comp?clinCompDuration():0);      // boots run during the treatment
+}
+function clinItemStart(it){
+  if(it.type==='clinical'){ var m=String(it.win||'').match(/(\d{1,2}):(\d{2})/); return m?(('0'+m[1]).slice(-2)+':'+m[2]):null; }
+  return it.time||null;
+}
+function clinItemRoomId(it){
+  var r=(typeof ROOMS!=='undefined')?ROOMS.find(function(x){return x.name===it.room;}):null;
+  return r?r.id:it.room;
+}
+// What this queued line adds to the order total. Recovery lines carry the promo discount; HUMAN+ lines never do.
+function clinItemPrice(it){
+  var s=_clinItemSvc(it); if(!s) return 0;
+  if(it.type==='clinical'){
+    var base=s.price||0;
+    if(_clinCat(s)==='iv') (it.addons||[]).forEach(function(id){ var a=(CLINICAL_ADDONS||[]).find(function(x){return x.id===id;}); if(a) base+=(a.price||0); });
+    if(it.comp) base+=Math.round(compBootsSvc().price||0);
+    return base;
+  }
+  var _d=(typeof window._clinEffDiscount==='function')?window._clinEffDiscount():((typeof activeDiscount==='function')?activeDiscount('recovery'):null);
+  var _p=_d?parseFloat(_d.pct):0;
+  return _p?Math.round((s.price||0)*(1-_p/100)):(s.price||0);
+}
+function clinCartTotal(){ return (clinCart||[]).reduce(function(t,it){ return t+clinItemPrice(it); },0); }
+function clinCartCount(){ return (clinCart||[]).length; }
+// Is the treatment in the builder finished enough to be added / confirmed?
+function clinCurrentComplete(){ return !!(clinType==='clinical' ? (clinSel&&clinRoom) : (clinSel&&clinRoom&&clinTime)); }
+function clinAddAnother(){
+  if(typeof clinCaptureInputs==='function') clinCaptureInputs();
+  if(clinEditingId){ clinNotify('Finish this move first — treatments are added when building a new booking.'); return; }
+  if(!clinCurrentComplete()){ clinNotify(clinType==='clinical'?'Pick a chair first, then add another.':'Pick a room and a time first, then add another.'); return; }
+  if(clinCurrentConflict()){ clinNotify('That slot is already taken — change it before adding another.'); return; }
+  clinCart.push(_clinSnapItem());
+  // keep the client, the date and the payment choice — only the treatment itself is cleared
+  clinSel=null; clinType=null; clinRoom=null; clinTime=''; clinWindow=null; clinAddons=[]; clinComp=false;
+  clinIntake=false; clinPressure=''; clinRecommendedBy=''; clinDone=false;
+  renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); buildClinRoomGrid();
+  clinNotify(clinCart.length+' treatment'+(clinCart.length!==1?'s':'')+' on this booking — pick the next one, or Confirm.');
+}
+function clinCartRemove(i){
+  if(i<0||i>=clinCart.length) return;
+  clinCart.splice(i,1);
+  renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); buildClinRoomGrid();
+}
+window.clinAddAnother=clinAddAnother; window.clinCartRemove=clinCartRemove; window.clinCartTotal=clinCartTotal;
+// What the whole booking comes to: the treatment in the builder (with any Recovery promo) + every queued one.
+// updateClinicalTotals stores the figure it actually displays in window._clinOrderDue; this is the fallback.
+function clinOrderTotal(){
+  var cur=0, s=clinSvc();
+  if(s){
+    if(clinType==='clinical') cur=clinBasePrice();
+    else{
+      cur=s.price||0;
+      var _d=(typeof window._clinEffDiscount==='function')?window._clinEffDiscount():((typeof activeDiscount==='function')?activeDiscount('recovery'):null);
+      var _p=_d?parseFloat(_d.pct):0; if(_p) cur=Math.round(cur*(1-_p/100));
+    }
+  }
+  return cur+clinCartTotal();
+}
+function clinOrderDue(){ var v=window._clinOrderDue; return (typeof v==='number'&&isFinite(v))?v:clinOrderTotal(); }
+// Every treatment on the booking, named — for the deposit message and the WhatsApp confirmations.
+function clinOrderNames(){
+  var n=(clinCart||[]).map(clinItemName);
+  var s=clinSvc(); if(s && clinCurrentComplete()) n.push(s.name);
+  return n;
+}
+window.clinOrderTotal=clinOrderTotal; window.clinOrderDue=clinOrderDue;
+// What's already on this booking, shown at the top of the builder so staff never lose track of the order.
+function _clinCartStrip(){
+  if(!clinCart.length) return '';
+  return '<div style="margin:12px 0 2px;padding:10px 12px;background:#f6fbf8;border:1px solid #cfe9db;">'
+    +'<div style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#1a9e54;margin-bottom:6px;">On this booking · '+clinCart.length+'</div>'
+    +clinCart.map(function(it,i){
+        var when=(it.dateKey===clinKey()?'':(it.dateKey+' · '))+(clinItemStart(it)||'—');
+        return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-family:\'Space Mono\',monospace;font-size:11px;color:#0A0A0A;padding:3px 0;">'
+          +'<span style="flex:1;">'+_escHtml(clinItemName(it))+' <span style="color:#56565b;">· '+_escHtml(it.room||'')+' · '+_escHtml(when)+'</span></span>'
+          +'<span style="color:#56565b;">'+clinFmt(clinItemPrice(it))+'</span>'
+          +'<span onclick="clinCartRemove('+i+')" title="Remove from this booking" style="cursor:pointer;color:#FF2D2D;padding:0 2px;">✕</span>'
+        +'</div>'; }).join('')
+    +'</div>';
+}
+// The button that parks the treatment currently in the builder and starts the next one.
+function _clinAddAnotherBtn(){
+  if(clinEditingId) return '';                       // an edit moves one booking — nothing to add
+  var ready=clinCurrentComplete() && !clinCurrentConflict();
+  return '<div style="margin:16px 0 2px;padding-top:14px;border-top:1px solid #f0f0f0;">'
+    +'<button class="clin-intake-btn" onclick="clinAddAnother()"'+(ready?'':' disabled style="opacity:.45;cursor:not-allowed;"')+'>+ Add another treatment to this booking</button>'
+    +'<div style="font-family:\'Space Mono\',monospace;font-size:10px;color:#9a9a9e;margin-top:6px;line-height:1.5;">'
+      +(ready?'Parks this one on the order and opens the service list for the next. Confirm pays for them all at once.'
+             :'Finish this treatment\'s steps first — then you can add another to the same booking.')
+    +'</div></div>';
+}
+
 /* Who's in what room today — cross-referenced against Roster + Room Settings */
 function getRoomsToday(){
   var out=[];
@@ -11273,7 +11392,7 @@ function clinSendReminder(id){
 // Resend guard — the button becomes "Reminder sent ✓"; re-sending asks first so no accidental double message.
 function clinResendReminder(id){ if(confirm('A reminder was already sent to this client via WhatsApp.\n\nSend another one?')) clinSendReminder(id); }
 window.clinSendReminder=clinSendReminder; window.clinResendReminder=clinResendReminder;
-function initRecovery(){ if(typeof loadClinical==='function') loadClinical(); clinSel=null;clinType=null;clinIntake=false;clinWindow=null;clinRoom=null;clinPay='card';clinDone=false;clinDoneHold=false;clinEditingId=null;clinEditingDate=null;clinOnline=false;clinPressure='';clinRecommendedBy='';clinPayType='full';clinPatient='';clinEmail='';clinWhatsapp='';clinTime=''; clinAddons=[]; clinComp=false; clinDate=(typeof baliNow==='function'?baliNow():new Date()); clinViewYear=null;clinViewMonth=null; clinGroupOpen={recovery:true,iv:true,blood:true}; try{window.clinPromo=null; ['recovery-disc-pct','recovery-disc-code'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';}); var _m=document.getElementById('recovery-disc-msg');if(_m)_m.textContent='';}catch(e){} clinSyncDateUI(); renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); startBookingListener(); }
+function initRecovery(){ if(typeof loadClinical==='function') loadClinical(); clinSel=null;clinType=null;clinIntake=false;clinWindow=null;clinRoom=null;clinPay='card';clinDone=false;clinDoneHold=false;clinEditingId=null;clinEditingDate=null;clinOnline=false;clinPressure='';clinRecommendedBy='';clinPayType='full';clinPatient='';clinEmail='';clinWhatsapp='';clinTime=''; clinAddons=[]; clinComp=false; clinCart=[]; window._clinDoneCount=0; clinDate=(typeof baliNow==='function'?baliNow():new Date()); clinViewYear=null;clinViewMonth=null; clinGroupOpen={recovery:true,iv:true,blood:true}; try{window.clinPromo=null; ['recovery-disc-pct','recovery-disc-code'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';}); var _m=document.getElementById('recovery-disc-msg');if(_m)_m.textContent='';}catch(e){} clinSyncDateUI(); renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); startBookingListener(); }
 window.initRecovery=initRecovery;
 
 // ── Online Booking Requests (public_bookings Firestore collection) ──────
@@ -11721,6 +11840,12 @@ function clinAvailableTimes(){
   var occ=dayBks.filter(function(b){return b.room===roomId&&b.status!=='cancelled'&&b.start&&b.id!==clinEditingId;}).map(function(b){
     var st=parseTime(b.start); return [st, st+((b.duration||60)/60)+buf];
   });
+  // don't offer a time already taken by another treatment queued on this same booking
+  (clinCart||[]).forEach(function(it){
+    if(it.dateKey!==key || clinItemRoomId(it)!==roomId) return;
+    var st=clinItemStart(it); if(!st) return;
+    var s0=parseTime(st); occ.push([s0, s0+(clinItemDuration(it)/60)+buf]);
+  });
   // EVENT LOCK: if this room's therapist is running events that day (they're in the EVENT roster rows), block the
   // class time windows so they can't also be booked for a 1:1 during their class.
   try{ if(!isChair && rt && rt.therapistId && typeof _eventStaffOn==='function' && _eventStaffOn(key)[rt.therapistId] && typeof eventsForDate==='function'){
@@ -11768,6 +11893,13 @@ function buildClinRoomGrid(){
   el.innerHTML=hdr+rooms.map(function(room){
     var realRoom=(typeof ROOMS!=='undefined'?ROOMS.find(function(x){return x.id===room.id;}):null)||{id:room.id,name:room.name,color:room.color||'#0A0A0A'};
     var roomBks=dayBks.filter(function(b){return b.room===room.id&&b.status!=='cancelled'&&b.start;});
+    // treatments queued on the booking being built — drawn dashed so the slot is visibly taken before it's saved
+    (clinCart||[]).forEach(function(it,qi){
+      if(it.dateKey!==key || clinItemRoomId(it)!==room.id) return;
+      var qst=clinItemStart(it); if(!qst) return;
+      roomBks=roomBks.concat([{id:'_q'+qi, client:(clinPatient||'This booking'), start:qst,
+        duration:clinItemDuration(it), service:it.sel, serviceName:clinItemName(it), _pending:true}]);
+    });
     var isSel=(canSel&&clinRoom===room.name);
     var selectable=(canSel&&room.eligible);
     var dot=isSel?'#FF2D2D':(room.eligible?(room.color||'#0A0A0A'):'#cfcfcf');
@@ -11803,8 +11935,9 @@ function renderClinicalBooking(){
   if(!clinSel){
     el.innerHTML=renderClinMiniCal()+roomGridDiv
       +'<div style="padding:12px 16px 0;">'
+      +_clinCartStrip()
       +'<div class="clin-rooms-lbl">Bookings '+clinDateWord()+' <span>· '+todayBookingCount()+'</span></div>'+renderTodayBookings()
-      +'<div class="clin-placeholder" style="padding-top:10px;text-align:left;">Select a service · tap a room to assign.</div>'
+      +'<div class="clin-placeholder" style="padding-top:10px;text-align:left;">'+(clinCart.length?'Pick the next service for this booking — or press Confirm to take them all.':'Select a service · tap a room to assign.')+'</div>'
       +'</div>';
     buildClinRoomGrid();
     return;
@@ -11866,6 +11999,7 @@ function renderClinicalBooking(){
       +(_cbOn?'<div style="font-family:\'Space Mono\',monospace;font-size:10px;color:#1a9e54;margin:6px 0 2px;line-height:1.5;">Boots go on in the same chair — one booking, chair held '+clinCurrentDuration()+' min. Don\'t book a second chair.</div>':'');
     el.innerHTML=renderClinMiniCal()+roomGridDiv+dateBar
       +'<div style="padding:0 16px 16px;">'
+      +_clinCartStrip()
       +'<div class="clin-bk-hdr" style="margin-top:12px;">'+s.name+'</div>'
       +enhBlock
       +compBlock
@@ -11878,6 +12012,7 @@ function renderClinicalBooking(){
         +['TC','TB','TD'].map(function(_tid){ var _n=((typeof getStaff==='function'&&getStaff(_tid))||{}).name||_tid; return '<option value="'+_tid+'"'+(clinRecommendedBy===_tid?' selected':'')+'>'+_n+'</option>'; }).join('')
         +'</select>')
       +intakeBlock
+      +_clinAddAnotherBtn()
       +'<div class="clin-tagline"><span>Internal tag</span><span class="clin-tag">Clinical Partner</span></div>'
       +'</div>';
   } else {
@@ -11913,6 +12048,7 @@ function renderClinicalBooking(){
       +'</div>';
     el.innerHTML=renderClinMiniCal()+roomGridDiv+dateBar
       +'<div style="padding:0 16px 16px;">'
+      +_clinCartStrip()
       +'<div class="clin-bk-hdr" style="margin-top:12px;">'+s.name+'</div>'
       +'<div class="clin-field"><label>3 · Room &amp; therapist</label>'+roomLine+'</div>'
       +timeField
@@ -11920,6 +12056,7 @@ function renderClinicalBooking(){
       +clientSep
       +contactBlock
       +paymentBlock
+      +_clinAddAnotherBtn()
       +'</div>';
   }
   buildClinRoomGrid();
@@ -11994,20 +12131,38 @@ function _renderCheckoutOrder(el){
     return true;
   }catch(e){ console.warn('_renderCheckoutOrder',e); window._clinCheckoutRow=null; return false; }
 }
+// The queued treatments, listed at the top of the order so the total always shows what's actually being booked.
+function _clinOrderCartLines(){
+  if(!clinCart.length) return '';
+  return clinCart.map(function(it,i){
+    var when=(it.dateKey===clinKey()?'':(it.dateKey+' · '))+(clinItemStart(it)||'—');
+    return '<div class="clin-oline"><span>'+_escHtml(clinItemName(it))
+      +' <span style="opacity:.6;">· '+_escHtml(it.room||'')+' · '+_escHtml(when)+'</span>'
+      +' <span onclick="clinCartRemove('+i+')" title="Remove from this booking" style="cursor:pointer;color:#FF2D2D;">✕</span></span>'
+      +'<span>'+clinFmt(clinItemPrice(it))+'</span></div>';
+  }).join('');
+}
 function renderClinicalOrder(){
   var el=document.getElementById('clin-order-body'); if(!el) return;
   // ── CHECK-OUT MODE: a booking was sent to the Order panel via "Check out" — show it as an order & collect ──
   if(window._clinCheckoutRow){ if(_renderCheckoutOrder(el)) return; }
   // not in checkout → make sure the normal booking chrome (online / discount / normal button) is restored
   _clinOrderChrome(true);
-  if(clinDone){ var dMsg=clinDoneHold?'Tentative — intake pending':'Booking confirmed'; var dIco=clinDoneHold?'<span style="color:#FF2D2D;">●</span>':'✓'; var dSub=clinDoneHold?'<div style="font-family:Space Mono,monospace;font-size:11px;color:#56565b;margin-top:8px;line-height:1.5;">Chair reserved. Confirm once intake is returned &amp; approved.</div>':''; el.innerHTML='<div class="clin-confirm"><div class="clin-confirm-ico">'+dIco+'</div><div class="clin-confirm-msg">'+dMsg+'</div>'+dSub+'<button class="clin-intake-btn" style="background:#0A0A0A;margin-top:14px;" onclick="initRecovery()">New booking</button></div>'; clinSetText('clin-subtotal','—'); clinSetText('clin-tax','—'); clinSetText('clin-total','—'); var b=document.getElementById('clin-confirm-btn'); if(b){b.disabled=true;b.textContent=clinDoneHold?'Tentative':'Confirmed';} return; }
-  if(!clinSel){ el.innerHTML='<div class="receipt-empty" style="padding:24px;text-align:center;color:#9a9a9e;font-family:Space Mono,monospace;font-size:11px;">No service selected</div>'; updateClinicalTotals(0); return; }
+  if(clinDone){ var _dn=window._clinDoneCount||1; var dMsg=(clinDoneHold?'Tentative — intake pending':'Booking confirmed')+(_dn>1?(' · '+_dn+' treatments'):''); var dIco=clinDoneHold?'<span style="color:#FF2D2D;">●</span>':'✓'; var dSub=clinDoneHold?'<div style="font-family:Space Mono,monospace;font-size:11px;color:#56565b;margin-top:8px;line-height:1.5;">Chair reserved. Confirm once intake is returned &amp; approved.</div>':''; el.innerHTML='<div class="clin-confirm"><div class="clin-confirm-ico">'+dIco+'</div><div class="clin-confirm-msg">'+dMsg+'</div>'+dSub+'<button class="clin-intake-btn" style="background:#0A0A0A;margin-top:14px;" onclick="initRecovery()">New booking</button></div>'; clinSetText('clin-subtotal','—'); clinSetText('clin-tax','—'); clinSetText('clin-total','—'); var b=document.getElementById('clin-confirm-btn'); if(b){b.disabled=true;b.textContent=clinDoneHold?'Tentative':'Confirmed';} return; }
+  if(!clinSel){
+    if(clinCart.length){
+      el.innerHTML=_clinOrderCartLines()
+        +'<div class="clin-oline sub"><span>Next treatment</span><span>choose a service &#8594;</span></div>';
+      updateClinicalTotals(0); return;
+    }
+    el.innerHTML='<div class="receipt-empty" style="padding:24px;text-align:center;color:#9a9a9e;font-family:Space Mono,monospace;font-size:11px;">No service selected</div>'; updateClinicalTotals(0); return;
+  }
   var s=clinSvc();
   // On a plain edit/move (no new discount) show the ORIGINAL booking's kept figures, not the full sticker price.
   // Keep the original figures ONLY on a plain move; if the duration/service was changed (an extend), show the new price.
   var _eo2=(clinEditingId&&window._clinEditOrig&&!window.clinPromo&&clinSel===window._clinEditOrig.service)?window._clinEditOrig:null;
   var _topPrice=_eo2?Math.round(_eo2.price||0):s.price;
-  var lines='<div class="clin-oline"><span>'+s.name+'</span><span>'+clinFmt(_topPrice)+'</span></div>';
+  var lines=_clinOrderCartLines()+'<div class="clin-oline"><span>'+s.name+'</span><span>'+clinFmt(_topPrice)+'</span></div>';
   if(clinType==='clinical'){
     lines+=(clinRoom?'<div class="clin-oline sub"><span>Recovery chair</span><span>'+clinRoom+'</span></div>':'')
       +'<div class="clin-oline sub"><span>Clinician</span><span>Nurse · Human+</span></div>'
@@ -12066,15 +12221,18 @@ function updateClinicalTotals(base){
     return;
   }
   if(_dp) base=Math.round(base*(1-_dp/100));
+  base=base+clinCartTotal();   // the treatments already parked on this booking (each carries its own discount rule)
   var tax=0, total=base; // Recovery/spa & clinical: NON-PKP, no PBJT → no consumption tax
+  window._clinOrderDue=total;  // what the deposit link must quote — always the figure on screen
   clinSetText('clin-subtotal', _dp?(clinFmt(total)+'  ('+_dp+'% off)'):clinFmt(base)); clinSetText('clin-tax',clinFmt(tax)); clinSetText('clin-total',clinFmt(total));
   var dep=Math.round(total*0.5), bal=total-dep;
   // When EDITING an existing booking we're only moving the slot — never re-charging — so suppress the deposit UI.
   var isDeposit=!clinEditingId && ((clinPayType==='deposit')||clinOnline);
   var dl=document.getElementById('clin-deposit-lines');
   if(dl){
-    var depHtml=(isDeposit&&clinSel)?('<div class="clin-deposit-line due"><span>Deposit due now (50%)</span><span>'+clinFmt(dep)+'</span></div><div class="clin-deposit-line bal"><span>Balance on arrival (50%)</span><span>'+clinFmt(bal)+'</span></div>'):'';
-    if(isDeposit&&clinSel){
+    var _hasOrder=!!(clinSel||clinCart.length);
+    var depHtml=(isDeposit&&_hasOrder)?('<div class="clin-deposit-line due"><span>Deposit due now (50%)</span><span>'+clinFmt(dep)+'</span></div><div class="clin-deposit-line bal"><span>Balance on arrival (50%)</span><span>'+clinFmt(bal)+'</span></div>'):'';
+    if(isDeposit&&_hasOrder){
       var xLink=getXenditLink();
       if(xLink){
         depHtml+='<button class="clin-intake-btn" style="margin-top:10px;background:#0A0A0A;" onclick="sendDepositLink()">Send deposit link via WhatsApp &#x2192;</button>';
@@ -12084,14 +12242,19 @@ function updateClinicalTotals(base){
   }
   var btn=document.getElementById('clin-confirm-btn'); if(!btn) return;
   var conflict = (typeof clinCurrentConflict==='function') && clinCurrentConflict();
-  var baseOk = (clinType==='clinical' ? (clinSel && clinRoom) : (clinSel && clinRoom && clinTime));
+  var curDone = clinCurrentComplete();
+  // Confirm takes the whole order: the treatment in the builder, plus anything already queued on the booking.
+  var baseOk = curDone || (!clinSel && clinCart.length>0);
   var ok = baseOk && !conflict;
   btn.disabled=!ok;
+  var _n = clinCart.length + (curDone?1:0);
+  var multi = (_n>1) ? (' · '+_n+' treatments') : '';
   var depTxt = isDeposit ? ('Take 50% deposit · '+clinFmt(dep)) : null;
-  var readyTxt = depTxt || (clinEditingId?'Update booking':'Confirm booking');
-  if(!clinSel) btn.textContent='Select a service';
+  var readyTxt = depTxt || (clinEditingId?'Update booking':('Confirm booking'+multi));
+  if(!clinSel && clinCart.length) btn.textContent = depTxt || ('Confirm booking'+multi);
+  else if(!clinSel) btn.textContent='Select a service';
   else if(conflict) btn.textContent = (clinType==='clinical'?'Chair':'Room')+' busy at that time';
-  else if(clinType==='clinical') btn.textContent = !clinRoom?'Select a chair':(depTxt||(clinIntake?(clinEditingId?'Update booking':'Confirm booking'):'Save tentative · intake pending'));
+  else if(clinType==='clinical') btn.textContent = !clinRoom?'Select a chair':(depTxt||(clinIntake?(clinEditingId?'Update booking':('Confirm booking'+multi)):('Save tentative · intake pending'+multi)));
   else btn.textContent = !clinRoom?'Select a room':(!clinTime?'Select a time':readyTxt);
 }
 function clinSetPay(m){ clinPay=m; ['clin-pay-card','clin-pay-qr'].forEach(function(id){ var b=document.getElementById(id); if(b) b.classList.toggle('active', id==='clin-pay-'+m); }); }
@@ -12181,11 +12344,17 @@ function sendDepositLink(){
   clinCaptureInputs();
   var xLink=getXenditLink(); if(!xLink) return alert('No Xendit link set — add it in Settings → Payments.');
   var ph=(clinWhatsapp||'').replace(/\D/g,''); if(!ph) return alert('Enter the patient\'s WhatsApp number first.');
-  var s=clinSvc(); if(!s) return;
-  var dep=Math.round(clinBasePrice()*0.5);
-  var svcName=s.name||'your session';
+  // 50% of the WHOLE booking — every treatment queued with "Add another" plus the one in the builder
+  var names=clinOrderNames();
+  if(!names.length) return alert('Add a treatment to the booking first.');
+  var total=clinOrderDue();
+  if(!(total>0)) return alert('Nothing to take a deposit on — this booking is free.');
+  var dep=Math.round(total*0.5);
+  var svcName=(names.length>1)?(names.slice(0,-1).join(', ')+' and '+names[names.length-1]):names[0];
   var date=clinDate?clinDate.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}):'';
-  var msg='Hi '+(clinPatient||'there')+' — DISTRIK here. To confirm your '+svcName+(date?' on '+date:'')+', please pay your 50% deposit of IDR '+dep.toLocaleString('id-ID')+' via the link below.\n\n'+xLink+'\n\nOnce received we\'ll confirm your booking. See you soon 🙏';
+  var msg='Hi '+(clinPatient||'there')+' — DISTRIK here. To confirm your '+svcName+(date?' on '+date:'')+', please pay your 50% deposit of IDR '+dep.toLocaleString('id-ID')
+    +(names.length>1?(' (50% of IDR '+total.toLocaleString('id-ID')+' for the '+names.length+' treatments)'):'')
+    +' via the link below.\n\n'+xLink+'\n\nOnce received we\'ll confirm your booking. See you soon 🙏';
   window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(msg),'_blank');
 }
 window.sendDepositLink=sendDepositLink;
@@ -12193,15 +12362,23 @@ window.sendDepositLink=sendDepositLink;
 // A room/chair is occupied for [start, start+duration+buffer). Held AND confirmed both block.
 function clinHasConflict(roomId, startHHMM, durationMin, excludeId){
   try{
-    var dk=clinKey(); var day=recoveryData&&recoveryData[dk]; if(!day||!day.bookings) return false;
+    var dk=clinKey(); var day=recoveryData&&recoveryData[dk];
     var buf=(typeof CLIN_BUFFER_MIN!=='undefined'?CLIN_BUFFER_MIN:15)/60;
     var ns=parseTime(startHHMM), ne=ns+(durationMin/60)+buf;
-    return day.bookings.some(function(b){
+    var hit=(day&&day.bookings)?day.bookings.some(function(b){
       if(!b||b.status==='cancelled') return false;
       if(excludeId && b.id===excludeId) return false;
       if(b.room!==roomId || !b.start) return false;
       var bs=parseTime(b.start), be=bs+((b.duration||60)/60)+buf;
       return ns < be-1e-9 && ne > bs+1e-9; // ranges overlap
+    }):false;
+    if(hit) return true;
+    // treatments already queued on the booking being built hold their slot too, even though they're not saved yet
+    return (clinCart||[]).some(function(it){
+      if(it.dateKey!==dk || clinItemRoomId(it)!==roomId) return false;
+      var st=clinItemStart(it); if(!st) return false;
+      var bs=parseTime(st), be=bs+(clinItemDuration(it)/60)+buf;
+      return ns < be-1e-9 && ne > bs+1e-9;
     });
   }catch(e){ return false; }
 }
@@ -12250,12 +12427,9 @@ function sendBookingEmail(rec, dateLabel, kind){
   }catch(e){}
 }
 
-function confirmClinical(){
-  clinCaptureInputs();
-  var ok = clinType==='clinical' ? (clinSel && clinRoom) : (clinSel && clinRoom && clinTime);
-  if(!ok) return;
-  // block double-booking — held & confirmed both reserve the slot
-  if(clinCurrentConflict()){ clinNotify((clinType==='clinical'?'That chair':'That room')+' is already booked at that time — pick another '+(clinType==='clinical'?'chair or window':'time or room')+'.'); return; }
+// Save the treatment currently in the builder as one booking on the schedule. Called once per treatment on the
+// order — orderId ties them together, and only the last one sends the client their confirmation email.
+function _clinSaveOne(orderId, sendEmail){
   var isHold = (clinType==='clinical' && !clinIntake && !clinOnline); // clinical w/o intake AND no online deposit = held space
   var s=clinSvc();
   // Recovery promo discount — applies to recovery sessions only, NOT Human+ clinical (partner commission)
@@ -12292,6 +12466,7 @@ function confirmClinical(){
     price:_price, gross:_base, discPct:_rvPct, discReason:(_rvDsc?(_rvDsc.reason||''):''), discCode:(_rvDsc?(_rvDsc.code||''):''), pressure:clinPressure||null, payType:clinPayType||'full',
     source:(clinOnline?'Online':'Walk-in'), status:(isHold?'hold':'confirmed'), payMethod:clinPay, date:dateKey, _ts:Date.now()
   };
+  if(orderId) rec.orderId=orderId;   // several treatments confirmed together as one booking
   if(clinType==='clinical'){ rec.clinical=true; rec.tag='HUMAN+'; rec.provider='HUMAN+'; rec.collector='DISTRIK'; rec.cat=_clinCat(s); rec.window=clinWindow; rec.intake=(clinIntake?'approved':'pending'); rec.recommendedBy=clinRecommendedBy||''; if(_clinSelIsIV()&&clinAddons.length){ rec.addons=clinAddonList().map(function(a){return {id:a.id,name:a.name,price:a.price};}); rec.addonTotal=clinAddonTotal(); } if(clinCompOn()) rec.compression=clinCompRec(); }
   if(clinOnline){ var _tot=_price; rec.online=true; rec.deposit=Math.round(_tot*0.5); rec.balanceDue=_tot-Math.round(_tot*0.5); rec.balancePaid=false; }
   else if(clinPayType==='deposit'){ rec.deposit=Math.round(_price*0.5); rec.balanceDue=_price-Math.round(_price*0.5); rec.balancePaid=false; rec.depositPaid=true; /* IN-PERSON deposit: paid now at the till (card/QR); balance collected on the treatment day at Check out */ }
@@ -12332,7 +12507,7 @@ function confirmClinical(){
       }
     } else {
       // plain move — keep the money exactly as it was, never re-charge
-      ['online','deposit','balanceDue','balancePaid','depositPaid','price','gross','payType','discPct','discReason','discCode','source','partner','partnerCollect','partnerTotal','commission','commissionStatus','commissionPct','provider','tag','clinical','cat','addons','addonTotal','compression','forfeited','onlineRef','payMethod','recommendedBy','ledgerDate','depositPaidAt'].forEach(function(k){ if(_o[k]!==undefined) rec[k]=_o[k]; });
+      ['online','deposit','balanceDue','balancePaid','depositPaid','price','gross','payType','discPct','discReason','discCode','source','partner','partnerCollect','partnerTotal','commission','commissionStatus','commissionPct','provider','tag','clinical','cat','addons','addonTotal','compression','orderId','forfeited','onlineRef','payMethod','recommendedBy','ledgerDate','depositPaidAt'].forEach(function(k){ if(_o[k]!==undefined) rec[k]=_o[k]; });
       // BOOTS ADDED / REMOVED during the move → adjust by the boots fee only; the rest of the money is kept as it was.
       var _compWas=(_o.compression&&_o.compression.price)||0, _compNow=clinCompPrice();
       if(clinType==='clinical' && _compNow!==_compWas){
@@ -12391,14 +12566,44 @@ function confirmClinical(){
     }
     if(typeof saveAll==='function') saveAll();
     if(typeof syncSalesIncome==='function') syncSalesIncome();
-    var dateLabel=clinDate.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
-    sendBookingEmail(rec, dateLabel, isHold?'hold':'confirmed');
+    if(sendEmail){
+      var dateLabel=clinDate.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+      sendBookingEmail(rec, dateLabel, isHold?'hold':'confirmed');
+    }
   }catch(e){ console.warn('clinical save',e); }
+  return rec;
+}
+// Confirm the whole booking: everything parked with "Add another", plus the treatment still in the builder.
+// Each one becomes its own row on the schedule (so the chairs/rooms block correctly) but they share an orderId.
+function confirmClinical(){
+  clinCaptureInputs();
+  var curDone=clinCurrentComplete();
+  if(!curDone && !clinCart.length) return;
+  // block double-booking — held & confirmed both reserve the slot
+  if(curDone && clinCurrentConflict()){ clinNotify((clinType==='clinical'?'That chair':'That room')+' is already booked at that time — pick another '+(clinType==='clinical'?'chair or window':'time or room')+'.'); return; }
+  var wasEdit=!!clinEditingId;
+  var items;
+  if(wasEdit){ items=[_clinSnapItem()]; }        // an edit moves that one booking — never a whole order
+  else {
+    items=(clinCart||[]).filter(function(it){ return it && it.sel && it.room && (it.type==='clinical' || it.time); });
+    if(curDone) items.push(_clinSnapItem());
+  }
+  if(!items.length) return;
+  var orderId=(items.length>1)?(typeof genId==='function'?genId():'ord_'+Date.now()):null;
+  var snap=_clinSnapItem(), anyHold=false, saved=0;
+  items.forEach(function(it,i){
+    _clinRestoreItem(it);
+    var rec=_clinSaveOne(orderId, i===items.length-1);   // one confirmation email for the order, on the last line
+    if(rec){ saved++; if(rec.status==='hold') anyHold=true; }
+  });
+  _clinRestoreItem(snap);
+  clinCart=[];
   // If this booking was an online request opened via "Edit / move", clear that request from the pending list now.
   if(window._clinOnlineReqId){ try{ _bkDismissed[window._clinOnlineReqId]=1; _onreqUpdateStatus(window._clinOnlineReqId,'confirmed'); }catch(e){} window._clinOnlineReqId=null; }
-  var wasEdit=!!clinEditingId; clinEditingId=null; clinEditingDate=null; window._clinEditOrig=null;
-  clinDone=true; clinDoneHold=isHold; buildClinRoomGrid(); renderClinicalOrder();
+  clinEditingId=null; clinEditingDate=null; window._clinEditOrig=null;
+  clinDone=true; clinDoneHold=anyHold; window._clinDoneCount=saved; buildClinRoomGrid(); renderClinicalOrder();
   if(wasEdit) clinNotify('Booking updated.');
+  else if(saved>1) clinNotify(saved+' treatments booked on one booking.');
 }
 // Pre-tax revenue currently counted for a booking
 function clinCollected(b){
@@ -12517,9 +12722,17 @@ function resendDepositLink(id){
   var dk=clinKey(); var day=recoveryData&&recoveryData[dk]; if(!day||!day.bookings) return;
   var b=day.bookings.find(function(x){return x.id===id;}); if(!b) return;
   var ph=(b.whatsapp||b.phone||'').replace(/\D/g,''); if(!ph) return alert('No WhatsApp number on this booking.');
-  var dep=Math.round((b.price||0)*0.5);
+  // Booked as one order with other treatments? Quote 50% of the lot, and name them all.
+  var sibs=b.orderId?day.bookings.filter(function(x){return x.orderId===b.orderId&&x.status!=='cancelled';}):[b];
+  if(!sibs.length) sibs=[b];
+  var gross=sibs.reduce(function(t,x){ return t+(x.price||0); },0);
+  var dep=Math.round(gross*0.5);
+  var _nm=sibs.map(function(x){ return x.serviceName||'session'; });
+  var what=(_nm.length>1)?(_nm.slice(0,-1).join(', ')+' and '+_nm[_nm.length-1]):(_nm[0]||'session');
   var date=clinDate.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
-  var msg='Hi '+(b.client||'there')+' — DISTRIK here. To confirm your '+(b.serviceName||'session')+' on '+date+', please pay your 50% deposit of IDR '+dep.toLocaleString('id-ID')+' via the link below.\n\n'+xLink+'\n\nOnce received we\'ll confirm your booking. See you soon 🙏';
+  var msg='Hi '+(b.client||'there')+' — DISTRIK here. To confirm your '+what+' on '+date+', please pay your 50% deposit of IDR '+dep.toLocaleString('id-ID')
+    +(_nm.length>1?(' (50% of IDR '+gross.toLocaleString('id-ID')+' for the '+_nm.length+' treatments)'):'')
+    +' via the link below.\n\n'+xLink+'\n\nOnce received we\'ll confirm your booking. See you soon 🙏';
   window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(msg),'_blank');
 }
 window.resendDepositLink=resendDepositLink;
@@ -12570,7 +12783,7 @@ function clinEditBooking(id){
     try{ window._clinEditOrig=JSON.parse(JSON.stringify(b)); }catch(e){ window._clinEditOrig=null; }  // keep original payment/financials for the move
     // start the edit with NO promo applied — money carries forward unless the user actively enters a discount now
     try{ window.clinPromo=null; ['recovery-disc-pct','recovery-disc-code'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';}); var _em=document.getElementById('recovery-disc-msg');if(_em)_em.textContent=''; }catch(e){}
-    clinEditingId=id; clinEditingDate=dk; clinDone=false; clinDoneHold=false;
+    clinEditingId=id; clinEditingDate=dk; clinDone=false; clinDoneHold=false; clinCart=[];   // an edit moves this one booking
     clinType=b.clinical?'clinical':'recovery';
     var list=(clinType==='clinical'?CLINICAL_SERVICES:(typeof SERVICES!=='undefined'?SERVICES:[]));
     var svc=list.find(function(x){return x.id===b.service;})||list.find(function(x){return x.name===b.serviceName;});
