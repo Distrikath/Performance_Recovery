@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260921120;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260921140;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -12235,7 +12235,8 @@ function updateClinicalTotals(base){
     if(isDeposit&&_hasOrder){
       var xLink=getXenditLink();
       if(xLink){
-        depHtml+='<button class="clin-intake-btn" style="margin-top:10px;background:#0A0A0A;" onclick="sendDepositLink()">Send deposit link via WhatsApp &#x2192;</button>';
+        depHtml+='<button class="clin-intake-btn" style="margin-top:10px;background:#0A0A0A;" onclick="sendDepositLink()">Send deposit link via WhatsApp &#x2192;</button>'
+          +'<div style="font-family:\'Space Mono\',monospace;font-size:9px;color:#9a9a9e;margin-top:5px;line-height:1.5;">The Xendit page opens blank — the message tells them to enter '+clinFmt(dep)+'.</div>';
       }
     }
     dl.innerHTML=depHtml;
@@ -12340,6 +12341,17 @@ function clinRebookFromId(id){
   }catch(e){ console.warn('rebookId',e); }
 }
 window.clinRebookSearch=clinRebookSearch; window.clinRebookPick=clinRebookPick; window.clinRebookClient=clinRebookClient; window.clinRebookFromId=clinRebookFromId;
+// The Xendit link in Settings is a REUSABLE OPEN-AMOUNT page: it opens blank and the guest types the figure in
+// themselves. So this message is the only place the number appears — make it impossible to miss or mistype.
+function _clinDepositMsg(name, what, dateStr, dep, total, count, xLink){
+  var f=function(n){ return 'IDR '+Math.round(n).toLocaleString('id-ID'); };
+  return 'Hi '+(name||'there')+' — DISTRIK here. To confirm your '+what+(dateStr?(' on '+dateStr):'')+', please pay your 50% deposit.'
+    +'\n\n*AMOUNT TO ENTER: '+f(dep)+'*'
+    +((count>1)?('\n(50% of '+f(total)+' for the '+count+' treatments)'):'')
+    +'\n\n'+xLink
+    +'\n\nThe payment page opens blank and asks you to type the amount — please enter '+Math.round(dep).toLocaleString('id-ID')+' exactly.'
+    +'\n\nOnce received we\'ll confirm your booking. See you soon 🙏';
+}
 function sendDepositLink(){
   clinCaptureInputs();
   var xLink=getXenditLink(); if(!xLink) return alert('No Xendit link set — add it in Settings → Payments.');
@@ -12352,9 +12364,7 @@ function sendDepositLink(){
   var dep=Math.round(total*0.5);
   var svcName=(names.length>1)?(names.slice(0,-1).join(', ')+' and '+names[names.length-1]):names[0];
   var date=clinDate?clinDate.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}):'';
-  var msg='Hi '+(clinPatient||'there')+' — DISTRIK here. To confirm your '+svcName+(date?' on '+date:'')+', please pay your 50% deposit of IDR '+dep.toLocaleString('id-ID')
-    +(names.length>1?(' (50% of IDR '+total.toLocaleString('id-ID')+' for the '+names.length+' treatments)'):'')
-    +' via the link below.\n\n'+xLink+'\n\nOnce received we\'ll confirm your booking. See you soon 🙏';
+  var msg=_clinDepositMsg(clinPatient, svcName, date, dep, total, names.length, xLink);
   window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(msg),'_blank');
 }
 window.sendDepositLink=sendDepositLink;
@@ -12730,9 +12740,7 @@ function resendDepositLink(id){
   var _nm=sibs.map(function(x){ return x.serviceName||'session'; });
   var what=(_nm.length>1)?(_nm.slice(0,-1).join(', ')+' and '+_nm[_nm.length-1]):(_nm[0]||'session');
   var date=clinDate.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
-  var msg='Hi '+(b.client||'there')+' — DISTRIK here. To confirm your '+what+' on '+date+', please pay your 50% deposit of IDR '+dep.toLocaleString('id-ID')
-    +(_nm.length>1?(' (50% of IDR '+gross.toLocaleString('id-ID')+' for the '+_nm.length+' treatments)'):'')
-    +' via the link below.\n\n'+xLink+'\n\nOnce received we\'ll confirm your booking. See you soon 🙏';
+  var msg=_clinDepositMsg(b.client, what, date, dep, gross, _nm.length, xLink);
   window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(msg),'_blank');
 }
 window.resendDepositLink=resendDepositLink;
