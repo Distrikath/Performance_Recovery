@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260921280;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260921300;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -14020,7 +14020,7 @@ window.showRoomCalendar=showRoomCalendar;
     if(touched){ (n>0?batch.commit():Promise.resolve()).then(function(){ _supImgSeen=next; nset('distrik_supply_imghash',JSON.stringify(next)); setPill('✓ Photos synced','#10b981'); }).catch(function(e){ console.warn('[supply_img] push',e); setPill('⚠ Photo sync error','#FF2D2D'); }); }
   };
   function subscribeSupplyImages(){
-    db.collection('supply_img').onSnapshot(function(snap){
+    return db.collection('supply_img').onSnapshot(function(snap){
       var chg=false; window.SUPPLY_IMG=window.SUPPLY_IMG||{};
       snap.docChanges().forEach(function(c){
         if(c.type==='removed'){ if(window.SUPPLY_IMG[c.doc.id]){ delete window.SUPPLY_IMG[c.doc.id]; chg=true; } }
@@ -14060,7 +14060,7 @@ window.showRoomCalendar=showRoomCalendar;
   };
   window.dkRemoveShopCatalog=function(id){ if(!ready||!db||!id) return; try{ db.collection('shop_catalog').doc(String(id)).delete(); }catch(e){} };
   function subscribeSupplyStock(){
-    db.collection('supply_stock').onSnapshot(function(snap){
+    return db.collection('supply_stock').onSnapshot(function(snap){
       var chg=false; window.SUPPLY_STOCK=window.SUPPLY_STOCK||{};
       snap.docChanges().forEach(function(c){
         if(c.type==='removed'){ if(window.SUPPLY_STOCK[c.doc.id]){ delete window.SUPPLY_STOCK[c.doc.id]; chg=true; } }
@@ -14069,8 +14069,15 @@ window.showRoomCalendar=showRoomCalendar;
       if(chg){ try{ if(typeof window.applySupplyStock==='function') window.applySupplyStock(); if(typeof window.dkRerenderSupply==='function') window.dkRerenderSupply(); }catch(e){} }
     }, function(e){ console.warn('[supply_stock] sub',e); });
   }
+  // Every reconnect used to call subscribe() again WITHOUT dropping the previous listeners, so they stacked:
+  // the watchdog alone re-subscribes every 30s while offline. Each extra listener re-runs the whole snapshot
+  // handler and re-sets the status pill, which is what made it flash between Synced and Connecting, and what
+  // drove the read count up. Tear the old ones down first so there is only ever one of each.
+  var _subs=[];
+  function _dropSubs(){ _subs.forEach(function(u){ try{ if(typeof u==='function') u(); }catch(e){} }); _subs=[]; }
   function subscribe(){
-    db.collection(COLL).onSnapshot(function(snap){
+    _dropSubs();
+    _subs.push(db.collection(COLL).onSnapshot(function(snap){
       var changed=false;
       snap.docChanges().forEach(function(ch){
         if(ch.type==='removed') return;
@@ -14096,9 +14103,9 @@ window.showRoomCalendar=showRoomCalendar;
         }
       });
       if(changed){ rerender(); setPill("✓ Synced","#10b981"); }
-    }, function(e){ console.warn('[sync] snap',e); setPill("⚠ Offline","#FF2D2D"); });
-    subscribeSupplyImages();   // live-pull product photos to every device (esp. the POS/iPad)
-    subscribeSupplyStock();    // live-pull shared stock counts so office + fuel + supply iPad stay in agreement
+    }, function(e){ console.warn('[sync] snap',e); setPill("⚠ Offline","#FF2D2D"); }));
+    _subs.push(subscribeSupplyImages());   // live-pull product photos to every device (esp. the POS/iPad)
+    _subs.push(subscribeSupplyStock());    // live-pull shared stock counts so office + fuel + supply iPad stay in agreement
   }
 
   function reconcile(){
