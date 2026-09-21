@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260921240;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260921260;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -14372,18 +14372,42 @@ window.rebuildFromLedger = function(docs){
   if(typeof firebase!=='undefined' && firebase.auth){
     firebase.auth().onAuthStateChanged(function(u){ if(u) loadLedger(); });
   }
+  // A DELETED record must never come back. A merge from another device can re-add a tombstoned booking to the
+  // local store; the safety flush below then pushes it to the ledger, the rebuild drops it again as deleted and
+  // removes the cloud doc — and round it goes, writing to Firestore every 30 seconds for ever. Strip them out.
+  window.dkPurgeTombstoned = function(){
+    var tomb = window._deletedIds || {};
+    if(!tomb || !Object.keys(tomb).length) return 0;
+    var removed = 0;
+    function strip(store, field, revalue){
+      if(typeof store!=='object' || !store) return;
+      Object.keys(store).forEach(function(d){
+        var day=store[d]; if(!day || !Array.isArray(day[field])) return;
+        var before=day[field].length;
+        day[field]=day[field].filter(function(x){ return !(x && x.id && tomb[String(x.id)]); });
+        if(day[field].length!==before){ removed += before-day[field].length; try{ revalue(day); }catch(e){} }
+      });
+    }
+    try{ strip((typeof recoveryData!=='undefined'?recoveryData:null),'bookings',function(day){ day.revenue=(day.bookings||[]).reduce(function(s,b){ return s+((typeof clinRevenue==='function')?clinRevenue(b):0); },0); }); }catch(e){}
+    try{ strip((typeof fuelData!=='undefined'?fuelData:null),'transactions',function(day){ day.revenue=(day.transactions||[]).reduce(function(s,t){ return s+((t&&t.total)||0); },0); }); }catch(e){}
+    try{ strip((typeof supplyData!=='undefined'?supplyData:null),'orders',function(day){ day.revenue=(day.orders||[]).reduce(function(s,o){ return s+((o&&o.total)||0); },0); }); }catch(e){}
+    if(removed){ console.log('[tomb] purged',removed,'deleted record(s) that had come back'); try{ if(typeof saveAll==='function') saveAll(); }catch(e){} }
+    return removed;
+  };
   // 30-SECOND SAFETY FLUSH: re-queue any recent local sale (last 7 days) not yet in the ledger, so
   // nothing is ever lost across a wifi drop. Idempotent (same id → merge, no duplicates). Signed-in only.
   window.flushUnsyncedSales = function(){
     try{
+      try{ window.dkPurgeTombstoned(); }catch(e){}
       var lids = window._lastLedgerIds || {};
+      var tomb = window._deletedIds || {};
       var cut='0000-00-00'; try{ var _d=(typeof baliNow==='function'?baliNow():new Date()); _d.setDate(_d.getDate()-7); cut=_d.toISOString().slice(0,10); }catch(e){}
       var n=0;
       function scan(store, field, kind){
         if(typeof store!=='object'||!store) return;
         Object.keys(store).forEach(function(day){ if(day<cut) return;
           var arr=(store[day]||{})[field]||[];
-          arr.forEach(function(it){ if(it&&it.id&&!lids[String(it.id)]&&typeof ledgerWrite==='function'){
+          arr.forEach(function(it){ if(it&&it.id&&!lids[String(it.id)]&&!tomb[String(it.id)]&&typeof ledgerWrite==='function'){
             if(kind==='fuel') ledgerWrite('fuel',it.id,day,it.total,(it.serviceTax||0)+(it.tax||0),it.method,it,'completed');
             else if(kind==='supply') ledgerWrite('supply',it.id,day,it.total,0,it.method,{order:it,rows:[]},'completed');
             else if(kind==='recovery') ledgerWrite('recovery',it.id,(it.ledgerDate||day),(typeof clinCollected==='function'?clinCollected(it):(it.price||0)),0,it.payMethod,it,it.status);
