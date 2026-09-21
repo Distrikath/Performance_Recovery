@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260921180;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260921200;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -6606,6 +6606,22 @@ function buildTimeline(room, roomBks){
   }
   html+=`</div>`;
 
+  // Two treatments on one booking can share a chair at the same time (boots on while the drip runs), so blocks
+  // that overlap are stacked into lanes instead of being drawn on top of each other and hiding one.
+  const _lanes=[];                     // lane index -> the time it frees up
+  const _laneOf={};
+  roomBks.slice().sort((a,b)=>parseTime(a.start)-parseTime(b.start)).forEach(bk=>{
+    const s0=parseTime(bk.start), e0=s0+((bk.duration||60)/60);
+    let l=0; while(l<_lanes.length && _lanes[l]>s0+1e-9) l++;
+    _lanes[l]=e0; _laneOf[bk.id]=l;
+  });
+  const _laneN=Math.max(1,_lanes.length);
+  const _laneBox=(bk)=>{
+    if(_laneN<2) return '';
+    const i=_laneOf[bk.id]||0;
+    return `top:calc(4px + ${i} * (100% - 8px) / ${_laneN});height:calc((100% - 8px) / ${_laneN} - 1px);`;
+  };
+
   // Booking blocks
   roomBks.forEach(bk=>{
     const startH=parseTime(bk.start);
@@ -6619,8 +6635,8 @@ function buildTimeline(room, roomBks){
     const tc=isDark?'#060606':'#fff';
     // a treatment queued on the booking being built isn't saved yet: dashed, and not clickable
     const pend=!!bk._pending;
-    const blockStyle=pend?`left:${left}%;width:${width}%;background:${col}1f;color:#0A0A0A;border:1px dashed ${col};`
-                         :`left:${left}%;width:${width}%;background:${col};color:${tc}`;
+    const blockStyle=(pend?`left:${left}%;width:${width}%;background:${col}1f;color:#0A0A0A;border:1px dashed ${col};`
+                          :`left:${left}%;width:${width}%;background:${col};color:${tc};`)+_laneBox(bk);
     const blockClick=pend?'':`onclick="openBookingDetail('${bk.id}')"`;
     html+=`<div class="rf-booking-block" 
       style="${blockStyle}"
@@ -6634,7 +6650,8 @@ function buildTimeline(room, roomBks){
     if(_buf>0){
       const bufEnd=endH+_buf/60;
       const bl=rfPct(endH), bw=rfPct(bufEnd)-bl;
-      html+=`<div style="position:absolute;top:4px;height:calc(100% - 8px);left:${bl}%;width:${bw}%;background:${col}22;border:1px dashed ${col}55;border-radius:2px;" title="Buffer ${_buf}min"></div>`;
+      const _bufBox=_laneBox(bk)||'top:4px;height:calc(100% - 8px);';
+      html+=`<div style="position:absolute;${_bufBox}left:${bl}%;width:${bw}%;background:${col}22;border:1px dashed ${col}55;border-radius:2px;" title="Buffer ${_buf}min"></div>`;
     }
   });
 
@@ -11119,12 +11136,22 @@ function clinAddAnother(){
   if(clinEditingId){ clinNotify('Finish this move first — treatments are added when building a new booking.'); return; }
   if(!clinCurrentComplete()){ clinNotify(clinType==='clinical'?'Pick a chair first, then add another.':'Pick a room and a time first, then add another.'); return; }
   if(clinCurrentConflict()){ clinNotify('That slot is already taken — change it before adding another.'); return; }
+  // Overlapping another treatment on this same booking is allowed — say so, so it's never a silent surprise.
+  var _st=clinCurrentStart(), _rid=(typeof ROOMS!=='undefined'?((ROOMS.find(function(x){return x.name===clinRoom;})||{}).id):null)||clinRoom;
+  var _stack=(clinCart||[]).some(function(it){
+    if(it.dateKey!==clinKey() || clinItemRoomId(it)!==_rid) return false;
+    var a=parseTime(_st), b2=a+(clinCurrentDuration()/60);
+    var c=parseTime(clinItemStart(it)||'00:00'), d=c+(clinItemDuration(it)/60);
+    return a<d-1e-9 && b2>c+1e-9;
+  });
   clinCart.push(_clinSnapItem());
   // keep the client, the date and the payment choice — only the treatment itself is cleared
   clinSel=null; clinType=null; clinRoom=null; clinTime=''; clinWindow=null; clinAddons=[]; clinComp=false;
   clinIntake=false; clinPressure=''; clinRecommendedBy=''; clinDone=false;
   renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); buildClinRoomGrid();
-  clinNotify(clinCart.length+' treatment'+(clinCart.length!==1?'s':'')+' on this booking — pick the next one, or Confirm.');
+  clinNotify(_stack
+    ? ('Added — running alongside another treatment in '+_rid.toUpperCase()+'. '+clinCart.length+' on this booking.')
+    : (clinCart.length+' treatment'+(clinCart.length!==1?'s':'')+' on this booking — pick the next one, or Confirm.'));
 }
 function clinCartRemove(i){
   if(i<0||i>=clinCart.length) return;
@@ -11870,15 +11897,11 @@ function clinAvailableTimes(){
   var key=clinKey();
   var dayBks=(typeof recoveryData!=='undefined'&&recoveryData[key]&&recoveryData[key].bookings)||[];
   var roomId=roomObj?roomObj.id:clinRoom;
-  var occ=dayBks.filter(function(b){return b.room===roomId&&b.status!=='cancelled'&&b.start&&b.id!==clinEditingId;}).map(function(b){
+  var occ=dayBks.filter(function(b){return b.room===roomId&&b.status!=='cancelled'&&b.start&&b.id!==clinEditingId&&!_clinSameOrder(b);}).map(function(b){
     var st=parseTime(b.start); return [st, st+((b.duration||60)/60)+buf];
   });
-  // don't offer a time already taken by another treatment queued on this same booking
-  (clinCart||[]).forEach(function(it){
-    if(it.dateKey!==key || clinItemRoomId(it)!==roomId) return;
-    var st=clinItemStart(it); if(!st) return;
-    var s0=parseTime(st); occ.push([s0, s0+(clinItemDuration(it)/60)+buf]);
-  });
+  // Treatments queued on THIS booking are deliberately NOT blocked out: the guest can have their boots on while
+  // the drip runs, so 7pm stays offered even though another treatment on the same booking already has it.
   // EVENT LOCK: if this room's therapist is running events that day (they're in the EVENT roster rows), block the
   // class time windows so they can't also be booked for a 1:1 during their class.
   try{ if(!isChair && rt && rt.therapistId && typeof _eventStaffOn==='function' && _eventStaffOn(key)[rt.therapistId] && typeof eventsForDate==='function'){
@@ -12457,26 +12480,30 @@ function sendDepositLink(){
 window.sendDepositLink=sendDepositLink;
 // ── Double-booking guard ───────────────────────────────────────────
 // A room/chair is occupied for [start, start+duration+buffer). Held AND confirmed both block.
+// The order currently being edited, if any — its own treatments never block each other.
+function _clinEditOrderId(){ try{ return (window._clinEditOrig&&window._clinEditOrig.orderId)||null; }catch(e){ return null; } }
+// Is this booking part of the order we're building / editing right now?
+function _clinSameOrder(b){
+  if(!b) return false;
+  var oid=_clinEditOrderId();
+  return !!(oid && b.orderId===oid);
+}
+// Double-booking guard. It exists to stop two DIFFERENT guests landing on one chair or room — NOT to stop one
+// guest having two things at once. A guest can sit in a recovery chair with their boots on while the drip runs,
+// so treatments on the SAME booking are exempt and staff decide what can physically run together.
 function clinHasConflict(roomId, startHHMM, durationMin, excludeId){
   try{
     var dk=clinKey(); var day=recoveryData&&recoveryData[dk];
     var buf=(typeof CLIN_BUFFER_MIN!=='undefined'?CLIN_BUFFER_MIN:15)/60;
     var ns=parseTime(startHHMM), ne=ns+(durationMin/60)+buf;
-    var hit=(day&&day.bookings)?day.bookings.some(function(b){
+    return (day&&day.bookings)?day.bookings.some(function(b){
       if(!b||b.status==='cancelled') return false;
       if(excludeId && b.id===excludeId) return false;
+      if(_clinSameOrder(b)) return false;              // another treatment on this same booking — same guest
       if(b.room!==roomId || !b.start) return false;
       var bs=parseTime(b.start), be=bs+((b.duration||60)/60)+buf;
       return ns < be-1e-9 && ne > bs+1e-9; // ranges overlap
     }):false;
-    if(hit) return true;
-    // treatments already queued on the booking being built hold their slot too, even though they're not saved yet
-    return (clinCart||[]).some(function(it){
-      if(it.dateKey!==dk || clinItemRoomId(it)!==roomId) return false;
-      var st=clinItemStart(it); if(!st) return false;
-      var bs=parseTime(st), be=bs+(clinItemDuration(it)/60)+buf;
-      return ns < be-1e-9 && ne > bs+1e-9;
-    });
   }catch(e){ return false; }
 }
 function clinCurrentStart(){
