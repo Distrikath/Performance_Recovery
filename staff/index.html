@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260921320;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260922100;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -11357,7 +11357,10 @@ function renderTodayBookings(){
   var onlineHtml=online.slice().sort(function(a,b){return (a.time||'').localeCompare(b.time||'');}).map(function(r){
     var id=_escHtml(r._id||'');
     var label=_escHtml(_onreqLabel(r));
-    var client=_escHtml(r.name||'Guest')+(r.phone?' · '+_escHtml(r.phone):'');
+    var client=_escHtml(r.name||'Guest')+(r.phone?' · '+_escHtml(r.phone):'')
+      +(r.email?' · '+_escHtml(r.email):'')
+      +(r.dob?' · DOB '+_escHtml(r.dob):'')
+      +((r.medical && r.medical!=='None stated')?' · <b style="color:#FF2D2D;">'+_escHtml(r.medical)+'</b>':'');
     // Deposit status — the Xendit webhook stamps depositPaid/paymentStatus on paid online bookings.
     var _dp=(r.depositPaid===true||r.paymentStatus==='deposit_paid');
     var _depBadge=_dp

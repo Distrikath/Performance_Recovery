@@ -483,7 +483,7 @@ footer{padding:40px 48px 28px;border-top:1px solid var(--line);display:flex;just
 
       <!-- Step 1: Package + Gender -->
       <div class="bk-step on" id="bks1">
-        <span class="bk-sect-label">select package &amp; gender</span>
+        <span class="bk-sect-label">select package</span>
         <div class="bk-field" style="margin-top:16px">
           <label>diagnostic package</label>
           <select id="bk-pkg" onchange="bkPickPackage(this.value)">
@@ -525,7 +525,19 @@ footer{padding:40px 48px 28px;border-top:1px solid var(--line);display:flex;just
         <div class="bk-field">
           <label>whatsapp number</label>
           <input type="tel" id="bk-phone" placeholder="+62 ..." autocomplete="tel" oninput="bkState.phone=this.value;updateBkNext()">
-          <div class="bk-field-note">helix &times; human+ will confirm your appointment and fasting requirements via whatsapp.</div>
+        </div>
+        <div class="bk-field">
+          <label>email address</label>
+          <input type="email" id="bk-email" placeholder="name@email.com" autocomplete="email" oninput="bkState.email=this.value;updateBkNext()">
+        </div>
+        <div class="bk-field">
+          <label>date of birth</label>
+          <input type="date" id="bk-dob" autocomplete="bday" oninput="bkState.dob=this.value;updateBkNext()">
+        </div>
+        <div class="bk-field">
+          <label>allergies or medical conditions</label>
+          <textarea id="bk-med" rows="2" placeholder="none &mdash; or tell us what we should know" oninput="bkState.med=this.value" style="font-family:var(--mono);font-size:11px;width:100%;box-sizing:border-box;resize:vertical;"></textarea>
+          <div class="bk-field-note">helix &times; human+ will confirm your appointment and fasting requirements via whatsapp. 24 hours&rsquo; notice is needed; a 50% deposit secures the slot.</div>
         </div>
       </div>
 
@@ -592,7 +604,7 @@ function bkLoadRoster(){
 try{ bkLoadRoster(); }catch(e){}
 
 // ── Booking state ─────────────────────────────────────────────────────
-var bkState={step:1,package:'',gender:'',price:0,date:null,time:null,name:'',phone:''};
+var bkState={step:1,package:'',gender:'',price:0,date:null,time:null,name:'',phone:'',email:'',dob:'',med:''};
 var _calState={year:0,month:0};
 var BW_SLOTS=['8am','9am','10am','11am','12pm','2pm','3pm'];
 
@@ -606,7 +618,7 @@ var PRICE_FMT={
 };
 
 function openBk(){
-  bkState={step:1,package:'',gender:'',price:0,date:null,time:null,name:'',phone:''};
+  bkState={step:1,package:'',gender:'',price:0,date:null,time:null,name:'',phone:'',email:'',dob:'',med:''};
   _calState={year:0,month:0};
   ['bk-name','bk-phone'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
   var sel=document.getElementById('bk-pkg');if(sel)sel.value='';
@@ -726,6 +738,16 @@ function slotRostered(timeStr,worked){
   return !!(worked[si]||worked[si+1]);
 }
 
+// 24-HOUR NOTICE: a blood draw needs a day's warning so HELIX can confirm fasting — same rule as IV.
+function bkBWSlotOk(timeStr){
+  if(!bkState.date) return true;
+  var m=String(timeStr||'').match(/^(\d+)(am|pm)$/i); if(!m) return true;
+  var h=parseInt(m[1]); if(m[2].toLowerCase()==='pm'&&h!==12)h+=12; if(m[2].toLowerCase()==='am'&&h===12)h=0;
+  var dp=bkState.date.split('-');
+  var sd=new Date(parseInt(dp[0]),parseInt(dp[1])-1,parseInt(dp[2]),h,0,0,0);
+  var nowBali; try{ nowBali=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Makassar'})); }catch(e){ nowBali=new Date(); }
+  return sd >= new Date(nowBali.getTime()+24*60*60*1000);
+}
 function bkPickDay(ds){
   bkState.date=ds;bkState.time=null;
   var pts=ds.split('-');
@@ -762,11 +784,12 @@ function renderTimes(counts,worked){
   }
   available.forEach(function(t){
     var full=_bkChairsBusyAt(counts,_bkTimeToMin(t),20)>=CHAIR_CAPACITY; // 20-min blood draw vs the shared 2 chairs
+    var tooSoon=!bkBWSlotOk(t);
     var btn=document.createElement('button');
-    btn.className='bk-time-btn'+(full?' sel':'');
-    btn.textContent=full?t+' · full':t;
-    btn.disabled=full;
-    if(!full){
+    btn.className='bk-time-btn'+((full||tooSoon)?' sel':'');
+    btn.textContent=full?(t+' · full'):(tooSoon?(t+' · 24h notice'):t);
+    btn.disabled=(full||tooSoon);
+    if(!full&&!tooSoon){
       btn.onclick=(function(time,b){return function(){
         bkState.time=time;
         document.querySelectorAll('.bk-time-btn').forEach(function(e){e.classList.remove('sel');});
@@ -782,9 +805,9 @@ function renderTimes(counts,worked){
 function updateBkNext(){
   var btn=document.getElementById('bk-next-btn');if(!btn)return;
   var s=bkState.step,ok=false;
-  if(s===1)ok=!!(bkState.package&&bkState.gender);
+  if(s===1)ok=!!bkState.package;   // panels are unisex — gender was required but never collectable, so nothing could be booked
   else if(s===2)ok=!!(bkState.date&&bkState.time);
-  else if(s===3)ok=!!(bkState.name.trim()&&bkState.phone.trim());
+  else if(s===3)ok=!!(bkState.name.trim()&&bkState.phone.trim()&&bkState.email.trim()&&bkState.dob);   // HELIX needs name, phone, email and DOB
   btn.disabled=!ok;
   btn.innerHTML=s===3?'confirm &#x2192;':'next &#x2192;';
 }
@@ -811,16 +834,19 @@ function submitBk(){
     time:bkState.time,
     name:bkState.name.trim(),
     phone:bkState.phone.trim(),
+    email:(bkState.email||'').trim(),
+    dob:bkState.dob||'',
+    medical:((bkState.med||'').trim()||'None stated'),
     status:'tentative',
     submittedAt:firebase.firestore.FieldValue.serverTimestamp()
   };
   bkAuth().then(function(db){ return db.collection('public_bookings').add(rec); }).then(function(){
     var de=document.getElementById('bk-conf-detail');
     if(de)de.innerHTML=
-      rec.package+' &mdash; '+rec.gender+'<br>'+
+      rec.package+'<br>'+
       priceStr+'<br>'+
       rec.date+' at '+rec.time+'<br>'+
-      rec.name+' &middot; '+rec.phone;
+      rec.name+' &middot; '+rec.phone+'<br>'+rec.email;
     bkGoStep(4);
   }).catch(function(e){
     if(btn){btn.disabled=false;btn.innerHTML='confirm &#x2192;';}

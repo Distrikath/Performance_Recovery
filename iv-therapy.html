@@ -502,7 +502,19 @@ footer{padding:40px 48px 28px;border-top:1px solid var(--line);display:flex;just
         <div class="bk-field">
           <label>whatsapp number</label>
           <input type="tel" id="bk-phone" placeholder="+62 ..." autocomplete="tel" oninput="bkState.phone=this.value;updateBkNext()">
-          <div class="bk-field-note">we'll confirm your session via whatsapp within a few hours.</div>
+        </div>
+        <div class="bk-field">
+          <label>email address</label>
+          <input type="email" id="bk-email" placeholder="name@email.com" autocomplete="email" oninput="bkState.email=this.value;updateBkNext()">
+        </div>
+        <div class="bk-field">
+          <label>date of birth</label>
+          <input type="date" id="bk-dob" autocomplete="bday" oninput="bkState.dob=this.value;updateBkNext()">
+        </div>
+        <div class="bk-field">
+          <label>allergies or medical conditions</label>
+          <textarea id="bk-med" rows="2" placeholder="none &mdash; or tell us what we should know" oninput="bkState.med=this.value" style="font-family:var(--mono);font-size:11px;width:100%;box-sizing:border-box;resize:vertical;"></textarea>
+          <div class="bk-field-note">we'll confirm your session via whatsapp within a few hours. 24 hours&rsquo; notice is needed; a 50% deposit secures the slot.</div>
         </div>
       </div>
 
@@ -650,12 +662,12 @@ function bkRenderAddons(){
 }
 
 // ── Booking state ─────────────────────────────────────────────────────
-var bkState={step:1,protocol:'',date:null,time:null,name:'',phone:'',addons:[],comp:false};
+var bkState={step:1,protocol:'',date:null,time:null,name:'',phone:'',email:'',dob:'',med:'',addons:[],comp:false};
 var _calState={year:0,month:0};
 var IV_SLOTS=['9am','10am','11am','12pm','1pm','2pm','3pm','4pm','5pm','6pm'];
 
 function openBk(){
-  bkState={step:1,protocol:'',date:null,time:null,name:'',phone:'',addons:[],comp:false};
+  bkState={step:1,protocol:'',date:null,time:null,name:'',phone:'',email:'',dob:'',med:'',addons:[],comp:false};
   _calState={year:0,month:0};
   ['bk-name','bk-phone'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
   var sel=document.getElementById('bk-protocol');if(sel)sel.value='';
@@ -851,7 +863,7 @@ function updateBkNext(){
   var s=bkState.step,ok=false;
   if(s===1)ok=!!bkState.protocol;
   else if(s===2)ok=!!(bkState.date&&bkState.time);
-  else if(s===3)ok=!!(bkState.name.trim()&&bkState.phone.trim());
+  else if(s===3)ok=!!(bkState.name.trim()&&bkState.phone.trim()&&bkState.email.trim()&&bkState.dob);   // HUMAN+ needs name, phone, email and DOB
   btn.disabled=!ok;
   btn.textContent=s===3?'confirm &#x2192;':'next &#x2192;';
   btn.innerHTML=s===3?'confirm &#x2192;':'next &#x2192;';
@@ -887,6 +899,9 @@ function submitBk(){
     time:bkState.time,
     name:bkState.name.trim(),
     phone:bkState.phone.trim(),
+    email:(bkState.email||'').trim(),
+    dob:bkState.dob||'',
+    medical:((bkState.med||'').trim()||'None stated'),
     status:'tentative',
     submittedAt:firebase.firestore.FieldValue.serverTimestamp()
   };
@@ -895,7 +910,7 @@ function submitBk(){
     if(de){
       var addonLine=addonNames.length?'<br><span style="font-size:10px;opacity:.7">+ '+addonNames.join(', ')+'</span>':'';
       if(bkState.comp) addonLine+='<br><span style="font-size:10px;opacity:.7">+ '+IV_COMPRESSION.name+' &mdash; same chair, during your drip</span>';
-      de.innerHTML=rec.protocol+addonLine+'<br>'+rec.date+' at '+rec.time+'<br>'+rec.name+' &middot; '+rec.phone
+      de.innerHTML=rec.protocol+addonLine+'<br>'+rec.date+' at '+rec.time+'<br>'+rec.name+' &middot; '+rec.phone+'<br>'+rec.email
         +'<br><br><span style="color:var(--ink);font-size:12px;letter-spacing:.06em;">total due &mdash; '+bkFmtIDR(_tot)+'</span>'
         +'<br><span style="font-size:9px;opacity:.6;">incl. 11% vat &middot; payable at the clinic</span>';
     }
