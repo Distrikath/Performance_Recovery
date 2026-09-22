@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260922100;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260922120;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -14481,19 +14481,54 @@ window.exportXeroCSV = function(){
       if(typeof firebase==='undefined'||!firebase.firestore) return;
       var dk=dayKey(); if(!dk) return;
       var last=null; try{ last=localStorage.getItem('distrik_last_backup'); }catch(e){}
-      var blob={};
+      // The config outgrew Firestore's ~1MB document limit, so writing it all into one `data` field failed
+      // every night with "The value of property data is longer than 1048487 bytes" — and no backup was kept.
+      // Each key is now split into chunks under its own document beneath backups/<date>/parts.
+      var db=firebase.firestore();
+      var root=db.collection('backups').doc(dk);
+      var CHUNK=200000;                 // characters; safely under 1MB even if every one were 3-byte UTF-8
+      var manifest={}, parts=[], bytes=0;
       ['distrik_v1','distrik_rf','distrik_supply','distrik_menu','distrik_clinical','distrik_tax','distrik_roster_template','distrik_pins'].forEach(function(k){
-        try{ var v=localStorage.getItem(k); if(v) blob[k]=v; }catch(e){}
+        var v=null; try{ v=localStorage.getItem(k); }catch(e){}
+        if(!v) return;
+        bytes+=v.length;
+        var n=Math.max(1,Math.ceil(v.length/CHUNK));
+        manifest[k]=n;
+        for(var i=0;i<n;i++) parts.push({id:k+'__'+i, key:k, i:i, n:n, value:v.slice(i*CHUNK,(i+1)*CHUNK)});
       });
-      firebase.firestore().collection('backups').doc(dk).set({
+      if(!parts.length){ console.warn('[backup] nothing to back up'); return; }
+      var batch=db.batch();
+      batch.set(root,{
         date:dk, ts:firebase.firestore.FieldValue.serverTimestamp(),
         by:(typeof currentUser!=='undefined'&&currentUser&&currentUser.name)||'?',
-        keys:Object.keys(blob), data:JSON.stringify(blob)
-      },{merge:true}).then(function(){
+        keys:Object.keys(manifest), parts:manifest, chars:bytes, format:'parts-v2'
+      },{merge:true});
+      parts.forEach(function(p){ batch.set(root.collection('parts').doc(p.id), {key:p.key, i:p.i, n:p.n, value:p.value}); });
+      batch.commit().then(function(){
         try{ localStorage.setItem('distrik_last_backup', dk); }catch(e){}
-        console.log('[backup] daily config backup saved for', dk);
+        console.log('[backup] saved for', dk, '—', Object.keys(manifest).length, 'keys in', parts.length, 'part(s),', bytes, 'chars');
       }).catch(function(e){ console.warn('[backup]',e); });
     }catch(e){ console.warn('[backup] run',e); }
+  };
+  // READ a backup back out. Deliberately does NOT write anything to this device — it returns the config so it
+  // can be checked first. Handles both the new chunked format and the old single-field one.
+  window.dkReadBackup = function(dateKey){
+    if(typeof firebase==='undefined'||!firebase.firestore) return Promise.reject(new Error('cloud not ready'));
+    var db=firebase.firestore(), root=db.collection('backups').doc(String(dateKey||dayKey()));
+    return root.get().then(function(doc){
+      if(!doc.exists) throw new Error('no backup for '+dateKey);
+      var d=doc.data()||{};
+      if(d.format!=='parts-v2' && typeof d.data==='string'){ return JSON.parse(d.data); }   // pre-chunking backups
+      return root.collection('parts').get().then(function(snap){
+        var byKey={};
+        snap.forEach(function(p){ var v=p.data()||{}; (byKey[v.key]=byKey[v.key]||[])[v.i]=v.value||''; });
+        var out={}; Object.keys(byKey).forEach(function(k){ out[k]=byKey[k].join(''); });
+        return out;
+      });
+    }).then(function(blob){
+      console.log('[backup] read', dateKey, '→', Object.keys(blob).map(function(k){ return k+' ('+blob[k].length+' chars)'; }).join(', '));
+      return blob;
+    });
   };
   if(typeof firebase!=='undefined' && firebase.auth){
     firebase.auth().onAuthStateChanged(function(u){ if(u){ setTimeout(function(){ runDailyBackup(false); }, 8000); } });
