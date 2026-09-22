@@ -580,7 +580,12 @@ function bkFdb(){
     var c={apiKey:'AIzaSyC9amKPhl2s_-7qN_Ej0VV7nDkJ7BIXMRc',authDomain:'distrikath80361.firebaseapp.com',projectId:'distrikath80361',storageBucket:'distrikath80361.firebasestorage.app',messagingSenderId:'1039015029135',appId:'1:1039015029135:web:db7583ff1131aed86d03fa'};
     _fbApp=firebase.apps.length?firebase.app():firebase.initializeApp(c);
   }
-  if(!_fbDb)_fbDb=_fbApp.firestore();
+  if(!_fbDb){ _fbDb=_fbApp.firestore();
+  // Firestore's streaming channel (WebChannel) never connects on some hotel/cafe wifi and the read then
+  // hangs for ever — the booking calendar would sit greyed out with no error. Long-polling is slower but
+  // it gets through. Same setting the staff dashboard needed.
+  try{ _fbDb.settings({ experimentalAutoDetectLongPolling:true }); }catch(e){ console.warn('[bk] settings', e&&e.code); }
+  }
   return _fbDb;
 }
 // Firestore rules require an authenticated user; this is a public page, so sign in anonymously.
@@ -596,14 +601,26 @@ function bkAuth(){
 }
 try{ bkAuth(); }catch(e){}
 // Load the admin's hard-saved roster (distrik_v1) from the cloud so availability reflects who's rostered.
-var _bkRosterCache=null;
+var _bkRosterCache=null,_bkRosterTries=0;
+// Without a roster every day greys out, so caching a failed or empty read leaves a dead calendar with no way
+// back. Three tries, then give up loudly in the console rather than quietly pretending nobody is rostered.
 function bkLoadRoster(){
+  if(_bkRosterCache) return Promise.resolve(_bkRosterCache);
+  _bkRosterTries++;
+  function again(why){
+    console.warn('[bk] roster load failed ('+why+'), try '+_bkRosterTries+' of 3');
+    if(_bkRosterTries<3) setTimeout(function(){ try{ bkLoadRoster(); }catch(e){} },1500);
+    return null;
+  }
   return bkAuth().then(function(db){ return db.collection('distrik_state').doc('distrik_v1').get(); })
     .then(function(doc){
-      try{ _bkRosterCache = doc.exists ? JSON.parse(doc.data().value||'{}') : {}; }catch(e){ _bkRosterCache={}; }
+      var rd=null;
+      try{ rd = doc.exists ? JSON.parse(doc.data().value||'{}') : null; }catch(e){ rd=null; }
+      if(!rd||!rd.STAFF||!rd.STAFF.length) return again('no roster in the config');
+      _bkRosterCache=rd;
       try{ if(bkState && bkState.date) bkPickDay(bkState.date); }catch(e){}
       return _bkRosterCache;
-    }).catch(function(){ _bkRosterCache={}; });
+    }).catch(function(e){ return again((e&&e.code)||'error'); });
 }
 try{ bkLoadRoster(); }catch(e){}
 

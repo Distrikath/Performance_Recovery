@@ -885,7 +885,12 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
 var _fbApp=null,_fbDb=null,_fbAuthP=null;
 function bkFdb(){
   if(!_fbApp){var c={apiKey:'AIzaSyC9amKPhl2s_-7qN_Ej0VV7nDkJ7BIXMRc',authDomain:'distrikath80361.firebaseapp.com',projectId:'distrikath80361',storageBucket:'distrikath80361.firebasestorage.app',messagingSenderId:'1039015029135',appId:'1:1039015029135:web:db7583ff1131aed86d03fa'};_fbApp=firebase.apps.length?firebase.app():firebase.initializeApp(c);}
-  if(!_fbDb)_fbDb=_fbApp.firestore();
+  if(!_fbDb){ _fbDb=_fbApp.firestore();
+  // Firestore's streaming channel (WebChannel) never connects on some hotel/cafe wifi and the read then
+  // hangs for ever — the booking calendar would sit greyed out with no error. Long-polling is slower but
+  // it gets through. Same setting the staff dashboard needed.
+  try{ _fbDb.settings({ experimentalAutoDetectLongPolling:true }); }catch(e){ console.warn('[bk] settings', e&&e.code); }
+  }
   return _fbDb;
 }
 // Firestore rules require an authenticated user; this is a public page, so sign in anonymously.
@@ -1044,7 +1049,10 @@ function bkRenderCal(){
     var dayOpen=_bkDayOpen(bkState.pathway,ds);
     html+='<button class="bk-cal-day'+(bkState.date===ds?' sel':'')+'"'+((dt<minD||!dayOpen)?' disabled':'')+' onclick="bkPickDay(\''+ds+'\')">'+d+'</button>';
   }
-  cal.innerHTML=html+'</div>';
+  var note='';
+  if(_bkRosterFailed) note='<div class="bk-cal-note" style="font-family:var(--mono);font-size:11px;color:rgba(242,242,240,.6);padding:10px 2px 0;line-height:1.7;">we couldn\'t load this week\'s schedule &mdash; <a onclick="_bkRetryRoster()" style="color:var(--r);cursor:pointer;">try again</a> or <a href="https://wa.me/6281994801516" target="_blank" style="color:var(--r);">message us</a> and we\'ll book you in.</div>';
+  else if(!_bkRosterCache) note='<div class="bk-cal-note" style="font-family:var(--mono);font-size:11px;color:rgba(242,242,240,.4);padding:10px 2px 0;">checking availability&hellip;</div>';
+  cal.innerHTML=html+'</div>'+note;
 }
 function bkCalPrev(){
   _calState.month--;
@@ -1079,17 +1087,38 @@ var _DAY_NAMES=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Sat
 // Rule 1 hard-lock: returns {start,end} hours or null (closed) based on pathway and day-of-week
 // Recovery (RECOVER/RELEASE): Tue-Thu 10-22, Fri-Sun 8-20, Mon closed
 // Compression/IV/Bloods: Thu 10-22, Fri-Sun 8-20, Mon-Wed closed
-var _bkRosterLoading=false;
+var _bkRosterLoading=false,_bkRosterTries=0,_bkRosterFailed=false;
 // Preload roster + rooms so the calendar can grey days that have no staffed availability. Re-renders the calendar once loaded.
+// EVERY day greys out until this lands, so a read that fails — or worse, one that never settles because Firestore's
+// streaming channel can't get through — used to leave a permanently dead calendar and no way back. Now: three tries,
+// an 8-second watchdog on each, and if it still can't load the customer is told so instead of staring at grey.
 function _bkPreloadRoster(){
   if(_bkRosterCache||_bkRosterLoading)return;
-  _bkRosterLoading=true;
+  if(_bkRosterTries>=3){ if(!_bkRosterFailed){_bkRosterFailed=true;try{bkRenderCal();}catch(e){}} return; }
+  _bkRosterLoading=true; _bkRosterTries++;
+  var settled=false;
+  function fail(why){
+    if(settled)return; settled=true;
+    console.warn('[bk] roster load failed ('+why+'), try '+_bkRosterTries+' of 3');
+    _bkRosterLoading=false;
+    if(_bkRosterTries>=3){_bkRosterFailed=true;try{bkRenderCal();}catch(e){}}
+    else setTimeout(_bkPreloadRoster,1500);
+  }
+  // A hung get() never rejects, so the promise alone can't be trusted to come back.
+  setTimeout(function(){ fail('timed out'); },8000);
   bkAuth().then(function(db){return Promise.all([db.collection('distrik_state').doc('distrik_v1').get(),db.collection('distrik_state').doc('distrik_rf').get()]);}).then(function(r){
-    try{_bkRosterCache=r[0].exists?JSON.parse(r[0].data().value||'{}'):{};}catch(e){_bkRosterCache={};}
-    try{_bkRfCache=r[1].exists?JSON.parse(r[1].data().value||'{}'):{};}catch(e){_bkRfCache={};}
-    _bkRosterLoading=false; try{bkRenderCal();}catch(e){}
-  }).catch(function(){_bkRosterCache=_bkRosterCache||{};_bkRfCache=_bkRfCache||{};_bkRosterLoading=false;try{bkRenderCal();}catch(e){}});
+    if(settled)return;
+    var rd=null,rf=null;
+    try{rd=r[0].exists?JSON.parse(r[0].data().value||'{}'):null;}catch(e){rd=null;}
+    try{rf=r[1].exists?JSON.parse(r[1].data().value||'{}'):{};}catch(e){rf={};}
+    // A doc that came back without a staff list is no better than no doc — retry rather than cache the emptiness.
+    if(!rd||!rd.STAFF||!rd.STAFF.length){ fail('no roster in the config'); return; }
+    settled=true; _bkRosterCache=rd; _bkRfCache=rf||{}; _bkRosterLoading=false; _bkRosterFailed=false;
+    try{bkRenderCal();}catch(e){}
+  }).catch(function(e){ fail((e&&e.code)||'error'); });
 }
+// Offered on the calendar when the schedule can't be loaded.
+function _bkRetryRoster(){ _bkRosterTries=0; _bkRosterFailed=false; _bkRosterLoading=false; _bkRosterCache=null; try{bkRenderCal();}catch(e){} _bkPreloadRoster(); }
 // A day is open iff someone nominated to run this pathway is rostered that day (with a free chair/room). No hard-coded hours.
 function _bkDayOpen(pathway,dateStr){
   if(!_bkRosterCache)return false; // FAIL CLOSED: no roster loaded = not bookable (calendar re-renders when it loads)
@@ -1297,10 +1326,12 @@ function renderBkTimes(){
     db.collection('distrik_state').doc('distrik_v1').get(),
     db.collection('distrik_state').doc('distrik_rf').get()
   ]); }).then(function(results){
-    try{_bkRosterCache=results[0].exists?JSON.parse(results[0].data().value||'{}'):{};}catch(e){_bkRosterCache={};}
-    try{_bkRfCache=results[1].exists?JSON.parse(results[1].data().value||'{}'):{};} catch(e){_bkRfCache={};}
-    doRender(_bkRosterCache,_bkRfCache);
-  }).catch(function(){_bkRosterCache={};_bkRfCache={};doRender({},{});});
+    var rd=null,rf={};
+    try{rd=results[0].exists?JSON.parse(results[0].data().value||'{}'):null;}catch(e){rd=null;}
+    try{rf=results[1].exists?JSON.parse(results[1].data().value||'{}'):{};} catch(e){rf={};}
+    if(rd&&rd.STAFF&&rd.STAFF.length){_bkRosterCache=rd;_bkRfCache=rf;}
+    doRender(rd||{},rf);
+  }).catch(function(e){ console.warn('[bk] times roster',e&&e.code); wrap.innerHTML='<div class="bk-no-slots">we couldn\'t load the schedule just now &mdash; <a onclick="renderBkTimes()" style="color:rgba(242,242,240,.6);cursor:pointer;">try again</a> or <a href="https://wa.me/6281994801516" target="_blank" style="color:rgba(242,242,240,.6)">contact us</a>.</div>'; });
 }
 function _bkUpdateTherapistOptions(therIds){
   var sel=document.getElementById('bk-therapist');if(!sel)return;
