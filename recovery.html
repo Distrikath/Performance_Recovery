@@ -634,6 +634,9 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
       <div class="rc-dur-divider"></div>
       <div class="rc-dur-row"><span class="rc-dur-time" style="color:var(--ink-d)">compression 20 min</span><span class="rc-dur-price">IDR 200K</span></div>
       <div class="rc-dur-row"><span class="rc-dur-time" style="color:var(--ink-d)">compression 40 min</span><span class="rc-dur-price">IDR 400K</span></div>
+      <div class="rc-dur-row"><span class="rc-dur-time" style="color:var(--ink-d)">compression 60 min</span><span class="rc-dur-price">IDR 600K</span></div>
+      <div class="rc-dur-divider"></div>
+      <div class="rc-dur-row"><span class="rc-dur-time" style="color:var(--ink-d)">consultation 15 min</span><span class="rc-dur-price">FREE</span></div>
     </div>
   </div>
   <div class="rc-step">
@@ -776,6 +779,11 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
             <span class="bk-card-name">COMPRESSION</span>
             <span class="bk-card-sub">For when your legs need a reset.</span>
           </button>
+          <button class="bk-card" id="bkc-CONSULTATION" onclick="pickPathway(this,'CONSULTATION')">
+            <span class="bk-card-num">05</span>
+            <span class="bk-card-name">CONSULTATION</span>
+            <span class="bk-card-sub">Free &middot; 15 min. Not sure where to start? Talk it through first.</span>
+          </button>
         </div>
       </div>
 
@@ -899,6 +907,7 @@ var FD={
   RECOVER:{num:'01',name:'RECOVER',tagline:'For when you’re sore.',concept:'Post-training bodywork designed to reduce muscle soreness, fatigue and tension. Your therapist will focus on the areas that have worked hardest, using sports massage and targeted recovery techniques to help you feel fresher and ready for your next session.',designed:['Sports massage','DOMS relief','Muscle soreness','Post-training recovery','Muscle fatigue','Heavy legs'],pressure:['Light','Medium','Firm'],vibe:['Restorative','Grounding','Calming','Recharging','Restoring']},
   PERFORM:{num:'02',name:'PERFORM',tagline:'For when you train hard.',concept:'Sports-focused bodywork tailored to your training, performance and recovery needs. Your therapist will use targeted massage, deeper tissue work and movement-based techniques to address muscle tension, problem areas and the physical demands of your sport or training.',designed:['Sports massage','Deep tissue','Muscle tension','Performance recovery','Competition','Strength training'],pressure:['Light','Medium','Firm'],vibe:['Energising','Activating','Priming','Powerful','Performance-focused']},
   MOVE:{num:'03',name:'MOVE',tagline:'For when you feel tight or restricted.',concept:'Stretch and release-focused bodywork designed to help you move more freely. Your therapist will combine soft tissue release, assisted stretching and mobility techniques to target tight areas, improve range of motion and reduce restriction.',designed:['Assisted stretching','Mobility','Tissue release','Range of motion','Joint stiffness','Desk workers'],pressure:['Light','Medium','Firm'],vibe:['Fluid','Balanced','Mobile','Functional','Free']},
+  CONSULTATION:{num:'05',name:'CONSULTATION',tagline:'Not sure where to start?',concept:'A free 15-minute sit-down with one of our therapists. Talk through what is bothering you, what you are training for, and what you want to get out of recovery — and leave with a plan. No treatment, no charge, no commitment.',designed:['First visit','Choosing a pathway','Injury history','Training goals','Programme planning','No commitment'],pressure:[],vibe:['Unhurried','Straightforward','Personal','Practical']},
   COMPRESSION:{num:'04',name:'COMPRESSION',tagline:'For when your legs need a reset.',concept:'A passive recovery session using pneumatic compression boots that rhythmically inflate and release around the legs. Designed to support circulation and recovery while helping tired, heavy legs feel lighter and fresher.',designed:['Compression boots','Tired legs','Circulation','Passive recovery','Heavy legs','Swelling reduction'],pressure:['Light','Medium','Firm'],vibe:['Refreshing','Restorative','Lightening','Rejuvenating','Effortless']}
 };
 function showFocusDetail(k){
@@ -920,7 +929,7 @@ function closeFd(){
 
 // ── Booking ───────────────────────────────────────────────────────────
 var bkState={step:1,pathway:null,duration:null,price:null,pressure:null,date:null,time:null,therapist:'',name:'',phone:'',promo:null};
-var BK_DURS={RECOVER:[{m:30,p:'IDR 400K'},{m:45,p:'IDR 550K'},{m:60,p:'IDR 650K'},{m:90,p:'IDR 900K'}],PERFORM:[{m:30,p:'IDR 400K'},{m:45,p:'IDR 550K'},{m:60,p:'IDR 650K'},{m:90,p:'IDR 900K'}],MOVE:[{m:30,p:'IDR 400K'},{m:45,p:'IDR 550K'},{m:60,p:'IDR 650K'},{m:90,p:'IDR 900K'}],COMPRESSION:[{m:20,p:'IDR 200K'},{m:40,p:'IDR 400K'}]};
+var BK_DURS={RECOVER:[{m:30,p:'IDR 400K'},{m:45,p:'IDR 550K'},{m:60,p:'IDR 650K'},{m:90,p:'IDR 900K'}],PERFORM:[{m:30,p:'IDR 400K'},{m:45,p:'IDR 550K'},{m:60,p:'IDR 650K'},{m:90,p:'IDR 900K'}],MOVE:[{m:30,p:'IDR 400K'},{m:45,p:'IDR 550K'},{m:60,p:'IDR 650K'},{m:90,p:'IDR 900K'}],COMPRESSION:[{m:20,p:'IDR 200K'},{m:40,p:'IDR 400K'},{m:60,p:'IDR 600K'}],CONSULTATION:[{m:15,p:'FREE'}]};
 var THER_NAMES={};
 var _calState={year:0,month:0};
 
@@ -1086,7 +1095,8 @@ function _bkDayOpen(pathway,dateStr){
   if(!_bkRosterCache)return false; // FAIL CLOSED: no roster loaded = not bookable (calendar re-renders when it loads)
   try{
     var rooms=(_bkRfCache&&_bkRfCache.ROOMS)||[];
-    return _bkGetAvailSlots(_bkRosterCache,dateStr,(pathway==='COMPRESSION'?20:30),pathway,rooms).length>0;
+    var _mins=(pathway==='COMPRESSION')?20:((pathway==='CONSULTATION')?15:30);
+    return _bkGetAvailSlots(_bkRosterCache,dateStr,_mins,pathway,rooms).length>0;
   }catch(e){return false;}
 }
 function _bkIsBreak(c){return typeof c==='string'&&c.startsWith('Break:');}
