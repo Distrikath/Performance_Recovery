@@ -604,7 +604,7 @@ var IV_ADDONS=[
 ];
 // COMPRESSION BOOTS — worn in the same recovery chair while the drip runs, so this is part of ONE booking:
 // it never takes a second chair. Billed by DISTRIK at the clinic (the drip itself is billed by HUMAN+).
-var IV_COMPRESSION={id:'s4',name:'Compression Boots',price:200000,duration:30};
+var IV_COMPRESSION={id:'s4',name:'Compression Boots',price:400000,duration:60,note:'60 min at the 40 min price'};
 function bkFmtIDR(n){return 'IDR '+Math.round(n).toLocaleString('id-ID');}
 // IV protocol prices — must match the pricing table / select options above. Add-on prices are in IV_ADDONS.
 var IV_PROTO_PRICE={'ALL IN':2100000,'JETLAG':2050000,'HANGOVER CURE':1500000,'THE BIOHACKER':3100000,'BALI BELLY FIX':1890000,'THE AFTERMATH':1600000,'THE FLU FIXER':1200000,'SKIN GLOW':1800000,'PMS & MENSTRUAL SUPPORT':1100000,'HAPPY PREGNANCY':1500000};
@@ -644,7 +644,7 @@ function bkRenderComp(){
   var on=!!bkState.comp;
   wrap.innerHTML='<div class="bk-addon-row'+(on?' checked':'')+'" onclick="bkToggleComp()">'
     +'<span class="bk-addon-check">'+(on?'&#x2713;':'+')+'</span>'
-    +'<span class="bk-addon-name">'+IV_COMPRESSION.name.toLowerCase()+' &middot; '+IV_COMPRESSION.duration+' min<br><span style="opacity:.55;letter-spacing:.02em;">same chair, while your drip runs &mdash; no second booking</span></span>'
+    +'<span class="bk-addon-name">'+IV_COMPRESSION.name.toLowerCase()+' &middot; '+IV_COMPRESSION.duration+' min<br><span style="opacity:.55;letter-spacing:.02em;">'+IV_COMPRESSION.note+' &mdash; same chair, while your drip runs</span></span>'
     +'<span class="bk-addon-price">'+bkFmtIDR(IV_COMPRESSION.price)+'</span>'
   +'</div>';
 }

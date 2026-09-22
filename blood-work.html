@@ -497,6 +497,10 @@ footer{padding:40px 48px 28px;border-top:1px solid var(--line);display:flex;just
           </select>
         </div>
         <div class="bk-price-display" id="bk-price-display"></div>
+        <div id="bw-comp-block" style="display:none;margin-top:20px;border-top:1px solid var(--rule);padding-top:16px;">
+          <label style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-d);display:block;margin-bottom:8px;">while you're in the chair</label>
+          <div id="bw-comp-row"></div>
+        </div>
         <p style="font-family:var(--mono);font-size:9px;color:var(--ink-dd);letter-spacing:.04em;line-height:1.75;margin-top:16px">
           morning slots recommended &mdash; many panels require fasting (8&ndash;10 hours). helix will confirm fasting requirements when they contact you.
         </p>
@@ -604,7 +608,7 @@ function bkLoadRoster(){
 try{ bkLoadRoster(); }catch(e){}
 
 // ── Booking state ─────────────────────────────────────────────────────
-var bkState={step:1,package:'',gender:'',price:0,date:null,time:null,name:'',phone:'',email:'',dob:'',med:''};
+var bkState={step:1,package:'',gender:'',price:0,date:null,time:null,name:'',phone:'',email:'',dob:'',med:'',comp:false};
 var _calState={year:0,month:0};
 var BW_SLOTS=['8am','9am','10am','11am','12pm','2pm','3pm'];
 
@@ -618,7 +622,8 @@ var PRICE_FMT={
 };
 
 function openBk(){
-  bkState={step:1,package:'',gender:'',price:0,date:null,time:null,name:'',phone:'',email:'',dob:'',med:''};
+  bkState={step:1,package:'',gender:'',price:0,date:null,time:null,name:'',phone:'',email:'',dob:'',med:'',comp:false};
+  var _cb=document.getElementById('bw-comp-block'); if(_cb) _cb.style.display='none';
   _calState={year:0,month:0};
   ['bk-name','bk-phone'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
   var sel=document.getElementById('bk-pkg');if(sel)sel.value='';
@@ -658,6 +663,19 @@ function bkBack(){
   if(s===2)bkGoStep(1);
   else if(s===3)bkGoStep(2);
 }
+// COMPRESSION BOOTS alongside the blood draw — same recovery chair, one booking. 60 minutes at the 40-minute price.
+var BW_COMPRESSION={id:'s4',name:'Compression Boots',price:400000,duration:60,note:'60 min at the 40 min price'};
+function bwFmtIDR(n){ return 'IDR '+Math.round(n||0).toLocaleString('id-ID'); }
+function bwToggleComp(){ bkState.comp=!bkState.comp; bwRenderComp(); updateBkSum(); }
+function bwRenderComp(){
+  var wrap=document.getElementById('bw-comp-row'); if(!wrap) return;
+  var on=!!bkState.comp;
+  wrap.innerHTML='<div class="bk-addon-row'+(on?' checked':'')+'" onclick="bwToggleComp()" style="display:flex;align-items:center;gap:10px;padding:11px 0;cursor:pointer;">'
+    +'<span class="bk-addon-check" style="font-family:var(--mono);font-size:13px;width:18px;flex-shrink:0;color:'+(on?'var(--r)':'rgba(242,242,240,.3)')+';">'+(on?'&#x2713;':'+')+'</span>'
+    +'<span class="bk-addon-name" style="font-family:var(--mono);font-size:10px;letter-spacing:.04em;color:var(--ink);flex:1;">'+BW_COMPRESSION.name.toLowerCase()+' &middot; '+BW_COMPRESSION.duration+' min<br><span style="opacity:.55;">'+BW_COMPRESSION.note+' &mdash; same chair, after your draw</span></span>'
+    +'<span class="bk-addon-price" style="font-family:var(--mono);font-size:10px;color:var(--ink-d);white-space:nowrap;">'+bwFmtIDR(BW_COMPRESSION.price)+'</span>'
+  +'</div>';
+}
 function bkPickPackage(v){
   if(!v)return;
   var parts=v.split('|');
@@ -666,6 +684,8 @@ function bkPickPackage(v){
   bkState.price=parseInt(parts[2]||'0',10);
   var pd=document.getElementById('bk-price-display');
   if(pd&&PRICE_FMT[v])pd.textContent=PRICE_FMT[v];
+  var cb=document.getElementById('bw-comp-block'); if(cb) cb.style.display=bkState.package?'block':'none';
+  bwRenderComp();
   updateBkNext();updateBkSum();
 }
 
@@ -832,6 +852,8 @@ function submitBk(){
     price:bkState.price,
     date:bkState.date,
     time:bkState.time,
+    compression:bkState.comp?{id:BW_COMPRESSION.id,name:BW_COMPRESSION.name,price:BW_COMPRESSION.price,duration:BW_COMPRESSION.duration}:null,
+    duration:Math.max(20,bkState.comp?BW_COMPRESSION.duration:0),   // the chair is held for the boots too
     name:bkState.name.trim(),
     phone:bkState.phone.trim(),
     email:(bkState.email||'').trim(),
@@ -846,7 +868,8 @@ function submitBk(){
       rec.package+'<br>'+
       priceStr+'<br>'+
       rec.date+' at '+rec.time+'<br>'+
-      rec.name+' &middot; '+rec.phone+'<br>'+rec.email;
+      rec.name+' &middot; '+rec.phone+'<br>'+rec.email+
+      (rec.compression?('<br><span style="font-size:10px;opacity:.7">+ '+rec.compression.name+' '+rec.compression.duration+' min &mdash; '+bwFmtIDR(rec.compression.price)+'</span>'):'');
     bkGoStep(4);
   }).catch(function(e){
     if(btn){btn.disabled=false;btn.innerHTML='confirm &#x2192;';}
