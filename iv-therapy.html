@@ -474,6 +474,8 @@ footer{padding:40px 48px 28px;border-top:1px solid var(--line);display:flex;just
         <div id="bk-addons-section" style="display:none;margin-top:20px;border-top:1px solid var(--rule);padding-top:16px;">
           <label style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-d);display:block;margin-bottom:10px;">optional add-ons</label>
           <div id="bk-addon-list"></div>
+          <label style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-d);display:block;margin:18px 0 4px;">while you drip</label>
+          <div id="bk-comp-row"></div>
           <div id="bk-total-box" style="margin-top:18px;padding-top:16px;border-top:1px solid var(--rule);"></div>
         </div>
       </div>
@@ -500,7 +502,19 @@ footer{padding:40px 48px 28px;border-top:1px solid var(--line);display:flex;just
         <div class="bk-field">
           <label>whatsapp number</label>
           <input type="tel" id="bk-phone" placeholder="+62 ..." autocomplete="tel" oninput="bkState.phone=this.value;updateBkNext()">
-          <div class="bk-field-note">we'll confirm your session via whatsapp within a few hours.</div>
+        </div>
+        <div class="bk-field">
+          <label>email address</label>
+          <input type="email" id="bk-email" placeholder="name@email.com" autocomplete="email" oninput="bkState.email=this.value;updateBkNext()">
+        </div>
+        <div class="bk-field">
+          <label>date of birth</label>
+          <input type="date" id="bk-dob" autocomplete="bday" oninput="bkState.dob=this.value;updateBkNext()">
+        </div>
+        <div class="bk-field">
+          <label>allergies or medical conditions</label>
+          <textarea id="bk-med" rows="2" placeholder="none &mdash; or tell us what we should know" oninput="bkState.med=this.value" style="font-family:var(--mono);font-size:11px;width:100%;box-sizing:border-box;resize:vertical;"></textarea>
+          <div class="bk-field-note">we'll confirm your session via whatsapp within a few hours. 24 hours&rsquo; notice is needed; a 50% deposit secures the slot.</div>
         </div>
       </div>
 
@@ -588,6 +602,9 @@ var IV_ADDONS=[
   {id:'ca8',name:'Magnesium 1ml',                   price:100000},
   {id:'ca9',name:'Electrolytes / Saline 500ml',     price:100000},
 ];
+// COMPRESSION BOOTS — worn in the same recovery chair while the drip runs, so this is part of ONE booking:
+// it never takes a second chair. Billed by DISTRIK at the clinic (the drip itself is billed by HUMAN+).
+var IV_COMPRESSION={id:'s4',name:'Compression Boots',price:200000,duration:30};
 function bkFmtIDR(n){return 'IDR '+Math.round(n).toLocaleString('id-ID');}
 // IV protocol prices — must match the pricing table / select options above. Add-on prices are in IV_ADDONS.
 var IV_PROTO_PRICE={'ALL IN':2100000,'JETLAG':2050000,'HANGOVER CURE':1500000,'THE BIOHACKER':3100000,'BALI BELLY FIX':1890000,'THE AFTERMATH':1600000,'THE FLU FIXER':1200000,'SKIN GLOW':1800000,'PMS & MENSTRUAL SUPPORT':1100000,'HAPPY PREGNANCY':1500000};
@@ -596,16 +613,18 @@ function bkSubtotal(){
   (bkState.addons||[]).forEach(function(id){ var a=IV_ADDONS.find(function(x){return x.id===id;}); if(a) t+=a.price; });
   return t;
 }
-function bkVat(){ return Math.round(bkSubtotal()*0.11); }
-function bkTotalDue(){ return bkSubtotal()+bkVat(); }
+function bkCompPrice(){ return bkState.comp?IV_COMPRESSION.price:0; }
+function bkVat(){ return Math.round(bkSubtotal()*0.11); }                    // vat applies to the HUMAN+ drip only
+function bkTotalDue(){ return bkSubtotal()+bkVat()+bkCompPrice(); }
 function bkRenderTotal(){
   var box=document.getElementById('bk-total-box'); if(!box) return;
   if(!bkState.protocol){ box.innerHTML=''; return; }
-  var sub=bkSubtotal(), vat=bkVat(), tot=sub+vat;
+  var sub=bkSubtotal(), vat=bkVat(), comp=bkCompPrice(), tot=sub+vat+comp;
   var row='display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--ink-d);margin-bottom:6px;';
   box.innerHTML=
     '<div style="'+row+'"><span>subtotal</span><span>'+bkFmtIDR(sub)+'</span></div>'
     +'<div style="'+row+'"><span>vat (11%)</span><span>'+bkFmtIDR(vat)+'</span></div>'
+    +(comp?('<div style="'+row+'"><span>'+IV_COMPRESSION.name.toLowerCase()+' (same chair)</span><span>'+bkFmtIDR(comp)+'</span></div>'):'')
     +'<div style="display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--ink);text-transform:uppercase;margin-top:8px;padding-top:10px;border-top:1px solid var(--rule);"><span>total due</span><span>'+bkFmtIDR(tot)+'</span></div>';
 }
 function bkToggleAddon(id){
@@ -614,6 +633,20 @@ function bkToggleAddon(id){
   var el=document.getElementById('bk-addon-'+id);
   if(el) el.classList.toggle('checked',bkState.addons.indexOf(id)>-1);
   updateBkSum();
+}
+function bkToggleComp(){
+  bkState.comp=!bkState.comp;
+  bkRenderComp();
+  updateBkSum();
+}
+function bkRenderComp(){
+  var wrap=document.getElementById('bk-comp-row'); if(!wrap) return;
+  var on=!!bkState.comp;
+  wrap.innerHTML='<div class="bk-addon-row'+(on?' checked':'')+'" onclick="bkToggleComp()">'
+    +'<span class="bk-addon-check">'+(on?'&#x2713;':'+')+'</span>'
+    +'<span class="bk-addon-name">'+IV_COMPRESSION.name.toLowerCase()+' &middot; '+IV_COMPRESSION.duration+' min<br><span style="opacity:.55;letter-spacing:.02em;">same chair, while your drip runs &mdash; no second booking</span></span>'
+    +'<span class="bk-addon-price">'+bkFmtIDR(IV_COMPRESSION.price)+'</span>'
+  +'</div>';
 }
 function bkRenderAddons(){
   var wrap=document.getElementById('bk-addon-list');
@@ -629,12 +662,12 @@ function bkRenderAddons(){
 }
 
 // ── Booking state ─────────────────────────────────────────────────────
-var bkState={step:1,protocol:'',date:null,time:null,name:'',phone:'',addons:[]};
+var bkState={step:1,protocol:'',date:null,time:null,name:'',phone:'',email:'',dob:'',med:'',addons:[],comp:false};
 var _calState={year:0,month:0};
 var IV_SLOTS=['9am','10am','11am','12pm','1pm','2pm','3pm','4pm','5pm','6pm'];
 
 function openBk(){
-  bkState={step:1,protocol:'',date:null,time:null,name:'',phone:'',addons:[]};
+  bkState={step:1,protocol:'',date:null,time:null,name:'',phone:'',email:'',dob:'',med:'',addons:[],comp:false};
   _calState={year:0,month:0};
   ['bk-name','bk-phone'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
   var sel=document.getElementById('bk-protocol');if(sel)sel.value='';
@@ -677,9 +710,10 @@ function bkBack(){
 function bkPickProtocol(v){
   bkState.protocol=v;
   bkState.addons=[];
+  bkState.comp=false;
   var as=document.getElementById('bk-addons-section');
   if(as) as.style.display=v?'block':'none';
-  if(v) bkRenderAddons();
+  if(v){ bkRenderAddons(); bkRenderComp(); }
   updateBkNext();updateBkSum();
 }
 
@@ -829,7 +863,7 @@ function updateBkNext(){
   var s=bkState.step,ok=false;
   if(s===1)ok=!!bkState.protocol;
   else if(s===2)ok=!!(bkState.date&&bkState.time);
-  else if(s===3)ok=!!(bkState.name.trim()&&bkState.phone.trim());
+  else if(s===3)ok=!!(bkState.name.trim()&&bkState.phone.trim()&&bkState.email.trim()&&bkState.dob);   // HUMAN+ needs name, phone, email and DOB
   btn.disabled=!ok;
   btn.textContent=s===3?'confirm &#x2192;':'next &#x2192;';
   btn.innerHTML=s===3?'confirm &#x2192;':'next &#x2192;';
@@ -840,6 +874,7 @@ function updateBkSum(){
   var pts=[];
   if(bkState.protocol)pts.push(bkState.protocol);
   if(bkState.addons&&bkState.addons.length)pts.push('+'+bkState.addons.length+' add-on'+(bkState.addons.length>1?'s':''));
+  if(bkState.comp)pts.push('+ boots');
   if(bkState.date)pts.push(bkState.date);
   if(bkState.time)pts.push(bkState.time);
   if(bkState.protocol)pts.push(bkFmtIDR(bkTotalDue())+' due');
@@ -851,16 +886,22 @@ function submitBk(){
   var btn=document.getElementById('bk-next-btn');
   if(btn){btn.disabled=true;btn.textContent='sending...';}
   var addonNames=(bkState.addons||[]).map(function(id){var a=IV_ADDONS.find(function(x){return x.id===id;});return a?a.name:id;});
-  var _sub=bkSubtotal(), _vat=bkVat(), _tot=_sub+_vat;
+  var _sub=bkSubtotal(), _vat=bkVat(), _tot=_sub+_vat+bkCompPrice();
   var rec={
     type:'iv_therapy',
     protocol:bkState.protocol,
     addons:addonNames,
+    // one booking, one chair: the boots go on while the drip runs
+    compression:bkState.comp?{id:IV_COMPRESSION.id,name:IV_COMPRESSION.name,price:IV_COMPRESSION.price,duration:IV_COMPRESSION.duration}:null,
+    duration:Math.max(60,bkState.comp?IV_COMPRESSION.duration:0),
     subtotal:_sub, vat:_vat, total:_tot,
     date:bkState.date,
     time:bkState.time,
     name:bkState.name.trim(),
     phone:bkState.phone.trim(),
+    email:(bkState.email||'').trim(),
+    dob:bkState.dob||'',
+    medical:((bkState.med||'').trim()||'None stated'),
     status:'tentative',
     submittedAt:firebase.firestore.FieldValue.serverTimestamp()
   };
@@ -868,7 +909,8 @@ function submitBk(){
     var de=document.getElementById('bk-conf-detail');
     if(de){
       var addonLine=addonNames.length?'<br><span style="font-size:10px;opacity:.7">+ '+addonNames.join(', ')+'</span>':'';
-      de.innerHTML=rec.protocol+addonLine+'<br>'+rec.date+' at '+rec.time+'<br>'+rec.name+' &middot; '+rec.phone
+      if(bkState.comp) addonLine+='<br><span style="font-size:10px;opacity:.7">+ '+IV_COMPRESSION.name+' &mdash; same chair, during your drip</span>';
+      de.innerHTML=rec.protocol+addonLine+'<br>'+rec.date+' at '+rec.time+'<br>'+rec.name+' &middot; '+rec.phone+'<br>'+rec.email
         +'<br><br><span style="color:var(--ink);font-size:12px;letter-spacing:.06em;">total due &mdash; '+bkFmtIDR(_tot)+'</span>'
         +'<br><span style="font-size:9px;opacity:.6;">incl. 11% vat &middot; payable at the clinic</span>';
     }
