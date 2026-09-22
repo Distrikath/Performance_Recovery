@@ -147,7 +147,10 @@ nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:22px 28px;display:g
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script>
 var _fbApp=null,_fbDb=null,_fbAuthP=null;
-function shFdb(){ if(!_fbApp){var c={apiKey:'AIzaSyC9amKPhl2s_-7qN_Ej0VV7nDkJ7BIXMRc',authDomain:'distrikath80361.firebaseapp.com',projectId:'distrikath80361',storageBucket:'distrikath80361.firebasestorage.app',messagingSenderId:'1039015029135',appId:'1:1039015029135:web:db7583ff1131aed86d03fa'};_fbApp=firebase.apps.length?firebase.app():firebase.initializeApp(c);} if(!_fbDb)_fbDb=_fbApp.firestore(); return _fbDb; }
+function shFdb(){ if(!_fbApp){var c={apiKey:'AIzaSyC9amKPhl2s_-7qN_Ej0VV7nDkJ7BIXMRc',authDomain:'distrikath80361.firebaseapp.com',projectId:'distrikath80361',storageBucket:'distrikath80361.firebasestorage.app',messagingSenderId:'1039015029135',appId:'1:1039015029135:web:db7583ff1131aed86d03fa'};_fbApp=firebase.apps.length?firebase.app():firebase.initializeApp(c);} if(!_fbDb){ _fbDb=_fbApp.firestore();
+  // Long-polling: Firestore's streaming channel never connects on some wifi and reads then hang for ever.
+  try{ _fbDb.settings({ experimentalAutoDetectLongPolling:true }); }catch(e){ console.warn('[bk] settings', e&&e.code); }
+ } return _fbDb; }
 function shAuth(){ var db=shFdb(); if(!_fbAuthP){ _fbAuthP=(_fbApp.auth?_fbApp.auth().signInAnonymously():Promise.resolve()).then(function(){return db;}).catch(function(e){console.warn('[sh] auth',e&&e.code);return db;}); } return _fbAuthP; }
 
 var CATALOG={}, STOCK={}, IMG={};        // shop_catalog / supply_stock (live) / supply_img
