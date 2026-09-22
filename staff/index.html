@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260922120;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260922140;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -14533,6 +14533,87 @@ window.exportXeroCSV = function(){
   if(typeof firebase!=='undefined' && firebase.auth){
     firebase.auth().onAuthStateChanged(function(u){ if(u){ setTimeout(function(){ runDailyBackup(false); }, 8000); } });
   }
+})();
+</script>
+
+<!-- ===== NIGHTLY CLOSE (21:00 Bali) — backup, flush, day summary ===== -->
+<script>
+(function(){
+  // DISTRIK shuts at 8pm. At 9pm Bali, whichever dashboard is still open and signed in runs the close:
+  // the config backup, a push of anything still sitting unsynced on this device, and the day's summary.
+  // Runs once per day per device — the backup and the flush are both idempotent, so a second device
+  // running it as well costs nothing.
+  var HOUR=21, RAN='distrik_nightly_ran';
+  function _bali(){ try{ return (typeof baliNow==='function')?baliNow():new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Makassar'})); }catch(e){ return new Date(); } }
+  // Use the app's own idea of today (todayKey) — deriving it separately from baliNow() put this a day out
+  // from clinKey()/the ledger, so the summary read an empty day.
+  function _key(){ try{ return (typeof todayKey==='function')?todayKey():new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Makassar'}); }catch(e){ return new Date().toISOString().slice(0,10); } }
+  function f(n){ return 'IDR '+Math.round(n||0).toLocaleString('id-ID'); }
+
+  // The day in numbers, using the same helpers the Sales page uses — no second set of maths to drift.
+  window.dkDaySummary = function(dk){
+    dk=dk||_key();
+    var out={date:dk, bookings:0, collected:0, card:0, qr:0, online:0, outstanding:0, owed:[]};
+    try{ var g=_dashCardQrForDate(dk); out.card=g.card; out.qr=g.qr; }catch(e){}
+    try{
+      var day=(typeof recoveryData!=='undefined')?recoveryData[dk]:null;
+      (day&&day.bookings||[]).forEach(function(b){
+        if(!b||b.status==='cancelled') return;
+        out.bookings++;
+        var got=(typeof clinCollected==='function')?clinCollected(b):0;
+        out.collected+=got;
+        if(String(b.payMethod||'').toLowerCase()==='online'||b.online) out.online+=got;
+        try{ var p=_clinPay(b); if(!b.partner && p.due>0){ out.outstanding+=p.due; out.owed.push((b.client||'?')+' · '+f(p.due)); } }catch(e){}
+      });
+    }catch(e){}
+    try{ var fd=(typeof fuelData!=='undefined')?fuelData[dk]:null; (fd&&fd.transactions||[]).forEach(function(t){ out.collected+=(t.total||0); }); }catch(e){}
+    try{ var sd=(typeof supplyData!=='undefined')?supplyData[dk]:null; (sd&&sd.orders||[]).forEach(function(o){ out.collected+=(o.total||0); }); }catch(e){}
+    return out;
+  };
+
+  function _show(sum, flushed){
+    var el=document.getElementById('dk-nightly'); if(el) el.remove();
+    el=document.createElement('div'); el.id='dk-nightly';
+    el.style.cssText='position:fixed;right:14px;bottom:56px;z-index:99997;width:300px;background:#0f0f11;color:#f4f4f5;border:1px solid #232327;border-radius:4px;box-shadow:0 18px 50px rgba(0,0,0,.45);font-family:\'Space Mono\',monospace;font-size:11px;';
+    var row=function(l,v,c){ return '<div style="display:flex;justify-content:space-between;gap:10px;padding:5px 14px;"><span style="color:#6b6b72;">'+l+'</span><span style="color:'+(c||'#f4f4f5')+';font-weight:700;">'+v+'</span></div>'; };
+    el.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid #232327;">'
+        +'<span style="letter-spacing:.12em;text-transform:uppercase;font-size:10px;">Close of day · '+sum.date+'</span>'
+        +'<span onclick="document.getElementById(\'dk-nightly\').remove()" style="cursor:pointer;color:#6b6b72;padding:0 2px;">✕</span></div>'
+      +row('Bookings', sum.bookings)
+      +row('Collected today', f(sum.collected))
+      +row('Card', f(sum.card))
+      +row('QRIS', f(sum.qr))
+      +(sum.online?row('Online', f(sum.online)):'')
+      +(sum.outstanding?row('Still owed', f(sum.outstanding), '#f59e0b'):row('Nothing outstanding','✓','#22c55e'))
+      +(sum.owed.length?'<div style="padding:2px 14px 6px;color:#6b6b72;font-size:10px;line-height:1.6;">'+sum.owed.slice(0,6).map(_escHtml).join('<br>')+'</div>':'')
+      +'<div style="padding:8px 14px;border-top:1px solid #232327;color:#6b6b72;font-size:9px;line-height:1.6;">Config backed up · '+(flushed?('re-queued '+flushed+' unsynced'):'nothing unsynced')+'</div>';
+    document.body.appendChild(el);
+  }
+
+  // The close itself — also callable by hand as dkNightlyClose()
+  window.dkNightlyClose = function(quiet){
+    var dk=_key(), flushed=0;
+    try{ if(typeof window.runDailyBackup==='function') window.runDailyBackup(true); }catch(e){ console.warn('[nightly] backup',e); }
+    try{ if(typeof window.dkPurgeTombstoned==='function') window.dkPurgeTombstoned(); }catch(e){}
+    try{ if(typeof window.flushUnsyncedSales==='function'){ var before=Object.keys(window._lastLedgerIds||{}).length; window.flushUnsyncedSales(); flushed=Math.max(0,Object.keys(window._lastLedgerIds||{}).length-before); } }catch(e){ console.warn('[nightly] flush',e); }
+    var sum=window.dkDaySummary(dk);
+    console.log('[nightly] close of day',dk,sum);
+    try{ localStorage.setItem(RAN,dk); }catch(e){}
+    if(!quiet) _show(sum, flushed);
+    return sum;
+  };
+
+  // Check every minute. Fires any time from 21:00 onwards, so a device opened late still closes the day off.
+  setInterval(function(){
+    try{
+      if(typeof firebase==='undefined'||!firebase.auth||!firebase.auth().currentUser) return;
+      var now=_bali(), dk=_key();
+      if(now.getHours()<HOUR) return;
+      var ran=null; try{ ran=localStorage.getItem(RAN); }catch(e){}
+      if(ran===dk) return;
+      window.dkNightlyClose(false);
+    }catch(e){}
+  }, 60000);
 })();
 </script>
 
