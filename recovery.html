@@ -1168,9 +1168,10 @@ function _bkGetAvailSlots(rData,dateStr,durMins,pathway,rooms){
   var dayName=_DAY_NAMES[dow];
   var isCompression=(pathway==='COMPRESSION');
 
-  // 1-HOUR NOTICE: hide any slot starting within the next hour (Bali time) — for same-day bookings.
+  // 15-MINUTE NOTICE for recovery — hide only slots starting within the next 15 min (Bali time), so near-term
+  // same-day bookings still show. (The 24-hour rule applies only to Blood & IV, on their own booking pages.)
   var _nowBali; try{ _nowBali=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Makassar'})); }catch(e){ _nowBali=new Date(); }
-  var _minStart=new Date(_nowBali.getTime()+60*60*1000);
+  var _minStart=new Date(_nowBali.getTime()+15*60*1000);
   var _dp=dateStr.split('-');
   function slotOk(si){ var hh=SLOT_START+si*0.25; var sd=new Date(parseInt(_dp[0]),parseInt(_dp[1])-1,parseInt(_dp[2]),Math.floor(hh),(hh%1?30:0),0,0); return sd>=_minStart; }
 
@@ -1453,64 +1454,65 @@ function submitBk(){
   });
 }
 function showBkConfirm(ref,rec){
-  // Google Ads conversion — fires once a booking is actually submitted (value = booking price, ref = unique id so it never double-counts).
-  try{ if(typeof gtag==='function') gtag('event','conversion',{'send_to':'AW-18443940569/GXsgCP3R3fUcENnl4NpE','value':((rec&&rec.priceNum)||0),'currency':'IDR','transaction_id':ref}); }catch(e){}
-  var re=document.getElementById('bk-ref-text');if(re)re.textContent=ref;
+  var re=document.getElementById('bk-ref-text');
   var de=document.getElementById('bk-conf-detail');
-  if(de){
-    var tn=rec.therapist?(THER_NAMES[rec.therapist]||rec.therapist):'any / no preference';
-    de.innerHTML=rec.pathway+' · '+rec.duration+' min'+(rec.pressure&&rec.pressure!=='n/a'?' · '+rec.pressure:'')+'<br>'+rec.date+' at '+rec.time+'<br>therapist: '+tn+'<br>'+rec.name+' · '+rec.phone;
-  }
-  bkGoStep(6);
-  // 50% deposit by CARD is REQUIRED to secure the booking — our Cloud Function creates a per-booking Xendit card invoice.
   var titleEl=document.getElementById('bk-confirm-title');
   var noteEl=document.getElementById('bk-confirm-note');
   var depEl=document.getElementById('bk-confirm-deposit');
   var doneBtn=document.getElementById('bk-done-btn');
   var priceNum=(rec.priceNum!=null)?rec.priceNum:bkPriceNum(rec.price);
   var half=priceNum?Math.round(priceNum/2):0;
+  var tn=rec.therapist?(THER_NAMES[rec.therapist]||rec.therapist):'any / no preference';
+  var _detail=rec.pathway+' · '+rec.duration+' min'+(rec.pressure&&rec.pressure!=='n/a'?' · '+rec.pressure:'')+'<br>'+rec.date+' at '+rec.time+'<br>therapist: '+tn+'<br>'+rec.name+' · '+rec.phone;
+  bkGoStep(6);
+
   if(!priceNum){
-    // Free (100%-off) booking — no payment, show the confirmed screen with the "done" button.
+    // FREE (100%-off) booking — no payment, genuinely booked. Show the confirmed screen + conversion.
+    try{ if(typeof gtag==='function') gtag('event','conversion',{'send_to':'AW-18443940569/GXsgCP3R3fUcENnl4NpE','value':0,'currency':'IDR','transaction_id':ref}); }catch(e){}
+    if(re) re.textContent=ref;
+    if(de) de.innerHTML=_detail;
     if(doneBtn) doneBtn.style.display='';
     if(titleEl) titleEl.textContent='you’re booked.';
     if(noteEl) noteEl.innerHTML='we’ll confirm your session via whatsapp within a few hours.<br>see you at the canggu lab.';
     if(depEl) depEl.innerHTML='<div style="color:#10b981;letter-spacing:.08em;line-height:1.8;">&#10003; No payment needed — free with code '+(rec.discCode||'')+'.</div>';
     return;
   }
-  // PAID booking — jump STRAIGHT to the Xendit card-payment page. No intermediate "almost there" screen and no
-  // "done" escape, so payment is unavoidable. We show a brief "redirecting" state only while the invoice is created.
-  if(doneBtn) doneBtn.style.display='none';
-  if(titleEl) titleEl.textContent='one moment.';
-  if(noteEl) noteEl.textContent='taking you to secure card payment…';
-  if(depEl) depEl.innerHTML='<div style="font-family:var(--mono);font-size:9px;letter-spacing:.05em;color:var(--ink-d);text-transform:none;">preparing secure card payment&hellip;</div>';
-  // stash details so the post-payment return screen (?paid=1) can confirm with the same info
-  try{ sessionStorage.setItem('bk_last', JSON.stringify({ref:ref, detail:(de?de.innerHTML:''), half:half})); }catch(e){}
+
+  // PAID booking — go STRAIGHT to Xendit. Show NO booking summary and NO "booked" language, so nobody can think
+  // they're booked and leave before paying. The record stays hidden (pending_payment) until the deposit clears.
+  try{ sessionStorage.setItem('bk_last', JSON.stringify({ref:ref, detail:_detail, half:half, priceNum:priceNum})); }catch(e){}
+  if(re) re.textContent='';
+  if(de) de.innerHTML='';                       // NEVER show the booking details before payment
+  if(doneBtn) doneBtn.style.display='none';     // no "done" escape
+  if(titleEl) titleEl.textContent='taking you to payment…';
+  if(noteEl) noteEl.innerHTML='<b style="color:#FF2D2D;">Your booking is not held until the deposit is paid.</b><br>please don’t close this page.';
+  if(depEl) depEl.innerHTML='<div style="font-family:var(--mono);font-size:9px;letter-spacing:.05em;color:var(--ink-d);text-transform:none;">opening secure card payment&hellip;</div>';
+  window._bkRetryRec=rec;   // for the "try again" button if the invoice fails
   fetch('https://asia-southeast2-distrikath80361.cloudfunctions.net/createDepositInvoice',{
     method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({ref:ref,price:priceNum,name:rec.name,email:rec.email||'',phone:rec.phone,pathway:rec.pathway,date:rec.date,time:rec.time})
   }).then(function(r){return r.json();}).then(function(j){
-    if(j&&j.invoice_url){
-      // Send the customer straight to the Xendit hosted card page (same tab).
-      window.location.assign(j.invoice_url);
-    } else {
-      // Invoice couldn't be created — don't strand the customer: fall back to a manual WhatsApp link + restore "done".
-      if(titleEl) titleEl.textContent='almost there.';
-      if(noteEl) noteEl.textContent='we’ll send your payment link via whatsapp shortly.';
-      if(depEl) depEl.textContent='our team will send your payment link via WhatsApp.';
-      if(doneBtn) doneBtn.style.display='';
-    }
-  }).catch(function(){
-    if(titleEl) titleEl.textContent='almost there.';
-    if(noteEl) noteEl.textContent='we’ll send your payment link via whatsapp shortly.';
-    if(depEl) depEl.textContent='our team will send your payment link via WhatsApp.';
-    if(doneBtn) doneBtn.style.display='';
-  });
+    if(j&&j.invoice_url){ window.location.assign(j.invoice_url); }   // straight to the Xendit hosted card page
+    else { _bkPayFailed(); }
+  }).catch(function(){ _bkPayFailed(); });
+}
+// Invoice couldn't be created — make it explicit the booking is NOT confirmed, and offer a retry (never a "booked" state).
+function _bkPayFailed(){
+  var titleEl=document.getElementById('bk-confirm-title');
+  var noteEl=document.getElementById('bk-confirm-note');
+  var depEl=document.getElementById('bk-confirm-deposit');
+  if(titleEl) titleEl.textContent='payment didn’t start';
+  if(noteEl) noteEl.innerHTML='<b style="color:#FF2D2D;">Your booking is not confirmed.</b><br>Please try again, or WhatsApp us to pay.';
+  if(depEl) depEl.innerHTML='<button onclick="if(window._bkRetryRec)showBkConfirm(window._bkRetryRec.ref,window._bkRetryRec);" style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:12px 18px;background:var(--r,#FF2D2D);color:#fff;border:none;cursor:pointer;">Try payment again</button>'
+    +'<div style="font-family:var(--mono);font-size:10px;color:var(--ink-d);margin-top:10px;">or WhatsApp +62 819 9480 1516</div>';
 }
 // After the customer pays on Xendit, they are redirected back to recovery.html?paid=1&ref=… — show the CONFIRMED screen.
 function showBkPaidConfirmed(ref){
   var info={}; try{ info=JSON.parse(sessionStorage.getItem('bk_last')||'{}'); }catch(e){}
   var ov=document.getElementById('bk-overlay'); if(ov) ov.classList.add('open');
   document.body.style.overflow='hidden';
+  // Google Ads conversion now fires on ACTUAL PAYMENT (not on submit) — abandoned bookings no longer count.
+  try{ if(typeof gtag==='function') gtag('event','conversion',{'send_to':'AW-18443940569/GXsgCP3R3fUcENnl4NpE','value':(+info.priceNum||0),'currency':'IDR','transaction_id':(ref||info.ref||'')}); }catch(e){}
   bkGoStep(6);
   var re=document.getElementById('bk-ref-text'); if(re) re.textContent=ref||info.ref||'';
   var titleEl=document.getElementById('bk-confirm-title'); if(titleEl) titleEl.textContent='booking confirmed.';
