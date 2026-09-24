@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260922141;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260922142;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -11976,11 +11976,14 @@ function clinAvailableTimes(){
   try{ if(!isChair && rt && rt.therapistId && typeof _eventStaffOn==='function' && _eventStaffOn(key)[rt.therapistId] && typeof eventsForDate==='function'){
     eventsForDate(key).forEach(function(ev){ var es=parseTime(ev.time); if(es!=null&&!isNaN(es)){ occ.push([es, es+((+ev.duration||60)/60)+buf]); } });
   } }catch(e){}
+  // Hide times already PASSED today so the picker isn't cluttered — but keep the one currently selected (e.g. an
+  // in-progress booking being extended), so a passed booking can still be kept/extended. Past DATES stay fully open.
+  var _isToday=(key===((typeof todayKey==='function')?todayKey():''));
+  var _nowH=-1; if(_isToday){ var _bn=(typeof baliNow==='function'?baliNow():new Date()); _nowH=_bn.getHours()+_bn.getMinutes()/60; }
+  var _selH=(clinTime&&typeof parseTime==='function')?parseTime(clinTime):null;
   var slots=[];
   for(var t=winStart; t+dur<=winEnd+1e-9; t+=0.25){
-    // Staff dashboard: times already passed TODAY are offered too — so reception can re-time or extend a
-    // booking that has already started, or log a walk-in after the fact. (Past DATES were always fully open,
-    // and the customer website keeps its own future-only rule.) Past slots are shown muted in the picker.
+    if(_isToday && t < _nowH-1e-9 && !(_selH!=null && Math.abs(t-_selH)<1e-6)) continue;   // drop passed slots (keep the selected one)
     var newEnd=t+dur+buf;
     var clash=occ.some(function(r){ return t<r[1]-1e-9 && newEnd>r[0]+1e-9; });
     if(!clash) slots.push(t);
