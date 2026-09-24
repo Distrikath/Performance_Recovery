@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260922140;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260922141;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -6335,7 +6335,7 @@ function renderSchedule(){
         body+='<div style="display:grid;grid-template-columns:64px 1fr auto;gap:10px;align-items:baseline;padding:11px 14px;border-bottom:1px solid #1a1a1d;font-family:\'Space Mono\',monospace;">'
           +'<span style="font-size:13px;color:#f4f4f5;">'+(r.time||'—')+'</span>'
           +'<span style="font-size:12px;color:#a6a6ad;">'+lbl+' &middot; <span style="color:#f4f4f5;">'+((r.name||'Guest'))+'</span></span>'
-          +'<span style="font-size:9px;color:#ff6b6b;text-align:right;letter-spacing:.1em;">TENTATIVE</span>'
+          +'<span style="font-size:9px;text-align:right;letter-spacing:.1em;color:'+(((r.depositPaid===true)||(r.paymentStatus==='deposit_paid')||(r.paymentStatus==='paid'))?'#10b981':'#ff6b6b')+';">'+(((r.depositPaid===true)||(r.paymentStatus==='deposit_paid')||(r.paymentStatus==='paid'))?'✓ 50% DEPOSIT PAID':'AWAITING DEPOSIT')+'</span>'
         +'</div>';
       });
       body+='</div>';
@@ -11370,8 +11370,7 @@ function renderTodayBookings(){
       +'<div class="clin-bk-line">'
       +'<span class="clin-bk-time">'+_escHtml(r.time||'—')+'</span>'
       +'<span class="clin-bk-svc">'+label+'<em>'+client+'</em>'
-      +'<span style="display:inline-block;background:#FF2D2D;color:#fff;font-family:\'Space Mono\',monospace;font-size:7px;letter-spacing:.14em;padding:2px 6px;text-transform:uppercase;margin-left:6px;vertical-align:middle;">TENTATIVE</span>'
-      +_depBadge
+      +_depBadge   /* deposit badge carries the state: "✓ 50% DEPOSIT PAID" or "AWAITING DEPOSIT" — no redundant "TENTATIVE" */
       +'</span></div>'
       +'<div class="clin-bk-acts">'
       +'<button class="clin-bk-act go" onclick="acceptOnlineBooking(\''+id+'\')">✓ Confirm</button>'
@@ -11814,9 +11813,32 @@ function editOnlineRequest(id){
           || list.find(function(s){return String(s.name||s.pathway||'').toUpperCase()===pw;});
     if(hit) svcId=hit.id;
   }catch(e){}
-  clinRebookClient(r.name||'', r.phone||'', r.email||'', r.pressure||'', svcId, isClin?'clinical':'recovery');
-  window._clinOnlineReqId=id;  // set AFTER clinRebookClient (its selectService clears it); consumed on confirm
-  if(typeof clinNotify==='function') clinNotify('Editing '+(r.name||'this request')+' — set the agreed room, date & time, then Confirm. The pending request clears when you confirm.');
+  // MOVE (not a fresh rebook): set up the service, then load the ORIGINAL booking's money into _clinEditOrig so the
+  // "plain move" branch of confirmClinical KEEPS the discount + paid deposit — only the date/room/time change.
+  if(svcId){ selectService(svcId, isClin?'clinical':'recovery'); }
+  var _pn=Math.round(+r.priceNum||0);                                   // discounted price the customer actually pays
+  var _disc=Math.round(+r.discPct||0);
+  var _gross=(_disc>0 && _disc<100 && _pn) ? Math.round(_pn/(1-_disc/100)) : _pn;   // original sticker
+  var _dep=(r.deposit!=null)?Math.round(+r.deposit||0):Math.round(_pn*0.5);         // deposit already taken (50% of discounted)
+  var _depPaid=(r.depositPaid===true || r.paymentStatus==='deposit_paid' || r.paymentStatus==='paid');
+  window._clinEditOrig={
+    id:'onl_'+id, service:svcId||r.pathway, serviceName:(r.pathway||''), duration:(+r.duration||0),
+    price:_pn, gross:_gross, discPct:_disc, discCode:(r.discCode||''), discReason:(r.discReason||'online'),
+    online:true, deposit:_dep, depositPaid:_depPaid,
+    balanceDue:Math.max(0,_pn-_dep), balancePaid:false, payType:'later',
+    status:'tentative', clinical:isClin, onlineRef:(r.ref||''),
+    client:(r.name||''), email:(r.email||''), whatsapp:(r.phone||''), phone:(r.phone||''), pressure:(r.pressure||'')
+  };
+  window.clinPromo=null;                                               // no NEW promo — keep the original money
+  clinEditingId='onl_'+id; clinEditingDate=(r.date||clinKey()); clinDone=false; clinDoneHold=false;
+  clinType=isClin?'clinical':'recovery';
+  clinRoom=null; clinTime='';                                          // staff pick the new room + time
+  clinOnline=true;
+  clinPatient=(r.name||''); clinEmail=(r.email||''); clinWhatsapp=(r.phone||''); clinPressure=(r.pressure||'');
+  window._clinOnlineReqId=id;                                          // set AFTER selectService (it clears it); consumed on confirm
+  try{ renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); if(typeof clinRestoreInputs==='function') clinRestoreInputs(); }catch(e){}
+  var bk=document.getElementById('clin-booking'); if(bk) bk.scrollTop=0;
+  if(typeof clinNotify==='function') clinNotify('Moving '+(r.name||'this booking')+' — change the date, room & time, then Confirm. Discount & deposit are kept.');
 }
 window.acceptOnlineBooking=acceptOnlineBooking;
 window.declineOnlineBooking=declineOnlineBooking;
