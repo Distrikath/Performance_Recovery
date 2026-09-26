@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260926143;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260926144;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -4766,6 +4766,25 @@ function _plDayWage(dk){
     return w;
   }catch(e){ return 0; }
 }
+// A STABLE y-axis reference so the bars mean the same thing every week: the biggest daily income or expense over
+// the last 28 days (fixed from today, independent of the week you're viewing). Because wages are ~constant, the
+// expense bars stay the SAME height week to week — a slow week just shows shorter income bars, instead of the
+// expense bar ballooning to fill the chart and looking bigger than it is.
+function _plChartRef(){
+  try{
+    var end=(typeof baliNow==='function'?baliNow():new Date());
+    var ref=500000; // floor so a dead week still renders sane bars
+    var isoBali=function(dt){ return (typeof BALI_TZ!=='undefined')?dt.toLocaleDateString('en-CA',{timeZone:BALI_TZ}):dt.toISOString().slice(0,10); };
+    for(var i=0;i<28;i++){
+      var d=new Date(end); d.setDate(end.getDate()-i); var dk=isoBali(d);
+      var inc=((recoveryData[dk]||{}).revenue||0)+((fuelData[dk]||{}).revenue||0)+((supplyData[dk]||{}).revenue||0);
+      var manI=plEntries.filter(function(e){return e.type==='income'&&!e.auto&&e.date===dk;}).reduce(function(s,e){return s+e.amount;},0);
+      var manE=plEntries.filter(function(e){return e.type==='expense'&&e.date===dk;}).reduce(function(s,e){return s+e.amount;},0);
+      ref=Math.max(ref, inc+manI, _plDayWage(dk)+manE);
+    }
+    return ref;
+  }catch(e){ return 2000000; }
+}
 function renderPLChart(){
   const el = document.getElementById('plChartBars');
   if(!el) return;
@@ -4793,12 +4812,12 @@ function renderPLChart(){
     return {inc: salesInc+manInc, exp};
   });
 
-  const maxV = Math.max(...byDay.map(d=>Math.max(d.inc,d.exp)),1);
+  const maxV = _plChartRef();   // stable scale across weeks — equal expenses render at equal height
   const H = 100;
 
   el.innerHTML = byDay.map((d,i)=>{
-    const incH = Math.round(d.inc/maxV*(H-8));
-    const expH = Math.round(d.exp/maxV*(H-8));
+    const incH = Math.min(H-8, Math.round(d.inc/maxV*(H-8)));
+    const expH = Math.min(H-8, Math.round(d.exp/maxV*(H-8)));
     const isT = days[i]===todayDate;
     const _pf2 = n => n>=1e6 ? (n/1e6).toFixed(1).replace(/\.0$/,'')+'M' : n>=1e3 ? Math.round(n/1e3)+'K' : (n||'');
     return `<div class="pl-bar-col">
@@ -6055,16 +6074,26 @@ function _cycleMonths(){ var d=(typeof baliNow==='function'?baliNow():new Date()
 window._cycleRangeLabel=_cycleRangeLabel; window._cycleMonths=_cycleMonths;
 function _isPaid(staffId, cycleId){ cycleId=cycleId||_tipCycleId(); var doc=(window.TIP_PAYOUTS||{})[cycleId]; return !!(doc&&doc.paid&&doc.paid[staffId]); }
 window._isPaid=_isPaid; window._tipCycleId=_tipCycleId; window._cycleIdForMonth=_cycleIdForMonth;
+// Small "saved" confirmation shown in the payout card so the user can SEE the tick persisted.
+window._payoutStatus=function(msg,ok){ try{ var e=document.getElementById('svc-save-status'); if(e){ e.textContent=msg; e.style.color=ok?'#22c55e':'#FF2D2D'; if(ok){ clearTimeout(window._psT); window._psT=setTimeout(function(){ var e2=document.getElementById('svc-save-status'); if(e2) e2.textContent='✓ Saved to all devices'; },1600); } } }catch(e){} };
 window.payoutTogglePaid=function(staffId, cycleId){ try{ if(typeof firebase==='undefined'||!firebase.firestore)return; var cid=cycleId||_tipCycleId(); var cur=_isPaid(staffId,cid); var nv=!cur; var paidObj={}; paidObj[staffId]=nv;
     // optimistic local update so the tick sticks immediately even before the snapshot round-trips (or if it's slow)
     window.TIP_PAYOUTS=window.TIP_PAYOUTS||{}; var d=window.TIP_PAYOUTS[cid]||{cycle:cid}; d.paid=d.paid||{}; d.paid[staffId]=nv; window.TIP_PAYOUTS[cid]=d;
-    firebase.firestore().collection('tip_payouts').doc(cid).set({ cycle:cid, paid:paidObj, ts:firebase.firestore.FieldValue.serverTimestamp(), by:((typeof currentUser!=='undefined'&&currentUser&&currentUser.name)||'?') }, {merge:true}); }catch(e){ console.warn('[payouts] toggle',e); } };
+    window._payoutStatus('saving…',true);
+    firebase.firestore().collection('tip_payouts').doc(cid).set({ cycle:cid, paid:paidObj, ts:firebase.firestore.FieldValue.serverTimestamp(), by:((typeof currentUser!=='undefined'&&currentUser&&currentUser.name)||'?') }, {merge:true})
+      .then(function(){ window._payoutStatus('✓ Saved to all devices',true); })
+      .catch(function(e){ console.warn('[payouts] toggle write',e); window._payoutStatus('⚠ Not saved — check connection',false); });
+  }catch(e){ console.warn('[payouts] toggle',e); } };
 // Commission paid tracking (paid monthly with salary) — separate map `paidComm` in the same per-cycle doc.
 function _isPaidComm(staffId, cycleId){ cycleId=cycleId||_tipCycleId(); var doc=(window.TIP_PAYOUTS||{})[cycleId]; return !!(doc&&doc.paidComm&&doc.paidComm[staffId]); }
 window._isPaidComm=_isPaidComm;
 window.payoutToggleCommPaid=function(staffId, cycleId){ try{ if(typeof firebase==='undefined'||!firebase.firestore)return; var cid=cycleId||_tipCycleId(); var cur=_isPaidComm(staffId,cid); var nv=!cur; var o={}; o[staffId]=nv;
     window.TIP_PAYOUTS=window.TIP_PAYOUTS||{}; var d=window.TIP_PAYOUTS[cid]||{cycle:cid}; d.paidComm=d.paidComm||{}; d.paidComm[staffId]=nv; window.TIP_PAYOUTS[cid]=d;
-    firebase.firestore().collection('tip_payouts').doc(cid).set({ cycle:cid, paidComm:o, ts:firebase.firestore.FieldValue.serverTimestamp(), by:((typeof currentUser!=='undefined'&&currentUser&&currentUser.name)||'?') }, {merge:true}); }catch(e){ console.warn('[payouts] toggleComm',e); } };
+    window._payoutStatus('saving…',true);
+    firebase.firestore().collection('tip_payouts').doc(cid).set({ cycle:cid, paidComm:o, ts:firebase.firestore.FieldValue.serverTimestamp(), by:((typeof currentUser!=='undefined'&&currentUser&&currentUser.name)||'?') }, {merge:true})
+      .then(function(){ window._payoutStatus('✓ Saved to all devices',true); })
+      .catch(function(e){ console.warn('[payouts] toggleComm write',e); window._payoutStatus('⚠ Not saved — check connection',false); });
+  }catch(e){ console.warn('[payouts] toggleComm',e); } };
 // Year-to-date pay for Indonesia's tax year (1 Jan – 31 Dec): sum of each month's salary + service + commission.
 function _ytdPay(s){ try{ var d=(typeof baliNow==='function'?baliNow():new Date()); var y=d.getFullYear(), cm=d.getMonth()+1; var sal=0,svc=0,com=0; for(var m=1;m<=cm;m++){ var ym=y+'-'+('0'+m).slice(-2); var inc=(typeof _payrollIncome==='function')?_payrollIncome(s,ym):{salary:0,service:0,commission:0}; sal+=inc.salary; svc+=inc.service; com+=inc.commission; } return {salary:sal,service:svc,commission:com,total:sal+svc+com,year:y}; }catch(e){ return {salary:0,service:0,commission:0,total:0,year:(new Date()).getFullYear()}; } }
 window._ytdPay=_ytdPay;
@@ -14197,7 +14226,13 @@ window.showRoomCalendar=showRoomCalendar;
   pill.addEventListener('click',function(){ if(!ready) return; setPill("◌ Checking…","#f59e0b"); reconcile(); });
 
   firebase.auth().signInAnonymously()
-    .then(function(){ console.log('[sync] anon auth ok'); reconcile(); })
+    .then(function(){ console.log('[sync] anon auth ok'); reconcile();
+      // These loaders' own auth hooks were registered EARLIER in the file than firebase.initializeApp(), so on some
+      // loads they never started — which is why "paid" ticks (tip_payouts) and payroll adjustments read back empty.
+      // Kick them off explicitly now that the app is initialised and anon-auth is live.
+      try{ if(typeof loadTipPayouts==='function') loadTipPayouts(); }catch(e){}
+      try{ if(typeof loadPayroll==='function') loadPayroll(); }catch(e){}
+    })
     .catch(function(e){ console.warn('[sync] auth',e); setPill("⚠ Auth off — enable Anonymous","#FF2D2D"); });
 
   // ── SELF-HEALING CONNECTION ──────────────────────────────────────────────────────────────────────
@@ -14966,7 +15001,7 @@ function _svcCyclesCard(){
     var comRows=THERAPIST_IDS.map(function(id){ var pv=_therapistCommForKeys(id,payKeys).total, av=_therapistCommForKeys(id,accKeys).total; payTotC+=pv; accTotC+=av; return personRow(id,pv,av,_isPaidComm(id,payCid),'payoutToggleCommPaid'); }).join('');
     var totRow=function(l,a,b){ return '<div style="'+GRID+'padding:9px 14px;border-top:2px solid '+C+';background:#111114;font-family:\'Space Mono\',monospace;font-size:11px;font-weight:700;color:'+TX+';"><span>'+l+'</span><span style="text-align:right;color:#22c55e;">'+f(a)+'</span><span></span><span style="text-align:right;">'+f(b)+'</span></div>'; };
     return '<div style="border:1px solid '+C+';border-radius:6px;margin-bottom:16px;">'
-      +'<div style="padding:11px 14px;border-bottom:1px solid '+C+';font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:'+MUT+';">Service fee &amp; commission · two live cycles</div>'
+      +'<div style="padding:11px 14px;border-bottom:1px solid '+C+';font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:'+MUT+';display:flex;justify-content:space-between;align-items:center;gap:12px;"><span>Service fee &amp; commission · two live cycles</span><span id="svc-save-status" style="text-transform:none;letter-spacing:0;font-size:9px;color:'+MUT+';">tick to pay · saves automatically</span></div>'
       +'<div style="'+GRID+'padding:9px 14px;background:#111114;font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:.04em;text-transform:uppercase;color:'+MUT+';">'
         +'<span>Staff</span><span style="text-align:right;">Paying / due<br><span style="text-transform:none;letter-spacing:0;">'+_cycleRangeLabel(payY)+'</span></span><span style="text-align:center;">Paid</span><span style="text-align:right;">Accumulating<br><span style="text-transform:none;letter-spacing:0;">'+_cycleRangeLabel(accY)+'</span></span>'
       +'</div>'
