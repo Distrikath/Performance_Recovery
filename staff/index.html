@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260922142;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260926143;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -2231,7 +2231,7 @@ h1,
         <div class="chart-card-title">Weekly Revenue</div>
         <div style="display:flex;gap:16px;">
           <div class="legend-i"><div class="legend-d" style="background:#f4f4f5"></div>Recovery</div>
-          <div class="legend-i"><div class="legend-d" style="background:#BFC2C7"></div>Fuel</div>
+          <div class="legend-i"><div class="legend-d" style="background:#9aa0a6"></div>Fuel</div>
           <div class="legend-i"><div class="legend-d" style="background:#FF2D2D"></div>Supply</div>
         </div>
       </div>
@@ -4158,14 +4158,14 @@ function renderSalesChart(keys){
     const day=new Date(k+'T12:00:00').getDay();
     const lbl=DAYS_SHORT[day===0?6:day-1]||DAYS_SHORT[i];
     return `<div class="chart-col">
-      <div style="font-family:'Space Mono',monospace;font-size:6.5px;color:#777;margin-bottom:2px">${tot>0?fmtIDR(tot):''}</div>
+      <div style="font-family:'Space Mono',monospace;font-size:8px;color:${isT?'#f4f4f5':'#8a8a8a'};margin-bottom:2px">${tot>0?fmtIDR(tot):''}</div>
       <div class="bar-wrap" style="height:${H}px;">
-        ${sH>0?`<div class="bar-seg" style="height:${sH}px;background:#FF2D2D;opacity:${isT?1:0.4}"></div>`:''}
-        ${fH>0?`<div class="bar-seg" style="height:${fH}px;background:#BFC2C7;opacity:${isT?1:0.4}"></div>`:''}
-        ${rH>0?`<div class="bar-seg" style="height:${rH}px;background:#0A0A0A;opacity:${isT?1:0.4}"></div>`:''}
-        ${tot===0?`<div style="height:3px;background:#f0f0f0;border-radius:1px;width:80%"></div>`:''}
+        ${sH>0?`<div class="bar-seg" style="height:${sH}px;background:#FF2D2D;opacity:${isT?1:0.7}"></div>`:''}
+        ${fH>0?`<div class="bar-seg" style="height:${fH}px;background:#9aa0a6;opacity:${isT?1:0.7}"></div>`:''}
+        ${rH>0?`<div class="bar-seg" style="height:${rH}px;background:#f4f4f5;opacity:${isT?1:0.7}"></div>`:''}
+        ${tot===0?`<div style="height:3px;background:#333;border-radius:1px;width:80%"></div>`:''}
       </div>
-      <div class="chart-day-lbl" style="color:${isT?'#0A0A0A':'#BFC2C7'};font-weight:${isT?600:400}">${lbl}</div>
+      <div class="chart-day-lbl" style="color:${isT?'#f4f4f5':'#8a8a8a'};font-weight:${isT?600:400}">${lbl}</div>
     </div>`;
   }).join('');
 }
@@ -4754,42 +4754,63 @@ function renderCatBreakdown(expenses){
   document.getElementById('cat-total').textContent = plFmt(total);
 }
 
+// Per-day wage: staff rostered that date × daily rate (monthly salary ÷ 26), matching the P&L 'today' wage basis.
+function _plDayWage(dk){
+  try{
+    var dt=new Date(dk+'T12:00:00'); var di=dt.getDay(); var rDay=di===0?6:di-1; var dayName=DAYS[rDay];
+    var roster=(typeof dailyOverrides!=='undefined'&&dailyOverrides&&dailyOverrides[dk])?dailyOverrides[dk]:((typeof _baseGrid!=='undefined'&&_baseGrid&&_baseGrid[dayName])?_baseGrid[dayName]:((typeof grid!=='undefined'&&grid[dayName])||null));
+    if(!roster) return 0;
+    var on={};
+    getLeafZones().forEach(function(z){ (roster[z.id]||[]).forEach(function(row){ (row||[]).forEach(function(cell){ if(cell&&!(''+cell).startsWith('Break:')) on[cell]=1; }); }); });
+    var w=0; STAFF.forEach(function(s){ if(on[s.id]) w+=Math.round((s.salary||0)/26); });
+    return w;
+  }catch(e){ return 0; }
+}
 function renderPLChart(){
   const el = document.getElementById('plChartBars');
   if(!el) return;
-  const now = new Date();
-  const day = now.getDay(); // 0=Sun
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - (day===0?6:day-1));
+  // Follow the SELECTED P&L week (PREV/NEXT nav via plWeekOffset), NOT always the current week.
+  const _wo = (typeof plWeekOffset!=='undefined'?plWeekOffset:0);
+  const mon = (typeof baliNow==='function'?baliNow():new Date());
+  const _d = mon.getDay(), _diff = (_d===0?-6:1-_d);
+  mon.setDate(mon.getDate() + _wo*7 + _diff);
+  const isoBali = dt => (typeof BALI_TZ!=='undefined') ? dt.toLocaleDateString('en-CA',{timeZone:BALI_TZ}) : dt.toISOString().slice(0,10);
 
   const days = Array.from({length:7},(_,i)=>{
-    const d = new Date(monday); d.setDate(monday.getDate()+i);
-    return d.toISOString().slice(0,10);
+    const d = new Date(mon); d.setDate(mon.getDate()+i);
+    return isoBali(d);
   });
+  const todayDate = isoBali(typeof baliNow==='function'?baliNow():new Date());
 
+  const _rev = (data,dk)=>{ try{ return (data&&data[dk]&&data[dk].revenue)||0; }catch(e){ return 0; } };
   const byDay = days.map(date => {
-    const inc = plEntries.filter(e=>e.type==='income'&&e.date===date).reduce((s,e)=>s+e.amount,0);
-    const exp = plEntries.filter(e=>e.type==='expense'&&e.date===date).reduce((s,e)=>s+e.amount,0);
-    return {inc,exp};
+    // Future days (in the current week) have no data yet — keep them empty so they don't draw phantom wage bars.
+    if(date>todayDate) return {inc:0, exp:0};
+    const salesInc = _rev(recoveryData,date)+_rev(fuelData,date)+_rev(supplyData,date);
+    const manInc = plEntries.filter(e=>e.type==='income'&&!e.auto&&e.date===date).reduce((s,e)=>s+e.amount,0);
+    const manExp = plEntries.filter(e=>e.type==='expense'&&e.date===date).reduce((s,e)=>s+e.amount,0);
+    const exp = _plDayWage(date) + manExp;
+    return {inc: salesInc+manInc, exp};
   });
 
   const maxV = Math.max(...byDay.map(d=>Math.max(d.inc,d.exp)),1);
   const H = 100;
-  const todayDate = now.toISOString().slice(0,10);
 
   el.innerHTML = byDay.map((d,i)=>{
     const incH = Math.round(d.inc/maxV*(H-8));
     const expH = Math.round(d.exp/maxV*(H-8));
     const isT = days[i]===todayDate;
+    const _pf2 = n => n>=1e6 ? (n/1e6).toFixed(1).replace(/\.0$/,'')+'M' : n>=1e3 ? Math.round(n/1e3)+'K' : (n||'');
     return `<div class="pl-bar-col">
+      <div style="font-family:'Space Mono',monospace;font-size:7.5px;color:${isT?'#f4f4f5':'#8a8a8a'};margin-bottom:2px;text-align:center;">${d.inc>0?_pf2(d.inc):''}</div>
       <div class="pl-bar-wrap">
         <div style="display:flex;gap:2px;align-items:flex-end;height:100%;justify-content:center;">
-          ${incH>0?`<div class="pl-bar-inc" style="height:${incH}px;background:#f4f4f5;width:42%;opacity:${isT?1:0.5}"></div>`:''}
-          ${expH>0?`<div class="pl-bar-exp" style="height:${expH}px;background:#FF2D2D;width:42%;opacity:${isT?1:0.5}"></div>`:''}
-          ${incH===0&&expH===0?`<div style="height:3px;background:var(--bd);width:80%;border-radius:1px"></div>`:''}
+          ${incH>0?`<div class="pl-bar-inc" style="height:${incH}px;background:#f4f4f5;width:42%;opacity:${isT?1:0.7}"></div>`:''}
+          ${expH>0?`<div class="pl-bar-exp" style="height:${expH}px;background:#FF2D2D;width:42%;opacity:${isT?1:0.7}"></div>`:''}
+          ${incH===0&&expH===0?`<div style="height:3px;background:#333;width:80%;border-radius:1px"></div>`:''}
         </div>
       </div>
-      <div class="pl-bar-day" style="color:${isT?'#aaa':'#444'}">${WEEK_DAYS[i]}</div>
+      <div class="pl-bar-day" style="color:${isT?'#f4f4f5':'#8a8a8a'}">${WEEK_DAYS[i]}</div>
     </div>`;
   }).join('');
 }
@@ -14830,12 +14851,59 @@ function _memberTipsForKeys(keys, memberId){ var tot=0; (keys||[]).forEach(funct
 function _memberServiceDays(memberId, keys){ var out=[]; (keys||[]).forEach(function(k){ var d=(typeof _dayTipShare==='function')?_dayTipShare(k):null; if(d && d.share>0 && d.working.indexOf(memberId)>-1) out.push({k:k, share:d.share, pool:d.pool, n:d.n}); }); return out; }
 window._memberServiceDays=_memberServiceDays;
 function _therapistCommForKeys(therId,keys){ var th=0,iv=0; (keys||[]).forEach(function(k){ var d=(typeof _therapistCommForDay==='function')?_therapistCommForDay(therId,k):{therapy:0,iv:0}; th+=d.therapy; iv+=d.iv; }); return {therapy:th,iv:iv,total:th+iv}; }
+// Reasons that DOCK pay. Sick / annual / personal / public-holiday etc. stay fully paid — only genuine unpaid
+// time comes off salary. Daily rate = monthly salary ÷ that person's scheduled working days in the month.
+var UNPAID_LEAVE_REASONS={ unpaid_leave:1, unapproved_absence:1 };
+// Distinct days in a calendar month that this person is actually rostered (from that date's saved roster or the
+// weekday template) — the denominator for the daily rate, so a part-timer's day costs more than a full-timer's.
+function _scheduledDaysInMonth(sid,y,m){
+  try{
+    var zones=(typeof getLeafZones==='function')?getLeafZones():[];
+    var dayNames=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    var lastDay=new Date(y,m,0).getDate(), count=0;
+    for(var dd=1;dd<=lastDay;dd++){
+      var dt=new Date(y,m-1,dd);
+      var dk=y+'-'+('0'+m).slice(-2)+'-'+('0'+dd).slice(-2);
+      var dn=dayNames[dt.getDay()];
+      var roster=(typeof dailyOverrides!=='undefined'&&dailyOverrides&&dailyOverrides[dk])?dailyOverrides[dk]:((typeof _baseGrid!=='undefined'&&_baseGrid&&_baseGrid[dn])?_baseGrid[dn]:((typeof grid!=='undefined'&&grid[dn])||null));
+      if(!roster) continue;
+      var here=false;
+      zones.forEach(function(z){ if(here) return; (roster[z.id]||[]).forEach(function(row){ if(here) return; (row||[]).forEach(function(cell){ if(cell&&!isBreakCell(cell)&&staffId(cell)===sid){ here=true; } }); }); });
+      if(here) count++;
+    }
+    return count;
+  }catch(e){ return 0; }
+}
+// Unpaid-leave hit on a person's salary for a calendar month: distinct unpaid/unapproved days × daily rate.
+function _unpaidLeaveInfo(emp, ym){
+  try{
+    var sid=emp&&emp.id; if(!sid) return {days:0,deduct:0,rate:0};
+    var p=String(ym).split('-'); var y=+p[0], m=+p[1]; if(!y||!m) return {days:0,deduct:0,rate:0};
+    var mStart=y+'-'+('0'+m).slice(-2)+'-01';
+    var lastDay=new Date(y,m,0).getDate();
+    var mEnd=y+'-'+('0'+m).slice(-2)+'-'+('0'+lastDay).slice(-2);
+    var seen={};
+    Object.keys((typeof dailyAbsence!=='undefined'&&dailyAbsence)||{}).forEach(function(dk){
+      if(dk<mStart||dk>mEnd) return;
+      var day=dailyAbsence[dk]; if(!day) return;
+      Object.keys(day).forEach(function(k){ var a=day[k]; if(a&&a.staffId===sid&&UNPAID_LEAVE_REASONS[a.reason]) seen[dk]=1; });
+    });
+    var days=Object.keys(seen).length;
+    if(!days) return {days:0,deduct:0,rate:0};
+    var salary=(emp&&emp.salary)||0;
+    var workDays=_scheduledDaysInMonth(sid,y,m);
+    var rate=workDays>0?Math.round(salary/workDays):0;
+    return {days:days, deduct:rate*days, rate:rate, workDays:workDays};
+  }catch(e){ return {days:0,deduct:0,rate:0}; }
+}
 function _payrollIncome(emp, ym){
   var keys=_cycleKeysForMonth(ym);
   var salary=(emp&&emp.salary)||0;
   var service=(typeof TIP_POOL_IDS!=='undefined'&&TIP_POOL_IDS.indexOf(emp.id)>-1)?_memberTipsForKeys(keys, emp.id):0;
   var comm=(typeof THERAPIST_IDS!=='undefined'&&THERAPIST_IDS.indexOf(emp.id)>-1)?_therapistCommForKeys(emp.id,keys).total:0;
-  return {salary:salary, service:service, commission:comm, gross:salary+service+comm};
+  var unp=_unpaidLeaveInfo(emp, ym);
+  // Unpaid leave comes off GROSS (so it also lowers the PPh21 base) — salary field stays the full contract figure.
+  return {salary:salary, service:service, commission:comm, gross:salary+service+comm-unp.deduct, unpaidDays:unp.days, unpaidDeduct:unp.deduct, unpaidRate:unp.rate};
 }
 window.PAYROLL={};
 (function(){ var subbed=false;
@@ -14869,7 +14937,12 @@ window.payrollSaveRow=function(empId){
 function _svcCyclesCard(){
   try{
     if(typeof _cycleMonths!=='function') return '';
-    var cm=_cycleMonths(); var payY=cm.paying, accY=cm.accumulating;
+    // Follow the SELECTED payroll month, not "now": the cycle that pays out on the 15th of the chosen month is the
+    // PAYING/DUE column; the next cycle (building from that 15th) is ACCUMULATING. So the month arrows move BOTH
+    // columns across and the already-closed/paid cycle drops out of view.
+    var payY=(typeof _payMonthNow==='function')?_payMonthNow():_cycleMonths().paying;
+    var _pmp=String(payY).split('-'); var _acd=new Date(+_pmp[0], +_pmp[1], 1);
+    var accY=_acd.getFullYear()+'-'+('0'+(_acd.getMonth()+1)).slice(-2);
     var payKeys=_cycleKeysForMonth(payY), accKeys=_cycleKeysForMonth(accY);
     var payCid=_cycleIdForMonth(payY);
     var C='#232327',MUT='#6b6b72',TX='#f4f4f5';
@@ -14931,7 +15004,7 @@ window.renderPayroll=function(){
         +'<span style="font-family:\'Space Mono\',monospace;font-size:11px;color:#22c55e;">NET '+_pf(net)+'</span>'
       +'</div>'
       +'<div style="padding:10px 14px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px 14px;font-family:\'Space Mono\',monospace;font-size:10px;color:'+MUT+';">'
-        +cell('Salary',_pf(inc.salary))+cell('Service fee (tips)',_pf(inc.service))+cell('Commission',_pf(inc.commission))
+        +cell('Salary',_pf(inc.salary)+(inc.unpaidDays>0?'<div style="color:#f87171;font-size:8px;margin-top:2px;font-weight:400;">− '+_pf(inc.unpaidDeduct)+' unpaid leave ('+inc.unpaidDays+'d @ '+_pf(inc.unpaidRate)+')</div>':''))+cell('Service fee (tips)',_pf(inc.service))+cell('Commission',_pf(inc.commission))
         +fld('Bonus / THR','pay_bonus_'+s.id,bonus,'0',null)+fld('Allowances','pay_allow_'+s.id,allow,'0',null)+cell('GROSS (PPh21 base)',_pf(gross))
         +fld('BPJS Kesehatan · employee','pay_kesE_'+s.id,kesE,'fill exact',Math.round(inc.salary*0.01))
         +fld('BPJS Ketenagakerjaan · employee','pay_tkE_'+s.id,tkE,'fill exact',Math.round(inc.salary*0.03))
@@ -14987,6 +15060,7 @@ function _buildPayslipBlock(s){
     return '<div style="margin-top:28px;border:1px solid '+C+';">'
       +'<div style="display:flex;justify-content:space-between;align-items:baseline;padding:13px 16px;border-bottom:1px solid '+C+';"><span style="font-family:\'Space Mono\',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:'+MUT+';">Payslip</span><span style="font-family:\'Space Mono\',monospace;font-size:10px;color:'+MUT+';">'+mLbl+'</span></div>'
       +line('Basic salary',f(inc.salary)+' <span style="color:'+MUT+';font-size:9px;">· 1–'+(new Date(+mp[0],+mp[1],0).getDate())+' '+mLbl.split(' ')[0]+'</span>')
+      +(inc.unpaidDays>0?'<div style="display:flex;justify-content:space-between;padding:7px 16px;border-bottom:1px solid #1b1b1e;font-family:\'Space Mono\',monospace;font-size:11px;"><span style="color:#f87171;">− Unpaid leave <span style="font-size:9px;">· '+inc.unpaidDays+' day'+(inc.unpaidDays>1?'s':'')+' @ '+f(inc.unpaidRate)+'</span></span><span style="color:#f87171;">−'+f(inc.unpaidDeduct)+'</span></div>':'')
       +(inc.service?line('Service fee (tips) <span style="color:'+MUT+';font-size:9px;">· '+((typeof _cycleRangeLabel==='function')?_cycleRangeLabel(ym):'')+'</span>',f(inc.service)):'')
       +(inc.service?(function(){ var dd=_memberServiceDays(s.id,_cycleKeysForMonth(ym)); if(!dd.length) return ''; var monD=function(dk){var p=dk.split('-');return p[2].replace(/^0/,'')+' '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+p[1]-1];}; return dd.map(function(x){ return '<div style="display:flex;justify-content:space-between;padding:3px 16px 3px 28px;border-bottom:1px solid #151517;font-family:\'Space Mono\',monospace;font-size:9px;color:'+MUT+';"><span>'+monD(x.k)+' · pool '+f(x.pool)+' ÷'+x.n+'</span><span>'+f(x.share)+'</span></div>'; }).join(''); })():'')
       +(inc.commission?line('Commission <span style="color:'+MUT+';font-size:9px;">· '+((typeof _cycleRangeLabel==='function')?_cycleRangeLabel(ym):'')+'</span>',f(inc.commission)):'')
@@ -15015,6 +15089,7 @@ window.downloadPayslip=function(empId,ym){
     var html='<html><head><title>Payslip '+s.name+' '+mLbl+'</title><style>body{font-family:Arial,sans-serif;color:#111;max-width:600px;margin:24px auto;padding:0 16px;}h1{font-size:20px;letter-spacing:2px;margin-bottom:2px;}h2{font-size:13px;color:#666;font-weight:400;margin-top:0;}table{width:100%;border-collapse:collapse;font-size:13px;margin-top:12px;}</style></head><body>'
       +'<h1>DISTRIK — PAYSLIP</h1><h2>'+s.name+' · '+(s.role||'')+' · '+mLbl+'</h2><table>'
       +row('Basic salary <span style="color:#999;font-size:11px;">(1–'+(new Date(+mp[0],+mp[1],0).getDate())+' '+mLbl.split(' ')[0]+')</span>',f(inc.salary))
+      +(inc.unpaidDays>0?'<tr><td style="padding:6px 10px;border-bottom:1px solid #eee;color:#b00;">− Unpaid leave <span style="color:#999;font-size:11px;">('+inc.unpaidDays+' day'+(inc.unpaidDays>1?'s':'')+' @ '+f(inc.unpaidRate)+')</span></td><td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:right;color:#b00;">−'+f(inc.unpaidDeduct)+'</td></tr>':'')
       +(inc.service?row('Service fee (tips) <span style="color:#999;font-size:11px;">('+((typeof _cycleRangeLabel==='function')?_cycleRangeLabel(ym):'')+')</span>',f(inc.service)):'')
       +(inc.service?(function(){ var dd=_memberServiceDays(empId,_cycleKeysForMonth(ym)); if(!dd.length) return ''; var monD=function(dk){var p=dk.split('-');return p[2].replace(/^0/,'')+' '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+p[1]-1];}; return dd.map(function(x){ return '<tr><td style="padding:2px 10px 2px 26px;color:#888;font-size:11px;border-bottom:1px solid #f4f4f4;">'+monD(x.k)+' · pool '+f(x.pool)+' ÷'+x.n+'</td><td style="padding:2px 10px;text-align:right;color:#888;font-size:11px;border-bottom:1px solid #f4f4f4;">'+f(x.share)+'</td></tr>'; }).join(''); })():'')
       +(inc.commission?row('Commission <span style="color:#999;font-size:11px;">('+((typeof _cycleRangeLabel==='function')?_cycleRangeLabel(ym):'')+')</span>',f(inc.commission)):'')
