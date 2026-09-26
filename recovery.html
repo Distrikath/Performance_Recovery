@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Google tag (gtag.js) — Google Ads AW-723064176 -->
+<!-- Google tag (gtag.js) — Google Ads AW-18443940569 -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=AW-18443940569"></script>
-<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","AW-723064176");gtag("config","AW-18443940569");gtag("config","G-W76EC6Y48D");</script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","AW-18443940569");gtag("config","G-W76EC6Y48D");</script>
 
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,7 +14,7 @@
 {
   "@context": "https://schema.org",
   "@type": "HealthAndBeautyBusiness",
-  "name": "DISTRIK",
+  "name": "DISTRIK. PERFORMANCE RECOVERY",
   "description": "Sports massage and performance recovery studio in Canggu, Bali. Sports massage, deep tissue, assisted stretching, mobility and recovery therapy.",
   "url": "https://distrikath.com",
   "telephone": "+62 819 9480 1516",
@@ -544,6 +544,7 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
 .bk-card-num{font-family:var(--mono);font-size:8px;letter-spacing:.4em;color:var(--r)}
 .bk-card-name{font-family:var(--display);font-size:18px;font-weight:800;letter-spacing:-.02em;text-transform:uppercase}
 .bk-card-sub{font-family:var(--mono);font-size:9px;color:var(--ink-d);letter-spacing:.04em;line-height:1.55}
+.bk-card-from{font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--r);text-transform:uppercase;margin-top:2px}
 .bk-dur-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 .bk-dur{border:1px solid rgba(242,242,240,.1);padding:20px 12px;cursor:pointer;transition:border-color .2s,background .2s;background:transparent;text-align:center;color:var(--ink);display:flex;flex-direction:column;gap:3px;align-items:center;width:100%}
 .bk-dur:hover{border-color:rgba(242,242,240,.3)}
@@ -794,21 +795,25 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
             <span class="bk-card-num">01</span>
             <span class="bk-card-name">RECOVER</span>
             <span class="bk-card-sub">For when you're sore.</span>
+            <span class="bk-card-from">from IDR 400K</span>
           </button>
           <button class="bk-card" id="bkc-PERFORM" onclick="pickPathway(this,'PERFORM')">
             <span class="bk-card-num">02</span>
             <span class="bk-card-name">PERFORM</span>
             <span class="bk-card-sub">For when you train hard.</span>
+            <span class="bk-card-from">from IDR 400K</span>
           </button>
           <button class="bk-card" id="bkc-MOVE" onclick="pickPathway(this,'MOVE')">
             <span class="bk-card-num">03</span>
             <span class="bk-card-name">MOVE</span>
             <span class="bk-card-sub">For when you feel tight or restricted.</span>
+            <span class="bk-card-from">from IDR 400K</span>
           </button>
           <button class="bk-card" id="bkc-COMPRESSION" onclick="pickPathway(this,'COMPRESSION')">
             <span class="bk-card-num">04</span>
             <span class="bk-card-name">COMPRESSION</span>
             <span class="bk-card-sub">For when your legs need a reset.</span>
+            <span class="bk-card-from">from IDR 200K</span>
           </button>
           <button class="bk-card" id="bkc-CONSULTATION" onclick="pickPathway(this,'CONSULTATION')">
             <span class="bk-card-num">05</span>
@@ -1031,13 +1036,18 @@ function buildDurGrid(){
   var durs=BK_DURS[bkState.pathway]||BK_DURS.RECOVER;
   g.style.gridTemplateColumns=durs.length<=2?'repeat(2,1fr)':'repeat(4,1fr)';
   bkState.duration=null;bkState.price=null;
+  // Pre-select the most-common length so the customer starts with a valid choice: 60 min for massage,
+  // the single option for a consultation. Compression is left unselected (three even options, no obvious default).
+  var _defM=({RECOVER:60,PERFORM:60,MOVE:60,CONSULTATION:15})[bkState.pathway]||null;
   durs.forEach(function(d){
     var b=document.createElement('button');
     b.className='bk-dur';
     b.innerHTML='<span class="bk-dur-mins">'+d.m+'</span><span class="bk-dur-unit">min</span><span class="bk-dur-price">'+d.p+'</span>';
     b.onclick=(function(el2,dm,dp){return function(){pickDur(el2,dm,dp);};})(b,d.m,d.p);
     g.appendChild(b);
+    if(d.m===_defM){ b.classList.add('sel'); bkState.duration=d.m; bkState.price=d.p; }
   });
+  if(bkState.duration!=null){ try{updateBkNext();updateBkSum();}catch(e){} }
 }
 function pickDur(el,mins,price){
   bkState.duration=mins;bkState.price=price;bkState.time=null;
@@ -1559,7 +1569,10 @@ document.addEventListener('DOMContentLoaded',function(){
   var ov=document.getElementById('bk-overlay');
   if(ov)ov.addEventListener('click',function(e){if(e.target===ov)closeBk();});
   // returning from Xendit after a successful deposit → show the confirmed screen
-  try{ var _pp=new URLSearchParams(location.search); if(_pp.get('paid')==='1'){ showBkPaidConfirmed(_pp.get('ref')||''); } }catch(e){}
+  try{ var _pp=new URLSearchParams(location.search); if(_pp.get('paid')==='1'){ showBkPaidConfirmed(_pp.get('ref')||''); }
+    // /book redirect and direct #book links open the booking modal straight away
+    else if(location.hash==='#book'||_pp.get('open')==='1'){ try{openBk();}catch(e){} }
+  }catch(e){}
   var fd=document.getElementById('fd-overlay');
   if(fd)fd.addEventListener('click',function(e){if(e.target===fd)closeFd();});
 });
