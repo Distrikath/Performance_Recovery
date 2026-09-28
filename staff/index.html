@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260928146;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260928147;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -11235,7 +11235,7 @@ function _clinPeptideLines(){
   Object.keys(clinPeptideCart).forEach(function(id){
     var s=_clinPeptideById(id), q=clinPeptideCart[id]||0; if(!s||q<=0) return;
     out+='<div class="clin-oline"><span>'+s.name+(q>1?(' ×'+q):'')+'</span><span>'+clinFmt(Math.round(s.price||0)*q)+'</span></div>'
-      +'<div class="clin-oline sub"><span>Item · Human+</span><span><button type="button" onclick="clinPeptideQty(\''+id+'\',-1)" style="border:1px solid #d3d3ce;background:#fff;cursor:pointer;padding:1px 7px;font-family:Space Mono,monospace;">&minus;</button> '+q+' <button type="button" onclick="clinPeptideQty(\''+id+'\',1)" style="border:1px solid #d3d3ce;background:#fff;cursor:pointer;padding:1px 7px;font-family:Space Mono,monospace;">+</button></span></div>';
+      +'<div class="clin-oline sub"><span>Item · Smart Peps</span><span><button type="button" onclick="clinPeptideQty(\''+id+'\',-1)" style="border:1px solid #d3d3ce;background:#fff;cursor:pointer;padding:1px 7px;font-family:Space Mono,monospace;">&minus;</button> '+q+' <button type="button" onclick="clinPeptideQty(\''+id+'\',1)" style="border:1px solid #d3d3ce;background:#fff;cursor:pointer;padding:1px 7px;font-family:Space Mono,monospace;">+</button></span></div>';
   });
   return out;
 }
@@ -11978,7 +11978,7 @@ function renderClinicalServices(){
     // ── HUMAN+ Peptides & Pens — retail items, add to the order with a qty (no chair/time) ──
     +(pepSvcs.length?(
       '<div class="clin-acc-hdr" onclick="toggleClinGroup(\'peptide\')">'
-        +'<span class="clin-acc-title">Peptides &amp; Pens · Human+</span>'
+        +'<span class="clin-acc-title">Peptides &amp; Pens · Smart Peps</span>'
         +'<span><span class="clin-acc-count">'+pepSvcs.length+'</span><span class="clin-acc-arrow'+(pepOpen?' open':'')+'">›</span></span>'
       +'</div>'
       +'<div class="clin-acc-body'+(pepOpen?' open':'')+'">'+pepSvcs.map(peptideCard).join('')+'</div>'
