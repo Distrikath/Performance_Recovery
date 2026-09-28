@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260928147;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260928148;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -14804,6 +14804,13 @@ window.normWA = function(n){
   return d;
 };
 window.waDisplay = function(wa){ wa=window.normWA(wa); return wa?('+'+wa):''; };
+// Email normalizer/validator for customer matching. Returns lowercased/trimmed email, or '' if not a valid email.
+window.normEmail = function(e){ e=String(e||'').trim().toLowerCase(); return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)?e:''; };
+// Deterministic short referral code from the customer's WhatsApp — stable, human-readable, no set-once read needed.
+window.custRefCode = function(wa){ wa=window.normWA(wa)||String(wa||''); var h=0; for(var i=0;i<wa.length;i++){ h=(h*31+wa.charCodeAt(i))>>>0; } return 'DK'+('00000'+h.toString(36).toUpperCase()).slice(-5); };
+// Stable customer id. For now derived from the normalized WhatsApp (the existing key); Stage B can migrate to random
+// ids + an email/uid mapping without changing this contract.
+window.custId = function(wa){ wa=window.normWA(wa); return wa?('cus_'+wa):''; };
 
 // Upsert a client. o = {name, whatsapp|phone, email, source, consent(bool)}. Returns the client id (WA) or null.
 window.clientUpsert = function(o){
@@ -14811,9 +14818,9 @@ window.clientUpsert = function(o){
     if(typeof firebase==='undefined'||!firebase.firestore) return null;
     o=o||{}; var wa=window.normWA(o.whatsapp||o.phone||''); if(!wa) return null;
     var TS=firebase.firestore.FieldValue.serverTimestamp();
-    var doc={ id:wa, whatsapp:wa, updatedAt:TS, lastSeen:TS };
+    var doc={ id:wa, whatsapp:wa, updatedAt:TS, lastSeen:TS, customerId:window.custId(wa), referralCode:window.custRefCode(wa) };
     if(o.name)  doc.name=String(o.name).trim();
-    if(o.email) doc.email=String(o.email).trim();
+    if(o.email){ doc.email=String(o.email).trim(); var _el=window.normEmail(o.email); if(_el) doc.emailLower=_el; }
     if(o.source) doc.sources=firebase.firestore.FieldValue.arrayUnion(o.source);
     if(o.consent){ doc.consentMarketing=true; doc.consentAt=TS; }
     firebase.firestore().collection('clients').doc(wa).set(doc,{merge:true})
@@ -14850,6 +14857,132 @@ window.clientHistory = function(clientId){
       }).catch(function(e){ console.warn('[clients] history',e); resolve([]); });
     }catch(e){ resolve([]); }
   });
+};
+
+// ── ADMIN CUSTOMER PROFILE (Stage A) ─────────────────────────────────────────────────────────────────────
+// Full customer page: details + booking history (from the ledger) + packages + referrals. Opens over the app.
+// clientId = a normalized WA (the client doc id). numbersCsv = all merged numbers for this person (optional).
+window.openCustomerProfile = function(clientId, numbersCsv){
+  try{
+    var esc=function(x){return (''+(x==null?'':x)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
+    var f=function(n){ return (typeof fmtIDR==='function')?fmtIDR(n):('IDR '+Math.round(n||0).toLocaleString('id-ID')); };
+    var nums=(numbersCsv||clientId||'').split(',').filter(Boolean); if(!nums.length&&clientId) nums=[clientId];
+    var pid=clientId||nums[0];
+    var C=(window.CLIENTS||{})[pid]||{};
+    nums.forEach(function(w){ var cc=(window.CLIENTS||{})[w]; if(cc){ if(!C.name&&cc.name){C=Object.assign({},cc);} } });
+    window._custProfileCtx={ pid:pid, nums:nums };
+    var ov=document.getElementById('cust-profile-ov');
+    if(!ov){ ov=document.createElement('div'); ov.id='cust-profile-ov'; ov.style.cssText='position:fixed;inset:0;z-index:12000;background:rgba(0,0,0,.72);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:24px 12px;'; ov.addEventListener('click',function(e){ if(e.target===ov) window.closeCustomerProfile(); }); document.body.appendChild(ov); }
+    var wa=nums[0]||pid;
+    var since=C.customerId||window.custId(wa)||('cus_'+wa);
+    var ref=C.referralCode||window.custRefCode(wa);
+    var status=C.status||'Active';
+    var dob=C.dob||'';
+    ov.innerHTML='<div style="width:100%;max-width:760px;background:#0d0d0f;border:1px solid #232327;border-radius:10px;font-family:\'Space Mono\',monospace;color:#f4f4f5;">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;padding:16px 18px;border-bottom:1px solid #232327;">'
+        +'<div><div style="font-family:\'Archivo\',sans-serif;font-weight:800;font-size:22px;">'+esc(C.name||'Customer')+'</div>'
+        +'<div style="font-size:10px;color:#6b6b72;margin-top:3px;letter-spacing:.04em;">'+esc(since)+' · ref '+esc(ref)+'</div></div>'
+        +'<button onclick="closeCustomerProfile()" style="background:#141417;border:1px solid #2c2c31;border-radius:6px;color:#f4f4f5;padding:8px 12px;cursor:pointer;font-family:\'Space Mono\',monospace;font-size:12px;">close ✕</button>'
+      +'</div>'
+      // Section 1 — details
+      +'<div style="padding:16px 18px;border-bottom:1px solid #232327;">'
+        +'<div style="font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#6b6b72;margin-bottom:10px;">Customer details</div>'
+        +'<div id="cust-detail-view" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px 18px;">'
+          +_cpCell('Full name',esc(C.name||'—'))
+          +_cpCell('Email',esc(C.email||'—'))
+          +_cpCell('WhatsApp',esc(nums.map(function(n){return '+'+n;}).join('  ·  ')||'—'))
+          +_cpCell('Date of birth',dob?esc(dob):'<span style="color:#c0392b;">not set</span>')
+          +_cpCell('Customer since','<span id="cust-since">…</span>')
+          +_cpCell('Status',esc(status))
+        +'</div>'
+        +'<button onclick="editCustomerDetails()" style="margin-top:14px;background:#141417;border:1px solid #2c2c31;border-radius:6px;color:#f4f4f5;padding:8px 14px;cursor:pointer;font-family:\'Space Mono\',monospace;font-size:11px;">Edit details</button>'
+      +'</div>'
+      // Section 2 — bookings
+      +'<div style="padding:16px 18px;border-bottom:1px solid #232327;">'
+        +'<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;"><div style="font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#6b6b72;">Booking history</div><div id="cust-book-stats" style="font-size:10px;color:#a6a6ad;">loading…</div></div>'
+        +'<div id="cust-book-list" style="font-size:11px;color:#a6a6ad;">Loading history…</div>'
+      +'</div>'
+      // Section 3 — packages
+      +'<div style="padding:16px 18px;border-bottom:1px solid #232327;">'
+        +'<div style="font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#6b6b72;margin-bottom:8px;">Packages</div>'
+        +'<div style="font-size:11px;color:#6b6b72;">Session packs (5 / 10) — <b style="color:#f0b429;">coming soon</b>. Credit ledger architecture next.</div>'
+      +'</div>'
+      // Section 4 — referrals
+      +'<div style="padding:16px 18px;">'
+        +'<div style="font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#6b6b72;margin-bottom:8px;">Referrals</div>'
+        +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px 18px;">'
+          +_cpCell('Referral code',esc(ref))
+          +_cpCell('Successful referrals',String(C.referralCount||0))
+          +_cpCell('Referral points',String(C.referralPoints||0))
+        +'</div>'
+        +'<div style="font-size:10px;color:#6b6b72;margin-top:8px;">Referral tracking + points rules — coming soon.</div>'
+      +'</div>'
+    +'</div>';
+    ov.style.display='flex';
+    // history
+    Promise.all(nums.map(function(w){ return (typeof clientHistory==='function')?clientHistory(w):Promise.resolve([]); })).then(function(lists){
+      var rows=[]; lists.forEach(function(l){ rows=rows.concat(l||[]); });
+      rows.sort(function(a,b){ return (a.bizDate||'')<(b.bizDate||'')?1:-1; });
+      var live=rows.filter(function(r){ return r.status!=='cancelled'; });
+      var spend=0, days={}, lastTher='—', firstDate=null;
+      live.forEach(function(r){ spend+=(r.amount||0); if(r.bizDate){days[r.bizDate]=1; if(!firstDate||r.bizDate<firstDate) firstDate=r.bizDate;} });
+      for(var i=0;i<rows.length;i++){ var d=_cpDetail(rows[i]); if(d.therapist){ lastTher=d.therapist; break; } }
+      var lastVisit=rows.length?(rows[0].bizDate||'—'):'—';
+      var since=document.getElementById('cust-since'); if(since) since.textContent=firstDate||'—';
+      var st=document.getElementById('cust-book-stats'); if(st) st.innerHTML='Last visit '+esc(lastVisit)+' · Last therapist '+esc(lastTher)+' · '+Object.keys(days).length+' visits · '+f(spend)+' total';
+      var host=document.getElementById('cust-book-list'); if(!host) return;
+      if(!rows.length){ host.innerHTML='<div style="color:#6b6b72;">No bookings linked yet.</div>'; return; }
+      host.innerHTML='<div style="display:grid;grid-template-columns:74px 1fr 90px 60px 74px;gap:6px;font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;color:#6b6b72;padding-bottom:6px;border-bottom:1px solid #232327;"><span>Date</span><span>Service</span><span>Therapist</span><span style="text-align:right;">Amount</span><span style="text-align:right;">Status</span></div>'
+        +rows.map(function(r){ var d=_cpDetail(r); var cx=(r.status==='cancelled');
+          return '<div style="display:grid;grid-template-columns:74px 1fr 90px 60px 74px;gap:6px;align-items:baseline;padding:6px 0;border-bottom:1px solid #1a1a1d;font-size:11px;'+(cx?'opacity:.5;':'')+'">'
+            +'<span>'+esc(r.bizDate||'')+(d.time?('<br><span style="font-size:9px;color:#6b6b72;">'+esc(d.time)+'</span>'):'')+'</span>'
+            +'<span style="color:#f4f4f5;">'+esc(d.service||(r.kind||'').toUpperCase())+(d.focus?(' <span style="color:#6b6b72;">· '+esc(d.focus)+'</span>'):'')+(d.dur?(' <span style="color:#6b6b72;">· '+d.dur+'m</span>'):'')+(d.source?('<br><span style="font-size:9px;color:#6b6b72;">'+esc(d.source)+'</span>'):'')+'</span>'
+            +'<span style="color:#a6a6ad;">'+esc(d.therapist||'—')+'</span>'
+            +'<span style="text-align:right;">'+f(r.amount)+'</span>'
+            +'<span style="text-align:right;color:'+(cx?'#c0392b':(d.payStatus==='due'?'#f0b429':'#25D366'))+';font-size:10px;">'+esc(cx?'cancelled':(d.payStatus||r.status||'paid'))+'</span>'
+          +'</div>';
+        }).join('');
+    });
+  }catch(e){ console.warn('openCustomerProfile',e); }
+};
+function _cpCell(label,val){ return '<div><div style="font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:#6b6b72;">'+label+'</div><div style="font-size:13px;color:#f4f4f5;margin-top:3px;word-break:break-word;">'+val+'</div></div>'; }
+// Pull the useful fields out of a ledger row's detail JSON (the booking record).
+function _cpDetail(r){
+  var d={}; try{ d=r.detail?JSON.parse(r.detail):{}; }catch(e){ d={}; }
+  var ther=d.therapistName||d.therapist||(d.clinical?(d.provider||'HUMAN+'):'')||'';
+  var svc=d.serviceName||d.service||d.pathway||'';
+  var focus=(d.pathway&&d.pathway!==svc)?d.pathway:'';
+  var payStatus=(r.status==='cancelled')?'cancelled':(d.balancePaid===false&&(d.online||d.payType==='deposit'||d.payType==='later')?'due':'paid');
+  return { therapist:ther, service:svc, focus:focus, dur:d.duration||0, time:d.start||d.time||'', source:d.source||'', payStatus:payStatus };
+}
+window.closeCustomerProfile=function(){ var ov=document.getElementById('cust-profile-ov'); if(ov) ov.style.display='none'; };
+window.editCustomerDetails=function(){
+  var ctx=window._custProfileCtx||{}; var C=(window.CLIENTS||{})[ctx.pid]||{};
+  var v=document.getElementById('cust-detail-view'); if(!v) return;
+  var inp='width:100%;box-sizing:border-box;background:#0f0f11;border:1px solid #2c2c31;border-radius:5px;color:#f4f4f5;font-family:\'Space Mono\',monospace;font-size:12px;padding:7px 8px;';
+  v.innerHTML='<div style="grid-column:1/-1;display:grid;grid-template-columns:repeat(3,1fr);gap:12px 18px;">'
+    +'<div><div style="font-size:9px;text-transform:uppercase;color:#6b6b72;margin-bottom:4px;">Full name</div><input id="ce-name" style="'+inp+'" value="'+(C.name||'').replace(/"/g,'&quot;')+'"></div>'
+    +'<div><div style="font-size:9px;text-transform:uppercase;color:#6b6b72;margin-bottom:4px;">Email</div><input id="ce-email" style="'+inp+'" value="'+(C.email||'').replace(/"/g,'&quot;')+'"></div>'
+    +'<div><div style="font-size:9px;text-transform:uppercase;color:#6b6b72;margin-bottom:4px;">Date of birth</div><input id="ce-dob" type="date" style="'+inp+'" value="'+(C.dob||'')+'"></div>'
+    +'</div>'
+    +'<div style="grid-column:1/-1;display:flex;gap:8px;margin-top:4px;"><button onclick="saveCustomerDetails()" style="background:#25D366;border:none;border-radius:6px;color:#fff;font-weight:700;padding:8px 16px;cursor:pointer;font-family:\'Space Mono\',monospace;font-size:11px;">Save</button><button onclick="openCustomerProfile(_custProfileCtx.pid,_custProfileCtx.nums.join(\',\'))" style="background:#141417;border:1px solid #2c2c31;border-radius:6px;color:#f4f4f5;padding:8px 16px;cursor:pointer;font-family:\'Space Mono\',monospace;font-size:11px;">Cancel</button></div>';
+};
+window.saveCustomerDetails=function(){
+  try{
+    if(typeof currentUser==='undefined'||!currentUser||currentUser.type!=='admin'){ alert('Only admin can edit customers.'); return; }
+    var ctx=window._custProfileCtx||{}; if(!ctx.pid) return;
+    var name=(document.getElementById('ce-name')||{}).value||'';
+    var email=(document.getElementById('ce-email')||{}).value||'';
+    var dob=(document.getElementById('ce-dob')||{}).value||'';
+    var patch={ updatedAt:firebase.firestore.FieldValue.serverTimestamp() };
+    if(name.trim()) patch.name=name.trim();
+    patch.email=email.trim(); var el=window.normEmail(email); patch.emailLower=el||firebase.firestore.FieldValue.delete();
+    patch.dob=dob||firebase.firestore.FieldValue.delete();
+    firebase.firestore().collection('clients').doc(ctx.pid).set(patch,{merge:true}).then(function(){
+      if(window.CLIENTS&&window.CLIENTS[ctx.pid]){ window.CLIENTS[ctx.pid].name=patch.name||window.CLIENTS[ctx.pid].name; window.CLIENTS[ctx.pid].email=email.trim(); window.CLIENTS[ctx.pid].dob=dob; }
+      openCustomerProfile(ctx.pid, (ctx.nums||[]).join(','));
+    }).catch(function(e){ alert('Save failed: '+(e&&e.message||e)); });
+  }catch(e){ console.warn('saveCustomerDetails',e); }
 };
 </script>
 
@@ -15791,6 +15924,7 @@ window.injectWaCapture = function(confirmId, sale){
             '<div style="font-family:\'Space Mono\',monospace;font-size:10px;color:#6b6b72;margin-top:4px;">'+esc(src)+'  ·  last seen '+seen+spendLine+'  '+offers+'</div>'+
           '</div>'+
           '<div style="display:flex;gap:7px;flex-shrink:0;">'+
+            '<button onclick="openCustomerProfile(\''+esc(g.numbers[0]||g.primaryId)+'\',\''+esc(g.numbers.join(','))+'\')" style="padding:7px 11px;background:#f4f4f5;border:none;border-radius:5px;color:#0A0A0A;font-family:\'Space Mono\',monospace;font-size:11px;font-weight:700;cursor:pointer;">View →</button>'+
             '<button onclick="groupHistoryView(this,\''+esc(g.numbers.join(','))+'\')" style="padding:7px 11px;background:#141417;border:1px solid #2c2c31;border-radius:5px;color:#f4f4f5;font-family:\'Space Mono\',monospace;font-size:11px;cursor:pointer;">History</button>'+
             '<button onclick="clientMessage(\''+esc(msgId)+'\')" style="padding:7px 11px;background:#25D366;border:none;border-radius:5px;color:#fff;font-family:\'Space Mono\',monospace;font-size:11px;font-weight:700;cursor:pointer;">Message</button>'+
           '</div>'+
