@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260928145;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260928146;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -11043,7 +11043,7 @@ var clinRecommendedBy=''; // IV/blood: therapist (TC/TB/TD) who recommended it �
 var clinPayType='full'; // 'deposit' | 'full'
 var clinPatient='', clinEmail='', clinWhatsapp='', clinTime='';
 var clinDate=(typeof baliNow==='function'?baliNow():new Date());
-var clinGroupOpen={recovery:false,iv:false,blood:false,peptide:false};  // start collapsed — the menu is long, staff expand what they need
+var clinGroupOpen={recovery:true,iv:false,blood:false,peptide:false};  // Recovery open (most-used); IV / Blood / Peptides collapsed to keep the long menu tidy
 var clinViewYear=null, clinViewMonth=null;
 function clinKey(){ try{ return clinDate.toLocaleDateString('en-CA',(typeof BALI_TZ!=='undefined'?{timeZone:BALI_TZ}:undefined)); }catch(e){ return clinDate.toLocaleDateString('en-CA'); } }
 function clinDayName(){ try{ return clinDate.toLocaleDateString('en-US',Object.assign({weekday:'long'},(typeof BALI_TZ!=='undefined'?{timeZone:BALI_TZ}:{}))); }catch(e){ return clinDate.toLocaleDateString('en-US',{weekday:'long'}); } }
@@ -11578,7 +11578,7 @@ function clinSendReminder(id){
 // Resend guard — the button becomes "Reminder sent ✓"; re-sending asks first so no accidental double message.
 function clinResendReminder(id){ if(confirm('A reminder was already sent to this client via WhatsApp.\n\nSend another one?')) clinSendReminder(id); }
 window.clinSendReminder=clinSendReminder; window.clinResendReminder=clinResendReminder;
-function initRecovery(){ if(typeof loadClinical==='function') loadClinical(); clinSel=null;clinType=null;clinIntake=false;clinWindow=null;clinRoom=null;clinPay='card';clinDone=false;clinDoneHold=false;clinEditingId=null;clinEditingDate=null;clinOnline=false;clinPressure='';clinRecommendedBy='';clinPayType='full';clinPatient='';clinEmail='';clinWhatsapp='';clinTime=''; clinAddons=[]; clinComp=false; clinCart=[]; clinPeptideCart={}; window._clinDoneCount=0; window._clinDepositRef=null; clinDate=(typeof baliNow==='function'?baliNow():new Date()); clinViewYear=null;clinViewMonth=null; clinGroupOpen={recovery:false,iv:false,blood:false,peptide:false}; try{window.clinPromo=null; ['recovery-disc-pct','recovery-disc-code'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';}); var _m=document.getElementById('recovery-disc-msg');if(_m)_m.textContent='';}catch(e){} clinSyncDateUI(); renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); startBookingListener(); }
+function initRecovery(){ if(typeof loadClinical==='function') loadClinical(); clinSel=null;clinType=null;clinIntake=false;clinWindow=null;clinRoom=null;clinPay='card';clinDone=false;clinDoneHold=false;clinEditingId=null;clinEditingDate=null;clinOnline=false;clinPressure='';clinRecommendedBy='';clinPayType='full';clinPatient='';clinEmail='';clinWhatsapp='';clinTime=''; clinAddons=[]; clinComp=false; clinCart=[]; clinPeptideCart={}; window._clinDoneCount=0; window._clinDepositRef=null; clinDate=(typeof baliNow==='function'?baliNow():new Date()); clinViewYear=null;clinViewMonth=null; clinGroupOpen={recovery:true,iv:false,blood:false,peptide:false}; try{window.clinPromo=null; ['recovery-disc-pct','recovery-disc-code'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';}); var _m=document.getElementById('recovery-disc-msg');if(_m)_m.textContent='';}catch(e){} clinSyncDateUI(); renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); startBookingListener(); }
 window.initRecovery=initRecovery;
 
 // ── Online Booking Requests (public_bookings Firestore collection) ──────
