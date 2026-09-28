@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260926144;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260928145;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -1813,6 +1813,12 @@ h1,
 .clin-tags{display:flex;gap:6px;margin-top:9px;}
 .clin-tag{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.07em;text-transform:uppercase;padding:3px 6px;border:1px solid #0A0A0A;color:#0A0A0A;}
 .clin-tag.req{border-color:#FF2D2D;color:#FF2D2D;}
+.clin-pep-add{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:8px 12px;background:#0A0A0A;color:#fff;border:none;cursor:pointer;width:100%;}
+.clin-pep-add:hover{background:#333;}
+.clin-pep-qty{display:inline-flex;align-items:center;gap:0;border:1px solid #0A0A0A;}
+.clin-pep-qty button{font-family:'Space Mono',monospace;font-size:14px;width:34px;height:30px;background:#fff;color:#0A0A0A;border:none;cursor:pointer;}
+.clin-pep-qty button:hover{background:#f0f0f0;}
+.clin-pep-qty span{font-family:'Space Mono',monospace;font-size:12px;min-width:34px;text-align:center;color:#0A0A0A;}
 .clin-booking{padding:0 16px 16px;}
 .clin-placeholder{font-family:'Space Mono',monospace;font-size:11px;color:#9a9a9e;padding:26px 6px;text-align:center;line-height:1.6;}
 .clin-bk-hdr{font-family:'Archivo',sans-serif;font-weight:700;font-size:18px;letter-spacing:-.01em;color:#0A0A0A;margin:2px 0 14px;}
@@ -2387,7 +2393,7 @@ h1,
       <div id="clin-order-body" class="clin-order-body"></div>
       <div class="clin-order-foot">
         <div class="clin-totline"><span>Subtotal</span><span id="clin-subtotal">IDR 0</span></div>
-        <div class="clin-totline"><span>Tax (non-PKP)</span><span id="clin-tax">IDR 0</span></div>
+        <div class="clin-totline"><span id="clin-tax-lbl">Tax (non-PKP)</span><span id="clin-tax">IDR 0</span></div>
         <div class="clin-totline tot"><span>Total</span><span id="clin-total">IDR 0</span></div>
         <label class="clin-online-row"><input type="checkbox" id="clin-online" onchange="clinToggleOnline(this.checked)"><span>Online booking · 50% deposit</span></label>
         <div style="display:flex;gap:5px;margin:8px 0 2px;">
@@ -8221,10 +8227,12 @@ window.TAX_CFG=TAX_CFG; window.saveTaxCfg=saveTaxCfg;
 //   pph23 (on commission) → withheld by HUMAN+ from DISTRIK's commission → a DISTRIK tax credit / receivable
 //   net commission     → commission - pph23 (what DISTRIK actually keeps after withholding)
 // Rates come from TAX_CFG dynamically (defaults 20% / 2%), never hard-coded downstream.
-function _hpRate(){ var r=(typeof TAX_CFG!=='undefined'&&TAX_CFG.clinicCommission!=null)?+TAX_CFG.clinicCommission:0.20; return (isFinite(r)&&r>=0&&r<=1)?r:0.20; }
+// A record may carry its OWN commission rate (d.commPct 0–1) — e.g. peptide items are 10% while IV/blood use the
+// global 20%. Passing the record is optional and backward-compatible: no record → the global TAX_CFG rate.
+function _hpRate(d){ if(d && typeof d.commPct==='number' && isFinite(d.commPct) && d.commPct>=0 && d.commPct<=1) return d.commPct; var r=(typeof TAX_CFG!=='undefined'&&TAX_CFG.clinicCommission!=null)?+TAX_CFG.clinicCommission:0.20; return (isFinite(r)&&r>=0&&r<=1)?r:0.20; }
 function _hpPphRate(){ var r=(typeof TAX_CFG!=='undefined'&&TAX_CFG.pph23!=null)?+TAX_CFG.pph23:0.02; return (isFinite(r)&&r>=0&&r<=1)?r:0.02; }
 function _isHumanPlus(d){ return !!(d && (d.clinical || d.partner)); }
-function _hpSplit(gross){ gross=Math.round(+gross||0); var comm=Math.round(gross*_hpRate()); var pph=Math.round(comm*_hpPphRate()); return {gross:gross, commission:comm, payable:gross-comm, pph23:pph, netCommission:comm-pph}; }
+function _hpSplit(gross, d){ gross=Math.round(+gross||0); var comm=Math.round(gross*_hpRate(d)); var pph=Math.round(comm*_hpPphRate()); return {gross:gross, commission:comm, payable:gross-comm, pph23:pph, netCommission:comm-pph}; }
 window._hpRate=_hpRate; window._hpPphRate=_hpPphRate; window._isHumanPlus=_isHumanPlus; window._hpSplit=_hpSplit;
 
 // ── JOB APPLICATIONS API (Distrik recruitment backend) ──
@@ -11035,7 +11043,7 @@ var clinRecommendedBy=''; // IV/blood: therapist (TC/TB/TD) who recommended it �
 var clinPayType='full'; // 'deposit' | 'full'
 var clinPatient='', clinEmail='', clinWhatsapp='', clinTime='';
 var clinDate=(typeof baliNow==='function'?baliNow():new Date());
-var clinGroupOpen={recovery:true,iv:true,blood:true};
+var clinGroupOpen={recovery:false,iv:false,blood:false,peptide:false};  // start collapsed — the menu is long, staff expand what they need
 var clinViewYear=null, clinViewMonth=null;
 function clinKey(){ try{ return clinDate.toLocaleDateString('en-CA',(typeof BALI_TZ!=='undefined'?{timeZone:BALI_TZ}:undefined)); }catch(e){ return clinDate.toLocaleDateString('en-CA'); } }
 function clinDayName(){ try{ return clinDate.toLocaleDateString('en-US',Object.assign({weekday:'long'},(typeof BALI_TZ!=='undefined'?{timeZone:BALI_TZ}:{}))); }catch(e){ return clinDate.toLocaleDateString('en-US',{weekday:'long'}); } }
@@ -11091,7 +11099,7 @@ function clinSetText(id,t){ var e=document.getElementById(id); if(e) e.textConte
 function clinSvc(){ if(!clinSel) return null; return (clinType==='clinical'?CLINICAL_SERVICES:SERVICES).find(function(x){return x.id===clinSel;}); }
 // HUMAN+ service category: explicit svc.cat ('iv'|'blood') wins; otherwise infer 'iv' from the name (IV / infusion / drip / NAD),
 // else 'blood'. Lets us show IV and Blood Work as separate lists without a data migration.
-function _clinCat(svc){ if(!svc) return 'blood'; if(svc.cat==='iv'||svc.cat==='blood') return svc.cat; return (/\b(iv|infusion|drip|nad)\b/i.test(String(svc.name||'')))?'iv':'blood'; }
+function _clinCat(svc){ if(!svc) return 'blood'; if(svc.cat==='iv'||svc.cat==='blood'||svc.cat==='peptide') return svc.cat; return (/\b(iv|infusion|drip|nad)\b/i.test(String(svc.name||'')))?'iv':'blood'; }
 // IV ENHANCEMENTS (add-ons) — selectable only when an IV service is chosen; they add to the treatment price.
 var clinAddons=[]; // selected addon ids for the current booking
 function clinAddonList(){ return (clinAddons||[]).map(function(id){ return (CLINICAL_ADDONS||[]).find(function(a){return a.id===id;}); }).filter(Boolean); }
@@ -11209,6 +11217,28 @@ function clinCartRemove(i){
   renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); buildClinRoomGrid();
 }
 window.clinAddAnother=clinAddAnother; window.clinCartRemove=clinCartRemove; window.clinCartTotal=clinCartTotal;
+// ── PEPTIDE / PEN ITEMS (retail line-items — no chair, no time, no therapist) ────────────────────────────
+// Added straight to the order with a qty. Accounted as HUMAN+ agent model at 10% commission (DISTRIK collects
+// the full price, keeps 10%, 90% is Payable to HUMAN+, PPh23 on the commission). Never blocks a chair.
+var clinPeptideCart={};   // { serviceId: qty }
+var PEPTIDE_COMM_PCT=0.10;
+function clinPeptideItems(){ return (typeof CLINICAL_SERVICES!=='undefined'?CLINICAL_SERVICES:[]).filter(function(s){ return _clinCat(s)==='peptide'; }); }
+function clinPeptideHasItems(){ return Object.keys(clinPeptideCart).some(function(id){ return clinPeptideCart[id]>0; }); }
+function _clinPeptideById(id){ return (typeof CLINICAL_SERVICES!=='undefined'?CLINICAL_SERVICES:[]).find(function(s){ return s.id===id && _clinCat(s)==='peptide'; })||null; }
+function clinPeptideTotal(){ var t=0; Object.keys(clinPeptideCart).forEach(function(id){ var s=_clinPeptideById(id); if(s) t+=Math.round(s.price||0)*(clinPeptideCart[id]||0); }); return t; }
+function clinAddPeptide(id){ if(typeof clinCaptureInputs==='function') clinCaptureInputs(); if(!_clinPeptideById(id)) return; clinPeptideCart[id]=(clinPeptideCart[id]||0)+1; renderClinicalServices(); renderClinicalOrder(); }
+function clinPeptideQty(id,delta){ if(typeof clinCaptureInputs==='function') clinCaptureInputs(); var q=(clinPeptideCart[id]||0)+delta; if(q<=0) delete clinPeptideCart[id]; else clinPeptideCart[id]=q; renderClinicalServices(); renderClinicalOrder(); }
+window.clinAddPeptide=clinAddPeptide; window.clinPeptideQty=clinPeptideQty; window.clinPeptideTotal=clinPeptideTotal; window.clinPeptideHasItems=clinPeptideHasItems;
+// Order-column lines for the peptide items (with an inline qty stepper).
+function _clinPeptideLines(){
+  var out='';
+  Object.keys(clinPeptideCart).forEach(function(id){
+    var s=_clinPeptideById(id), q=clinPeptideCart[id]||0; if(!s||q<=0) return;
+    out+='<div class="clin-oline"><span>'+s.name+(q>1?(' ×'+q):'')+'</span><span>'+clinFmt(Math.round(s.price||0)*q)+'</span></div>'
+      +'<div class="clin-oline sub"><span>Item · Human+</span><span><button type="button" onclick="clinPeptideQty(\''+id+'\',-1)" style="border:1px solid #d3d3ce;background:#fff;cursor:pointer;padding:1px 7px;font-family:Space Mono,monospace;">&minus;</button> '+q+' <button type="button" onclick="clinPeptideQty(\''+id+'\',1)" style="border:1px solid #d3d3ce;background:#fff;cursor:pointer;padding:1px 7px;font-family:Space Mono,monospace;">+</button></span></div>';
+  });
+  return out;
+}
 // What the whole booking comes to: the treatment in the builder (with any Recovery promo) + every queued one.
 // updateClinicalTotals stores the figure it actually displays in window._clinOrderDue; this is the fallback.
 function clinOrderTotal(){
@@ -11548,7 +11578,7 @@ function clinSendReminder(id){
 // Resend guard — the button becomes "Reminder sent ✓"; re-sending asks first so no accidental double message.
 function clinResendReminder(id){ if(confirm('A reminder was already sent to this client via WhatsApp.\n\nSend another one?')) clinSendReminder(id); }
 window.clinSendReminder=clinSendReminder; window.clinResendReminder=clinResendReminder;
-function initRecovery(){ if(typeof loadClinical==='function') loadClinical(); clinSel=null;clinType=null;clinIntake=false;clinWindow=null;clinRoom=null;clinPay='card';clinDone=false;clinDoneHold=false;clinEditingId=null;clinEditingDate=null;clinOnline=false;clinPressure='';clinRecommendedBy='';clinPayType='full';clinPatient='';clinEmail='';clinWhatsapp='';clinTime=''; clinAddons=[]; clinComp=false; clinCart=[]; window._clinDoneCount=0; window._clinDepositRef=null; clinDate=(typeof baliNow==='function'?baliNow():new Date()); clinViewYear=null;clinViewMonth=null; clinGroupOpen={recovery:true,iv:true,blood:true}; try{window.clinPromo=null; ['recovery-disc-pct','recovery-disc-code'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';}); var _m=document.getElementById('recovery-disc-msg');if(_m)_m.textContent='';}catch(e){} clinSyncDateUI(); renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); startBookingListener(); }
+function initRecovery(){ if(typeof loadClinical==='function') loadClinical(); clinSel=null;clinType=null;clinIntake=false;clinWindow=null;clinRoom=null;clinPay='card';clinDone=false;clinDoneHold=false;clinEditingId=null;clinEditingDate=null;clinOnline=false;clinPressure='';clinRecommendedBy='';clinPayType='full';clinPatient='';clinEmail='';clinWhatsapp='';clinTime=''; clinAddons=[]; clinComp=false; clinCart=[]; clinPeptideCart={}; window._clinDoneCount=0; window._clinDepositRef=null; clinDate=(typeof baliNow==='function'?baliNow():new Date()); clinViewYear=null;clinViewMonth=null; clinGroupOpen={recovery:false,iv:false,blood:false,peptide:false}; try{window.clinPromo=null; ['recovery-disc-pct','recovery-disc-code'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';}); var _m=document.getElementById('recovery-disc-msg');if(_m)_m.textContent='';}catch(e){} clinSyncDateUI(); renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); startBookingListener(); }
 window.initRecovery=initRecovery;
 
 // ── Online Booking Requests (public_bookings Firestore collection) ──────
@@ -11919,11 +11949,12 @@ function recGroupCard(g){
 }
 function renderClinicalServices(){
   var el=document.getElementById('clin-services'); if(!el) return;
-  var rOpen=clinGroupOpen.recovery, ivOpen=clinGroupOpen.iv, blOpen=clinGroupOpen.blood;
+  var rOpen=clinGroupOpen.recovery, ivOpen=clinGroupOpen.iv, blOpen=clinGroupOpen.blood, pepOpen=clinGroupOpen.peptide;
   var rSvcs=(typeof SERVICES!=='undefined'?SERVICES:[]);
   var cSvcs=CLINICAL_SERVICES||[];
   var ivSvcs=cSvcs.filter(function(s){return _clinCat(s)==='iv';});
   var blSvcs=cSvcs.filter(function(s){return _clinCat(s)==='blood';});
+  var pepSvcs=cSvcs.filter(function(s){return _clinCat(s)==='peptide';});
   var rGroups=_svcGroupByName(rSvcs);
   el.innerHTML=
     // ── Recovery — grouped by pathway name, each with its duration/price options ──
@@ -11943,7 +11974,30 @@ function renderClinicalServices(){
       +'<span class="clin-acc-title">Blood Work · Human+</span>'
       +'<span><span class="clin-acc-count">'+blSvcs.length+'</span><span class="clin-acc-arrow'+(blOpen?' open':'')+'">›</span></span>'
     +'</div>'
-    +'<div class="clin-acc-body'+(blOpen?' open':'')+'">'+blSvcs.map(function(s){return svcCard(s,'clinical');}).join('')+'</div>';
+    +'<div class="clin-acc-body'+(blOpen?' open':'')+'">'+blSvcs.map(function(s){return svcCard(s,'clinical');}).join('')+'</div>'
+    // ── HUMAN+ Peptides & Pens — retail items, add to the order with a qty (no chair/time) ──
+    +(pepSvcs.length?(
+      '<div class="clin-acc-hdr" onclick="toggleClinGroup(\'peptide\')">'
+        +'<span class="clin-acc-title">Peptides &amp; Pens · Human+</span>'
+        +'<span><span class="clin-acc-count">'+pepSvcs.length+'</span><span class="clin-acc-arrow'+(pepOpen?' open':'')+'">›</span></span>'
+      +'</div>'
+      +'<div class="clin-acc-body'+(pepOpen?' open':'')+'">'+pepSvcs.map(peptideCard).join('')+'</div>'
+    ):'');
+}
+// A peptide/pen item card: name + price + a "+ Add" that becomes a qty stepper once in the order. No booking slot.
+function peptideCard(s){
+  var qty=clinPeptideCart[s.id]||0;
+  var priced=(s.price||0)>0;
+  var nm=s.name+(s.size?(' <span style="color:#9a9a9e;font-weight:400;font-size:12px;">· '+s.size+'</span>'):'');
+  var priceLbl=priced?clinFmt(s.price):'<span style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.06em;color:#c0392b;">Price TBC</span>';
+  var ctrl = qty>0
+    ? '<div class="clin-pep-qty"><button type="button" onclick="event.stopPropagation();clinPeptideQty(\''+s.id+'\',-1)">&minus;</button><span>'+qty+'</span><button type="button" onclick="event.stopPropagation();clinPeptideQty(\''+s.id+'\',1)">+</button></div>'
+    : (priced?'<button type="button" class="clin-pep-add" onclick="event.stopPropagation();clinAddPeptide(\''+s.id+'\')">+ Add to order</button>'
+             :'<div style="font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:.06em;color:#9a9a9e;text-transform:uppercase;">Price coming soon</div>');
+  return '<div class="clin-card'+(qty>0?' sel':'')+'">'
+    +'<div class="clin-card-top"><div class="clin-name">'+nm+'</div><div class="clin-price">'+priceLbl+'</div></div>'
+    +(s.focus?'<div class="clin-meta">'+s.focus+'</div>':'')
+    +'<div style="margin-top:8px;">'+ctrl+'</div></div>';
 }
 function selectService(id,type){ if(typeof clinCaptureInputs==='function') clinCaptureInputs(); /* keep whatever's typed */ clinSel=id;clinType=type;clinIntake=false;clinWindow=null;clinRoom=null;clinDone=false;clinOnline=false;clinTime='';/* clinPayType is the BOOKING's, not this treatment's — keep it */clinRecommendedBy='';clinAddons=[];clinComp=false; window._clinOnlineReqId=null; /* PRESERVE client name/email/WhatsApp + pressure when changing the session type — a full reset only happens via initRecovery / New booking */ renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); }
 window.selectService=selectService;
@@ -12341,9 +12395,9 @@ function renderClinicalOrder(){
   _clinOrderChrome(true);
   if(clinDone){ var _dn=window._clinDoneCount||1; var dMsg=(clinDoneHold?'Tentative — intake pending':'Booking confirmed')+(_dn>1?(' · '+_dn+' treatments'):''); var dIco=clinDoneHold?'<span style="color:#FF2D2D;">●</span>':'✓'; var dSub=clinDoneHold?'<div style="font-family:Space Mono,monospace;font-size:11px;color:#56565b;margin-top:8px;line-height:1.5;">Chair reserved. Confirm once intake is returned &amp; approved.</div>':''; el.innerHTML='<div class="clin-confirm"><div class="clin-confirm-ico">'+dIco+'</div><div class="clin-confirm-msg">'+dMsg+'</div>'+dSub+'<button class="clin-intake-btn" style="background:#0A0A0A;margin-top:14px;" onclick="initRecovery()">New booking</button></div>'; clinSetText('clin-subtotal','—'); clinSetText('clin-tax','—'); clinSetText('clin-total','—'); var b=document.getElementById('clin-confirm-btn'); if(b){b.disabled=true;b.textContent=clinDoneHold?'Tentative':'Confirmed';} return; }
   if(!clinSel){
-    if(clinCart.length){
-      el.innerHTML=_clinOrderCartLines()
-        +'<div class="clin-oline sub"><span>Next treatment</span><span>choose a service &#8594;</span></div>';
+    if(clinCart.length || clinPeptideHasItems()){
+      el.innerHTML=_clinOrderCartLines()+_clinPeptideLines()
+        +'<div class="clin-oline sub"><span>Next</span><span>add a service or item &#8594;</span></div>';
       updateClinicalTotals(0); return;
     }
     el.innerHTML='<div class="receipt-empty" style="padding:24px;text-align:center;color:#9a9a9e;font-family:Space Mono,monospace;font-size:11px;">No service selected</div>'; updateClinicalTotals(0); return;
@@ -12353,7 +12407,7 @@ function renderClinicalOrder(){
   // Keep the original figures ONLY on a plain move; if the duration/service was changed (an extend), show the new price.
   var _eo2=(clinEditingId&&window._clinEditOrig&&!window.clinPromo&&clinSel===window._clinEditOrig.service)?window._clinEditOrig:null;
   var _topPrice=_eo2?Math.round(_eo2.price||0):s.price;
-  var lines=_clinOrderCartLines()+'<div class="clin-oline"><span>'+s.name+'</span><span>'+clinFmt(_topPrice)+'</span></div>';
+  var lines=_clinOrderCartLines()+_clinPeptideLines()+'<div class="clin-oline"><span>'+s.name+'</span><span>'+clinFmt(_topPrice)+'</span></div>';
   if(clinType==='clinical'){
     lines+=(clinRoom?'<div class="clin-oline sub"><span>Recovery chair</span><span>'+clinRoom+'</span></div>':'')
       +(clinTime?'<div class="clin-oline sub"><span>Time</span><span>'+clinDate.toLocaleDateString('en-US',{weekday:'short'})+' '+clinTime+'</span></div>':'')
@@ -12413,8 +12467,10 @@ function updateClinicalTotals(base){
     return;
   }
   if(_dp) base=Math.round(base*(1-_dp/100));
-  base=base+clinCartTotal();   // the treatments already parked on this booking (each carries its own discount rule)
-  var tax=0, total=base; // Recovery/spa & clinical: NON-PKP, no PBJT → no consumption tax
+  var _pepTax=Math.round(clinPeptideTotal()*0.11);   // peptide/pen items carry 11% PPN — added at checkout for tax
+  base=base+clinCartTotal()+clinPeptideTotal();   // parked treatments (own discount) + peptide items (retail, no discount)
+  var tax=_pepTax, total=base+tax; // Recovery/spa & clinical are NON-PKP; only peptide items add the 11% tax line
+  try{ var _txl=document.getElementById('clin-tax-lbl'); if(_txl) _txl.textContent=_pepTax>0?'Tax · 11% (items)':'Tax (non-PKP)'; }catch(e){}
   window._clinOrderDue=total;  // what the deposit link must quote — always the figure on screen
   clinSetText('clin-subtotal', _dp?(clinFmt(total)+'  ('+_dp+'% off)'):clinFmt(base)); clinSetText('clin-tax',clinFmt(tax)); clinSetText('clin-total',clinFmt(total));
   var dep=Math.round(total*0.5), bal=total-dep;
@@ -12422,7 +12478,7 @@ function updateClinicalTotals(base){
   var isDeposit=!clinEditingId && ((clinPayType==='deposit')||clinOnline);
   var dl=document.getElementById('clin-deposit-lines');
   if(dl){
-    var _hasOrder=!!(clinSel||clinCart.length);
+    var _hasOrder=!!(clinSel||clinCart.length||clinPeptideHasItems());
     var depHtml=(isDeposit&&_hasOrder)?('<div class="clin-deposit-line due"><span>Deposit due now (50%)</span><span>'+clinFmt(dep)+'</span></div><div class="clin-deposit-line bal"><span>Balance on arrival (50%)</span><span>'+clinFmt(bal)+'</span></div>'):'';
     if(isDeposit&&_hasOrder){
       var xLink=getXenditLink();
@@ -12437,14 +12493,14 @@ function updateClinicalTotals(base){
   var conflict = (typeof clinCurrentConflict==='function') && clinCurrentConflict();
   var curDone = clinCurrentComplete();
   // Confirm takes the whole order: the treatment in the builder, plus anything already queued on the booking.
-  var baseOk = curDone || (!clinSel && clinCart.length>0);
+  var baseOk = curDone || (!clinSel && (clinCart.length>0 || clinPeptideHasItems()));
   var ok = baseOk && !conflict;
   btn.disabled=!ok;
   var _n = clinCart.length + (curDone?1:0);
   var multi = (_n>1) ? (' · '+_n+' treatments') : '';
   var depTxt = isDeposit ? ('Take 50% deposit · '+clinFmt(dep)) : null;
   var readyTxt = depTxt || (clinEditingId?'Update booking':('Confirm booking'+multi));
-  if(!clinSel && clinCart.length) btn.textContent = depTxt || ('Confirm booking'+multi);
+  if(!clinSel && (clinCart.length || clinPeptideHasItems())) btn.textContent = depTxt || ((clinCart.length?'Confirm booking':'Charge order')+multi);
   else if(!clinSel) btn.textContent='Select a service';
   else if(conflict) btn.textContent = (clinType==='clinical'?'Chair':'Room')+' busy at that time';
   else if(clinType==='clinical') btn.textContent = !clinRoom?'Select a chair':(!clinTime?'Select a time':(depTxt||(clinIntake?(clinEditingId?'Update booking':('Confirm booking'+multi)):('Save tentative · intake pending'+multi))));
@@ -12854,12 +12910,48 @@ function _clinSaveOne(orderId, sendEmail){
   }catch(e){ console.warn('clinical save',e); }
   return rec;
 }
+// Record the peptide/pen items on the order as HUMAN+ retail sales: DISTRIK collects the full price now (card/QR),
+// recognises only 10% commission (90% Payable to HUMAN+, PPh23 on the commission). No room/time/therapist, so it
+// never blocks a chair and never appears on the room grid. Returns how many lines were saved.
+function _clinConfirmPeptides(orderId){
+  var dateKey=clinKey(), n=0;
+  try{
+    if(typeof recoveryData==='undefined') return 0;
+    if(!recoveryData[dateKey]) recoveryData[dateKey]={revenue:0,bookings:[]};
+    if(!recoveryData[dateKey].bookings) recoveryData[dateKey].bookings=[];
+    Object.keys(clinPeptideCart).forEach(function(id){
+      var s=_clinPeptideById(id), q=clinPeptideCart[id]||0; if(!s||q<=0) return;
+      var lineBase=Math.round(s.price||0)*q;
+      var lineTax=Math.round(lineBase*0.11);     // 11% PPN on the items, collected at checkout
+      var price=lineBase+lineTax;                 // total charged = the amount collected/ledgered
+      var prec={
+        id:(typeof genId==='function'?genId():'pep_'+Date.now()+'_'+n), orderId:orderId||null,
+        service:'peptide', serviceName:s.name+(s.size?(' '+s.size):'')+(q>1?(' ×'+q):''),
+        room:null, roomName:null, therapist:null, therapistName:null, start:null, time:null, duration:0,
+        client:clinPatient||'Guest', email:clinEmail||'', whatsapp:clinWhatsapp||'', phone:clinWhatsapp||'',
+        price:price, gross:price, taxBase:lineBase, tax:lineTax, taxRate:0.11, itemQty:q, cost:Math.round(s.cost||0)*q,
+        payType:'full', source:(clinOnline?'Online':'Walk-in'), status:'confirmed', payMethod:clinPay,
+        clinical:true, peptide:true, commPct:PEPTIDE_COMM_PCT,
+        tag:'HUMAN+ · Peptide', provider:'HUMAN+', collector:'DISTRIK', cat:'peptide',
+        date:dateKey, ledgerDate:dateKey, _ts:Date.now()
+      };
+      recoveryData[dateKey].bookings.push(prec);
+      recoveryData[dateKey].revenue=(recoveryData[dateKey].revenue||0)+(typeof clinRevenue==='function'?clinRevenue(prec):Math.round(price*PEPTIDE_COMM_PCT));
+      if(typeof ledgerWrite==='function') ledgerWrite('recovery', prec.id, dateKey, (typeof clinCollected==='function'?clinCollected(prec):price), 0, prec.payMethod, prec, 'confirmed');
+      if(typeof clientUpsert==='function' && clinWhatsapp) clientUpsert({name:clinPatient, whatsapp:clinWhatsapp, email:clinEmail, source:'peptide', consent:true});
+      n++;
+    });
+    if(n){ clinPeptideCart={}; if(typeof saveAll==='function') saveAll(); if(typeof syncSalesIncome==='function') syncSalesIncome(); }
+  }catch(e){ console.warn('peptide save',e); }
+  return n;
+}
 // Confirm the whole booking: everything parked with "Add another", plus the treatment still in the builder.
 // Each one becomes its own row on the schedule (so the chairs/rooms block correctly) but they share an orderId.
 function confirmClinical(){
   clinCaptureInputs();
   var curDone=clinCurrentComplete();
-  if(!curDone && !clinCart.length) return;
+  var hasPep=(!clinEditingId && clinPeptideHasItems());   // peptide/pen retail items only on NEW orders
+  if(!curDone && !clinCart.length && !hasPep) return;
   // block double-booking — held & confirmed both reserve the slot
   if(curDone && clinCurrentConflict()){ clinNotify((clinType==='clinical'?'That chair':'That room')+' is already booked at that time — pick another '+(clinType==='clinical'?'chair or window':'time or room')+'.'); return; }
   var wasEdit=!!clinEditingId;
@@ -12869,8 +12961,9 @@ function confirmClinical(){
     items=(clinCart||[]).filter(function(it){ return it && it.sel && it.room && (it.type==='clinical' || it.time); });
     if(curDone) items.push(_clinSnapItem());
   }
-  if(!items.length) return;
-  var orderId=(items.length>1)?(typeof genId==='function'?genId():'ord_'+Date.now()):null;
+  var pepLineCount=hasPep?Object.keys(clinPeptideCart).filter(function(id){return clinPeptideCart[id]>0;}).length:0;
+  if(!items.length && !pepLineCount) return;
+  var orderId=((items.length+pepLineCount)>1)?(typeof genId==='function'?genId():'ord_'+Date.now()):null;
   var snap=_clinSnapItem(), anyHold=false, saved=0;
   items.forEach(function(it,i){
     _clinRestoreItem(it);
@@ -12879,6 +12972,7 @@ function confirmClinical(){
   });
   _clinRestoreItem(snap);
   clinCart=[];
+  if(hasPep){ saved += _clinConfirmPeptides(orderId); }   // record peptide items (10% HUMAN+, full paid, no slot)
   // If this booking was an online request opened via "Edit / move", clear that request from the pending list now.
   if(window._clinOnlineReqId){ try{ _bkDismissed[window._clinOnlineReqId]=1; _onreqUpdateStatus(window._clinOnlineReqId,'confirmed'); }catch(e){} window._clinOnlineReqId=null; }
   clinEditingId=null; clinEditingDate=null; window._clinEditOrig=null;
@@ -12902,12 +12996,12 @@ function clinRevenue(b){
   var c=clinCollected(b);
   if(!(typeof _isHumanPlus==='function'&&_isHumanPlus(b))) return c;
   var h=(typeof _compShare==='function')?_compShare(b,c):0;   // compression boots are DISTRIK's own service — 100% ours
-  return (typeof _hpSplit==='function'?_hpSplit(c-h).commission:Math.round((c-h)*0.2)) + h;
+  return (typeof _hpSplit==='function'?_hpSplit(c-h, b).commission:Math.round((c-h)*0.2)) + h;
 }
 window.clinRevenue=clinRevenue;
 // Revenue recognised on a SPECIFIC collected amount for a booking (used by the optimistic day.revenue updates).
 // HUMAN+ → commission portion only; everything else → the full amount. Ledger writes always store the full amount.
-function _hpRev(b,amt){ amt=Math.round(+amt||0); if(!(typeof _isHumanPlus==='function'&&_isHumanPlus(b))) return amt; var h=(typeof _compShare==='function')?_compShare(b,amt):0; return Math.round((amt-h)*_hpRate())+h; }
+function _hpRev(b,amt){ amt=Math.round(+amt||0); if(!(typeof _isHumanPlus==='function'&&_isHumanPlus(b))) return amt; var h=(typeof _compShare==='function')?_compShare(b,amt):0; return Math.round((amt-h)*_hpRate(b))+h; }
 window._hpRev=_hpRev;
 // Collect the remaining 50% balance when the client arrives
 // ── RECEPTION PAYMENT CLARITY ────────────────────────────────────────
@@ -14374,7 +14468,7 @@ window.rebuildFromLedger = function(docs){
         // the commission is DISTRIK revenue; the rest is Payable to HUMAN+, and PPh 23 (on the commission) is a
         // withholding receivable. Normal recovery/spa bookings recognise the full amount as revenue.
         if(_isHumanPlus(det)){
-          var _sp=_hpSplit(_amt);
+          var _sp=_hpSplit(_amt, det);
           rd[date]._rev=(rd[date]._rev||0)+_sp.commission;
           rd[date]._hpGross=(rd[date]._hpGross||0)+_sp.gross;
           rd[date]._hpComm=(rd[date]._hpComm||0)+_sp.commission;
@@ -15169,7 +15263,7 @@ function _hplusRows(ym){
         var gross=(typeof clinCollected==='function')?clinCollected(b):(b.price||0); if(!(gross>0)) return;
         var _boots=(typeof _compShare==='function')?_compShare(b,gross):0;   // boots collected alongside are ours, not HUMAN+'s
         gross=gross-_boots; if(!(gross>0)) return;
-        var sp=(typeof _hpSplit==='function')?_hpSplit(gross):{gross:gross,commission:Math.round(gross*0.2),payable:gross-Math.round(gross*0.2),pph23:Math.round(Math.round(gross*0.2)*0.02),netCommission:0};
+        var sp=(typeof _hpSplit==='function')?_hpSplit(gross, b):{gross:gross,commission:Math.round(gross*0.2),payable:gross-Math.round(gross*0.2),pph23:Math.round(Math.round(gross*0.2)*0.02),netCommission:0};
         rows.push({id:b.id||'', date:k, client:b.client||'—', service:(b.serviceName||b.service||'HUMAN+ treatment'), gross:sp.gross, commission:sp.commission, payable:sp.payable, pph23:sp.pph23, netComm:sp.netCommission!=null?sp.netCommission:(sp.commission-sp.pph23)});
       });
     });
