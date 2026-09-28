@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260928150;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260928151;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -15044,8 +15044,10 @@ window.reconAddEntry=function(){
   var dEl=document.getElementById('recon-date'), mEl=document.getElementById('recon-method'), aEl=document.getElementById('recon-amount'), nEl=document.getElementById('recon-note');
   var stat=document.getElementById('recon-add-status');
   function setStat(t,c){ if(stat){ stat.textContent=t; stat.style.color=c||'#6b6b72'; } }
-  // Strip ALL non-digits so Indonesian thousands ("734.987" / "734,987" / "IDR 734.987,00") parse to the whole number.
-  var amt=parseInt(((aEl&&aEl.value)||'').replace(/[^0-9]/g,''),10)||0;
+  // Robust IDR parse: keep digits + separators, DROP a trailing 2-digit decimal (…,00 / .00 cents) so "140,732.00"
+  // → 140732 (not 14073200), then strip thousands separators. Handles "734,987.00", "140.732", "63.900", "50000".
+  var _raw=(((aEl&&aEl.value)||'').replace(/[^0-9.,]/g,'')).replace(/[.,]\d{2}$/,'');
+  var amt=parseInt(_raw.replace(/[^0-9]/g,''),10)||0;
   if(!amt){ setStat('Enter an amount first','#f59e0b'); if(aEl)aEl.focus(); return; }
   var date=(dEl&&dEl.value)|| _reconMonthNow()+'-01';
   setStat('saving…','#f59e0b');
