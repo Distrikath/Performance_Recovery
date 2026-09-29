@@ -575,15 +575,16 @@ footer{padding:40px 48px 28px;border-top:1px solid var(--line);display:flex;just
       <div class="bk-step" id="bks4">
         <div class="bk-confirm-wrap">
           <div class="bk-confirm-check">&#x2713;</div>
-          <div class="bk-confirm-title">request sent.</div>
+          <div class="bk-confirm-title" id="bk-conf-title">request sent.</div>
           <div class="bk-confirm-detail" id="bk-conf-detail"></div>
-          <div class="bk-confirm-note">
+          <div class="bk-confirm-detail" id="bk-conf-deposit" style="margin-bottom:8px"></div>
+          <div class="bk-confirm-note" id="bk-conf-note">
             your appointment request has been sent to DISTRIK.<br>
             we'll confirm via whatsapp within a few hours.
           </div>
-          <a class="bk-confirm-wa" href="https://wa.me/6281994801516" target="_blank">contact Distrik. on whatsapp &#x2192;</a>
+          <a class="bk-confirm-wa" id="bk-conf-wa" href="https://wa.me/6281994801516" target="_blank">contact Distrik. on whatsapp &#x2192;</a>
           <br>
-          <button class="bk-next" style="margin-top:24px;cursor:pointer" onclick="closeBk()">done &#x2192;</button>
+          <button class="bk-next" id="bk-conf-done" style="margin-top:24px;cursor:pointer" onclick="closeBk()">done &#x2192;</button>
         </div>
       </div>
 
@@ -767,7 +768,7 @@ function bkCalNext(){_calState.month++;if(_calState.month>11){_calState.month=0;
 var BW_CAPACITY=1; // blood work room 3 — one appointment per slot
 var CHAIR_CAPACITY=2; // Compression + IV + Blood SHARE the 2 recovery chairs
 function _bkTimeToMin(str){var m=String(str||'').match(/(\d{1,2}):?(\d{2})?\s*(am|pm)?/i);if(!m)return null;var hh=parseInt(m[1]);var mm=m[2]?parseInt(m[2]):0;var ap=(m[3]||'').toLowerCase();if(ap==='pm'&&hh!==12)hh+=12;if(ap==='am'&&hh===12)hh=0;return hh*60+mm;}
-function _bkChairWindows(snap){var w=[];snap.forEach(function(doc){var d=doc.data()||{};var st=(d.status||'').toLowerCase();if(st==='cancelled'||st==='declined')return;var isChair=(String(d.pathway||'').toUpperCase()==='COMPRESSION')||d.type==='iv_therapy'||d.type==='blood_work';if(!isChair)return;var s=_bkTimeToMin(d.time);if(s==null)return;var dur=parseInt(d.duration)||(d.type==='iv_therapy'?60:(d.type==='blood_work'?20:30));w.push({s:s,e:s+dur+15});});return w;} // +15 min buffer
+function _bkChairWindows(snap){var w=[];snap.forEach(function(doc){var d=doc.data()||{};var st=(d.status||'').toLowerCase();if(st==='cancelled'||st==='declined')return;var isChair=(String(d.pathway||'').toUpperCase()==='COMPRESSION')||d.type==='iv_therapy'||d.type==='blood_work';if(!isChair)return;var s=_bkTimeToMin(d.time);if(s==null)return;var dur=parseInt(d.duration)||(d.type==='iv_therapy'?60:(d.type==='blood_work'?45:30));w.push({s:s,e:s+dur+15});});return w;} // +15 min buffer
 function _bkChairsBusyAt(wins,s,dur){if(!wins||!wins.length)return 0;var e=s+dur;var n=0;wins.forEach(function(w){if(s<w.e&&e>w.s)n++;});return n;}
 
 function getRosterWorkedSlots(dateStr,zone){
@@ -888,41 +889,103 @@ function submitBk(){
   var btn=document.getElementById('bk-next-btn');
   if(btn){btn.disabled=true;btn.textContent='sending...';}
   var priceStr=PRICE_FMT[bkState.package+'|'+bkState.gender+'|'+bkState.price]||('IDR '+bkState.price);
+  var ts=Date.now(), ref='BW-'+ts.toString(36).slice(-4).toUpperCase();
+  var priceNum=(parseInt(bkState.price,10)||0)+(bkState.comp?BW_COMPRESSION.price:0);   // full price incl. boots
+  var deposit=Math.round(priceNum/2);
   var rec={
+    ref:ref,
     type:'blood_work',
     package:bkState.package,
     gender:bkState.gender,
     price:bkState.price,
+    priceNum:priceNum,
+    deposit:deposit,
     date:bkState.date,
     time:bkState.time,
     compression:bkState.comp?{id:BW_COMPRESSION.id,name:BW_COMPRESSION.name,price:BW_COMPRESSION.price,duration:BW_COMPRESSION.duration}:null,
-    duration:Math.max(20,bkState.comp?BW_COMPRESSION.duration:0),   // the chair is held for the boots too
+    duration:Math.max(45,bkState.comp?BW_COMPRESSION.duration:0),   // blood work holds the chair 45 min (rule); boots extend to 60
     name:bkState.name.trim(),
     phone:bkState.phone.trim(),
     email:(bkState.email||'').trim(),
     dob:bkState.dob||'',
     medical:((bkState.med||'').trim()||'None stated'),
-    status:'tentative',
+    // PAYMENT-FIRST: saved as pending_payment (hidden from staff, not a real booking) until the 50% deposit
+    // clears; the Xendit webhook then promotes it to 'tentative'. Time is confirmed/rescheduled via whatsapp.
+    status:(priceNum>0?'pending_payment':'tentative'),
+    paymentStatus:'unpaid',
     submittedAt:firebase.firestore.FieldValue.serverTimestamp()
   };
+  var detail=rec.package+'<br>'+priceStr+'<br>'+rec.date+' at '+rec.time+'<br>'+rec.name+' &middot; '+rec.phone+'<br>'+rec.email+
+    (rec.compression?('<br><span style="font-size:10px;opacity:.7">+ '+rec.compression.name+' '+rec.compression.duration+' min &mdash; '+bwFmtIDR(rec.compression.price)+'</span>'):'');
   bkAuth().then(function(db){ return db.collection('public_bookings').add(rec); }).then(function(){
-    var de=document.getElementById('bk-conf-detail');
-    if(de)de.innerHTML=
-      rec.package+'<br>'+
-      priceStr+'<br>'+
-      rec.date+' at '+rec.time+'<br>'+
-      rec.name+' &middot; '+rec.phone+'<br>'+rec.email+
-      (rec.compression?('<br><span style="font-size:10px;opacity:.7">+ '+rec.compression.name+' '+rec.compression.duration+' min &mdash; '+bwFmtIDR(rec.compression.price)+'</span>'):'');
-    bkGoStep(4);
+    showBkConfirm(ref, rec, priceNum, detail);
   }).catch(function(e){
     if(btn){btn.disabled=false;btn.innerHTML='confirm &#x2192;';}
     alert('Something went wrong: '+e.message+'\n\nPlease contact HELIX directly: +62 853-3371-6596');
   });
 }
 
+// PAID booking → go STRAIGHT to Xendit for the 50% card deposit (never show a "booked" state before payment).
+function showBkConfirm(ref, rec, priceNum, detail){
+  var half=priceNum?Math.round(priceNum/2):0;
+  var titleEl=document.getElementById('bk-conf-title');
+  var detEl=document.getElementById('bk-conf-detail');
+  var depEl=document.getElementById('bk-conf-deposit');
+  var noteEl=document.getElementById('bk-conf-note');
+  var waEl=document.getElementById('bk-conf-wa');
+  var doneEl=document.getElementById('bk-conf-done');
+  bkGoStep(4);
+  if(!priceNum){
+    if(titleEl)titleEl.textContent='request sent.';
+    if(detEl)detEl.innerHTML=detail;
+    if(depEl)depEl.innerHTML='';
+    if(noteEl)noteEl.innerHTML='your appointment request has been sent to DISTRIK.<br>we’ll confirm via whatsapp within a few hours.';
+    if(waEl)waEl.style.display=''; if(doneEl)doneEl.style.display='';
+    return;
+  }
+  try{ sessionStorage.setItem('bk_last', JSON.stringify({ref:ref, detail:detail, half:half, priceNum:priceNum})); }catch(e){}
+  if(detEl)detEl.innerHTML='';
+  if(depEl)depEl.innerHTML='<div style="font-family:var(--mono);font-size:9px;letter-spacing:.05em;color:var(--ink-d);">opening secure card payment&hellip;</div>';
+  if(titleEl)titleEl.textContent='taking you to payment…';
+  if(noteEl)noteEl.innerHTML='<b style="color:var(--r);">Your booking is not held until the 50% deposit is paid.</b><br>please don’t close this page.';
+  if(waEl)waEl.style.display='none'; if(doneEl)doneEl.style.display='none';
+  window._bkRetryRec={ref:ref,rec:rec,priceNum:priceNum,detail:detail};
+  fetch('https://asia-southeast2-distrikath80361.cloudfunctions.net/createDepositInvoice',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({ref:ref,price:priceNum,name:rec.name,email:rec.email||'',phone:rec.phone,pathway:'blood work',date:rec.date,time:rec.time,return_page:'blood-work.html'})
+  }).then(function(r){return r.json();}).then(function(j){
+    if(j&&j.invoice_url){ window.location.assign(j.invoice_url); }
+    else { _bkPayFailed(); }
+  }).catch(function(){ _bkPayFailed(); });
+}
+function _bkPayFailed(){
+  var titleEl=document.getElementById('bk-conf-title');
+  var noteEl=document.getElementById('bk-conf-note');
+  var depEl=document.getElementById('bk-conf-deposit');
+  if(titleEl)titleEl.textContent='payment didn’t start';
+  if(noteEl)noteEl.innerHTML='<b style="color:var(--r);">Your booking is not confirmed.</b><br>Please try again, or WhatsApp us to pay.';
+  if(depEl)depEl.innerHTML='<button onclick="if(window._bkRetryRec)showBkConfirm(window._bkRetryRec.ref,window._bkRetryRec.rec,window._bkRetryRec.priceNum,window._bkRetryRec.detail);" style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:12px 18px;background:var(--r);color:#fff;border:none;cursor:pointer;">Try payment again</button><div style="font-family:var(--mono);font-size:10px;color:var(--ink-d);margin-top:10px;">or WhatsApp +62 853-3371-6596</div>';
+}
+// Returning from Xendit after a successful deposit → blood-work.html?paid=1&ref=… → show the CONFIRMED screen.
+function showBkPaidConfirmed(ref){
+  var info={}; try{ info=JSON.parse(sessionStorage.getItem('bk_last')||'{}'); }catch(e){}
+  var ov=document.getElementById('bk-overlay'); if(ov)ov.classList.add('open');
+  document.body.style.overflow='hidden';
+  bkGoStep(4);
+  var titleEl=document.getElementById('bk-conf-title'); if(titleEl)titleEl.textContent='booking confirmed.';
+  var detEl=document.getElementById('bk-conf-detail'); if(detEl&&info.detail)detEl.innerHTML=info.detail;
+  var depEl=document.getElementById('bk-conf-deposit'); if(depEl)depEl.innerHTML='<div style="color:#10b981;letter-spacing:.1em;font-weight:700;">&#10003; 50% deposit paid'+(info.half?(' &middot; '+bwFmtIDR(info.half)):'')+'</div>';
+  var noteEl=document.getElementById('bk-conf-note'); if(noteEl)noteEl.innerHTML='we’ll confirm your appointment time via whatsapp within a few hours.<br>the remaining 50% is paid in person at the lab.';
+  var waEl=document.getElementById('bk-conf-wa'); if(waEl)waEl.style.display='';
+  var doneEl=document.getElementById('bk-conf-done'); if(doneEl)doneEl.style.display='';
+  try{ sessionStorage.removeItem('bk_last'); }catch(e){}
+  try{ history.replaceState({},'',location.pathname); }catch(e){}
+}
+
 document.addEventListener('DOMContentLoaded',function(){
   var ov=document.getElementById('bk-overlay');
   if(ov)ov.addEventListener('click',function(e){if(e.target===ov)closeBk();});
+  try{ var _pp=new URLSearchParams(location.search); if(_pp.get('paid')==='1'){ showBkPaidConfirmed(_pp.get('ref')||''); } }catch(e){}
 });
 </script>
 </body>
