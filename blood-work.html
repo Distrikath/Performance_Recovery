@@ -768,7 +768,7 @@ function bkCalNext(){_calState.month++;if(_calState.month>11){_calState.month=0;
 var BW_CAPACITY=1; // blood work room 3 — one appointment per slot
 var CHAIR_CAPACITY=2; // Compression + IV + Blood SHARE the 2 recovery chairs
 function _bkTimeToMin(str){var m=String(str||'').match(/(\d{1,2}):?(\d{2})?\s*(am|pm)?/i);if(!m)return null;var hh=parseInt(m[1]);var mm=m[2]?parseInt(m[2]):0;var ap=(m[3]||'').toLowerCase();if(ap==='pm'&&hh!==12)hh+=12;if(ap==='am'&&hh===12)hh=0;return hh*60+mm;}
-function _bkChairWindows(snap){var w=[];snap.forEach(function(doc){var d=doc.data()||{};var st=(d.status||'').toLowerCase();if(st==='cancelled'||st==='declined')return;var isChair=(String(d.pathway||'').toUpperCase()==='COMPRESSION')||d.type==='iv_therapy'||d.type==='blood_work';if(!isChair)return;var s=_bkTimeToMin(d.time);if(s==null)return;var dur=parseInt(d.duration)||(d.type==='iv_therapy'?60:(d.type==='blood_work'?45:30));w.push({s:s,e:s+dur+15});});return w;} // +15 min buffer
+function _bkChairWindows(snap){var w=[];snap.forEach(function(doc){var d=doc.data()||{};var st=(d.status||'').toLowerCase();if(st==='cancelled'||st==='declined')return;var isChair=(String(d.pathway||'').toUpperCase()==='COMPRESSION')||d.type==='iv_therapy'||d.type==='blood_work';if(!isChair)return;var s=_bkTimeToMin(d.time);if(s==null)return;var dur=parseInt(d.duration)||(d.type==='iv_therapy'?60:(d.type==='blood_work'?30:30));w.push({s:s,e:s+dur+15});});return w;} // +15 min buffer
 function _bkChairsBusyAt(wins,s,dur){if(!wins||!wins.length)return 0;var e=s+dur;var n=0;wins.forEach(function(w){if(s<w.e&&e>w.s)n++;});return n;}
 
 function getRosterWorkedSlots(dateStr,zone){
@@ -903,7 +903,7 @@ function submitBk(){
     date:bkState.date,
     time:bkState.time,
     compression:bkState.comp?{id:BW_COMPRESSION.id,name:BW_COMPRESSION.name,price:BW_COMPRESSION.price,duration:BW_COMPRESSION.duration}:null,
-    duration:Math.max(45,bkState.comp?BW_COMPRESSION.duration:0),   // blood work holds the chair 45 min (rule); boots extend to 60
+    duration:Math.max(30,bkState.comp?BW_COMPRESSION.duration:0),   // blood work holds the chair 30 min (rule); boots extend to 60
     name:bkState.name.trim(),
     phone:bkState.phone.trim(),
     email:(bkState.email||'').trim(),
