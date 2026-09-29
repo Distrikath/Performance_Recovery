@@ -707,7 +707,11 @@ function bkRenderAddons(){
 // ── Booking state ─────────────────────────────────────────────────────
 var bkState={step:1,protocol:'',date:null,time:null,name:'',phone:'',email:'',dob:'',med:'',addons:[],comp:false};
 var _calState={year:0,month:0};
-var IV_SLOTS=['9am','10am','11am','12pm','1pm','2pm','3pm','4pm','5pm','6pm'];
+var IV_SLOTS=['9am','10am','11am','12pm','1pm','2pm','3pm','4pm','5pm','6pm','7pm'];
+// Studio-hours cap: 8am earliest, 7pm latest Mon–Sat, 5pm Sun (1h before the Sunday 6pm close).
+function _slotHour(t){ var m=String(t).match(/(\d{1,2})(am|pm)/i); if(!m)return null; var h=+m[1]; var ap=m[2].toLowerCase(); if(ap==='pm'&&h!==12)h+=12; if(ap==='am'&&h===12)h=0; return h; }
+function _bkDayMaxHour(){ try{ var d=bkState.date; var dt=(d&&d.getDay)?d:(d?new Date(String(d).length<=10?(d+'T12:00:00'):d):null); return (dt&&dt.getDay()===0)?17:19; }catch(e){ return 19; } }
+function _bkSlotWithinHours(t){ var h=_slotHour(t); if(h==null) return true; return h>=8 && h<=_bkDayMaxHour(); }
 
 function openBk(){
   bkState={step:1,protocol:'',date:null,time:null,name:'',phone:'',email:'',dob:'',med:'',addons:[],comp:false};
@@ -880,6 +884,7 @@ function renderTimes(counts,worked){
   IV_SLOTS.forEach(function(t){
     if(!slotRostered(t,worked)) return; // no therapist rostered at this hour
     if(!bkIVSlotOk(t)) return;          // under 24h notice — not bookable
+    if(!_bkSlotWithinHours(t)) return;  // outside studio hours (8am–7pm; Sun to 5pm)
     var full=_bkChairsBusyAt(counts,_bkTimeToMin(t),60)>=CHAIR_CAPACITY; // 60-min IV vs the shared 2 chairs
     var btn=document.createElement('button');
     btn.className='bk-time-btn'+(full?' sel':'');

@@ -653,7 +653,7 @@ try{ bkLoadRoster(); }catch(e){}
 // ── Booking state ─────────────────────────────────────────────────────
 var bkState={step:1,package:'',gender:'',price:0,date:null,time:null,name:'',phone:'',email:'',dob:'',med:'',comp:false};
 var _calState={year:0,month:0};
-var BW_SLOTS=['8am','9am','10am','11am','12pm','2pm','3pm'];
+var BW_SLOTS=['8am','9am','10am','11am','12pm'];   // lab's latest blood booking is 12pm (morning for sample accuracy)
 
 var PRICE_FMT={
   'Peptide Ready||5900000':'IDR 5,900,000',
