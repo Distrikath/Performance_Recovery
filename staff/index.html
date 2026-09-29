@@ -6653,8 +6653,9 @@ function buildTimeline(room, roomBks){
   let html=`<div class="rf-timeline"><div class="rf-timeline-inner">
     <div class="rf-time-bg">`;
 
-  // Hour markers
-  for(let h=SCHED_START;h<=SCHED_END;h++){
+  // Hour markers — ONE cell per hour-interval (h<END, not <=) so each gridline sits at rfPct(h), exactly where the
+  // booking blocks are positioned. The old inclusive loop made 15 cells over a 14-hour span, drifting every block right.
+  for(let h=SCHED_START;h<SCHED_END;h++){
     const isHour=true;
     html+=`<div class="rf-time-slot hour" style="flex:1">
       <div class="rf-time-label">${h===12?'12pm':h<12?h+'am':(h-12)+'pm'}</div>
@@ -11161,7 +11162,10 @@ function clinItemName(it){ var s=_clinItemSvc(it); return s?s.name:'Treatment'; 
 function clinItemDuration(it){
   var s=_clinItemSvc(it); if(!s) return 60;
   if(it.type!=='clinical') return (s.duration||60);
-  return Math.max(s.dur||45, it.comp?clinCompDuration():0);      // boots run during the treatment
+  var _cat=(typeof _clinCat==='function')?_clinCat(s):'';
+  // HUMAN+ session rule: IV ≥60 min, blood work ≥30 min (peptides/other keep their own dur). The +15 buffer is added on the timeline.
+  var _base=(_cat==='iv')?Math.max(60,s.dur||0):((_cat==='blood')?Math.max(30,s.dur||0):(s.dur||45));
+  return Math.max(_base, it.comp?clinCompDuration():0);          // boots run during the treatment
 }
 function clinItemStart(it){
   if(it.time) return it.time;
@@ -12207,7 +12211,7 @@ window.clinSelectRoom=clinSelectRoom; window.buildClinRoomGrid=buildClinRoomGrid
 function renderClinicalBooking(){
   // Legacy HUMAN+ bookings booked too short: enforce the current session minimums so the schedule reads right
   // (blood work 30 min, IV 60 min). In-memory only — the +15 buffer is added on top by the availability check.
-  try{ if(typeof recoveryData!=='undefined'){ Object.keys(recoveryData).forEach(function(_dk){ var _bs=(recoveryData[_dk]&&recoveryData[_dk].bookings)||[]; _bs.forEach(function(_b){ if(!_b) return; var _min=((_b.service==='blood'||_b.type==='blood_work')?30:((_b.service==='iv'||_b.type==='iv_therapy')?60:0)); if(_min && (parseInt(_b.duration)||0)<_min) _b.duration=_min; }); }); } }catch(e){}
+  try{ if(typeof recoveryData!=='undefined'){ Object.keys(recoveryData).forEach(function(_dk){ var _bs=(recoveryData[_dk]&&recoveryData[_dk].bookings)||[]; _bs.forEach(function(_b){ if(!_b) return; var _nm=String(_b.serviceName||''); var _isIV=(_b.service==='iv'||_b.type==='iv_therapy'||/\b(iv|infusion|drip|nad)\b/i.test(_nm)); var _isBlood=(!_isIV)&&(_b.service==='blood'||_b.type==='blood_work'||/blood/i.test(_nm)); var _min=_isIV?60:(_isBlood?30:0); if(_min && (parseInt(_b.duration)||0)<_min) _b.duration=_min; }); }); } }catch(e){}
   var el=document.getElementById('clin-booking'); if(!el) return;
   var roomGridDiv='<div id="clin-room-grid" style="border-top:1px solid #e8e8e8;"></div>';
 
