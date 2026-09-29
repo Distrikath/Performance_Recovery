@@ -11813,22 +11813,26 @@ function acceptOnlineBooking(id){
       if(typeof saveAll==='function') saveAll();
       try{ if(typeof buildClinRoomGrid==='function') buildClinRoomGrid(); if(typeof renderClinicalBooking==='function') renderClinicalBooking(); }catch(e){}
     } else if((r.type==='iv_therapy'||r.type==='blood_work') && typeof recoveryData!=='undefined'){
-      // IV & BLOOD WORK are HUMAN+ services — HUMAN+ collects the money, not Distrik. Distrik earns a
-      // 20% commission paid MONTHLY, so it's tracked "on hold" (0 collected now, no balance to collect).
-      // The booking still blocks a Recovery Chair so nothing double-books over it.
-      var _pvTotal=(function(){ if(typeof r.total==='number'&&r.total) return r.total; var m=String(r.price||'').match(/([\d.,]+)\s*([km])?/i); if(!m) return 0; var n=parseFloat(m[1].replace(/,/g,'')); var u=(m[2]||'').toLowerCase(); if(u==='k')n*=1000; else if(u==='m')n*=1000000; return Math.round(n||0); })();
-      // Boots booked online alongside the drip: same chair, one booking. The customer's total includes them, but
-      // they're DISTRIK's service — strip them out of the HUMAN+ total (and its 20%) and collect them at the till.
+      // IV & BLOOD WORK are HUMAN+ services. MODEL: everyone pays DISTRIK — we collect the full amount (50% deposit
+      // online + balance at Check out), then settle HUMAN+ 80% monthly on the 25th. Only the 20% commission is DISTRIK
+      // revenue; the 80% is Payable to HUMAN+ (the split is done in the ledger via clinical:true — Version B).
+      // The booking blocks a Recovery Chair so nothing double-books over it.
+      var _pvTotal=(function(){ if(typeof r.priceNum==='number'&&r.priceNum) return r.priceNum; if(typeof r.total==='number'&&r.total) return r.total; var m=String(r.price||'').match(/([\d.,]+)\s*([km])?/i); if(!m) return 0; var n=parseFloat(m[1].replace(/,/g,'')); var u=(m[2]||'').toLowerCase(); if(u==='k')n*=1000; else if(u==='m')n*=1000000; return Math.round(n||0); })();
+      // Boots booked online run in the same chair — the customer's total already includes them and DISTRIK collects
+      // the FULL amount, so we keep boots IN the total (no strip); they show as a line on the booking.
       var _pvComp=(r.compression&&r.compression.price)?{id:r.compression.id||'s4',name:r.compression.name||'Compression Boots',price:Math.round(r.compression.price),duration:Math.round(r.compression.duration||30)}:null;
-      if(_pvComp) _pvTotal=Math.max(0,_pvTotal-_pvComp.price);
       var _commission=Math.round(_pvTotal*0.2);
       var _pvSt=(function(){ var t=String(r.time||'').match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i); if(!t) return r.time||''; var hh=parseInt(t[1]); var mm=t[2]||'00'; var ap=(t[3]||'').toLowerCase(); if(ap==='pm'&&hh!==12)hh+=12; if(ap==='am'&&hh===12)hh=0; return ('0'+hh).slice(-2)+':'+mm; })();
-      var _pvDur=Math.max(r.duration||(r.type==='blood_work'?15:60), _pvComp?_pvComp.duration:0);   // boots run during the drip
+      var _pvDur=Math.max(r.duration||(r.type==='blood_work'?30:60), _pvComp?_pvComp.duration:0);   // boots run during the drip
       var _pMin=function(hhmm){ var m=String(hhmm||'').match(/(\d{1,2}):(\d{2})/); return m?parseInt(m[1])*60+parseInt(m[2]):0; };
       var _ps0=_pMin(_pvSt), _pe0=_ps0+_pvDur;
       var _pDay=(recoveryData[r.date]&&recoveryData[r.date].bookings)||[];
       var _pChair=['rec1','rec2'].find(function(cid){ return !_pDay.some(function(b){ if(b.room!==cid||b.status==='cancelled') return false; var bs=_pMin(b.start||b.time), be=bs+(b.duration||60); return _ps0<be && _pe0>bs; }); }) || 'rec1';
       var _pChairName=(typeof ROOMS!=='undefined'?((ROOMS.find(function(x){return x.id===_pChair;})||{}).name):null)||'Recovery Chair';
+      // Deposit: use the amount the website charged (r.deposit = 50% of the full price) or fall back to 50%.
+      var _pvDep=(typeof r.deposit==='number'&&r.deposit)?r.deposit:Math.round(_pvTotal/2);
+      // Was the 50% deposit already paid online by card? (Xendit webhook stamps depositPaid / paymentStatus.)
+      var _pvDepPaid=(_pvTotal>0 && (r.depositPaid===true || r.paymentStatus==='deposit_paid' || r.paymentStatus==='paid'));
       var pRec={
         id:(typeof genId==='function'?genId():'pbk_'+Date.now()),
         service:(r.type==='blood_work'?'blood':'iv'), serviceName:String(_onreqLabel(r)),
@@ -11836,22 +11840,30 @@ function acceptOnlineBooking(id){
         therapist:null, therapistName:null,
         start:_pvSt, time:_pvSt, duration:_pvDur,
         client:r.name||'Guest', email:r.email||'', whatsapp:r.phone||'', phone:r.phone||'',
-        price:0, partnerTotal:_pvTotal, commission:_commission, commissionStatus:'hold', commissionPct:20,
-        payType:'partner', source:'Online', status:'confirmed', payMethod:'partner',
-        clinical:true, tag:(r.type==='blood_work'?'HELIX · Bloods':'HUMAN+ · IV'), partner:true, provider:'HUMAN+',
+        // DISTRIK collects the ACTUAL amount: deposit taken online, balance DUE at Check out (not "pay at partner").
+        price:_pvTotal, partnerTotal:_pvTotal, commission:_commission, commissionStatus:'hold', commissionPct:20,
+        online:true, payType:'deposit', deposit:_pvDep, depositPaid:_pvDepPaid,
+        balanceDue:Math.max(0,_pvTotal-_pvDep), balancePaid:false,
+        source:'Online', status:'confirmed', payMethod:'online',
+        clinical:true, tag:(r.type==='blood_work'?'HELIX · Bloods':'HUMAN+ · IV'), partner:false, provider:'HUMAN+',
         checkedIn:false, onlineRef:r.ref||id, date:r.date, _ts:Date.now()
       };
       if(_pvComp){
-        pRec.compression=_pvComp;
-        pRec.price=_pvComp.price; pRec.payType='later'; pRec.balanceDue=_pvComp.price; pRec.balancePaid=false; pRec.depositPaid=false;
-        pRec.partner=false; pRec.partnerCollect=true;      // HUMAN+ bills the drip; the boots are collected at Check out
+        pRec.compression=_pvComp;   // boots are part of the one booking; already included in the total DISTRIK collects
         pRec.serviceName=String(pRec.serviceName||'')+(String(pRec.serviceName||'').indexOf(_pvComp.name)<0?(' + '+_pvComp.name):'');
       }
       if(!recoveryData[r.date]) recoveryData[r.date]={revenue:0,bookings:[]};
       if(!recoveryData[r.date].bookings) recoveryData[r.date].bookings=[];
       recoveryData[r.date].bookings.push(pRec);
-      // 0 collected now — commission is on hold until the monthly payout. Syncs + blocks the chair.
-      if(typeof ledgerWrite==='function') ledgerWrite('recovery', pRec.id, r.date, 0, 0, 'partner', pRec, 'confirmed');
+      // Record the deposit on the day it was actually PAID (so Sales matches the bank); balance is taken at Check out.
+      // rebuildFromLedger does the HUMAN+ 20/80 split (clinical:true) — DISTRIK revenue = commission, 80% = Payable.
+      var _pvPayDay=r.date;
+      if(_pvDepPaid){
+        _pvPayDay=(typeof todayKey==='function'?todayKey():r.date);
+        try{ var _pt=r.depositPaidAt; if(_pt){ var _pd=_pt.toDate?_pt.toDate():(_pt.seconds?new Date(_pt.seconds*1000):new Date(_pt)); if(_pd&&!isNaN(_pd.getTime())){ _pvPayDay=new Date(_pd.getTime()+8*3600000).toISOString().slice(0,10); } } }catch(e){}
+      }
+      pRec.ledgerDate=_pvPayDay;
+      if(typeof ledgerWrite==='function') ledgerWrite('recovery', pRec.id, _pvPayDay, (_pvDepPaid?_pvDep:0), 0, 'online', pRec, 'confirmed');
       if(typeof clientUpsert==='function' && r.phone) clientUpsert({name:r.name, whatsapp:r.phone, email:r.email, source:(r.type==='blood_work'?'blood':'iv'), consent:true});
       if(typeof saveAll==='function') saveAll();
       try{ if(typeof buildClinRoomGrid==='function') buildClinRoomGrid(); if(typeof renderClinicalBooking==='function') renderClinicalBooking(); }catch(e){}
