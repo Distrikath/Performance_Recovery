@@ -12205,6 +12205,9 @@ function clinSelectRoom(rid,rname){ clinCaptureInputs(); if(clinRoom!==rname) cl
 window.clinSelectRoom=clinSelectRoom; window.buildClinRoomGrid=buildClinRoomGrid;
 
 function renderClinicalBooking(){
+  // Legacy HUMAN+ bookings booked too short: enforce the current session minimums so the schedule reads right
+  // (blood work 30 min, IV 60 min). In-memory only — the +15 buffer is added on top by the availability check.
+  try{ if(typeof recoveryData!=='undefined'){ Object.keys(recoveryData).forEach(function(_dk){ var _bs=(recoveryData[_dk]&&recoveryData[_dk].bookings)||[]; _bs.forEach(function(_b){ if(!_b) return; var _min=((_b.service==='blood'||_b.type==='blood_work')?30:((_b.service==='iv'||_b.type==='iv_therapy')?60:0)); if(_min && (parseInt(_b.duration)||0)<_min) _b.duration=_min; }); }); } }catch(e){}
   var el=document.getElementById('clin-booking'); if(!el) return;
   var roomGridDiv='<div id="clin-room-grid" style="border-top:1px solid #e8e8e8;"></div>';
 
@@ -13020,11 +13023,11 @@ window._hpRev=_hpRev;
 // One source of truth for what's paid vs what's owed on a booking, so the list, Check in and Check out agree.
 function _clinPay(b){
   b=b||{};
-  var price=b.price||0;
+  var price=b.price||b.partnerTotal||0;                          // legacy HUMAN+ 'partner' bookings stored price:0 + partnerTotal — collect the real amount
   var free=(price<=0)||((b.discPct||0)>=100);
   var dep=b.deposit||Math.round(price*0.5);
   var isDepositFlow=(b.online||b.payType==='deposit');           // came in with a 50% deposit path (online / Xendit)
-  var isLater=(b.payType==='later');                             // pay-on-arrival: nothing taken at booking
+  var isLater=(b.payType==='later'||b.payType==='partner');      // pay-on-arrival (incl. legacy 'partner' → DISTRIK collects at the till)
   var fullyPaid = free || !!b.balancePaid || (!isDepositFlow && !isLater && b.status!=='hold'); // walk-in full is paid at the till
   var paid = free?0:(fullyPaid?price:(b.depositPaid?dep:0));
   var due  = fullyPaid?0:Math.max(0,price-paid);
@@ -13034,7 +13037,7 @@ function _clinPay(b){
 function _clinPayLine(b){
   var esc=(typeof _escHtml==='function')?_escHtml:function(x){return x;};
   var ci=b.checkedIn?' · <b style="color:#10b981;">checked in ✓</b>':'';
-  if(b.partner) return '<span class="clin-bk-pay">HUMAN+ · pay at partner'+(b.discCode?'':'')+ci+'</span>';
+  // legacy 'pay at partner' removed — everyone pays DISTRIK; the amount + what's due shows below (settle HUMAN+ 80% on the 25th)
   var p=_clinPay(b), f=function(n){return 'IDR '+Math.round(n).toLocaleString('id-ID');};
   // Online IV/blood with boots added: HUMAN+ still bills the treatment, DISTRIK only collects the boots here.
   var pre=b.partnerCollect?'HUMAN+ bills the treatment · ':'';
@@ -13048,7 +13051,7 @@ function clinCheckOut(id){
   try{
     var dk=clinKey(); var day=recoveryData&&recoveryData[dk]; if(!day||!day.bookings) return;
     var b=day.bookings.find(function(x){return x.id===id;}); if(!b) return;
-    if(b.partner){ if(typeof clinNotify==='function') clinNotify('HUMAN+ collects payment for IV/Blood — nothing to take here.'); return; }
+    // legacy 'partner' bookings are collected by DISTRIK too — no early return (the amount is taken at the till)
     var p=_clinPay(b);
     if(p.free){ if(typeof clinNotify==='function') clinNotify('This booking is free — nothing to collect.'); return; }
     if(p.fullyPaid){ if(typeof clinNotify==='function') clinNotify('Already paid in full — nothing to collect.'); return; }
