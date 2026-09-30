@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260930153;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260930154;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -6067,7 +6067,7 @@ window._dayTipShare=_dayTipShare; window._tipMembersWorkingOn=_tipMembersWorking
 window.TIP_PAYOUTS={};
 (function(){ var subbed=false;
   window.loadTipPayouts=function(){ if(subbed)return; if(typeof firebase==='undefined'||!firebase.firestore)return; subbed=true;
-    firebase.firestore().collection('tip_payouts').onSnapshot(function(snap){ var m={}; snap.forEach(function(d){m[d.id]=d.data();}); window.TIP_PAYOUTS=m; try{ var p=document.querySelector('.panel.on'); if(p&&p.id==='panel-myaccount'&&typeof buildMyAccount==='function') buildMyAccount(); else if(p&&p.id==='panel-payroll'&&typeof renderPayroll==='function') renderPayroll(); }catch(e){} }, function(e){ console.warn('[payouts] snap',e); }); };
+    firebase.firestore().collection('tip_payouts').onSnapshot(function(snap){ var m={}; snap.forEach(function(d){m[d.id]=d.data();}); window.TIP_PAYOUTS=m; try{ var p=document.querySelector('.panel.on'); if(p&&p.id==='panel-myaccount'&&typeof buildMyAccount==='function') buildMyAccount(); else if(p&&p.id==='panel-payroll'&&typeof renderPayroll==='function') renderPayroll(true); }catch(e){} }, function(e){ console.warn('[payouts] snap',e); }); };
   if(typeof firebase!=='undefined'&&firebase.auth){ firebase.auth().onAuthStateChanged(function(u){ if(u) loadTipPayouts(); }); }
 })();
 function _tipCycleId(){ var per=_tipPeriodKeys(); return per.keys[per.keys.length-1]; }  // the 14th (current cycle end) = doc id
@@ -15205,7 +15205,7 @@ function _payrollIncome(emp, ym){
 window.PAYROLL={};
 (function(){ var subbed=false;
   window.loadPayroll=function(){ if(subbed)return; if(typeof firebase==='undefined'||!firebase.firestore)return; subbed=true;
-    firebase.firestore().collection('payroll').onSnapshot(function(snap){ var m={}; snap.forEach(function(d){m[d.id]=d.data();}); window.PAYROLL=m; try{ var p=document.querySelector('.panel.on'); if(p&&p.id==='panel-payroll'&&typeof renderPayroll==='function') renderPayroll(); }catch(e){} }, function(e){console.warn('[payroll] snap',e);}); };
+    firebase.firestore().collection('payroll').onSnapshot(function(snap){ var m={}; snap.forEach(function(d){m[d.id]=d.data();}); window.PAYROLL=m; try{ var p=document.querySelector('.panel.on'); if(p&&p.id==='panel-payroll'&&typeof renderPayroll==='function') renderPayroll(true); }catch(e){} }, function(e){console.warn('[payroll] snap',e);}); };
   if(typeof firebase!=='undefined'&&firebase.auth){ firebase.auth().onAuthStateChanged(function(u){ if(u) loadPayroll(); }); }
 })();
 function _payrollDocId(empId,ym){ return String(empId)+'__'+ym; }
@@ -15247,6 +15247,14 @@ window.payrollSaveRow=function(empId){
   var ym=_payMonthNow();
   window.payrollSave(empId,ym,{ bonus:_payNum('pay_bonus_'+empId), allowance:_payNum('pay_allow_'+empId), bpjsKesEmp:_payNum('pay_kesE_'+empId), bpjsTkEmp:_payNum('pay_tkE_'+empId), bpjsKesCo:_payNum('pay_kesC_'+empId), bpjsTkCo:_payNum('pay_tkC_'+empId), pph21:_payNum('pay_pph_'+empId), note:((document.getElementById('pay_note_'+empId)||{}).value||'') });
   var st=document.getElementById('pay_saved_'+empId); if(st){ st.textContent='saved ✓'; st.style.color='#22c55e'; setTimeout(function(){st.textContent='';},1800); }
+};
+// Save EVERY staff row at once from the currently-typed inputs — the safe way to enter a whole month.
+window.payrollSaveAll=function(){
+  try{
+    var staff=(typeof STAFF!=='undefined')?STAFF:[]; var n=0;
+    staff.forEach(function(s){ if(!s||!s.id) return; if(!document.getElementById('pay_kesE_'+s.id)) return; window.payrollSaveRow(s.id); n++; });
+    var b=document.getElementById('pay_saveall_status'); if(b){ b.textContent='saved all '+n+' ✓'; b.style.color='#22c55e'; setTimeout(function(){b.textContent='';},2500); }
+  }catch(e){ console.warn('payrollSaveAll',e); }
 };
 // Two live service-fee cycles side by side: the one PAYING OUT on the 15th (with Paid ticks) and the one ACCUMULATING now.
 function _svcCyclesCard(){
@@ -15296,8 +15304,10 @@ function _svcCyclesCard(){
     +'</div>';
   }catch(e){ console.warn('svcCyclesCard',e); return ''; }
 }
-window.renderPayroll=function(){
+window.renderPayroll=function(preserve){
   var el=document.getElementById('panel-payroll'); if(!el) return;
+  // Preserve in-progress typing across background re-renders — a Firestore snapshot must NEVER wipe unsaved inputs.
+  var _keep=null; if(preserve){ _keep={}; try{ el.querySelectorAll('input[id^="pay_"]').forEach(function(i){ _keep[i.id]=i.value; }); }catch(e){} }
   var ym=_payMonthNow(); var mp=ym.split('-');
   var mLbl=['January','February','March','April','May','June','July','August','September','October','November','December'][+mp[1]-1]+' '+mp[0];
   var cyc=_cycleKeysForMonth(ym); var cycLbl=cyc.length?(cyc[0]+' → '+cyc[cyc.length-1]):'';
@@ -15345,7 +15355,7 @@ window.renderPayroll=function(){
       +'<button onclick="payChangeMonth(-1)" class="dk-ghost">‹</button>'
       +'<div style="text-align:center;min-width:220px;"><div style="font-family:\'Space Mono\',monospace;font-size:14px;color:'+TX+';">'+mLbl+'</div><div style="font-family:\'Space Mono\',monospace;font-size:9px;color:'+MUT+';">tips/commission cycle '+cycLbl+'</div></div>'
       +'<button onclick="payChangeMonth(1)" class="dk-ghost">›</button>'
-      +'<span style="margin-left:auto;font-family:\'Space Mono\',monospace;font-size:9px;color:'+MUT+';">Salary · service fee · commission auto-filled — BPJS &amp; PPh21 are gaps to fill from the accountant</span>'
+      +'<span style="margin-left:auto;display:flex;align-items:center;gap:10px;"><span style="font-family:\'Space Mono\',monospace;font-size:9px;color:'+MUT+';">Salary · service fee · commission auto-filled — BPJS &amp; PPh21 are gaps to fill from the accountant</span><span id="pay_saveall_status" style="font-family:\'Space Mono\',monospace;font-size:10px;color:#22c55e;"></span><button class="dk-ghost" onclick="payrollSaveAll()" style="background:#0A0A0A;color:#fff;white-space:nowrap;">Save all</button></span>'
     +'</div>'
     +'<div style="border:1px solid '+C+';border-radius:6px;margin-bottom:16px;">'
       +'<div style="padding:11px 14px;border-bottom:1px solid '+C+';font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:'+MUT+';">Pay reports · download</div>'
@@ -15359,6 +15369,7 @@ window.renderPayroll=function(){
     +_svcCyclesCard()
     +rows
    +'</div></div>';
+  if(_keep){ try{ Object.keys(_keep).forEach(function(id){ var e=document.getElementById(id); if(e && _keep[id]!=='' && _keep[id]!=null) e.value=_keep[id]; }); }catch(e){} }
 };
 // ── EMPLOYEE PAYSLIP (My Account) ──
 function _buildPayslipBlock(s){
