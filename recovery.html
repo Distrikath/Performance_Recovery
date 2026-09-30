@@ -1208,13 +1208,16 @@ function _bkGetAvailSlots(rData,dateStr,durMins,pathway,rooms){
   var dow=new Date(dateStr+'T12:00:00').getDay();
   var dayName=_DAY_NAMES[dow];
   var isCompression=(pathway==='COMPRESSION');
+  if(dow===1) return [];   // CLOSED MONDAYS — no public bookings, whatever the roster shows
 
   // 15-MINUTE NOTICE for recovery — hide only slots starting within the next 15 min (Bali time), so near-term
   // same-day bookings still show. (The 24-hour rule applies only to Blood & IV, on their own booking pages.)
   var _nowBali; try{ _nowBali=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Makassar'})); }catch(e){ _nowBali=new Date(); }
   var _minStart=new Date(_nowBali.getTime()+15*60*1000);
   var _dp=dateStr.split('-');
-  function slotOk(si){ var hh=SLOT_START+si*0.25; var sd=new Date(parseInt(_dp[0]),parseInt(_dp[1])-1,parseInt(_dp[2]),Math.floor(hh),(hh%1?30:0),0,0); return sd>=_minStart; }
+  // STUDIO HOURS CAP: 8am earliest start, 7pm latest Mon–Sat, 5pm Sun (1h before the Sunday 6pm close).
+  var _hMax=(dow===0)?17:19;
+  function slotOk(si){ var hh=SLOT_START+si*0.25; if(hh<8 || hh>_hMax) return false; var sd=new Date(parseInt(_dp[0]),parseInt(_dp[1])-1,parseInt(_dp[2]),Math.floor(hh),(hh%1?30:0),0,0); return sd>=_minStart; }
 
   // Availability is driven ENTIRELY by the roster + who's nominated to run the session — NO hard-coded hours.
   // Scan the full possible day window; the per-slot roster checks below filter to actual staffed times.
