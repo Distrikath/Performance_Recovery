@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260930155;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260930156;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -15205,7 +15205,7 @@ function _payrollIncome(emp, ym){
 window.PAYROLL={};
 (function(){ var subbed=false;
   window.loadPayroll=function(){ if(subbed)return; if(typeof firebase==='undefined'||!firebase.firestore)return; subbed=true;
-    firebase.firestore().collection('payroll').onSnapshot(function(snap){ var m={}; snap.forEach(function(d){m[d.id]=d.data();}); window.PAYROLL=m; try{ var p=document.querySelector('.panel.on'); if(p&&p.id==='panel-payroll'&&typeof renderPayroll==='function') renderPayroll(true); }catch(e){} }, function(e){console.warn('[payroll] snap',e);}); };
+    firebase.firestore().collection('payroll').onSnapshot(function(snap){ var m={}; snap.forEach(function(d){m[d.id]=d.data();}); window.PAYROLL=m; try{ var p=document.querySelector('.panel.on'); if(p&&p.id==='panel-payroll'&&typeof renderPayroll==='function') renderPayroll(true); else if(p&&p.id==='panel-myaccount'&&typeof buildMyAccount==='function') buildMyAccount(); }catch(e){} }, function(e){console.warn('[payroll] snap',e);}); };
   if(typeof firebase!=='undefined'&&firebase.auth){ firebase.auth().onAuthStateChanged(function(u){ if(u) loadPayroll(); }); }
 })();
 function _payrollDocId(empId,ym){ return String(empId)+'__'+ym; }
@@ -15255,6 +15255,15 @@ window.payrollSaveAll=function(){
     staff.forEach(function(s){ if(!s||!s.id) return; if(!document.getElementById('pay_kesE_'+s.id)) return; window.payrollSaveRow(s.id); n++; });
     var b=document.getElementById('pay_saveall_status'); if(b){ b.textContent='saved all '+n+' ✓'; b.style.color='#22c55e'; setTimeout(function(){b.textContent='';},2500); }
   }catch(e){ console.warn('payrollSaveAll',e); }
+};
+// Format a stored ISO paid-date as "30 Sep 2026" for the tick label + payslip stamp.
+function _payPaidDate(iso){ try{ var d=new Date(iso); if(isNaN(d)) return ''; return d.getDate()+' '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]+' '+d.getFullYear(); }catch(e){ return ''; } }
+// Mark this month's SALARY (net take-home) as paid for one person — press AFTER paying them. Shows PAID + date on their My Account payslip. Merge-write so it never touches the BPJS/bonus fields.
+window.payrollTogglePaid=function(empId){
+  try{
+    var ym=_payMonthNow(); var adj=_payrollAdj(empId,ym); var now=!(adj&&adj.salaryPaid);
+    window.payrollSave(empId,ym,{ salaryPaid:now, salaryPaidAt: now?(new Date()).toISOString():null });
+  }catch(e){ console.warn('payrollTogglePaid',e); }
 };
 // Two live service-fee cycles side by side: the one PAYING OUT on the 15th (with Paid ticks) and the one ACCUMULATING now.
 function _svcCyclesCard(){
@@ -15343,6 +15352,7 @@ window.renderPayroll=function(preserve){
         +'<span style="display:flex;align-items:center;gap:12px;">'
           +((inc.service>0)&&cid?('<label style="font-family:\'Space Mono\',monospace;font-size:10px;color:'+(_isPaid(s.id,cid)?'#22c55e':MUT)+';display:inline-flex;align-items:center;gap:5px;cursor:pointer;" title="Service-fee tips are handed out on the 15th">'+'<input type="checkbox" onclick="payoutTogglePaid(\''+s.id+'\',\''+cid+'\')"'+(_isPaid(s.id,cid)?' checked':'')+' style="cursor:pointer;">service fee paid (15th)</label>'):'')
           +((inc.commission>0)&&cid?('<label style="font-family:\'Space Mono\',monospace;font-size:10px;color:'+(_isPaidComm(s.id,cid)?'#22c55e':MUT)+';display:inline-flex;align-items:center;gap:5px;cursor:pointer;" title="Commission is paid monthly with salary">'+'<input type="checkbox" onclick="payoutToggleCommPaid(\''+s.id+'\',\''+cid+'\')"'+(_isPaidComm(s.id,cid)?' checked':'')+' style="cursor:pointer;">commission paid</label>'):'')
+          +'<label style="font-family:\'Space Mono\',monospace;font-size:10px;color:'+(adj.salaryPaid?'#22c55e':MUT)+';display:inline-flex;align-items:center;gap:5px;cursor:pointer;" title="Tick AFTER you have paid this person\'s salary — stamps PAID + date on their My Account payslip">'+'<input type="checkbox" onclick="payrollTogglePaid(\''+s.id+'\')"'+(adj.salaryPaid?' checked':'')+' style="cursor:pointer;">salary paid'+(adj.salaryPaid&&adj.salaryPaidAt?(' <span style="color:'+MUT+';">· '+_payPaidDate(adj.salaryPaidAt)+'</span>'):'')+'</label>'
           +'<span id="pay_saved_'+s.id+'" style="font-family:\'Space Mono\',monospace;font-size:9px;color:#22c55e;"></span><button class="dk-ghost" onclick="payrollCalcRow(\''+s.id+'\')">Calculate</button><button class="dk-ghost" onclick="payrollSaveRow(\''+s.id+'\')" style="background:#0A0A0A;color:#fff;">Save</button></span>'
       +'</div>'
     +'</div>';
@@ -15385,6 +15395,7 @@ function _buildPayslipBlock(s){
     var line=function(l,v,em){return '<div style="display:flex;justify-content:space-between;padding:7px 16px;border-bottom:1px solid #1b1b1e;font-family:\'Space Mono\',monospace;font-size:11px;"><span style="color:'+(em?TX:MUT)+';">'+l+'</span><span style="color:'+TX+';'+(em?'font-weight:700;':'')+'">'+v+'</span></div>';};
     return '<div style="margin-top:28px;border:1px solid '+C+';">'
       +'<div style="display:flex;justify-content:space-between;align-items:baseline;padding:13px 16px;border-bottom:1px solid '+C+';"><span style="font-family:\'Space Mono\',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:'+MUT+';">Payslip</span><span style="font-family:\'Space Mono\',monospace;font-size:10px;color:'+MUT+';">'+mLbl+'</span></div>'
+      +((adj&&adj.salaryPaid)?('<div style="padding:9px 16px;background:#0e2a17;border-bottom:1px solid '+C+';font-family:\'Space Mono\',monospace;font-size:11px;color:#22c55e;font-weight:700;letter-spacing:.05em;">PAID ✓'+(adj.salaryPaidAt?(' <span style="color:#6bbf89;font-weight:400;">· '+_payPaidDate(adj.salaryPaidAt)+'</span>'):'')+'</div>'):'')
       +line('Basic salary',f(inc.salary)+' <span style="color:'+MUT+';font-size:9px;">· 1–'+(new Date(+mp[0],+mp[1],0).getDate())+' '+mLbl.split(' ')[0]+'</span>')
       +(inc.unpaidDays>0?'<div style="display:flex;justify-content:space-between;padding:7px 16px;border-bottom:1px solid #1b1b1e;font-family:\'Space Mono\',monospace;font-size:11px;"><span style="color:#f87171;">− Unpaid leave <span style="font-size:9px;">· '+inc.unpaidDays+' day'+(inc.unpaidDays>1?'s':'')+' @ '+f(inc.unpaidRate)+'</span></span><span style="color:#f87171;">−'+f(inc.unpaidDeduct)+'</span></div>':'')
       +(bonus?line('Bonus / THR',f(bonus)):'')
@@ -15413,7 +15424,7 @@ window.downloadPayslip=function(empId,ym){
     var row=function(l,v){return '<tr><td style="padding:6px 10px;border-bottom:1px solid #eee;">'+l+'</td><td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:right;">'+v+'</td></tr>';};
     var tot=function(l,v){return '<tr><td style="padding:8px 10px;border-top:2px solid #111;font-weight:700;font-size:15px;">'+l+'</td><td style="padding:8px 10px;border-top:2px solid #111;text-align:right;font-weight:700;font-size:15px;">'+v+'</td></tr>';};
     var html='<html><head><title>Payslip '+s.name+' '+mLbl+'</title><style>body{font-family:Arial,sans-serif;color:#111;max-width:600px;margin:24px auto;padding:0 16px;}h1{font-size:20px;letter-spacing:2px;margin-bottom:2px;}h2{font-size:13px;color:#666;font-weight:400;margin-top:0;}table{width:100%;border-collapse:collapse;font-size:13px;margin-top:12px;}</style></head><body>'
-      +'<h1>DISTRIK — PAYSLIP</h1><h2>'+s.name+' · '+(s.role||'')+' · '+mLbl+'</h2><table>'
+      +'<h1>DISTRIK — PAYSLIP</h1><h2>'+s.name+' · '+(s.role||'')+' · '+mLbl+'</h2>'+((adj.salaryPaid)?'<p style="display:inline-block;background:#e6f7ec;color:#1a7f37;font-weight:700;padding:4px 10px;border-radius:4px;font-size:13px;margin:6px 0;">PAID ✓'+(adj.salaryPaidAt?(' · '+_payPaidDate(adj.salaryPaidAt)):'')+'</p>':'')+'<table>'
       +row('Basic salary <span style="color:#999;font-size:11px;">(1–'+(new Date(+mp[0],+mp[1],0).getDate())+' '+mLbl.split(' ')[0]+')</span>',f(inc.salary))
       +(inc.unpaidDays>0?'<tr><td style="padding:6px 10px;border-bottom:1px solid #eee;color:#b00;">− Unpaid leave <span style="color:#999;font-size:11px;">('+inc.unpaidDays+' day'+(inc.unpaidDays>1?'s':'')+' @ '+f(inc.unpaidRate)+')</span></td><td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:right;color:#b00;">−'+f(inc.unpaidDeduct)+'</td></tr>':'')
       +(bonus?row('Bonus / THR',f(bonus)):'')
