@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260928151;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260930152;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -6653,9 +6653,8 @@ function buildTimeline(room, roomBks){
   let html=`<div class="rf-timeline"><div class="rf-timeline-inner">
     <div class="rf-time-bg">`;
 
-  // Hour markers — ONE cell per hour-interval (h<END, not <=) so each gridline sits at rfPct(h), exactly where the
-  // booking blocks are positioned. The old inclusive loop made 15 cells over a 14-hour span, drifting every block right.
-  for(let h=SCHED_START;h<SCHED_END;h++){
+  // Hour markers
+  for(let h=SCHED_START;h<=SCHED_END;h++){
     const isHour=true;
     html+=`<div class="rf-time-slot hour" style="flex:1">
       <div class="rf-time-label">${h===12?'12pm':h<12?h+'am':(h-12)+'pm'}</div>
@@ -11162,10 +11161,7 @@ function clinItemName(it){ var s=_clinItemSvc(it); return s?s.name:'Treatment'; 
 function clinItemDuration(it){
   var s=_clinItemSvc(it); if(!s) return 60;
   if(it.type!=='clinical') return (s.duration||60);
-  var _cat=(typeof _clinCat==='function')?_clinCat(s):'';
-  // HUMAN+ session rule: IV ≥60 min, blood work ≥30 min (peptides/other keep their own dur). The +15 buffer is added on the timeline.
-  var _base=(_cat==='iv')?Math.max(60,s.dur||0):((_cat==='blood')?Math.max(30,s.dur||0):(s.dur||45));
-  return Math.max(_base, it.comp?clinCompDuration():0);          // boots run during the treatment
+  return Math.max(s.dur||45, it.comp?clinCompDuration():0);      // boots run during the treatment
 }
 function clinItemStart(it){
   if(it.time) return it.time;
@@ -11817,26 +11813,22 @@ function acceptOnlineBooking(id){
       if(typeof saveAll==='function') saveAll();
       try{ if(typeof buildClinRoomGrid==='function') buildClinRoomGrid(); if(typeof renderClinicalBooking==='function') renderClinicalBooking(); }catch(e){}
     } else if((r.type==='iv_therapy'||r.type==='blood_work') && typeof recoveryData!=='undefined'){
-      // IV & BLOOD WORK are HUMAN+ services. MODEL: everyone pays DISTRIK — we collect the full amount (50% deposit
-      // online + balance at Check out), then settle HUMAN+ 80% monthly on the 25th. Only the 20% commission is DISTRIK
-      // revenue; the 80% is Payable to HUMAN+ (the split is done in the ledger via clinical:true — Version B).
-      // The booking blocks a Recovery Chair so nothing double-books over it.
-      var _pvTotal=(function(){ if(typeof r.priceNum==='number'&&r.priceNum) return r.priceNum; if(typeof r.total==='number'&&r.total) return r.total; var m=String(r.price||'').match(/([\d.,]+)\s*([km])?/i); if(!m) return 0; var n=parseFloat(m[1].replace(/,/g,'')); var u=(m[2]||'').toLowerCase(); if(u==='k')n*=1000; else if(u==='m')n*=1000000; return Math.round(n||0); })();
-      // Boots booked online run in the same chair — the customer's total already includes them and DISTRIK collects
-      // the FULL amount, so we keep boots IN the total (no strip); they show as a line on the booking.
+      // IV & BLOOD WORK are HUMAN+ services — HUMAN+ collects the money, not Distrik. Distrik earns a
+      // 20% commission paid MONTHLY, so it's tracked "on hold" (0 collected now, no balance to collect).
+      // The booking still blocks a Recovery Chair so nothing double-books over it.
+      var _pvTotal=(function(){ if(typeof r.total==='number'&&r.total) return r.total; var m=String(r.price||'').match(/([\d.,]+)\s*([km])?/i); if(!m) return 0; var n=parseFloat(m[1].replace(/,/g,'')); var u=(m[2]||'').toLowerCase(); if(u==='k')n*=1000; else if(u==='m')n*=1000000; return Math.round(n||0); })();
+      // Boots booked online alongside the drip: same chair, one booking. The customer's total includes them, but
+      // they're DISTRIK's service — strip them out of the HUMAN+ total (and its 20%) and collect them at the till.
       var _pvComp=(r.compression&&r.compression.price)?{id:r.compression.id||'s4',name:r.compression.name||'Compression Boots',price:Math.round(r.compression.price),duration:Math.round(r.compression.duration||30)}:null;
+      if(_pvComp) _pvTotal=Math.max(0,_pvTotal-_pvComp.price);
       var _commission=Math.round(_pvTotal*0.2);
       var _pvSt=(function(){ var t=String(r.time||'').match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i); if(!t) return r.time||''; var hh=parseInt(t[1]); var mm=t[2]||'00'; var ap=(t[3]||'').toLowerCase(); if(ap==='pm'&&hh!==12)hh+=12; if(ap==='am'&&hh===12)hh=0; return ('0'+hh).slice(-2)+':'+mm; })();
-      var _pvDur=Math.max(r.duration||(r.type==='blood_work'?30:60), _pvComp?_pvComp.duration:0);   // boots run during the drip
+      var _pvDur=Math.max(r.duration||(r.type==='blood_work'?15:60), _pvComp?_pvComp.duration:0);   // boots run during the drip
       var _pMin=function(hhmm){ var m=String(hhmm||'').match(/(\d{1,2}):(\d{2})/); return m?parseInt(m[1])*60+parseInt(m[2]):0; };
       var _ps0=_pMin(_pvSt), _pe0=_ps0+_pvDur;
       var _pDay=(recoveryData[r.date]&&recoveryData[r.date].bookings)||[];
       var _pChair=['rec1','rec2'].find(function(cid){ return !_pDay.some(function(b){ if(b.room!==cid||b.status==='cancelled') return false; var bs=_pMin(b.start||b.time), be=bs+(b.duration||60); return _ps0<be && _pe0>bs; }); }) || 'rec1';
       var _pChairName=(typeof ROOMS!=='undefined'?((ROOMS.find(function(x){return x.id===_pChair;})||{}).name):null)||'Recovery Chair';
-      // Deposit: use the amount the website charged (r.deposit = 50% of the full price) or fall back to 50%.
-      var _pvDep=(typeof r.deposit==='number'&&r.deposit)?r.deposit:Math.round(_pvTotal/2);
-      // Was the 50% deposit already paid online by card? (Xendit webhook stamps depositPaid / paymentStatus.)
-      var _pvDepPaid=(_pvTotal>0 && (r.depositPaid===true || r.paymentStatus==='deposit_paid' || r.paymentStatus==='paid'));
       var pRec={
         id:(typeof genId==='function'?genId():'pbk_'+Date.now()),
         service:(r.type==='blood_work'?'blood':'iv'), serviceName:String(_onreqLabel(r)),
@@ -11844,30 +11836,22 @@ function acceptOnlineBooking(id){
         therapist:null, therapistName:null,
         start:_pvSt, time:_pvSt, duration:_pvDur,
         client:r.name||'Guest', email:r.email||'', whatsapp:r.phone||'', phone:r.phone||'',
-        // DISTRIK collects the ACTUAL amount: deposit taken online, balance DUE at Check out (not "pay at partner").
-        price:_pvTotal, partnerTotal:_pvTotal, commission:_commission, commissionStatus:'hold', commissionPct:20,
-        online:true, payType:'deposit', deposit:_pvDep, depositPaid:_pvDepPaid,
-        balanceDue:Math.max(0,_pvTotal-_pvDep), balancePaid:false,
-        source:'Online', status:'confirmed', payMethod:'online',
-        clinical:true, tag:(r.type==='blood_work'?'HELIX · Bloods':'HUMAN+ · IV'), partner:false, provider:'HUMAN+',
+        price:0, partnerTotal:_pvTotal, commission:_commission, commissionStatus:'hold', commissionPct:20,
+        payType:'partner', source:'Online', status:'confirmed', payMethod:'partner',
+        clinical:true, tag:(r.type==='blood_work'?'HELIX · Bloods':'HUMAN+ · IV'), partner:true, provider:'HUMAN+',
         checkedIn:false, onlineRef:r.ref||id, date:r.date, _ts:Date.now()
       };
       if(_pvComp){
-        pRec.compression=_pvComp;   // boots are part of the one booking; already included in the total DISTRIK collects
+        pRec.compression=_pvComp;
+        pRec.price=_pvComp.price; pRec.payType='later'; pRec.balanceDue=_pvComp.price; pRec.balancePaid=false; pRec.depositPaid=false;
+        pRec.partner=false; pRec.partnerCollect=true;      // HUMAN+ bills the drip; the boots are collected at Check out
         pRec.serviceName=String(pRec.serviceName||'')+(String(pRec.serviceName||'').indexOf(_pvComp.name)<0?(' + '+_pvComp.name):'');
       }
       if(!recoveryData[r.date]) recoveryData[r.date]={revenue:0,bookings:[]};
       if(!recoveryData[r.date].bookings) recoveryData[r.date].bookings=[];
       recoveryData[r.date].bookings.push(pRec);
-      // Record the deposit on the day it was actually PAID (so Sales matches the bank); balance is taken at Check out.
-      // rebuildFromLedger does the HUMAN+ 20/80 split (clinical:true) — DISTRIK revenue = commission, 80% = Payable.
-      var _pvPayDay=r.date;
-      if(_pvDepPaid){
-        _pvPayDay=(typeof todayKey==='function'?todayKey():r.date);
-        try{ var _pt=r.depositPaidAt; if(_pt){ var _pd=_pt.toDate?_pt.toDate():(_pt.seconds?new Date(_pt.seconds*1000):new Date(_pt)); if(_pd&&!isNaN(_pd.getTime())){ _pvPayDay=new Date(_pd.getTime()+8*3600000).toISOString().slice(0,10); } } }catch(e){}
-      }
-      pRec.ledgerDate=_pvPayDay;
-      if(typeof ledgerWrite==='function') ledgerWrite('recovery', pRec.id, _pvPayDay, (_pvDepPaid?_pvDep:0), 0, 'online', pRec, 'confirmed');
+      // 0 collected now — commission is on hold until the monthly payout. Syncs + blocks the chair.
+      if(typeof ledgerWrite==='function') ledgerWrite('recovery', pRec.id, r.date, 0, 0, 'partner', pRec, 'confirmed');
       if(typeof clientUpsert==='function' && r.phone) clientUpsert({name:r.name, whatsapp:r.phone, email:r.email, source:(r.type==='blood_work'?'blood':'iv'), consent:true});
       if(typeof saveAll==='function') saveAll();
       try{ if(typeof buildClinRoomGrid==='function') buildClinRoomGrid(); if(typeof renderClinicalBooking==='function') renderClinicalBooking(); }catch(e){}
@@ -12209,9 +12193,6 @@ function clinSelectRoom(rid,rname){ clinCaptureInputs(); if(clinRoom!==rname) cl
 window.clinSelectRoom=clinSelectRoom; window.buildClinRoomGrid=buildClinRoomGrid;
 
 function renderClinicalBooking(){
-  // Legacy HUMAN+ bookings booked too short: enforce the current session minimums so the schedule reads right
-  // (blood work 30 min, IV 60 min). In-memory only — the +15 buffer is added on top by the availability check.
-  try{ if(typeof recoveryData!=='undefined'){ Object.keys(recoveryData).forEach(function(_dk){ var _bs=(recoveryData[_dk]&&recoveryData[_dk].bookings)||[]; _bs.forEach(function(_b){ if(!_b) return; var _nm=String(_b.serviceName||''); var _isIV=(_b.service==='iv'||_b.type==='iv_therapy'||/\b(iv|infusion|drip|nad)\b/i.test(_nm)); var _isBlood=(!_isIV)&&(_b.service==='blood'||_b.type==='blood_work'||/blood/i.test(_nm)); var _min=_isIV?60:(_isBlood?30:0); if(_min && (parseInt(_b.duration)||0)<_min) _b.duration=_min; }); }); } }catch(e){}
   var el=document.getElementById('clin-booking'); if(!el) return;
   var roomGridDiv='<div id="clin-room-grid" style="border-top:1px solid #e8e8e8;"></div>';
 
@@ -13027,11 +13008,11 @@ window._hpRev=_hpRev;
 // One source of truth for what's paid vs what's owed on a booking, so the list, Check in and Check out agree.
 function _clinPay(b){
   b=b||{};
-  var price=b.price||b.partnerTotal||0;                          // legacy HUMAN+ 'partner' bookings stored price:0 + partnerTotal — collect the real amount
+  var price=b.price||0;
   var free=(price<=0)||((b.discPct||0)>=100);
   var dep=b.deposit||Math.round(price*0.5);
   var isDepositFlow=(b.online||b.payType==='deposit');           // came in with a 50% deposit path (online / Xendit)
-  var isLater=(b.payType==='later'||b.payType==='partner');      // pay-on-arrival (incl. legacy 'partner' → DISTRIK collects at the till)
+  var isLater=(b.payType==='later');                             // pay-on-arrival: nothing taken at booking
   var fullyPaid = free || !!b.balancePaid || (!isDepositFlow && !isLater && b.status!=='hold'); // walk-in full is paid at the till
   var paid = free?0:(fullyPaid?price:(b.depositPaid?dep:0));
   var due  = fullyPaid?0:Math.max(0,price-paid);
@@ -13041,7 +13022,7 @@ function _clinPay(b){
 function _clinPayLine(b){
   var esc=(typeof _escHtml==='function')?_escHtml:function(x){return x;};
   var ci=b.checkedIn?' · <b style="color:#10b981;">checked in ✓</b>':'';
-  // legacy 'pay at partner' removed — everyone pays DISTRIK; the amount + what's due shows below (settle HUMAN+ 80% on the 25th)
+  if(b.partner) return '<span class="clin-bk-pay">HUMAN+ · pay at partner'+(b.discCode?'':'')+ci+'</span>';
   var p=_clinPay(b), f=function(n){return 'IDR '+Math.round(n).toLocaleString('id-ID');};
   // Online IV/blood with boots added: HUMAN+ still bills the treatment, DISTRIK only collects the boots here.
   var pre=b.partnerCollect?'HUMAN+ bills the treatment · ':'';
@@ -13055,7 +13036,7 @@ function clinCheckOut(id){
   try{
     var dk=clinKey(); var day=recoveryData&&recoveryData[dk]; if(!day||!day.bookings) return;
     var b=day.bookings.find(function(x){return x.id===id;}); if(!b) return;
-    // legacy 'partner' bookings are collected by DISTRIK too — no early return (the amount is taken at the till)
+    if(b.partner){ if(typeof clinNotify==='function') clinNotify('HUMAN+ collects payment for IV/Blood — nothing to take here.'); return; }
     var p=_clinPay(b);
     if(p.free){ if(typeof clinNotify==='function') clinNotify('This booking is free — nothing to collect.'); return; }
     if(p.fullyPaid){ if(typeof clinNotify==='function') clinNotify('Already paid in full — nothing to collect.'); return; }
@@ -15243,11 +15224,29 @@ window.showPayroll=function(){
   renderPayroll();
 };
 function _pf(n){ return 'IDR '+Math.round(n||0).toLocaleString('id-ID'); }
-function _payNum(id){ var e=document.getElementById(id); if(!e) return 0; return Math.round(parseFloat((e.value||'').replace(/[^0-9.-]/g,''))||0); }
+// Indonesian-safe number parse: "150.000" / "150,000.00" / "IDR 150.000" → 150000 (drop trailing 2-digit cents, strip separators).
+function _payNum(id){ var e=document.getElementById(id); if(!e) return 0; var raw=(e.value||'').replace(/[^0-9.,-]/g,''); var neg=/^-/.test(raw); raw=raw.replace(/-/g,'').replace(/[.,]\d{2}$/,'').replace(/[^0-9]/g,''); var n=parseInt(raw,10)||0; return neg?-n:n; }
+// Recompute + show the new take-home from the typed inputs WITHOUT saving — so the number can be checked first.
+window.payrollCalcRow=function(empId){
+  try{
+    var ym=_payMonthNow();
+    var s=(typeof STAFF!=='undefined')?STAFF.find(function(x){return x.id===empId;}):null; if(!s) return;
+    var inc=_payrollIncome(s,ym);
+    var bonus=_payNum('pay_bonus_'+empId), allow=_payNum('pay_allow_'+empId);
+    var kesE=_payNum('pay_kesE_'+empId), tkE=_payNum('pay_tkE_'+empId), pph=_payNum('pay_pph_'+empId);
+    var kesC=_payNum('pay_kesC_'+empId), tkC=_payNum('pay_tkC_'+empId);
+    var gross=inc.gross+bonus+allow, ded=kesE+tkE+pph, net=gross-ded;
+    var setT=function(id,t){ var e=document.getElementById(id); if(e) e.textContent=t; };
+    setT('pay_gross_'+empId,_pf(gross));
+    setT('pay_net_'+empId,'NET '+_pf(net));
+    setT('pay_ded_'+empId,'Employee deductions '+_pf(ded)+' · Company contributions '+_pf(kesC+tkC));
+    var st=document.getElementById('pay_saved_'+empId); if(st){ st.textContent='calculated — check, then Save'; st.style.color='#f0b429'; }
+  }catch(e){ console.warn('payrollCalcRow',e); }
+};
 window.payrollSaveRow=function(empId){
   var ym=_payMonthNow();
   window.payrollSave(empId,ym,{ bonus:_payNum('pay_bonus_'+empId), allowance:_payNum('pay_allow_'+empId), bpjsKesEmp:_payNum('pay_kesE_'+empId), bpjsTkEmp:_payNum('pay_tkE_'+empId), bpjsKesCo:_payNum('pay_kesC_'+empId), bpjsTkCo:_payNum('pay_tkC_'+empId), pph21:_payNum('pay_pph_'+empId), note:((document.getElementById('pay_note_'+empId)||{}).value||'') });
-  var st=document.getElementById('pay_saved_'+empId); if(st){ st.textContent='saved ✓'; setTimeout(function(){st.textContent='';},1800); }
+  var st=document.getElementById('pay_saved_'+empId); if(st){ st.textContent='saved ✓'; st.style.color='#22c55e'; setTimeout(function(){st.textContent='';},1800); }
 };
 // Two live service-fee cycles side by side: the one PAYING OUT on the 15th (with Paid ticks) and the one ACCUMULATING now.
 function _svcCyclesCard(){
@@ -15317,11 +15316,11 @@ window.renderPayroll=function(){
     return '<div style="border:1px solid '+C+';border-radius:6px;margin-bottom:10px;">'
       +'<div style="display:flex;justify-content:space-between;align-items:baseline;padding:10px 14px;border-bottom:1px solid '+C+';background:#111114;">'
         +'<span style="font-family:\'Space Mono\',monospace;font-size:12px;color:'+TX+';font-weight:700;">'+s.name+' <span style="color:'+MUT+';font-size:9px;">'+(s.role||'')+'</span></span>'
-        +'<span style="font-family:\'Space Mono\',monospace;font-size:11px;color:#22c55e;">NET '+_pf(net)+'</span>'
+        +'<span id="pay_net_'+s.id+'" style="font-family:\'Space Mono\',monospace;font-size:11px;color:#22c55e;">NET '+_pf(net)+'</span>'
       +'</div>'
       +'<div style="padding:10px 14px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px 14px;font-family:\'Space Mono\',monospace;font-size:10px;color:'+MUT+';">'
         +cell('Salary',_pf(inc.salary)+(inc.unpaidDays>0?'<div style="color:#f87171;font-size:8px;margin-top:2px;font-weight:400;">− '+_pf(inc.unpaidDeduct)+' unpaid leave ('+inc.unpaidDays+'d @ '+_pf(inc.unpaidRate)+')</div>':''))+cell('Service fee (tips)',_pf(inc.service))+cell('Commission',_pf(inc.commission))
-        +fld('Bonus / THR','pay_bonus_'+s.id,bonus,'0',null)+fld('Allowances','pay_allow_'+s.id,allow,'0',null)+cell('GROSS (PPh21 base)',_pf(gross))
+        +fld('Bonus / THR','pay_bonus_'+s.id,bonus,'0',null)+fld('Allowances','pay_allow_'+s.id,allow,'0',null)+'<div>GROSS (PPh21 base)<br><b id="pay_gross_'+s.id+'" style="color:'+TX+';font-size:12px;">'+_pf(gross)+'</b></div>'
         +fld('BPJS Kesehatan · employee','pay_kesE_'+s.id,kesE,'fill exact',Math.round(inc.salary*0.01))
         +fld('BPJS Ketenagakerjaan · employee','pay_tkE_'+s.id,tkE,'fill exact',Math.round(inc.salary*0.03))
         +fld('PPh 21 (accountant)','pay_pph_'+s.id,pph,'fill exact',null)
@@ -15330,11 +15329,11 @@ window.renderPayroll=function(){
         +'<div>Note<br><input id="pay_note_'+s.id+'" value="'+_escSettle(adj.note||'')+'" placeholder="optional" style="'+inp+'width:100%;"></div>'
       +'</div>'
       +'<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-top:1px solid '+C+';">'
-        +'<span style="font-family:\'Space Mono\',monospace;font-size:9px;color:'+MUT+';">Employee deductions '+_pf(ded)+' · Company contributions '+_pf(kesC+tkC)+'</span>'
+        +'<span id="pay_ded_'+s.id+'" style="font-family:\'Space Mono\',monospace;font-size:9px;color:'+MUT+';">Employee deductions '+_pf(ded)+' · Company contributions '+_pf(kesC+tkC)+'</span>'
         +'<span style="display:flex;align-items:center;gap:12px;">'
           +((inc.service>0)&&cid?('<label style="font-family:\'Space Mono\',monospace;font-size:10px;color:'+(_isPaid(s.id,cid)?'#22c55e':MUT)+';display:inline-flex;align-items:center;gap:5px;cursor:pointer;" title="Service-fee tips are handed out on the 15th">'+'<input type="checkbox" onclick="payoutTogglePaid(\''+s.id+'\',\''+cid+'\')"'+(_isPaid(s.id,cid)?' checked':'')+' style="cursor:pointer;">service fee paid (15th)</label>'):'')
           +((inc.commission>0)&&cid?('<label style="font-family:\'Space Mono\',monospace;font-size:10px;color:'+(_isPaidComm(s.id,cid)?'#22c55e':MUT)+';display:inline-flex;align-items:center;gap:5px;cursor:pointer;" title="Commission is paid monthly with salary">'+'<input type="checkbox" onclick="payoutToggleCommPaid(\''+s.id+'\',\''+cid+'\')"'+(_isPaidComm(s.id,cid)?' checked':'')+' style="cursor:pointer;">commission paid</label>'):'')
-          +'<span id="pay_saved_'+s.id+'" style="font-family:\'Space Mono\',monospace;font-size:9px;color:#22c55e;"></span><button class="dk-ghost" onclick="payrollSaveRow(\''+s.id+'\')" style="background:#0A0A0A;color:#fff;">Save</button></span>'
+          +'<span id="pay_saved_'+s.id+'" style="font-family:\'Space Mono\',monospace;font-size:9px;color:#22c55e;"></span><button class="dk-ghost" onclick="payrollCalcRow(\''+s.id+'\')">Calculate</button><button class="dk-ghost" onclick="payrollSaveRow(\''+s.id+'\')" style="background:#0A0A0A;color:#fff;">Save</button></span>'
       +'</div>'
     +'</div>';
   }).join('');
