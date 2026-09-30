@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260930156;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260930157;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -15235,11 +15235,12 @@ window.payrollCalcRow=function(empId){
     var bonus=_payNum('pay_bonus_'+empId), allow=_payNum('pay_allow_'+empId);
     var kesE=_payNum('pay_kesE_'+empId), tkE=_payNum('pay_tkE_'+empId), pph=_payNum('pay_pph_'+empId);
     var kesC=_payNum('pay_kesC_'+empId), tkC=_payNum('pay_tkC_'+empId);
-    var gross=(inc.gross-inc.service-inc.commission)+bonus+allow, ded=kesE+tkE+pph, net=gross-ded; // tips excluded from take-home (paid separately 15th)
+    var flat=_isFlat(empId, ym); if(flat){ kesE=tkE=pph=kesC=tkC=0; }
+    var gross=(inc.gross-inc.service-inc.commission)+bonus+allow, ded=flat?0:(kesE+tkE+pph), net=gross-ded; // tips excluded from take-home (paid separately 15th)
     var setT=function(id,t){ var e=document.getElementById(id); if(e) e.textContent=t; };
     setT('pay_gross_'+empId,_pf(gross));
     setT('pay_net_'+empId,'NET '+_pf(net));
-    setT('pay_ded_'+empId,'Employee deductions '+_pf(ded)+' · Company contributions '+_pf(kesC+tkC));
+    setT('pay_ded_'+empId,flat?'Flat salary — no BPJS / PPh':('Employee deductions '+_pf(ded)+' · Company contributions '+_pf(kesC+tkC)));
     var st=document.getElementById('pay_saved_'+empId); if(st){ st.textContent='calculated — check, then Save'; st.style.color='#f0b429'; }
   }catch(e){ console.warn('payrollCalcRow',e); }
 };
@@ -15252,7 +15253,7 @@ window.payrollSaveRow=function(empId){
 window.payrollSaveAll=function(){
   try{
     var staff=(typeof STAFF!=='undefined')?STAFF:[]; var n=0;
-    staff.forEach(function(s){ if(!s||!s.id) return; if(!document.getElementById('pay_kesE_'+s.id)) return; window.payrollSaveRow(s.id); n++; });
+    staff.forEach(function(s){ if(!s||!s.id) return; if(!document.getElementById('pay_note_'+s.id)) return; window.payrollSaveRow(s.id); n++; });
     var b=document.getElementById('pay_saveall_status'); if(b){ b.textContent='saved all '+n+' ✓'; b.style.color='#22c55e'; setTimeout(function(){b.textContent='';},2500); }
   }catch(e){ console.warn('payrollSaveAll',e); }
 };
@@ -15264,6 +15265,17 @@ window.payrollTogglePaid=function(empId){
     var ym=_payMonthNow(); var adj=_payrollAdj(empId,ym); var now=!(adj&&adj.salaryPaid);
     window.payrollSave(empId,ym,{ salaryPaid:now, salaryPaidAt: now?(new Date()).toISOString():null });
   }catch(e){ console.warn('payrollTogglePaid',e); }
+};
+// STANDING per-staff flag (applies every month, not per-month): flat salary, no BPJS / no PPh21 (e.g. part-time).
+// Stored in the payroll collection's `_flags` doc so it rides the existing payroll snapshot — no extra subscription.
+// Effective-dated: flat applies from the month it was switched on (flatFrom), so earlier already-paid months are untouched.
+function _isFlat(id, ym){ try{ var f=window.PAYROLL&&window.PAYROLL['_flags']; if(!f||!f.flat||!f.flat[id]) return false; var from=f.flatFrom&&f.flatFrom[id]; if(from&&ym&&String(ym)<String(from)) return false; return true; }catch(e){ return false; } }
+function _isFlatNow(id){ return _isFlat(id, (typeof _payMonthNow==='function')?_payMonthNow():null); }
+window.payrollToggleFlat=function(empId){
+  try{ if(typeof firebase==='undefined'||!firebase.firestore)return;
+    var cur=_isFlatNow(empId); var patch={flat:{},flatFrom:{}}; patch.flat[empId]=!cur; patch.flatFrom[empId]=(!cur)?_payMonthNow():null;
+    firebase.firestore().collection('payroll').doc('_flags').set(patch,{merge:true}).catch(function(e){console.warn('toggleFlat',e);});
+  }catch(e){ console.warn('payrollToggleFlat',e); }
 };
 // Two live service-fee cycles side by side: the one PAYING OUT on the 15th (with Paid ticks) and the one ACCUMULATING now.
 function _svcCyclesCard(){
@@ -15327,31 +15339,35 @@ window.renderPayroll=function(preserve){
   var cid=(typeof _cycleIdForMonth==='function')?_cycleIdForMonth(ym):null;  // the 15th-payout cycle for this month (its 14th)
   var rows=staff.map(function(s){
     var inc=_payrollIncome(s,ym); var adj=_payrollAdj(s.id,ym);
+    var flat=_isFlat(s.id, ym); // part-time flat salary — no BPJS / no PPh21
     var bonus=adj.bonus||0, allow=adj.allowance||0, gross=(inc.gross-inc.service-inc.commission)+bonus+allow; // tips (service fee) paid separately on 15th — excluded from take-home so NET matches the accountant sheet
-    var kesE=adj.bpjsKesEmp||0,tkE=adj.bpjsTkEmp||0,pph=adj.pph21||0,kesC=adj.bpjsKesCo||0,tkC=adj.bpjsTkCo||0;
-    var ded=kesE+tkE+pph, net=gross-ded;
+    var kesE=flat?0:(adj.bpjsKesEmp||0),tkE=flat?0:(adj.bpjsTkEmp||0),pph=flat?0:(adj.pph21||0),kesC=flat?0:(adj.bpjsKesCo||0),tkC=flat?0:(adj.bpjsTkCo||0);
+    var ded=flat?0:(kesE+tkE+pph), net=gross-ded;
     var cell=function(l,v){return '<div>'+l+'<br><b style="color:'+TX+';font-size:12px;">'+v+'</b></div>';};
     var fld=function(l,id,val,ph,hintv){return '<div>'+l+'<br><input id="'+id+'" value="'+(val||'')+'" placeholder="'+(ph||'0')+'" style="'+inp+'">'+(hintv!=null?hint(hintv):'')+'</div>';};
     return '<div style="border:1px solid '+C+';border-radius:6px;margin-bottom:10px;">'
       +'<div style="display:flex;justify-content:space-between;align-items:baseline;padding:10px 14px;border-bottom:1px solid '+C+';background:#111114;">'
-        +'<span style="font-family:\'Space Mono\',monospace;font-size:12px;color:'+TX+';font-weight:700;">'+s.name+' <span style="color:'+MUT+';font-size:9px;">'+(s.role||'')+'</span></span>'
+        +'<span style="font-family:\'Space Mono\',monospace;font-size:12px;color:'+TX+';font-weight:700;">'+s.name+' <span style="color:'+MUT+';font-size:9px;">'+(s.role||'')+'</span>'+(flat?' <span style="color:#f0b429;font-size:8px;border:1px solid #f0b429;border-radius:3px;padding:1px 4px;">FLAT · NO BPJS</span>':'')+'</span>'
         +'<span id="pay_net_'+s.id+'" style="font-family:\'Space Mono\',monospace;font-size:11px;color:#22c55e;">NET '+_pf(net)+'</span>'
       +'</div>'
       +'<div style="padding:10px 14px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px 14px;font-family:\'Space Mono\',monospace;font-size:10px;color:'+MUT+';">'
         +cell('Salary',_pf(inc.salary)+(inc.unpaidDays>0?'<div style="color:#f87171;font-size:8px;margin-top:2px;font-weight:400;">− '+_pf(inc.unpaidDeduct)+' unpaid leave ('+inc.unpaidDays+'d @ '+_pf(inc.unpaidRate)+')</div>':''))+cell('Service fee (tips)',_pf(inc.service)+'<div style="font-size:8px;color:'+MUT+';margin-top:2px;font-weight:400;">paid separately (15th) — not in NET</div>')+cell('Commission',_pf(inc.commission)+'<div style="font-size:8px;color:'+MUT+';margin-top:2px;font-weight:400;">paid separately (monthly) — not in NET</div>')
         +fld('Bonus / THR','pay_bonus_'+s.id,bonus,'0',null)+fld('Allowances','pay_allow_'+s.id,allow,'0',null)+'<div>GROSS (take-home)<br><b id="pay_gross_'+s.id+'" style="color:'+TX+';font-size:12px;">'+_pf(gross)+'</b></div>'
-        +fld('BPJS Kesehatan · employee','pay_kesE_'+s.id,kesE,'fill exact',Math.round(inc.salary*0.01))
-        +fld('BPJS Ketenagakerjaan · employee','pay_tkE_'+s.id,tkE,'fill exact',Math.round(inc.salary*0.03))
-        +fld('PPh 21 (accountant)','pay_pph_'+s.id,pph,'fill exact',null)
-        +fld('BPJS Kesehatan · company','pay_kesC_'+s.id,kesC,'fill exact',Math.round(inc.salary*0.04))
-        +fld('BPJS Ketenagakerjaan · company','pay_tkC_'+s.id,tkC,'fill exact',Math.round(inc.salary*0.0624))
+        +(flat
+          ? '<div style="grid-column:1/-1;padding:6px 8px;border:1px dashed '+C+';border-radius:4px;color:'+MUT+';font-size:9px;line-height:1.5;">⚑ <b style="color:#f0b429;">Flat salary — no BPJS / no PPh 21</b> (part-time). NET = salary'+((bonus||allow)?' + bonus/allowances':'')+'. BPJS/tax fields are hidden for this person.</div>'
+          : (fld('BPJS Kesehatan · employee','pay_kesE_'+s.id,kesE,'fill exact',Math.round(inc.salary*0.01))
+             +fld('BPJS Ketenagakerjaan · employee','pay_tkE_'+s.id,tkE,'fill exact',Math.round(inc.salary*0.03))
+             +fld('PPh 21 (accountant)','pay_pph_'+s.id,pph,'fill exact',null)
+             +fld('BPJS Kesehatan · company','pay_kesC_'+s.id,kesC,'fill exact',Math.round(inc.salary*0.04))
+             +fld('BPJS Ketenagakerjaan · company','pay_tkC_'+s.id,tkC,'fill exact',Math.round(inc.salary*0.0624))))
         +'<div>Note<br><input id="pay_note_'+s.id+'" value="'+_escSettle(adj.note||'')+'" placeholder="optional" style="'+inp+'width:100%;"></div>'
       +'</div>'
       +'<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-top:1px solid '+C+';">'
-        +'<span id="pay_ded_'+s.id+'" style="font-family:\'Space Mono\',monospace;font-size:9px;color:'+MUT+';">Employee deductions '+_pf(ded)+' · Company contributions '+_pf(kesC+tkC)+'</span>'
+        +'<span id="pay_ded_'+s.id+'" style="font-family:\'Space Mono\',monospace;font-size:9px;color:'+MUT+';">'+(flat?'Flat salary — no BPJS / PPh':('Employee deductions '+_pf(ded)+' · Company contributions '+_pf(kesC+tkC)))+'</span>'
         +'<span style="display:flex;align-items:center;gap:12px;">'
           +((inc.service>0)&&cid?('<label style="font-family:\'Space Mono\',monospace;font-size:10px;color:'+(_isPaid(s.id,cid)?'#22c55e':MUT)+';display:inline-flex;align-items:center;gap:5px;cursor:pointer;" title="Service-fee tips are handed out on the 15th">'+'<input type="checkbox" onclick="payoutTogglePaid(\''+s.id+'\',\''+cid+'\')"'+(_isPaid(s.id,cid)?' checked':'')+' style="cursor:pointer;">service fee paid (15th)</label>'):'')
           +((inc.commission>0)&&cid?('<label style="font-family:\'Space Mono\',monospace;font-size:10px;color:'+(_isPaidComm(s.id,cid)?'#22c55e':MUT)+';display:inline-flex;align-items:center;gap:5px;cursor:pointer;" title="Commission is paid monthly with salary">'+'<input type="checkbox" onclick="payoutToggleCommPaid(\''+s.id+'\',\''+cid+'\')"'+(_isPaidComm(s.id,cid)?' checked':'')+' style="cursor:pointer;">commission paid</label>'):'')
+          +'<label style="font-family:\'Space Mono\',monospace;font-size:10px;color:'+(flat?'#f0b429':MUT)+';display:inline-flex;align-items:center;gap:5px;cursor:pointer;" title="Part-time / flat salary — no BPJS or PPh21 for this person, every month. NET = salary.">'+'<input type="checkbox" onclick="payrollToggleFlat(\''+s.id+'\')"'+(flat?' checked':'')+' style="cursor:pointer;">flat salary</label>'
           +'<label style="font-family:\'Space Mono\',monospace;font-size:10px;color:'+(adj.salaryPaid?'#22c55e':MUT)+';display:inline-flex;align-items:center;gap:5px;cursor:pointer;" title="Tick AFTER you have paid this person\'s salary — stamps PAID + date on their My Account payslip">'+'<input type="checkbox" onclick="payrollTogglePaid(\''+s.id+'\')"'+(adj.salaryPaid?' checked':'')+' style="cursor:pointer;">salary paid'+(adj.salaryPaid&&adj.salaryPaidAt?(' <span style="color:'+MUT+';">· '+_payPaidDate(adj.salaryPaidAt)+'</span>'):'')+'</label>'
           +'<span id="pay_saved_'+s.id+'" style="font-family:\'Space Mono\',monospace;font-size:9px;color:#22c55e;"></span><button class="dk-ghost" onclick="payrollCalcRow(\''+s.id+'\')">Calculate</button><button class="dk-ghost" onclick="payrollSaveRow(\''+s.id+'\')" style="background:#0A0A0A;color:#fff;">Save</button></span>'
       +'</div>'
@@ -15387,9 +15403,9 @@ function _buildPayslipBlock(s){
     if(!s||!s.id) return '';
     var ym=(typeof _payMonthNow==='function')?_payMonthNow():null; if(!ym){ var d=(typeof baliNow==='function'?baliNow():new Date()); ym=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2); }
     var mp=ym.split('-'); var mLbl=['January','February','March','April','May','June','July','August','September','October','November','December'][+mp[1]-1]+' '+mp[0];
-    var inc=_payrollIncome(s,ym); var adj=_payrollAdj(s.id,ym);
+    var inc=_payrollIncome(s,ym); var adj=_payrollAdj(s.id,ym); var flat=_isFlat(s.id, ym);
     var bonus=adj.bonus||0, allow=adj.allowance||0, gross=(inc.gross-inc.service-inc.commission)+bonus+allow; // tips paid separately (15th) — not in take-home
-    var ded=(adj.bpjsKesEmp||0)+(adj.bpjsTkEmp||0)+(adj.pph21||0), net=gross-ded;
+    var ded=flat?0:((adj.bpjsKesEmp||0)+(adj.bpjsTkEmp||0)+(adj.pph21||0)), net=gross-ded;
     var f=function(n){return 'IDR '+Math.round(n||0).toLocaleString('id-ID');};
     var C='#232327',MUT='#6b6b72',TX='#f4f4f5';
     var line=function(l,v,em){return '<div style="display:flex;justify-content:space-between;padding:7px 16px;border-bottom:1px solid #1b1b1e;font-family:\'Space Mono\',monospace;font-size:11px;"><span style="color:'+(em?TX:MUT)+';">'+l+'</span><span style="color:'+TX+';'+(em?'font-weight:700;':'')+'">'+v+'</span></div>';};
@@ -15401,14 +15417,14 @@ function _buildPayslipBlock(s){
       +(bonus?line('Bonus / THR',f(bonus)):'')
       +(allow?line('Allowances',f(allow)):'')
       +line('Gross',f(gross),true)
-      +(adj.bpjsKesEmp?line('− BPJS Kesehatan (1%)','−'+f(adj.bpjsKesEmp)):'')
-      +(adj.bpjsTkEmp?line('− BPJS Ketenagakerjaan (3%)','−'+f(adj.bpjsTkEmp)):'')
-      +(adj.pph21?line('− PPh 21','−'+f(adj.pph21)):'')
+      +(!flat&&adj.bpjsKesEmp?line('− BPJS Kesehatan (1%)','−'+f(adj.bpjsKesEmp)):'')
+      +(!flat&&adj.bpjsTkEmp?line('− BPJS Ketenagakerjaan (3%)','−'+f(adj.bpjsTkEmp)):'')
+      +(!flat&&adj.pph21?line('− PPh 21','−'+f(adj.pph21)):'')
       +'<div style="display:flex;justify-content:space-between;padding:11px 16px;background:#111114;font-family:\'Space Mono\',monospace;font-size:13px;"><span style="color:'+MUT+';text-transform:uppercase;letter-spacing:.1em;">Net pay</span><span style="color:#22c55e;font-weight:700;">'+f(net)+'</span></div>'
       +(inc.commission?('<div style="display:flex;justify-content:space-between;padding:9px 16px;border-top:1px solid '+C+';font-family:\'Space Mono\',monospace;font-size:11px;"><span style="color:'+MUT+';">Commission <span style="font-size:9px;">· paid separately (monthly) · '+((typeof _cycleRangeLabel==='function')?_cycleRangeLabel(ym):'')+'</span></span><span style="color:'+TX+';">'+f(inc.commission)+'</span></div>'):'')
       +(inc.service?('<div style="display:flex;justify-content:space-between;padding:9px 16px;border-top:1px solid '+C+';font-family:\'Space Mono\',monospace;font-size:11px;"><span style="color:'+MUT+';">Service fee (tips) <span style="font-size:9px;">· paid separately on 15th · '+((typeof _cycleRangeLabel==='function')?_cycleRangeLabel(ym):'')+'</span></span><span style="color:'+TX+';">'+f(inc.service)+'</span></div>'):'')
       +(inc.service?(function(){ var dd=_memberServiceDays(s.id,_cycleKeysForMonth(ym)); if(!dd.length) return ''; var monD=function(dk){var p=dk.split('-');return p[2].replace(/^0/,'')+' '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+p[1]-1];}; return dd.map(function(x){ return '<div style="display:flex;justify-content:space-between;padding:3px 16px 3px 28px;border-bottom:1px solid #151517;font-family:\'Space Mono\',monospace;font-size:9px;color:'+MUT+';"><span>'+monD(x.k)+' · pool '+f(x.pool)+' ÷'+x.n+'</span><span>'+f(x.share)+'</span></div>'; }).join(''); })():'')
-      +(ded?'':'<div style="padding:8px 16px;font-family:\'Space Mono\',monospace;font-size:9px;color:'+MUT+';">BPJS/PPh21 pending from accounts — net shown is before those deductions.</div>')
+      +(flat?'<div style="padding:8px 16px;font-family:\'Space Mono\',monospace;font-size:9px;color:'+MUT+';">Flat salary (part-time) — no BPJS or PPh 21.</div>':(ded?'':'<div style="padding:8px 16px;font-family:\'Space Mono\',monospace;font-size:9px;color:'+MUT+';">BPJS/PPh21 pending from accounts — net shown is before those deductions.</div>'))
       +'<div style="padding:10px 16px;"><button class="dk-ghost" onclick="downloadPayslip(\''+s.id+'\',\''+ym+'\')" style="background:#0A0A0A;color:#fff;">↓ Download pay sheet</button></div>'
     +'</div>';
   }catch(e){ return ''; }
@@ -15416,9 +15432,9 @@ function _buildPayslipBlock(s){
 window.downloadPayslip=function(empId,ym){
   try{
     var s=(typeof STAFF!=='undefined')?STAFF.find(function(x){return x.id===empId;}):null; if(!s) return;
-    var inc=_payrollIncome(s,ym); var adj=_payrollAdj(empId,ym);
+    var inc=_payrollIncome(s,ym); var adj=_payrollAdj(empId,ym); var flat=_isFlat(empId, ym);
     var bonus=adj.bonus||0, allow=adj.allowance||0, gross=(inc.gross-inc.service-inc.commission)+bonus+allow; // tips paid separately (15th) — not in take-home
-    var kesE=adj.bpjsKesEmp||0,tkE=adj.bpjsTkEmp||0,pph=adj.pph21||0, ded=kesE+tkE+pph, net=gross-ded;
+    var kesE=flat?0:(adj.bpjsKesEmp||0),tkE=flat?0:(adj.bpjsTkEmp||0),pph=flat?0:(adj.pph21||0), ded=flat?0:(kesE+tkE+pph), net=gross-ded;
     var mp=ym.split('-'); var mLbl=['January','February','March','April','May','June','July','August','September','October','November','December'][+mp[1]-1]+' '+mp[0];
     var f=function(n){return 'IDR '+Math.round(n||0).toLocaleString('id-ID');};
     var row=function(l,v){return '<tr><td style="padding:6px 10px;border-bottom:1px solid #eee;">'+l+'</td><td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:right;">'+v+'</td></tr>';};
@@ -15438,7 +15454,7 @@ window.downloadPayslip=function(empId,ym){
       +(inc.service?row('Service fee (tips) <span style="color:#999;font-size:11px;">· paid separately on 15th ('+((typeof _cycleRangeLabel==='function')?_cycleRangeLabel(ym):'')+')</span>',f(inc.service)):'')
       +(inc.service?(function(){ var dd=_memberServiceDays(empId,_cycleKeysForMonth(ym)); if(!dd.length) return ''; var monD=function(dk){var p=dk.split('-');return p[2].replace(/^0/,'')+' '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+p[1]-1];}; return dd.map(function(x){ return '<tr><td style="padding:2px 10px 2px 26px;color:#888;font-size:11px;border-bottom:1px solid #f4f4f4;">'+monD(x.k)+' · pool '+f(x.pool)+' ÷'+x.n+'</td><td style="padding:2px 10px;text-align:right;color:#888;font-size:11px;border-bottom:1px solid #f4f4f4;">'+f(x.share)+'</td></tr>'; }).join(''); })():'')
       +'</table>'
-      +'<p style="font-size:11px;color:#888;margin-top:16px;">Company contributions (not deducted from you): BPJS Kesehatan '+f(adj.bpjsKesCo||0)+' · BPJS Ketenagakerjaan '+f(adj.bpjsTkCo||0)+'.'+(ded?'':' Deductions pending final figures from accounts.')+'</p>'
+      +(flat?'<p style="font-size:11px;color:#888;margin-top:16px;">Flat salary (part-time) — no BPJS or PPh 21.</p>':'<p style="font-size:11px;color:#888;margin-top:16px;">Company contributions (not deducted from you): BPJS Kesehatan '+f(adj.bpjsKesCo||0)+' · BPJS Ketenagakerjaan '+f(adj.bpjsTkCo||0)+'.'+(ded?'':' Deductions pending final figures from accounts.')+'</p>')
       +'<p style="font-size:10px;color:#aaa;">Generated '+new Date().toLocaleDateString('en-GB')+' · DISTRIK Canggu</p></body></html>';
     var w=window.open('','_blank'); if(w){ w.document.write(html); w.document.close(); setTimeout(function(){ try{w.print();}catch(e){} },300); }
   }catch(e){ console.warn('payslip',e); }
