@@ -898,7 +898,7 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
       <!-- Step 6: Confirmation -->
       <div class="bk-step" id="bks6">
         <div class="bk-confirm-wrap">
-          <div class="bk-confirm-check">&#x2713;</div>
+          <div class="bk-confirm-check" id="bk-confirm-check">&#x2713;</div>
           <div class="bk-confirm-ref" id="bk-ref-text"></div>
           <div class="bk-confirm-title" id="bk-confirm-title">almost there.</div>
           <div class="bk-confirm-detail" id="bk-conf-detail"></div>
@@ -1529,16 +1529,33 @@ function showBkConfirm(ref,rec){
   if(de) de.innerHTML='';                       // NEVER show the booking details before payment
   if(doneBtn) doneBtn.style.display='none';     // no "done" escape
   if(titleEl) titleEl.textContent='taking you to payment…';
+  var _ic=document.getElementById('bk-confirm-check'); if(_ic) _ic.style.display='none';   // no ✓ until the deposit is actually paid
   if(noteEl) noteEl.innerHTML='<b style="color:#FF2D2D;">Your booking is not held until the deposit is paid.</b><br>please don’t close this page.';
   if(depEl) depEl.innerHTML='<div style="font-family:var(--mono);font-size:9px;letter-spacing:.05em;color:var(--ink-d);text-transform:none;">opening secure card payment&hellip;</div>';
   window._bkRetryRec=rec;   // for the "try again" button if the invoice fails
-  fetch('https://asia-southeast2-distrikath80361.cloudfunctions.net/createDepositInvoice',{
-    method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({ref:ref,price:priceNum,name:rec.name,email:rec.email||'',phone:rec.phone,pathway:rec.pathway,date:rec.date,time:rec.time})
-  }).then(function(r){return r.json();}).then(function(j){
-    if(j&&j.invoice_url){ window.location.assign(j.invoice_url); }   // straight to the Xendit hosted card page
-    else { _bkPayFailed(); }
-  }).catch(function(){ _bkPayFailed(); });
+  // Retry the invoice call up to 3× (flaky mobile data / Cloud-Function cold start can drop the first request).
+  // Each attempt has a 20s timeout; only after all attempts fail do we show the "payment didn't start" screen.
+  (function(){
+    var attempt=0, MAX=3;
+    function go(){
+      attempt++;
+      var ctrl=(typeof AbortController!=='undefined')?new AbortController():null;
+      var to=ctrl?setTimeout(function(){ try{ctrl.abort();}catch(e){} },20000):null;
+      fetch('https://asia-southeast2-distrikath80361.cloudfunctions.net/createDepositInvoice',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ref:ref,price:priceNum,name:rec.name,email:rec.email||'',phone:rec.phone,pathway:rec.pathway,date:rec.date,time:rec.time}),
+        signal:ctrl?ctrl.signal:undefined
+      }).then(function(r){ if(to)clearTimeout(to); return r.json(); }).then(function(j){
+        if(j&&j.invoice_url){ window.location.assign(j.invoice_url); }   // straight to the Xendit hosted card page
+        else if(attempt<MAX){ if(depEl)depEl.innerHTML='<div style="font-family:var(--mono);font-size:9px;color:var(--ink-d);text-transform:none;">still connecting… (attempt '+(attempt+1)+' of '+MAX+')</div>'; setTimeout(go,1500); }
+        else { _bkPayFailed(); }
+      }).catch(function(){ if(to)clearTimeout(to);
+        if(attempt<MAX){ if(depEl)depEl.innerHTML='<div style="font-family:var(--mono);font-size:9px;color:var(--ink-d);text-transform:none;">still connecting… (attempt '+(attempt+1)+' of '+MAX+')</div>'; setTimeout(go,1500); }
+        else { _bkPayFailed(); }
+      });
+    }
+    go();
+  })();
 }
 // Invoice couldn't be created — make it explicit the booking is NOT confirmed, and offer a retry (never a "booked" state).
 function _bkPayFailed(){
