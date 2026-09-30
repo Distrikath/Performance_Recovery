@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260930157;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260930158;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -12444,7 +12444,8 @@ function clinToggleOnline(v){ clinCaptureInputs(); clinOnline=!!v; renderClinica
 window.clinToggleOnline=clinToggleOnline;
 function updateClinicalTotals(base){
   // apply an active Recovery promo (not to Human+ clinical) so the shown total + deposit + button reflect it
-  var _dsc=(clinType!=='clinical')?(typeof window._clinEffDiscount==='function'?window._clinEffDiscount():activeDiscount('recovery')):null; var _dp=_dsc?parseFloat(_dsc.pct):0;
+  // Recovery gets auto promos + manual; Human+ clinical gets ONLY a manually-entered comp (clinPromo) so a site-wide auto promo never silently discounts partner revenue.
+  var _dsc=(clinType!=='clinical')?(typeof window._clinEffDiscount==='function'?window._clinEffDiscount():activeDiscount('recovery')):((window.clinPromo&&(typeof window._clinDiscMatch!=='function'||window._clinDiscMatch(window.clinPromo)))?window.clinPromo:null); var _dp=_dsc?parseFloat(_dsc.pct):0;
   // EDIT/MOVE with NO new discount entered → show the ORIGINAL booking's price, discount & payment status. They're
   // carried forward on save (we only change the slot); showing full price here made it look like the deposit/discount were lost.
   var _eo=(clinEditingId&&window._clinEditOrig)?window._clinEditOrig:null;
@@ -12768,7 +12769,7 @@ function _clinSaveOne(orderId, sendEmail){
   var isHold = (clinType==='clinical' && !clinIntake && !clinOnline); // clinical w/o intake AND no online deposit = held space
   var s=clinSvc();
   // Recovery promo discount — applies to recovery sessions only, NOT Human+ clinical (partner commission)
-  var _rvDsc=(clinType!=='clinical')?(typeof window._clinEffDiscount==='function'?window._clinEffDiscount():activeDiscount('recovery')):null;
+  var _rvDsc=(clinType!=='clinical')?(typeof window._clinEffDiscount==='function'?window._clinEffDiscount():activeDiscount('recovery')):((window.clinPromo&&(typeof window._clinDiscMatch!=='function'||window._clinDiscMatch(window.clinPromo)))?window.clinPromo:null);
   var _rvPct=_rvDsc?parseFloat(_rvDsc.pct):0;
   // Base = sticker for recovery/blood; sticker + selected enhancements for an IV. Discount applies to recovery only.
   var _base=(clinType==='clinical')?clinBasePrice():(s?s.price:0);
