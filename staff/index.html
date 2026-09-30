@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260930154;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20260930155;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -15235,7 +15235,7 @@ window.payrollCalcRow=function(empId){
     var bonus=_payNum('pay_bonus_'+empId), allow=_payNum('pay_allow_'+empId);
     var kesE=_payNum('pay_kesE_'+empId), tkE=_payNum('pay_tkE_'+empId), pph=_payNum('pay_pph_'+empId);
     var kesC=_payNum('pay_kesC_'+empId), tkC=_payNum('pay_tkC_'+empId);
-    var gross=(inc.gross-inc.service)+bonus+allow, ded=kesE+tkE+pph, net=gross-ded; // tips excluded from take-home (paid separately 15th)
+    var gross=(inc.gross-inc.service-inc.commission)+bonus+allow, ded=kesE+tkE+pph, net=gross-ded; // tips excluded from take-home (paid separately 15th)
     var setT=function(id,t){ var e=document.getElementById(id); if(e) e.textContent=t; };
     setT('pay_gross_'+empId,_pf(gross));
     setT('pay_net_'+empId,'NET '+_pf(net));
@@ -15318,7 +15318,7 @@ window.renderPayroll=function(preserve){
   var cid=(typeof _cycleIdForMonth==='function')?_cycleIdForMonth(ym):null;  // the 15th-payout cycle for this month (its 14th)
   var rows=staff.map(function(s){
     var inc=_payrollIncome(s,ym); var adj=_payrollAdj(s.id,ym);
-    var bonus=adj.bonus||0, allow=adj.allowance||0, gross=(inc.gross-inc.service)+bonus+allow; // tips (service fee) paid separately on 15th — excluded from take-home so NET matches the accountant sheet
+    var bonus=adj.bonus||0, allow=adj.allowance||0, gross=(inc.gross-inc.service-inc.commission)+bonus+allow; // tips (service fee) paid separately on 15th — excluded from take-home so NET matches the accountant sheet
     var kesE=adj.bpjsKesEmp||0,tkE=adj.bpjsTkEmp||0,pph=adj.pph21||0,kesC=adj.bpjsKesCo||0,tkC=adj.bpjsTkCo||0;
     var ded=kesE+tkE+pph, net=gross-ded;
     var cell=function(l,v){return '<div>'+l+'<br><b style="color:'+TX+';font-size:12px;">'+v+'</b></div>';};
@@ -15329,7 +15329,7 @@ window.renderPayroll=function(preserve){
         +'<span id="pay_net_'+s.id+'" style="font-family:\'Space Mono\',monospace;font-size:11px;color:#22c55e;">NET '+_pf(net)+'</span>'
       +'</div>'
       +'<div style="padding:10px 14px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px 14px;font-family:\'Space Mono\',monospace;font-size:10px;color:'+MUT+';">'
-        +cell('Salary',_pf(inc.salary)+(inc.unpaidDays>0?'<div style="color:#f87171;font-size:8px;margin-top:2px;font-weight:400;">− '+_pf(inc.unpaidDeduct)+' unpaid leave ('+inc.unpaidDays+'d @ '+_pf(inc.unpaidRate)+')</div>':''))+cell('Service fee (tips)',_pf(inc.service)+'<div style="font-size:8px;color:'+MUT+';margin-top:2px;font-weight:400;">paid separately (15th) — not in NET</div>')+cell('Commission',_pf(inc.commission))
+        +cell('Salary',_pf(inc.salary)+(inc.unpaidDays>0?'<div style="color:#f87171;font-size:8px;margin-top:2px;font-weight:400;">− '+_pf(inc.unpaidDeduct)+' unpaid leave ('+inc.unpaidDays+'d @ '+_pf(inc.unpaidRate)+')</div>':''))+cell('Service fee (tips)',_pf(inc.service)+'<div style="font-size:8px;color:'+MUT+';margin-top:2px;font-weight:400;">paid separately (15th) — not in NET</div>')+cell('Commission',_pf(inc.commission)+'<div style="font-size:8px;color:'+MUT+';margin-top:2px;font-weight:400;">paid separately (monthly) — not in NET</div>')
         +fld('Bonus / THR','pay_bonus_'+s.id,bonus,'0',null)+fld('Allowances','pay_allow_'+s.id,allow,'0',null)+'<div>GROSS (take-home)<br><b id="pay_gross_'+s.id+'" style="color:'+TX+';font-size:12px;">'+_pf(gross)+'</b></div>'
         +fld('BPJS Kesehatan · employee','pay_kesE_'+s.id,kesE,'fill exact',Math.round(inc.salary*0.01))
         +fld('BPJS Ketenagakerjaan · employee','pay_tkE_'+s.id,tkE,'fill exact',Math.round(inc.salary*0.03))
@@ -15364,7 +15364,7 @@ window.renderPayroll=function(preserve){
         +'<button class="dk-ghost" onclick="downloadCommissionReport()">↓ Commission (15th–14th)</button>'
         +'<button class="dk-ghost" onclick="downloadSalaryReport()" style="background:#0A0A0A;color:#fff;">↓ Salary + Tax (month)</button>'
       +'</div>'
-      +'<div style="padding:0 14px 12px;font-family:\'Space Mono\',monospace;font-size:9px;color:'+MUT+';line-height:1.6;">Service fee &amp; commission are both worked out on the 15th→14th cycle (split only among staff working each day; sick/holiday excluded). Service-fee TIPS are handed out on the 15th (tick them below). Salary AND commission are paid MONTHLY at end of month; everything folds into the month\'s payslip for PPh21/BPJS.</div>'
+      +'<div style="padding:0 14px 12px;font-family:\'Space Mono\',monospace;font-size:9px;color:'+MUT+';line-height:1.6;">Service fee &amp; commission are both worked out on the 15th→14th cycle (split only among staff working each day; sick/holiday excluded). NET take-home = salary + bonus + allowances − BPJS − PPh21 (matches the accountant sheet). Service-fee TIPS (handed out 15th) and COMMISSION (paid monthly) are shown as separate lines — NOT in NET.</div>'
     +'</div>'
     +_svcCyclesCard()
     +rows
@@ -15378,7 +15378,7 @@ function _buildPayslipBlock(s){
     var ym=(typeof _payMonthNow==='function')?_payMonthNow():null; if(!ym){ var d=(typeof baliNow==='function'?baliNow():new Date()); ym=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2); }
     var mp=ym.split('-'); var mLbl=['January','February','March','April','May','June','July','August','September','October','November','December'][+mp[1]-1]+' '+mp[0];
     var inc=_payrollIncome(s,ym); var adj=_payrollAdj(s.id,ym);
-    var bonus=adj.bonus||0, allow=adj.allowance||0, gross=(inc.gross-inc.service)+bonus+allow; // tips paid separately (15th) — not in take-home
+    var bonus=adj.bonus||0, allow=adj.allowance||0, gross=(inc.gross-inc.service-inc.commission)+bonus+allow; // tips paid separately (15th) — not in take-home
     var ded=(adj.bpjsKesEmp||0)+(adj.bpjsTkEmp||0)+(adj.pph21||0), net=gross-ded;
     var f=function(n){return 'IDR '+Math.round(n||0).toLocaleString('id-ID');};
     var C='#232327',MUT='#6b6b72',TX='#f4f4f5';
@@ -15387,7 +15387,6 @@ function _buildPayslipBlock(s){
       +'<div style="display:flex;justify-content:space-between;align-items:baseline;padding:13px 16px;border-bottom:1px solid '+C+';"><span style="font-family:\'Space Mono\',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:'+MUT+';">Payslip</span><span style="font-family:\'Space Mono\',monospace;font-size:10px;color:'+MUT+';">'+mLbl+'</span></div>'
       +line('Basic salary',f(inc.salary)+' <span style="color:'+MUT+';font-size:9px;">· 1–'+(new Date(+mp[0],+mp[1],0).getDate())+' '+mLbl.split(' ')[0]+'</span>')
       +(inc.unpaidDays>0?'<div style="display:flex;justify-content:space-between;padding:7px 16px;border-bottom:1px solid #1b1b1e;font-family:\'Space Mono\',monospace;font-size:11px;"><span style="color:#f87171;">− Unpaid leave <span style="font-size:9px;">· '+inc.unpaidDays+' day'+(inc.unpaidDays>1?'s':'')+' @ '+f(inc.unpaidRate)+'</span></span><span style="color:#f87171;">−'+f(inc.unpaidDeduct)+'</span></div>':'')
-      +(inc.commission?line('Commission <span style="color:'+MUT+';font-size:9px;">· '+((typeof _cycleRangeLabel==='function')?_cycleRangeLabel(ym):'')+'</span>',f(inc.commission)):'')
       +(bonus?line('Bonus / THR',f(bonus)):'')
       +(allow?line('Allowances',f(allow)):'')
       +line('Gross',f(gross),true)
@@ -15395,6 +15394,7 @@ function _buildPayslipBlock(s){
       +(adj.bpjsTkEmp?line('− BPJS Ketenagakerjaan (3%)','−'+f(adj.bpjsTkEmp)):'')
       +(adj.pph21?line('− PPh 21','−'+f(adj.pph21)):'')
       +'<div style="display:flex;justify-content:space-between;padding:11px 16px;background:#111114;font-family:\'Space Mono\',monospace;font-size:13px;"><span style="color:'+MUT+';text-transform:uppercase;letter-spacing:.1em;">Net pay</span><span style="color:#22c55e;font-weight:700;">'+f(net)+'</span></div>'
+      +(inc.commission?('<div style="display:flex;justify-content:space-between;padding:9px 16px;border-top:1px solid '+C+';font-family:\'Space Mono\',monospace;font-size:11px;"><span style="color:'+MUT+';">Commission <span style="font-size:9px;">· paid separately (monthly) · '+((typeof _cycleRangeLabel==='function')?_cycleRangeLabel(ym):'')+'</span></span><span style="color:'+TX+';">'+f(inc.commission)+'</span></div>'):'')
       +(inc.service?('<div style="display:flex;justify-content:space-between;padding:9px 16px;border-top:1px solid '+C+';font-family:\'Space Mono\',monospace;font-size:11px;"><span style="color:'+MUT+';">Service fee (tips) <span style="font-size:9px;">· paid separately on 15th · '+((typeof _cycleRangeLabel==='function')?_cycleRangeLabel(ym):'')+'</span></span><span style="color:'+TX+';">'+f(inc.service)+'</span></div>'):'')
       +(inc.service?(function(){ var dd=_memberServiceDays(s.id,_cycleKeysForMonth(ym)); if(!dd.length) return ''; var monD=function(dk){var p=dk.split('-');return p[2].replace(/^0/,'')+' '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+p[1]-1];}; return dd.map(function(x){ return '<div style="display:flex;justify-content:space-between;padding:3px 16px 3px 28px;border-bottom:1px solid #151517;font-family:\'Space Mono\',monospace;font-size:9px;color:'+MUT+';"><span>'+monD(x.k)+' · pool '+f(x.pool)+' ÷'+x.n+'</span><span>'+f(x.share)+'</span></div>'; }).join(''); })():'')
       +(ded?'':'<div style="padding:8px 16px;font-family:\'Space Mono\',monospace;font-size:9px;color:'+MUT+';">BPJS/PPh21 pending from accounts — net shown is before those deductions.</div>')
@@ -15406,7 +15406,7 @@ window.downloadPayslip=function(empId,ym){
   try{
     var s=(typeof STAFF!=='undefined')?STAFF.find(function(x){return x.id===empId;}):null; if(!s) return;
     var inc=_payrollIncome(s,ym); var adj=_payrollAdj(empId,ym);
-    var bonus=adj.bonus||0, allow=adj.allowance||0, gross=(inc.gross-inc.service)+bonus+allow; // tips paid separately (15th) — not in take-home
+    var bonus=adj.bonus||0, allow=adj.allowance||0, gross=(inc.gross-inc.service-inc.commission)+bonus+allow; // tips paid separately (15th) — not in take-home
     var kesE=adj.bpjsKesEmp||0,tkE=adj.bpjsTkEmp||0,pph=adj.pph21||0, ded=kesE+tkE+pph, net=gross-ded;
     var mp=ym.split('-'); var mLbl=['January','February','March','April','May','June','July','August','September','October','November','December'][+mp[1]-1]+' '+mp[0];
     var f=function(n){return 'IDR '+Math.round(n||0).toLocaleString('id-ID');};
@@ -15416,7 +15416,6 @@ window.downloadPayslip=function(empId,ym){
       +'<h1>DISTRIK — PAYSLIP</h1><h2>'+s.name+' · '+(s.role||'')+' · '+mLbl+'</h2><table>'
       +row('Basic salary <span style="color:#999;font-size:11px;">(1–'+(new Date(+mp[0],+mp[1],0).getDate())+' '+mLbl.split(' ')[0]+')</span>',f(inc.salary))
       +(inc.unpaidDays>0?'<tr><td style="padding:6px 10px;border-bottom:1px solid #eee;color:#b00;">− Unpaid leave <span style="color:#999;font-size:11px;">('+inc.unpaidDays+' day'+(inc.unpaidDays>1?'s':'')+' @ '+f(inc.unpaidRate)+')</span></td><td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:right;color:#b00;">−'+f(inc.unpaidDeduct)+'</td></tr>':'')
-      +(inc.commission?row('Commission <span style="color:#999;font-size:11px;">('+((typeof _cycleRangeLabel==='function')?_cycleRangeLabel(ym):'')+')</span>',f(inc.commission)):'')
       +(bonus?row('Bonus / THR',f(bonus)):'')
       +(allow?row('Allowances',f(allow)):'')
       +tot('GROSS',f(gross))
@@ -15424,6 +15423,7 @@ window.downloadPayslip=function(empId,ym){
       +(tkE?row('− BPJS Ketenagakerjaan (3%)','−'+f(tkE)):'')
       +(pph?row('− PPh 21','−'+f(pph)):'')
       +tot('NET PAY',f(net))
+      +(inc.commission?row('Commission <span style="color:#999;font-size:11px;">· paid separately monthly ('+((typeof _cycleRangeLabel==='function')?_cycleRangeLabel(ym):'')+')</span>',f(inc.commission)):'')
       +(inc.service?row('Service fee (tips) <span style="color:#999;font-size:11px;">· paid separately on 15th ('+((typeof _cycleRangeLabel==='function')?_cycleRangeLabel(ym):'')+')</span>',f(inc.service)):'')
       +(inc.service?(function(){ var dd=_memberServiceDays(empId,_cycleKeysForMonth(ym)); if(!dd.length) return ''; var monD=function(dk){var p=dk.split('-');return p[2].replace(/^0/,'')+' '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+p[1]-1];}; return dd.map(function(x){ return '<tr><td style="padding:2px 10px 2px 26px;color:#888;font-size:11px;border-bottom:1px solid #f4f4f4;">'+monD(x.k)+' · pool '+f(x.pool)+' ÷'+x.n+'</td><td style="padding:2px 10px;text-align:right;color:#888;font-size:11px;border-bottom:1px solid #f4f4f4;">'+f(x.share)+'</td></tr>'; }).join(''); })():'')
       +'</table>'
