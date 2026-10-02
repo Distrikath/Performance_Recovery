@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20260930158;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20261002159;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -11366,7 +11366,8 @@ function getRoomsToday(){
   return out;
 }
 function roomTherapist(roomName){ var r=getRoomsToday().find(function(x){return x.room===roomName;}); return r&&r.therapist?r:null; }
-function todayBookings(){ try{ var dk=clinKey(); return (recoveryData[dk]&&recoveryData[dk].bookings)||[]; }catch(e){ return []; } }
+// Peptide/pen items are RETAIL sales (paid in full at ring-up, no chair/time) — they post to the ledger like a Fuel/Supply sale and must NOT appear in the reception bookings list or count.
+function todayBookings(){ try{ var dk=clinKey(); return ((recoveryData[dk]&&recoveryData[dk].bookings)||[]).filter(function(b){ return !(b&&(b.peptide||b.cat==='peptide')); }); }catch(e){ return []; } }
 function todayBookingCount(){
   var local=todayBookings().filter(function(b){return b.status!=='cancelled';}).length;
   var dk=clinKey();
@@ -12973,12 +12974,15 @@ function confirmClinical(){
   });
   _clinRestoreItem(snap);
   clinCart=[];
-  if(hasPep){ saved += _clinConfirmPeptides(orderId); }   // record peptide items (10% HUMAN+, full paid, no slot)
+  var _pepTot=0, _pepN=0;
+  if(hasPep){ var _pb=clinPeptideTotal(); _pepTot=_pb+Math.round(_pb*0.11); _pepN=_clinConfirmPeptides(orderId); saved += _pepN; }   // retail sale: 10% HUMAN+, paid in full, no slot — posts to ledger like Fuel/Supply
   // If this booking was an online request opened via "Edit / move", clear that request from the pending list now.
   if(window._clinOnlineReqId){ try{ _bkDismissed[window._clinOnlineReqId]=1; _onreqUpdateStatus(window._clinOnlineReqId,'confirmed'); }catch(e){} window._clinOnlineReqId=null; }
   clinEditingId=null; clinEditingDate=null; window._clinEditOrig=null;
   clinDone=true; clinDoneHold=anyHold; window._clinDoneCount=saved; buildClinRoomGrid(); renderClinicalOrder();
   if(wasEdit) clinNotify('Booking updated.');
+  else if(_pepN>0 && items.length===0) clinNotify('Peptide sale recorded · IDR '+Math.round(_pepTot).toLocaleString('id-ID')+' paid in full ('+_pepN+' item'+(_pepN!==1?'s':'')+'). It\'s in Sales — not bookings.');
+  else if(_pepN>0 && saved>_pepN) clinNotify((saved-_pepN)+' treatment'+((saved-_pepN)!==1?'s':'')+' booked + peptide sale IDR '+Math.round(_pepTot).toLocaleString('id-ID')+' recorded.');
   else if(saved>1) clinNotify(saved+' treatments booked on one booking.');
 }
 // Pre-tax revenue currently counted for a booking
