@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20261002159;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20261002160;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -10859,11 +10859,11 @@ window.clearAllData = clearAllData;
 window.dkDelete = function(id){
   try{
     id=String(id||''); if(!id) return;
-    window._deletedIds = window._deletedIds||{}; window._deletedIds[id]=Date.now();
+    window._deletedIds = window._deletedIds||{}; window._deletedIds[id]=Date.now(); window._deletedIds[id+'_bal']=Date.now();  // tombstone the balance row too, or a deleted pay-on-arrival/checked-out booking leaves a phantom "<id>_bal" confirmed entry in end-of-day
     try{ if(typeof recoveryData==='object') Object.keys(recoveryData).forEach(function(d){ var day=recoveryData[d]; if(day&&day.bookings){ var i=day.bookings.findIndex(function(b){return String(b.id)===id;}); if(i>=0) day.bookings.splice(i,1); day.revenue=(day.bookings||[]).reduce(function(s,b){return s+((typeof clinRevenue==='function')?clinRevenue(b):0);},0); } }); }catch(e){}
     try{ if(typeof fuelData==='object') Object.keys(fuelData).forEach(function(d){ var day=fuelData[d]; if(day&&day.transactions){ day.transactions=day.transactions.filter(function(t){return String(t.id)!==id;}); day.revenue=day.transactions.reduce(function(s,t){return s+((t&&t.total)||0);},0); } }); }catch(e){}
     try{ if(typeof supplyData==='object') Object.keys(supplyData).forEach(function(d){ var day=supplyData[d]; if(day&&day.orders){ day.orders=day.orders.filter(function(o){return String(o.id)!==id;}); day.revenue=day.orders.reduce(function(s,o){return s+((o&&o.total)||0);},0); } }); }catch(e){}
-    try{ if(typeof firebase!=='undefined'&&firebase.firestore) firebase.firestore().collection('ledger').doc(id).delete(); }catch(e){}
+    try{ if(typeof firebase!=='undefined'&&firebase.firestore){ firebase.firestore().collection('ledger').doc(id).delete(); firebase.firestore().collection('ledger').doc(id+'_bal').delete(); } }catch(e){}  // remove the balance-payment row too
     try{ saveAll(); }catch(e){}
     try{ if(typeof window.dkHardSave==='function') window.dkHardSave(['distrik_v1']); }catch(e){}  // propagate tombstone to all devices
     try{ if(typeof renderSales==='function') renderSales(); }catch(e){}
