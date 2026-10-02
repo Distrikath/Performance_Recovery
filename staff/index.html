@@ -6,7 +6,7 @@
 <title>Distrik.Dashboard</title>
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20261002160;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20261002161;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -12394,7 +12394,7 @@ function renderClinicalOrder(){
   if(window._clinCheckoutRow){ if(_renderCheckoutOrder(el)) return; }
   // not in checkout → make sure the normal booking chrome (online / discount / normal button) is restored
   _clinOrderChrome(true);
-  if(clinDone){ var _dn=window._clinDoneCount||1; var dMsg=(clinDoneHold?'Tentative — intake pending':'Booking confirmed')+(_dn>1?(' · '+_dn+' treatments'):''); var dIco=clinDoneHold?'<span style="color:#FF2D2D;">●</span>':'✓'; var dSub=clinDoneHold?'<div style="font-family:Space Mono,monospace;font-size:11px;color:#56565b;margin-top:8px;line-height:1.5;">Chair reserved. Confirm once intake is returned &amp; approved.</div>':''; el.innerHTML='<div class="clin-confirm"><div class="clin-confirm-ico">'+dIco+'</div><div class="clin-confirm-msg">'+dMsg+'</div>'+dSub+'<button class="clin-intake-btn" style="background:#0A0A0A;margin-top:14px;" onclick="initRecovery()">New booking</button></div>'; clinSetText('clin-subtotal','—'); clinSetText('clin-tax','—'); clinSetText('clin-total','—'); var b=document.getElementById('clin-confirm-btn'); if(b){b.disabled=true;b.textContent=clinDoneHold?'Tentative':'Confirmed';} return; }
+  if(clinDone){ var _pepOnly=!!window._clinLastPepOnly; var _dn=window._clinDoneCount||1; var dMsg=_pepOnly?('Sale recorded'+(_dn>1?(' · '+_dn+' items'):'')):((clinDoneHold?'Tentative — intake pending':'Booking confirmed')+(_dn>1?(' · '+_dn+' treatments'):'')); var dIco=clinDoneHold?'<span style="color:#FF2D2D;">●</span>':'✓'; var dSub=_pepOnly?('<div style="font-family:Space Mono,monospace;font-size:11px;color:#56565b;margin-top:8px;line-height:1.5;">IDR '+Math.round(window._clinLastPepTot||0).toLocaleString('id-ID')+' · paid in full · recorded in Sales (not bookings).</div>'):(clinDoneHold?'<div style="font-family:Space Mono,monospace;font-size:11px;color:#56565b;margin-top:8px;line-height:1.5;">Chair reserved. Confirm once intake is returned &amp; approved.</div>':''); el.innerHTML='<div class="clin-confirm"><div class="clin-confirm-ico">'+dIco+'</div><div class="clin-confirm-msg">'+dMsg+'</div>'+dSub+'<button class="clin-intake-btn" style="background:#0A0A0A;margin-top:14px;" onclick="initRecovery()">'+(_pepOnly?'New sale':'New booking')+'</button></div>'; clinSetText('clin-subtotal','—'); clinSetText('clin-tax','—'); clinSetText('clin-total','—'); var b=document.getElementById('clin-confirm-btn'); if(b){b.disabled=true;b.textContent=_pepOnly?'Sold':(clinDoneHold?'Tentative':'Confirmed');} return; }
   if(!clinSel){
     if(clinCart.length || clinPeptideHasItems()){
       el.innerHTML=_clinOrderCartLines()+_clinPeptideLines()
@@ -12979,7 +12979,7 @@ function confirmClinical(){
   // If this booking was an online request opened via "Edit / move", clear that request from the pending list now.
   if(window._clinOnlineReqId){ try{ _bkDismissed[window._clinOnlineReqId]=1; _onreqUpdateStatus(window._clinOnlineReqId,'confirmed'); }catch(e){} window._clinOnlineReqId=null; }
   clinEditingId=null; clinEditingDate=null; window._clinEditOrig=null;
-  clinDone=true; clinDoneHold=anyHold; window._clinDoneCount=saved; buildClinRoomGrid(); renderClinicalOrder();
+  clinDone=true; clinDoneHold=anyHold; window._clinDoneCount=saved; window._clinLastPepOnly=(_pepN>0&&items.length===0); window._clinLastPepTot=_pepTot; buildClinRoomGrid(); renderClinicalOrder();
   if(wasEdit) clinNotify('Booking updated.');
   else if(_pepN>0 && items.length===0) clinNotify('Peptide sale recorded · IDR '+Math.round(_pepTot).toLocaleString('id-ID')+' paid in full ('+_pepN+' item'+(_pepN!==1?'s':'')+'). It\'s in Sales — not bookings.');
   else if(_pepN>0 && saved>_pepN) clinNotify((saved-_pepN)+' treatment'+((saved-_pepN)!==1?'s':'')+' booked + peptide sale IDR '+Math.round(_pepTot).toLocaleString('id-ID')+' recorded.');
