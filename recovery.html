@@ -647,7 +647,7 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
       <div class="rc-focus-item">RECOVER</div>
       <div class="rc-focus-item">PERFORM</div>
       <div class="rc-focus-item">MOVE</div>
-      <div class="rc-focus-item">COMPRESSION</div>
+      <div class="rc-focus-item">COMPRESSION BOOTS + SMART GOGGLES</div>
     </div>
   </div>
   <div class="rc-step">
@@ -724,7 +724,7 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
     </div>
     <div class="rc-therapy" onclick="showFocusDetail('COMPRESSION')">
       <div class="rc-therapy-num">04</div>
-      <div class="rc-therapy-name">COMPRESSION</div>
+      <div class="rc-therapy-name">COMPRESSION BOOTS + SMART GOGGLES</div>
       <p class="rc-therapy-desc"><strong style="color:var(--r);font-weight:700;">For when your legs need a reset.</strong><br>A passive recovery session using pneumatic compression boots that rhythmically inflate and release around the legs. Designed to support circulation and recovery while helping tired, heavy legs feel lighter and fresher.</p>
       <div class="rc-therapy-tags">
         <span class="rc-therapy-tag">compression boots</span>
@@ -811,7 +811,7 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
           </button>
           <button class="bk-card" id="bkc-COMPRESSION" onclick="pickPathway(this,'COMPRESSION')">
             <span class="bk-card-num">04</span>
-            <span class="bk-card-name">COMPRESSION</span>
+            <span class="bk-card-name">COMPRESSION BOOTS + SMART GOGGLES</span>
             <span class="bk-card-sub">For when your legs need a reset.</span>
             <span class="bk-card-from">from IDR 200K</span>
           </button>
@@ -949,7 +949,7 @@ var FD={
   PERFORM:{num:'02',name:'PERFORM',tagline:'For when you train hard.',concept:'Sports-focused bodywork tailored to your training, performance and recovery needs. Your therapist will use targeted massage, deeper tissue work and movement-based techniques to address muscle tension, problem areas and the physical demands of your sport or training.',designed:['Sports massage','Deep tissue','Muscle tension','Performance recovery','Competition','Strength training'],pressure:['Light','Medium','Firm'],vibe:['Energising','Activating','Priming','Powerful','Performance-focused']},
   MOVE:{num:'03',name:'MOVE',tagline:'For when you feel tight or restricted.',concept:'Stretch and release-focused bodywork designed to help you move more freely. Your therapist will combine soft tissue release, assisted stretching and mobility techniques to target tight areas, improve range of motion and reduce restriction.',designed:['Assisted stretching','Mobility','Tissue release','Range of motion','Joint stiffness','Desk workers'],pressure:['Light','Medium','Firm'],vibe:['Fluid','Balanced','Mobile','Functional','Free']},
   CONSULTATION:{num:'05',name:'CONSULTATION',tagline:'Not sure where to start?',concept:'A free 15-minute sit-down with one of our therapists. Talk through what is bothering you, what you are training for, and what you want to get out of recovery — and leave with a plan. No treatment, no charge, no commitment.',designed:['First visit','Choosing a pathway','Injury history','Training goals','Programme planning','No commitment'],pressure:[],vibe:['Unhurried','Straightforward','Personal','Practical']},
-  COMPRESSION:{num:'04',name:'COMPRESSION',tagline:'For when your legs need a reset.',concept:'A passive recovery session using pneumatic compression boots that rhythmically inflate and release around the legs. Designed to support circulation and recovery while helping tired, heavy legs feel lighter and fresher.',designed:['Compression boots','Tired legs','Circulation','Passive recovery','Heavy legs','Swelling reduction'],pressure:['Light','Medium','Firm'],vibe:['Refreshing','Restorative','Lightening','Rejuvenating','Effortless']}
+  COMPRESSION:{num:'04',name:'COMPRESSION BOOTS + SMART GOGGLES',tagline:'For when your legs need a reset.',concept:'A passive recovery session using pneumatic compression boots that rhythmically inflate and release around the legs. Designed to support circulation and recovery while helping tired, heavy legs feel lighter and fresher.',designed:['Compression boots','Tired legs','Circulation','Passive recovery','Heavy legs','Swelling reduction'],pressure:['Light','Medium','Firm'],vibe:['Refreshing','Restorative','Lightening','Rejuvenating','Effortless']}
 };
 function showFocusDetail(k){
   var d=FD[k];if(!d)return;
