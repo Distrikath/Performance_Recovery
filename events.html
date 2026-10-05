@@ -132,7 +132,7 @@ function renderEvents(){
         +'<div class="ev-card-row"><span>Spaces</span><b style="color:'+(full?'#FF2D2D':'var(--teal)')+'">'+(full?'Fully booked':(left+' left'))+'</b></div>'
         +'<div class="ev-card-row"><span>Cost</span><b>'+cost+'</b></div>'
       +'</div>'
-      +'<button class="ev-book-btn" '+(full?'disabled':'onclick="evbkOpen(\''+ev.id+'\')"')+'>'+(full?'Fully booked':'Book this class')+'</button>'
+      +'<button class="ev-book-btn" '+(full?'disabled':'onclick="evbkOpen(\''+ev.id+'\')"')+'>'+(full?'Fully booked':'Book this event')+'</button>'
     +'</div>';
   }).join('');
 }
@@ -186,7 +186,7 @@ function evbkSubmit(){
       +'<button class="evbk-cta" style="margin-top:18px;" onclick="evbkClose()">Done</button>';
   }).catch(function(e){
     if(btn){btn.disabled=false;btn.textContent='Confirm booking';}
-    if(e&&e.message==='full'){ alert('Sorry — that class just filled up.'); evbkClose(); renderEvents(); return; }
+    if(e&&e.message==='full'){ alert('Sorry — that event just filled up.'); evbkClose(); renderEvents(); return; }
     alert('Booking error: '+(e&&e.message||e)+'\n\nPlease WhatsApp us: +62 819 9480 1516');
   });
 }

@@ -518,7 +518,7 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
 .fd-book-btn{display:inline-flex;align-items:center;gap:12px;font-family:var(--mono);font-size:10px;letter-spacing:.35em;text-transform:lowercase;padding:16px 28px;border:1px solid var(--ink);color:var(--ink);cursor:pointer;background:transparent;transition:all .35s;margin-top:36px}
 .fd-book-btn:hover{background:var(--r);border-color:var(--r);letter-spacing:.45em}
 /* Booking Modal */
-.bk-overlay{position:fixed;inset:0;background:rgba(10,10,10,.96);z-index:2000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .35s;backdrop-filter:blur(4px)}
+.bk-overlay{position:fixed;inset:0;background:#0A0A0A;z-index:2000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .35s}
 .bk-overlay.open{opacity:1;pointer-events:all}
 .bk-modal{width:100%;max-width:680px;margin:0 20px;background:#111;border:1px solid rgba(242,242,240,.1);max-height:92vh;overflow-y:auto;display:flex;flex-direction:column;scrollbar-width:none}
 .bk-modal::-webkit-scrollbar{display:none}
@@ -879,12 +879,27 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
         </div>
       </div>
 
-      <!-- Step 5: WhatsApp / Email -->
+      <!-- Step 5: Contact + how to book -->
       <div class="bk-step" id="bks5">
         <div class="bk-field">
-          <label>whatsapp (preferred) or email</label>
-          <input type="tel" id="bk-phone" placeholder="+62 ..." autocomplete="tel" oninput="bkState.phone=this.value;updateBkNext()">
-          <div class="bk-field-note">we'll send your booking confirmation and session details here.</div>
+          <label>whatsapp number</label>
+          <input type="tel" id="bk-phone" placeholder="+62 ..." autocomplete="tel" inputmode="tel" oninput="bkState.phone=this.value;updateBkNext()">
+          <div class="bk-field-note">we'll send your booking confirmation here.</div>
+        </div>
+        <div class="bk-field" style="margin-top:20px;">
+          <label>email <span style="opacity:.55;text-transform:none;letter-spacing:0;">— for your receipt</span></label>
+          <input type="email" id="bk-email" placeholder="you@email.com" autocomplete="email" inputmode="email" oninput="bkState.email=this.value;updateBkNext()">
+        </div>
+        <div style="margin-top:26px;padding-top:20px;border-top:1px solid var(--line);">
+          <label class="bk-sect-label" style="display:block;margin-bottom:12px;">how would you like to book?</label>
+          <button type="button" id="bk-pt-deposit" onclick="bkSetPayType('deposit')" style="display:block;width:100%;text-align:left;margin-bottom:10px;padding:14px 16px;background:rgba(255,45,45,.08);border:1px solid var(--r);color:var(--ink);cursor:pointer;font-family:var(--mono);">
+            <span style="display:block;font-size:12px;letter-spacing:.04em;">Pay 50% deposit now</span>
+            <span style="display:block;font-size:9.5px;color:var(--ink-d);margin-top:4px;letter-spacing:.02em;">secures your slot instantly · balance paid on arrival</span>
+          </button>
+          <button type="button" id="bk-pt-later" onclick="bkSetPayType('later')" style="display:block;width:100%;text-align:left;padding:14px 16px;background:transparent;border:1px solid var(--line);color:var(--ink);cursor:pointer;font-family:var(--mono);">
+            <span style="display:block;font-size:12px;letter-spacing:.04em;">Reserve — pay on arrival</span>
+            <span style="display:block;font-size:9.5px;color:var(--ink-d);margin-top:4px;letter-spacing:.02em;">no card needed · we'll confirm on WhatsApp</span>
+          </button>
         </div>
         <div style="margin-top:26px;padding-top:20px;border-top:1px solid var(--line);">
           <label class="bk-sect-label" style="display:block;">have a promo code?</label>
@@ -970,7 +985,7 @@ function closeFd(){
 }
 
 // ── Booking ───────────────────────────────────────────────────────────
-var bkState={step:1,pathway:null,duration:null,price:null,pressure:null,date:null,time:null,therapist:'',name:'',phone:'',promo:null};
+var bkState={step:1,pathway:null,duration:null,price:null,pressure:null,date:null,time:null,therapist:'',name:'',phone:'',email:'',payType:'deposit',promo:null};
 var BK_DURS={RECOVER:[{m:30,p:'IDR 400K'},{m:45,p:'IDR 550K'},{m:60,p:'IDR 650K'},{m:90,p:'IDR 900K'}],PERFORM:[{m:30,p:'IDR 400K'},{m:45,p:'IDR 550K'},{m:60,p:'IDR 650K'},{m:90,p:'IDR 900K'}],MOVE:[{m:30,p:'IDR 400K'},{m:45,p:'IDR 550K'},{m:60,p:'IDR 650K'},{m:90,p:'IDR 900K'}],COMPRESSION:[{m:20,p:'IDR 200K'},{m:40,p:'IDR 400K'},{m:60,p:'IDR 600K'}],CONSULTATION:[{m:15,p:'FREE'}]};
 var THER_NAMES={};
 var _calState={year:0,month:0};
@@ -978,8 +993,8 @@ var _calState={year:0,month:0};
 function openBk(){
   _bkRosterCache=null;
   _calState={year:0,month:0};
-  bkState={step:1,pathway:null,duration:null,price:null,pressure:null,date:null,time:null,therapist:'',name:'',phone:''};
-  ['bk-name','bk-phone'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+  bkState={step:1,pathway:null,duration:null,price:null,pressure:null,date:null,time:null,therapist:'',name:'',phone:'',email:'',payType:'deposit'};
+  ['bk-name','bk-phone','bk-email'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
   var ti=document.getElementById('bk-therapist');if(ti){ti.innerHTML='<option value="" disabled selected>choose your therapist</option>';ti.value='';}
   var ts=document.getElementById('bk-therapist-sect');if(ts)ts.style.display='none';
   var dd=document.getElementById('bk-date-display');if(dd){dd.textContent='select a date';dd.classList.add('empty');}
@@ -1412,7 +1427,7 @@ function updateBkNext(){
   else if(s===4)ok=!!bkState.name.trim();
   else if(s===5)ok=!!bkState.phone.trim();
   btn.disabled=!ok;
-  btn.textContent=s===5?'confirm →':'next →';
+  btn.textContent=(s===5)?((bkState.payType==='later')?'reserve →':'pay deposit →'):'next →';
 }
 function updateBkSum(){
   var el=document.getElementById('bk-sum-text');if(!el)return;
@@ -1461,6 +1476,13 @@ function bkApplyPromo(){
   if(!d){ bkState.promo=null; if(msg){ msg.style.color='var(--r)'; msg.textContent='invalid or expired code'; } }
   else { bkState.promo=d; if(msg){ msg.style.color='#10b981'; msg.textContent='✓ '+d.pct+'% off applied'+(parseFloat(d.pct)>=100?' — free session':''); } }
 }
+function bkSetPayType(t){
+  bkState.payType=t;
+  var d=document.getElementById('bk-pt-deposit'), l=document.getElementById('bk-pt-later');
+  if(d){ d.style.background=(t==='deposit')?'rgba(255,45,45,.08)':'transparent'; d.style.borderColor=(t==='deposit')?'var(--r)':'var(--line)'; }
+  if(l){ l.style.background=(t==='later')?'rgba(255,45,45,.08)':'transparent'; l.style.borderColor=(t==='later')?'var(--r)':'var(--line)'; }
+  var nb=document.getElementById('bk-next-btn'); if(nb && bkState.step===5){ nb.textContent=(t==='later')?'reserve →':'pay deposit →'; }
+}
 function submitBk(){
   var btn=document.getElementById('bk-next-btn');
   if(btn){btn.disabled=true;btn.textContent='sending...';}
@@ -1468,7 +1490,7 @@ function submitBk(){
   var _pn=bkPriceNum(bkState.price);
   var _pr=bkState.promo, _ppct=_pr?parseFloat(_pr.pct):0;
   if(_ppct){ _pn=Math.max(0,Math.round(_pn*(1-_ppct/100))); }   // apply customer promo to the price
-  var rec={ref:rnd,pathway:bkState.pathway,duration:bkState.duration,price:bkState.price,priceNum:_pn,deposit:Math.round(_pn/2),discPct:_ppct,discCode:(_pr?(_pr.code||''):''),discReason:(_pr?(_pr.reason||''):''),pressure:bkState.pressure,date:bkState.date,time:bkState.time,therapist:bkState.therapist||null,name:bkState.name.trim(),phone:bkState.phone.trim(),status:(_pn>0?'pending_payment':'tentative'),paymentStatus:'unpaid',submittedAt:firebase.firestore.FieldValue.serverTimestamp()};
+  var rec={ref:rnd,pathway:bkState.pathway,duration:bkState.duration,price:bkState.price,priceNum:_pn,deposit:Math.round(_pn/2),discPct:_ppct,discCode:(_pr?(_pr.code||''):''),discReason:(_pr?(_pr.reason||''):''),pressure:bkState.pressure,date:bkState.date,time:bkState.time,therapist:bkState.therapist||null,name:bkState.name.trim(),phone:bkState.phone.trim(),email:(bkState.email||'').trim(),payType:((_pn>0)?bkState.payType:'free'),status:((bkState.payType==='later')?'tentative':(_pn>0?'pending_payment':'tentative')),paymentStatus:((bkState.payType==='later')?'on_arrival':'unpaid'),submittedAt:firebase.firestore.FieldValue.serverTimestamp()};
   // PAYMENT-FIRST: a paying booking is saved as 'pending_payment' (hidden from staff, doesn't hold as a real booking)
   // until the 50% deposit is paid — the Xendit webhook then promotes it to 'tentative'. Free (100%-off) bookings skip
   // the deposit and go straight to 'tentative'. This stops unpaid bookings appearing as real bookings.
@@ -1520,6 +1542,18 @@ function showBkConfirm(ref,rec){
     if(titleEl) titleEl.textContent='you’re booked.';
     if(noteEl) noteEl.innerHTML='we’ll confirm your session via whatsapp within a few hours.<br>see you at the canggu lab.';
     if(depEl) depEl.innerHTML='<div style="color:#10b981;letter-spacing:.08em;line-height:1.8;">&#10003; No payment needed — free with code '+(rec.discCode||'')+'.</div>';
+    return;
+  }
+
+  if(rec.payType==='later'){
+    // RESERVED — PAY ON ARRIVAL. A real booking, no deposit taken now (lower-friction path for card-shy customers).
+    if(re) re.textContent=ref;
+    if(de) de.innerHTML=_detail;
+    if(doneBtn) doneBtn.style.display='';
+    var _icL=document.getElementById('bk-confirm-check'); if(_icL) _icL.style.display='';
+    if(titleEl) titleEl.textContent='you’re reserved.';
+    if(noteEl) noteEl.innerHTML='we’ll confirm your session via whatsapp shortly.<br>pay when you arrive — see you at the canggu lab.';
+    if(depEl) depEl.innerHTML='<div style="color:#10b981;letter-spacing:.08em;line-height:1.8;">&#10003; Reserved · pay IDR '+Number(priceNum).toLocaleString()+' on arrival</div>';
     return;
   }
 
