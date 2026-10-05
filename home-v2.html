@@ -162,6 +162,9 @@ footer{border-top:1px solid var(--line);padding:70px 0 140px;color:var(--ink-d);
 footer h4{color:var(--ink);font:700 11px var(--mono);letter-spacing:.16em;text-transform:uppercase;margin-bottom:14px}
 footer a:hover{color:var(--ink)}
 footer .ft-line{line-height:1.9}
+.foot-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-top:48px;padding-top:22px;border-top:1px solid var(--line);font:400 11px var(--mono);letter-spacing:.08em;color:var(--ink-d)}
+.foot-bottom .staff-link{opacity:.5;text-transform:uppercase;letter-spacing:.14em}
+.foot-bottom .staff-link:hover{opacity:1;color:var(--r)}
 
 /* Mobile sticky bar */
 .mbar{position:fixed;left:0;right:0;bottom:0;z-index:60;background:var(--b);border-top:1px solid var(--line);display:none}
@@ -339,6 +342,10 @@ footer .ft-line{line-height:1.9}
     <div><h4>Visit</h4><div class="ft-line"><!-- [Street address] -->[Jl. ____, Canggu]<br>Bali, Indonesia<br><a href="#" target="_blank" rel="noopener">Open in Maps</a></div></div>
     <div><h4>Hours</h4><div class="ft-line">Tue–Sat [8:00–19:00]<br>Sunday [8:00–17:00]<br>Monday — closed</div></div>
     <div><h4>Contact</h4><div class="ft-line"><a href="https://wa.me/6281994801516" target="_blank" rel="noopener" onclick="dkWaConv&&dkWaConv()">WhatsApp +62 819 9480 1516</a><br><a href="https://instagram.com/distrik.ath" target="_blank" rel="noopener">@distrik.ath</a></div></div>
+  </div>
+  <div class="wrap foot-bottom">
+    <span>&copy; DISTRIK Performance Recovery</span>
+    <a class="staff-link" href="staff/" onclick="window.location.href='staff/?v='+Date.now();return false;">staff access &#8594;</a>
   </div>
 </footer>
 
