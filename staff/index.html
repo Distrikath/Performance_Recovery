@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMEEwQTBBIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYsNzgpIHNjYWxlKDEuMzApIiBmaWxsPSIjRjJGMkYwIj48cGF0aCBkPSJNIDAuMDYyNSAwIEwgNi42MjUgLTQxLjM5MDYyNSBMIDMzLjU5Mzc1IC00MS4zOTA2MjUgQyAzOS4wMDc4MTIgLTQxLjM5MDYyNSA0My41MDM5MDYgLTQwLjkwNjI1IDQ3LjA3ODEyNSAtMzkuOTM3NSBDIDUwLjY2MDE1NiAtMzguOTc2NTYyIDUzLjUgLTM3LjY2MDE1NiA1NS41OTM3NSAtMzUuOTg0Mzc1IEMgNTcuNjg3NSAtMzQuMzE2NDA2IDU5LjE3NTc4MSAtMzIuNDE0MDYyIDYwLjA2MjUgLTMwLjI4MTI1IEMgNjAuOTU3MDMxIC0yOC4xNTYyNSA2MS40MDYyNSAtMjUuOTIxODc1IDYxLjQwNjI1IC0yMy41NzgxMjUgQyA2MS40MDYyNSAtMjEuOTEwMTU2IDYxLjI5Njg3NSAtMjAuMzE2NDA2IDYxLjA3ODEyNSAtMTguNzk2ODc1IEMgNjAuODE2NDA2IC0xNy4wOTc2NTYgNjAuMzMyMDMxIC0xNS4zNTkzNzUgNTkuNjI1IC0xMy41NzgxMjUgQyA1OC45MjU3ODEgLTExLjc5Njg3NSA1Ny44Nzg5MDYgLTEwLjA5NzY1NiA1Ni40ODQzNzUgLTguNDg0Mzc1IEMgNTUuMDk3NjU2IC02Ljg2NzE4OCA1My4yNjk1MzEgLTUuNDIxODc1IDUxIC00LjE0MDYyNSBDIDQ4LjczODI4MSAtMi44NTkzNzUgNDUuOTIxODc1IC0xLjg0NzY1NiA0Mi41NDY4NzUgLTEuMTA5Mzc1IEMgMzkuMTcxODc1IC0wLjM2NzE4OCAzNS4xNDg0MzggMCAzMC40ODQzNzUgMCBaIE0gMjAuMjUgLTMwLjUzMTI1IEwgMTcuMTI1IC0xMC45NTMxMjUgTCAyOC42NDA2MjUgLTEwLjk1MzEyNSBDIDMxLjgzNTkzOCAtMTAuOTUzMTI1IDM0LjQ3MjY1NiAtMTEuMjUgMzYuNTQ2ODc1IC0xMS44NDM3NSBDIDM4LjYxNzE4OCAtMTIuNDM3NSA0MC4yNSAtMTMuMjA3MDMxIDQxLjQzNzUgLTE0LjE1NjI1IEMgNDIuNjI1IC0xNS4xMDE1NjIgNDMuNDg0Mzc1IC0xNi4wOTM3NSA0NC4wMTU2MjUgLTE3LjEyNSBDIDQ0LjU1NDY4OCAtMTguMTY0MDYyIDQ0Ljg5ODQzOCAtMTkuMTQ4NDM4IDQ1LjA0Njg3NSAtMjAuMDc4MTI1IEMgNDUuMjAzMTI1IC0yMS4wMDM5MDYgNDUuMjgxMjUgLTIxLjc1IDQ1LjI4MTI1IC0yMi4zMTI1IEMgNDUuMjgxMjUgLTIzLjIzODI4MSA0NS4xMTMyODEgLTI0LjE3OTY4OCA0NC43ODEyNSAtMjUuMTQwNjI1IEMgNDQuNDQ1MzEyIC0yNi4xMDkzNzUgNDMuNzk2ODc1IC0yNyA0Mi44MjgxMjUgLTI3LjgxMjUgQyA0MS44NjcxODggLTI4LjYyNSA0MC41IC0yOS4yODEyNSAzOC43MTg3NSAtMjkuNzgxMjUgQyAzNi45Mzc1IC0zMC4yODEyNSAzNC41OTc2NTYgLTMwLjUzMTI1IDMxLjcwMzEyNSAtMzAuNTMxMjUgWiBNIDIwLjI1IC0zMC41MzEyNSAiLz48L2c+PC9zdmc+">
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20261003162;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20261005163;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -11447,10 +11447,13 @@ function renderTodayBookings(){
       +((r.medical && r.medical!=='None stated')?' · <b style="color:#FF2D2D;">'+_escHtml(r.medical)+'</b>':'');
     // Deposit status — the Xendit webhook stamps depositPaid/paymentStatus on paid online bookings.
     var _dp=(r.depositPaid===true||r.paymentStatus==='deposit_paid');
+    var _isLater=(r.payType==='later');   // customer chose "reserve — pay on arrival"
     var _depBadge=_dp
       ? '<span style="display:inline-block;background:#10b981;color:#fff;font-family:\'Space Mono\',monospace;font-size:7px;letter-spacing:.12em;padding:2px 6px;text-transform:uppercase;margin-left:6px;vertical-align:middle;">✓ 50% DEPOSIT PAID'+(r.depositAmount?(' · '+Math.round(r.depositAmount).toLocaleString('id-ID')):'')+'</span>'
-      : '<span style="display:inline-block;background:#f59e0b;color:#fff;font-family:\'Space Mono\',monospace;font-size:7px;letter-spacing:.12em;padding:2px 6px;text-transform:uppercase;margin-left:6px;vertical-align:middle;">AWAITING DEPOSIT</span>';
-    return '<div class="clin-bk-row2" style="border-left:3px solid '+(_dp?'#10b981':'#FF2D2D')+';background:'+(_dp?'#f2fff7':'#fff2f2')+';">'
+      : (_isLater
+        ? '<span style="display:inline-block;background:#3b82f6;color:#fff;font-family:\'Space Mono\',monospace;font-size:7px;letter-spacing:.12em;padding:2px 6px;text-transform:uppercase;margin-left:6px;vertical-align:middle;">PAY ON ARRIVAL</span>'
+        : '<span style="display:inline-block;background:#f59e0b;color:#fff;font-family:\'Space Mono\',monospace;font-size:7px;letter-spacing:.12em;padding:2px 6px;text-transform:uppercase;margin-left:6px;vertical-align:middle;">AWAITING DEPOSIT</span>');
+    return '<div class="clin-bk-row2" style="border-left:3px solid '+(_dp?'#10b981':(_isLater?'#3b82f6':'#FF2D2D'))+';background:'+(_dp?'#f2fff7':(_isLater?'#f2f7ff':'#fff2f2'))+';">'
       +'<div class="clin-bk-line">'
       +'<span class="clin-bk-time">'+_escHtml(r.time||'—')+'</span>'
       +'<span class="clin-bk-svc">'+label+'<em>'+client+'</em>'
@@ -11786,6 +11789,7 @@ function acceptOnlineBooking(id){
       }catch(e){}
       // Online deposit paid by card? The Xendit webhook stamps the public_bookings request (depositPaid / paymentStatus).
       var _depPaid=(!_free && (r.depositPaid===true || r.paymentStatus==='deposit_paid' || r.paymentStatus==='paid'));
+      var _isLater=(r.payType==='later');   // customer chose "reserve — pay on arrival": NO deposit taken online, collect the FULL amount at check-out
       var rec={
         id:(typeof genId==='function'?genId():'obk_'+Date.now()),
         service:r.pathway||'recovery', serviceName:String(_onreqLabel(r)).replace(/<[^>]+>/g,''),
@@ -11793,9 +11797,9 @@ function acceptOnlineBooking(id){
         therapist:r.therapist||null, therapistName:_thName,
         start:_st, time:_st, duration:r.duration||60,
         client:r.name||'Guest', email:r.email||'', whatsapp:r.phone||'', phone:r.phone||'',
-        price:_pn, pressure:r.pressure||null, payType:'deposit',
-        source:'Online', status:'confirmed', payMethod:'online',
-        online:true, deposit:_dep, balanceDue:_free?0:Math.max(0,_pn-_dep), balancePaid:_free, depositPaid:(_free||_depPaid), discPct:(r.discPct||0), discCode:(r.discCode||''), discReason:(r.discReason||''),
+        price:_pn, pressure:r.pressure||null, payType:(_isLater?'later':'deposit'),
+        source:'Online', status:'confirmed', payMethod:(_isLater?'':'online'),
+        online:(!_isLater), deposit:(_isLater?0:_dep), balanceDue:(_free?0:(_isLater?_pn:Math.max(0,_pn-_dep))), balancePaid:_free, depositPaid:(_free?true:(_isLater?false:_depPaid)), discPct:(r.discPct||0), discCode:(r.discCode||''), discReason:(r.discReason||''),
         onlineRef:r.ref||id, date:r.date, _ts:Date.now()
       };
       if(!recoveryData[r.date]) recoveryData[r.date]={revenue:0,bookings:[]};
