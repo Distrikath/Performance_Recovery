@@ -41,7 +41,7 @@
 <style>
 :root{
   --b:#0A0A0A; --b2:#000; --b3:#161616;
-  --ink:#F2F2F0; --ink-d:#787878; --ink-dd:#3a3936;
+  --ink:#F2F2F0; --ink-d:#D6D6D4; --ink-dd:#3a3936;
   --r:#FF2D2D;
   --line:rgba(242,242,240,.06); --line-mid:rgba(242,242,240,.12);
   --display:'Inter',ui-sans-serif,system-ui,sans-serif;
@@ -448,6 +448,32 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+<style id="dk-mobar-css">
+.dk-mobar{position:fixed;left:0;right:0;bottom:0;z-index:1500;display:none;transform:translateY(115%);transition:transform .35s cubic-bezier(.16,1,.3,1);box-shadow:0 -6px 24px rgba(0,0,0,.45)}
+.dk-mobar.show{transform:translateY(0)}
+.dk-mobar a{display:flex;align-items:center;justify-content:center;gap:7px;padding:17px 8px;font-family:'Space Mono',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;font-weight:700}
+.dk-mobar-book{background:#FF2D2D;color:#fff;flex:2}
+.dk-mobar-wa{background:#111;color:#fff;flex:1;border-left:1px solid rgba(255,255,255,.12)}
+@media(max-width:768px){.dk-mobar{display:flex}}
+</style>
+
+
+<style id="dk-reviews-css">
+.dk-reviews{background:var(--b);padding:72px 48px;border-bottom:1px solid var(--line-mid);position:relative;z-index:2}
+.dk-rv-head{display:flex;align-items:center;gap:14px;margin-bottom:34px;flex-wrap:wrap}
+.dk-rv-stars{color:#FFC83D;font-size:22px;letter-spacing:3px;line-height:1}
+.dk-rv-score{font-family:var(--mono);font-size:13px;letter-spacing:.1em;color:var(--ink)}
+.dk-rv-score a{color:var(--ink);text-decoration:underline;text-underline-offset:3px}
+.dk-rv-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(248px,1fr));gap:16px}
+.dk-rv-card{margin:0;border:1px solid var(--line);padding:24px 22px;background:rgba(255,255,255,.015)}
+.dk-rv-s{color:#FFC83D;font-size:12px;letter-spacing:2px;margin-bottom:12px;display:block}
+.dk-rv-q{font-family:var(--display);font-size:15px;line-height:1.6;color:var(--ink)}
+.dk-rv-by{display:block;margin-top:14px;font-family:var(--mono);font-size:11px;letter-spacing:.07em;color:var(--ink-d);font-style:normal}
+.dk-rv-link{display:inline-block;margin-top:30px;font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);border-bottom:1px solid var(--ink);padding-bottom:3px;text-decoration:none}
+@media(max-width:768px){.dk-reviews{padding:54px 20px}}
+</style>
+
 </head>
 <body>
 
@@ -498,7 +524,7 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
 .rc-therapy-num{font-family:var(--mono);font-size:9px;letter-spacing:.45em;color:var(--r)}
 .rc-therapy-name{font-family:var(--display);font-size:clamp(24px,3vw,36px);font-weight:900;letter-spacing:-.04em;text-transform:uppercase;color:var(--ink);transition:color .35s}
 .rc-therapy:hover .rc-therapy-name{color:var(--r)}
-.rc-therapy-desc{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--ink-d);line-height:1.8;flex:1;max-width:420px}
+.rc-therapy-desc{font-family:var(--mono);font-size:12px;letter-spacing:.04em;color:var(--ink-d);line-height:1.8;flex:1;max-width:420px}
 .rc-therapy-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .rc-therapy-tag{font-family:var(--mono);font-size:8px;letter-spacing:.12em;color:var(--ink-d);padding:4px 9px;border:1px solid rgba(242,242,240,.1)}
 /* Focus Detail Overlay */
@@ -528,15 +554,15 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
 .bk-step-item{display:flex;align-items:center;gap:5px;white-space:nowrap;opacity:.2;transition:opacity .3s;flex-shrink:0}
 .bk-step-item.active{opacity:1}
 .bk-step-item.done{opacity:.45}
-.bk-si-num{font-family:var(--mono);font-size:7px;letter-spacing:.4em;color:var(--r)}
-.bk-si-lbl{font-family:var(--mono);font-size:7px;letter-spacing:.25em;text-transform:uppercase;color:var(--ink)}
+.bk-si-num{font-family:var(--mono);font-size:9px;letter-spacing:.4em;color:var(--r)}
+.bk-si-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--ink)}
 .bk-si-sep{font-family:var(--mono);font-size:9px;color:rgba(242,242,240,.12);margin:0 8px;flex-shrink:0}
 .bk-close-btn{background:none;border:none;cursor:pointer;font-family:var(--mono);font-size:9px;letter-spacing:.25em;color:var(--ink-d);padding:4px 0;text-transform:lowercase;transition:color .2s;flex-shrink:0}
 .bk-close-btn:hover{color:var(--ink)}
 .bk-body{padding:36px 32px;flex:1}
 .bk-step{display:none}
 .bk-step.on{display:block}
-.bk-sect-label{font-family:var(--mono);font-size:8px;letter-spacing:.45em;text-transform:uppercase;color:var(--ink-d);margin-bottom:14px}
+.bk-sect-label{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-d);margin-bottom:14px}
 .bk-sect{margin-top:28px}
 .bk-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
 .bk-card{border:1px solid rgba(242,242,240,.1);padding:22px 20px;cursor:pointer;transition:border-color .2s,background .2s;background:transparent;text-align:left;color:var(--ink);display:flex;flex-direction:column;gap:5px;width:100%}
@@ -555,11 +581,11 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
 .bk-dur-price{font-family:var(--display);font-size:12px;font-weight:700;color:var(--r);margin-top:4px}
 .bk-pressure-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .bk-field{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
-.bk-field label{font-family:var(--mono);font-size:8px;letter-spacing:.42em;color:var(--ink-d);text-transform:lowercase}
+.bk-field label{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--ink-d);text-transform:lowercase}
 .bk-field input,.bk-field select{background:transparent;border:none;border-bottom:1px solid rgba(242,242,240,.15);padding:12px 0;color:var(--ink);font-family:var(--display);font-size:17px;font-weight:700;letter-spacing:-.02em;outline:none;transition:border-color .3s;width:100%;-webkit-appearance:none;border-radius:0}
 .bk-field input::placeholder{color:rgba(242,242,240,.25);font-weight:400}
 .bk-field input:focus,.bk-field select:focus{border-bottom-color:var(--r)}
-.bk-field-note{font-family:var(--mono);font-size:8px;letter-spacing:.05em;color:var(--ink-d);margin-top:6px;line-height:1.7}
+.bk-field-note{font-family:var(--mono);font-size:11px;letter-spacing:.05em;color:var(--ink-d);margin-top:6px;line-height:1.7}
 .bk-time-wrap{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:4px}
 .bk-time-btn{border:1px solid rgba(242,242,240,.1);padding:10px 4px;cursor:pointer;transition:border-color .2s,background .2s;background:transparent;font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--ink);text-align:center;width:100%}
 .bk-time-btn:hover{border-color:rgba(242,242,240,.3)}
@@ -576,17 +602,17 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
 .bk-next:hover{background:var(--ink);color:var(--bg,#0A0A0A)}
 .bk-next:hover:not(:disabled){background:var(--r);border-color:var(--r);letter-spacing:.42em}
 .bk-next:disabled{opacity:.28;cursor:not-allowed}
-.bk-summary-text{font-family:var(--mono);font-size:9px;color:var(--ink-d);letter-spacing:.04em;max-width:160px;line-height:1.5;text-align:center}
+.bk-summary-text{font-family:var(--mono);font-size:11px;color:var(--ink-d);letter-spacing:.04em;max-width:160px;line-height:1.5;text-align:center}
 .bk-confirm-wrap{text-align:center;padding:24px 0 8px}
 .bk-confirm-check{font-size:28px;margin-bottom:20px;color:var(--r)}
 .bk-confirm-ref{font-family:var(--mono);font-size:8px;letter-spacing:.42em;color:var(--r);margin-bottom:10px;text-transform:uppercase}
 .bk-confirm-title{font-family:var(--display);font-size:36px;font-weight:900;letter-spacing:-.04em;margin-bottom:20px}
-.bk-confirm-detail{font-family:var(--mono);font-size:11px;color:var(--ink-d);line-height:2.1;letter-spacing:.04em}
+.bk-confirm-detail{font-family:var(--mono);font-size:13px;color:var(--ink-d);line-height:2.1;letter-spacing:.04em}
 .bk-confirm-deposit{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--r);margin-top:20px;padding:12px 16px;border:1px solid rgba(255,45,45,.2);text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:12px}
 .bk-deposit-link{color:var(--r);text-decoration:none;border-bottom:1px solid rgba(255,45,45,.4);padding-bottom:1px;letter-spacing:.1em;text-transform:uppercase;font-size:9px}
 .bk-deposit-link:hover{border-bottom-color:var(--r)}
 .bk-deposit-amt{opacity:.7}
-.bk-confirm-note{font-family:var(--mono);font-size:10px;color:var(--ink-d);margin-top:24px;letter-spacing:.04em;line-height:1.9}
+.bk-confirm-note{font-family:var(--mono);font-size:13px;color:var(--ink-d);margin-top:24px;letter-spacing:.04em;line-height:1.9}
 /* Calendar picker */
 .bk-cal{margin-top:4px}
 .bk-cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
@@ -687,6 +713,8 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
 </div>
 
 <!-- THE THERAPIES -->
+<section class="dk-reviews" id="reviews"><div class="dk-rv-head"><span class="dk-rv-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span><span class="dk-rv-score"><a href="https://www.google.com/search?q=DISTRIK+Performance+Recovery+Canggu+reviews" target="_blank" rel="noopener">5.0 &middot; 22 Google reviews</a></span></div><div class="dk-rv-grid"><blockquote class="dk-rv-card"><span class="dk-rv-s">&#9733;&#9733;&#9733;&#9733;&#9733;</span><div class="dk-rv-q">&ldquo;Nice place, clean, cozy ambience, great treatments and skilful recovery staff — I feel much better after every session. Don&rsquo;t miss it!&rdquo;</div><cite class="dk-rv-by">&mdash; Bill E. &middot; Google</cite></blockquote><blockquote class="dk-rv-card"><span class="dk-rv-s">&#9733;&#9733;&#9733;&#9733;&#9733;</span><div class="dk-rv-q">&ldquo;A great treatment with Nanda — more a combination of massage and body adjustment that actually sorted my lower back. Definitely be back.&rdquo;</div><cite class="dk-rv-by">&mdash; Alejandro R. &middot; Google</cite></blockquote><blockquote class="dk-rv-card"><span class="dk-rv-s">&#9733;&#9733;&#9733;&#9733;&#9733;</span><div class="dk-rv-q">&ldquo;Really nice location, friendly staff and lovely interior — and I love the healthy welcome drink.&rdquo;</div><cite class="dk-rv-by">&mdash; Angelo G. &middot; Google</cite></blockquote><blockquote class="dk-rv-card"><span class="dk-rv-s">&#9733;&#9733;&#9733;&#9733;&#9733;</span><div class="dk-rv-q">&ldquo;Unique and effective treatment here at DISTRIK.&rdquo;</div><cite class="dk-rv-by">&mdash; James W. &middot; Google</cite></blockquote></div><a class="dk-rv-link" href="https://www.google.com/search?q=DISTRIK+Performance+Recovery+Canggu+reviews" target="_blank" rel="noopener">Read all reviews on Google &#8594;</a></section>
+
 <section class="rc-therapies">
   <div class="rc-therapies-eyebrow">[ the therapies ]</div>
   <div class="rc-therapy-grid">
@@ -893,12 +921,12 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
         <div style="margin-top:26px;padding-top:20px;border-top:1px solid var(--line);">
           <label class="bk-sect-label" style="display:block;margin-bottom:12px;">how would you like to book?</label>
           <button type="button" id="bk-pt-deposit" onclick="bkSetPayType('deposit')" style="display:block;width:100%;text-align:left;margin-bottom:10px;padding:14px 16px;background:rgba(255,45,45,.08);border:1px solid var(--r);color:var(--ink);cursor:pointer;font-family:var(--mono);">
-            <span style="display:block;font-size:12px;letter-spacing:.04em;">Pay 50% deposit now</span>
-            <span style="display:block;font-size:9.5px;color:var(--ink-d);margin-top:4px;letter-spacing:.02em;">secures your slot instantly · balance paid on arrival</span>
+            <span style="display:block;font-size:14px;letter-spacing:.04em;">Pay 50% deposit now</span>
+            <span id="bk-dep-sub" style="display:block;font-size:11px;color:var(--ink-d);margin-top:5px;letter-spacing:.02em;">secures your slot instantly · balance paid on arrival</span>
           </button>
           <button type="button" id="bk-pt-later" onclick="bkSetPayType('later')" style="display:block;width:100%;text-align:left;padding:14px 16px;background:transparent;border:1px solid var(--line);color:var(--ink);cursor:pointer;font-family:var(--mono);">
-            <span style="display:block;font-size:12px;letter-spacing:.04em;">Reserve — pay on arrival</span>
-            <span style="display:block;font-size:9.5px;color:var(--ink-d);margin-top:4px;letter-spacing:.02em;">no card needed · we'll confirm on WhatsApp</span>
+            <span style="display:block;font-size:14px;letter-spacing:.04em;">Reserve — pay on arrival</span>
+            <span style="display:block;font-size:11px;color:var(--ink-d);margin-top:5px;letter-spacing:.02em;">no card needed · we'll confirm on WhatsApp</span>
           </button>
         </div>
         <div style="margin-top:26px;padding-top:20px;border-top:1px solid var(--line);">
@@ -990,7 +1018,9 @@ var BK_DURS={RECOVER:[{m:30,p:'IDR 400K'},{m:45,p:'IDR 550K'},{m:60,p:'IDR 650K'
 var THER_NAMES={};
 var _calState={year:0,month:0};
 
+function dkTrack(ev,p){ try{ if(typeof gtag==='function') gtag('event',ev,p||{}); }catch(e){} }  // GA4 funnel events
 function openBk(){
+  dkTrack('bk_open');
   _bkRosterCache=null;
   _calState={year:0,month:0};
   bkState={step:1,pathway:null,duration:null,price:null,pressure:null,date:null,time:null,therapist:'',name:'',phone:'',email:'',payType:'deposit'};
@@ -1009,6 +1039,7 @@ function closeBk(){
 }
 function bkGoStep(n){
   bkState.step=n;
+  if(n===2)dkTrack('bk_step2'); else if(n===5){dkTrack('bk_step5'); try{ var _pn5=bkPriceNum(bkState.price)||0, _dep5=Math.round(_pn5/2); var _ds=document.getElementById('bk-dep-sub'); if(_ds&&_dep5>0){ _ds.innerHTML='pay IDR '+_dep5.toLocaleString()+' now · IDR '+(_pn5-_dep5).toLocaleString()+' at the studio'; } }catch(e){} }
   for(var i=1;i<=6;i++){
     var s=document.getElementById('bks'+i);if(s)s.classList.toggle('on',i===n);
   }
@@ -1547,13 +1578,14 @@ function showBkConfirm(ref,rec){
 
   if(rec.payType==='later'){
     // RESERVED — PAY ON ARRIVAL. A real booking, no deposit taken now (lower-friction path for card-shy customers).
+    dkTrack('bk_reserved',{value:priceNum,currency:'IDR'});
     if(re) re.textContent=ref;
     if(de) de.innerHTML=_detail;
     if(doneBtn) doneBtn.style.display='';
     var _icL=document.getElementById('bk-confirm-check'); if(_icL) _icL.style.display='';
     if(titleEl) titleEl.textContent='you’re reserved.';
-    if(noteEl) noteEl.innerHTML='we’ll confirm your session via whatsapp shortly.<br>pay when you arrive — see you at the canggu lab.';
-    if(depEl) depEl.innerHTML='<div style="color:#10b981;letter-spacing:.08em;line-height:1.8;">&#10003; Reserved · pay IDR '+Number(priceNum).toLocaleString()+' on arrival</div>';
+    if(noteEl) noteEl.innerHTML='we’ll confirm your session via whatsapp within minutes.<br>pay when you arrive — free cancellation up to 24h before.';
+    if(depEl) depEl.innerHTML='<div style="color:#10b981;letter-spacing:.08em;line-height:1.8;">&#10003; Reserved · pay IDR '+Number(priceNum).toLocaleString()+' on arrival (QRIS, card or cash)</div>';
     return;
   }
 
@@ -1563,10 +1595,11 @@ function showBkConfirm(ref,rec){
   if(re) re.textContent='';
   if(de) de.innerHTML='';                       // NEVER show the booking details before payment
   if(doneBtn) doneBtn.style.display='none';     // no "done" escape
-  if(titleEl) titleEl.textContent='taking you to payment…';
+  dkTrack('bk_deposit_shown',{value:half,currency:'IDR'});
+  if(titleEl) titleEl.textContent='deposit: IDR '+Number(half).toLocaleString();
   var _ic=document.getElementById('bk-confirm-check'); if(_ic) _ic.style.display='none';   // no ✓ until the deposit is actually paid
-  if(noteEl) noteEl.innerHTML='<b style="color:#FF2D2D;">Your booking is not held until the deposit is paid.</b><br>please don’t close this page.';
-  if(depEl) depEl.innerHTML='<div style="font-family:var(--mono);font-size:9px;letter-spacing:.05em;color:var(--ink-d);text-transform:none;">opening secure card payment&hellip;</div>';
+  if(noteEl) noteEl.innerHTML='<b style="color:#FF2D2D;">Your booking is not held until the deposit is paid.</b><br>pay the other 50% at the studio · free cancellation up to 24h before.';
+  if(depEl) depEl.innerHTML='<div style="font-family:var(--mono);font-size:11px;letter-spacing:.05em;color:var(--ink);text-transform:none;line-height:1.7;">opening secure payment&hellip;<br><span style="color:var(--ink-d);font-size:10px;">QRIS · cards · GoPay accepted</span></div>';
   window._bkRetryRec=rec;   // for the "try again" button if the invoice fails
   // Retry the invoice call up to 3× (flaky mobile data / Cloud-Function cold start can drop the first request).
   // Each attempt has a 20s timeout; only after all attempts fail do we show the "payment didn't start" screen.
@@ -1609,12 +1642,13 @@ function showBkPaidConfirmed(ref){
   document.body.style.overflow='hidden';
   // Google Ads conversion now fires on ACTUAL PAYMENT (not on submit) — abandoned bookings no longer count.
   try{ if(typeof gtag==='function') gtag('event','conversion',{'send_to':'AW-18443940569/GXsgCP3R3fUcENnl4NpE','value':(+info.priceNum||0),'currency':'IDR','transaction_id':(ref||info.ref||'')}); }catch(e){}
+  try{ if(typeof dkTrack==='function') dkTrack('bk_paid',{value:(+info.priceNum||0),currency:'IDR',transaction_id:(ref||info.ref||'')}); }catch(e){}
   bkGoStep(6);
   var re=document.getElementById('bk-ref-text'); if(re) re.textContent=ref||info.ref||'';
   var titleEl=document.getElementById('bk-confirm-title'); if(titleEl) titleEl.textContent='booking confirmed.';
   var de=document.getElementById('bk-conf-detail'); if(de&&info.detail) de.innerHTML=info.detail;
   var depEl=document.getElementById('bk-confirm-deposit'); if(depEl) depEl.innerHTML='<div style="color:#10b981;letter-spacing:.1em;font-weight:700;">&#10003; 50% deposit paid'+(info.half?(' · IDR '+Number(info.half).toLocaleString()):'')+'</div>';
-  var noteEl=document.getElementById('bk-confirm-note'); if(noteEl) noteEl.innerHTML='the remaining 50% is paid in person after your treatment.<br>see you at the canggu lab.';
+  var noteEl=document.getElementById('bk-confirm-note'); if(noteEl) noteEl.innerHTML='you’ll get a whatsapp confirmation shortly.<br>remaining 50% paid in person · free cancellation up to 24h before.';
   var doneBtn=document.getElementById('bk-done-btn'); if(doneBtn) doneBtn.style.display='';
   try{ sessionStorage.removeItem('bk_last'); }catch(e){}
   try{ history.replaceState({},'',location.pathname); }catch(e){}
@@ -1631,6 +1665,18 @@ document.addEventListener('DOMContentLoaded',function(){
   var fd=document.getElementById('fd-overlay');
   if(fd)fd.addEventListener('click',function(e){if(e.target===fd)closeFd();});
 });
+// Sticky "Book" bar links to recovery.html#book — when already on this page, open the modal in place.
+window.addEventListener('hashchange',function(){ if(location.hash==='#book'){ try{openBk();}catch(e){} } });
 </script>
+
+<div class="dk-mobar" id="dkMobar">
+  <a class="dk-mobar-book" href="recovery.html#book">Book a session</a>
+  <a class="dk-mobar-wa" href="https://wa.me/6281994801516" target="_blank" rel="noopener" onclick="dkWaConv&&dkWaConv()">WhatsApp</a>
+</div>
+<script>
+function dkWaConv(){try{if(typeof gtag==='function'){gtag('event','whatsapp_click',{'event_category':'contact'});}}catch(e){}}
+(function(){var b=document.getElementById('dkMobar');if(!b)return;var shown=false;function chk(){var y=window.scrollY||document.documentElement.scrollTop;if(y>280){if(!shown){b.classList.add('show');shown=true;}}else{if(shown){b.classList.remove('show');shown=false;}}}window.addEventListener('scroll',chk,{passive:true});chk();})();
+</script>
+
 </body>
 </html>
