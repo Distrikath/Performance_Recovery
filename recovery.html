@@ -969,7 +969,7 @@ function bkFdb(){
   // Firestore's streaming channel (WebChannel) never connects on some hotel/cafe wifi and the read then
   // hangs for ever — the booking calendar would sit greyed out with no error. Long-polling is slower but
   // it gets through. Same setting the staff dashboard needed.
-  try{ _fbDb.settings({ experimentalAutoDetectLongPolling:true }); }catch(e){ console.warn('[bk] settings', e&&e.code); }
+  try{ _fbDb.settings({ experimentalForceLongPolling:true }); }catch(e){ console.warn('[bk] settings', e&&e.code); }
   }
   return _fbDb;
 }
