@@ -664,7 +664,7 @@ try{ bkLoadRoster(); }catch(e){}
 // ── Booking state ─────────────────────────────────────────────────────
 var bkState={step:1,package:'',gender:'',price:0,date:null,time:null,name:'',phone:'',email:'',dob:'',med:'',comp:false};
 var _calState={year:0,month:0};
-var BW_SLOTS=['8am','9am','10am','11am','12pm'];   // lab's latest blood booking is 12pm (morning for sample accuracy)
+var BW_SLOTS=['8am','9am','10am','11am','12pm'];   // club's latest blood booking is 12pm (morning for sample accuracy)
 
 var PRICE_FMT={
   'Peptide Ready||5900000':'IDR 5,900,000',
@@ -985,7 +985,7 @@ function showBkPaidConfirmed(ref){
   var titleEl=document.getElementById('bk-conf-title'); if(titleEl)titleEl.textContent='booking confirmed.';
   var detEl=document.getElementById('bk-conf-detail'); if(detEl&&info.detail)detEl.innerHTML=info.detail;
   var depEl=document.getElementById('bk-conf-deposit'); if(depEl)depEl.innerHTML='<div style="color:#10b981;letter-spacing:.1em;font-weight:700;">&#10003; 50% deposit paid'+(info.half?(' &middot; '+bwFmtIDR(info.half)):'')+'</div>';
-  var noteEl=document.getElementById('bk-conf-note'); if(noteEl)noteEl.innerHTML='we’ll confirm your appointment time via whatsapp within a few hours.<br>the remaining 50% is paid in person at the lab.';
+  var noteEl=document.getElementById('bk-conf-note'); if(noteEl)noteEl.innerHTML='we’ll confirm your appointment time via whatsapp within a few hours.<br>the remaining 50% is paid in person at the club.';
   var waEl=document.getElementById('bk-conf-wa'); if(waEl)waEl.style.display='';
   var doneEl=document.getElementById('bk-conf-done'); if(doneEl)doneEl.style.display='';
   try{ sessionStorage.removeItem('bk_last'); }catch(e){}

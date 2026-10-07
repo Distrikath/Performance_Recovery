@@ -93,7 +93,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:22px 28px;display:g
 <section class="ev-hero">
   <div class="ev-hero-eyebrow">[ events &amp; classes ]</div>
   <h1 class="ev-hero-h">Move<br>together.</h1>
-  <p class="ev-hero-sub">Group classes and events at the Canggu lab. Reserve your spot below — a few places only, so book ahead.</p>
+  <p class="ev-hero-sub">Group classes and events at the Canggu club. Reserve your spot below — a few places only, so book ahead.</p>
 </section>
 
 <div class="ev-wrap">
@@ -192,7 +192,7 @@ function evbkSubmit(){
     body.innerHTML='<div class="evbk-ok-ico">&#10003;</div>'
       +'<div class="evbk-title" style="text-align:center;margin-top:14px;">You\'re booked.</div>'
       +'<div class="evbk-detail" style="text-align:center;">'+esc(ev.title||'Event')+'<br>'+fmtDate(ev.date)+' · '+fmtTime(ev.time)+'</div>'
-      +'<div class="evbk-note">'+(priced?'Our team will WhatsApp you a payment link to secure your spot.':'See you at the Canggu lab. We\'ll send a WhatsApp reminder.')+'</div>'
+      +'<div class="evbk-note">'+(priced?'Our team will WhatsApp you a payment link to secure your spot.':'See you at the Canggu club. We\'ll send a WhatsApp reminder.')+'</div>'
       +'<button class="evbk-cta" style="margin-top:18px;" onclick="evbkClose()">Done</button>';
   }).catch(function(e){
     if(btn){btn.disabled=false;btn.textContent='Confirm booking';}
