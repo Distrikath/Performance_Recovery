@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMEEwQTBBIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYsNzgpIHNjYWxlKDEuMzApIiBmaWxsPSIjRjJGMkYwIj48cGF0aCBkPSJNIDAuMDYyNSAwIEwgNi42MjUgLTQxLjM5MDYyNSBMIDMzLjU5Mzc1IC00MS4zOTA2MjUgQyAzOS4wMDc4MTIgLTQxLjM5MDYyNSA0My41MDM5MDYgLTQwLjkwNjI1IDQ3LjA3ODEyNSAtMzkuOTM3NSBDIDUwLjY2MDE1NiAtMzguOTc2NTYyIDUzLjUgLTM3LjY2MDE1NiA1NS41OTM3NSAtMzUuOTg0Mzc1IEMgNTcuNjg3NSAtMzQuMzE2NDA2IDU5LjE3NTc4MSAtMzIuNDE0MDYyIDYwLjA2MjUgLTMwLjI4MTI1IEMgNjAuOTU3MDMxIC0yOC4xNTYyNSA2MS40MDYyNSAtMjUuOTIxODc1IDYxLjQwNjI1IC0yMy41NzgxMjUgQyA2MS40MDYyNSAtMjEuOTEwMTU2IDYxLjI5Njg3NSAtMjAuMzE2NDA2IDYxLjA3ODEyNSAtMTguNzk2ODc1IEMgNjAuODE2NDA2IC0xNy4wOTc2NTYgNjAuMzMyMDMxIC0xNS4zNTkzNzUgNTkuNjI1IC0xMy41NzgxMjUgQyA1OC45MjU3ODEgLTExLjc5Njg3NSA1Ny44Nzg5MDYgLTEwLjA5NzY1NiA1Ni40ODQzNzUgLTguNDg0Mzc1IEMgNTUuMDk3NjU2IC02Ljg2NzE4OCA1My4yNjk1MzEgLTUuNDIxODc1IDUxIC00LjE0MDYyNSBDIDQ4LjczODI4MSAtMi44NTkzNzUgNDUuOTIxODc1IC0xLjg0NzY1NiA0Mi41NDY4NzUgLTEuMTA5Mzc1IEMgMzkuMTcxODc1IC0wLjM2NzE4OCAzNS4xNDg0MzggMCAzMC40ODQzNzUgMCBaIE0gMjAuMjUgLTMwLjUzMTI1IEwgMTcuMTI1IC0xMC45NTMxMjUgTCAyOC42NDA2MjUgLTEwLjk1MzEyNSBDIDMxLjgzNTkzOCAtMTAuOTUzMTI1IDM0LjQ3MjY1NiAtMTEuMjUgMzYuNTQ2ODc1IC0xMS44NDM3NSBDIDM4LjYxNzE4OCAtMTIuNDM3NSA0MC4yNSAtMTMuMjA3MDMxIDQxLjQzNzUgLTE0LjE1NjI1IEMgNDIuNjI1IC0xNS4xMDE1NjIgNDMuNDg0Mzc1IC0xNi4wOTM3NSA0NC4wMTU2MjUgLTE3LjEyNSBDIDQ0LjU1NDY4OCAtMTguMTY0MDYyIDQ0Ljg5ODQzOCAtMTkuMTQ4NDM4IDQ1LjA0Njg3NSAtMjAuMDc4MTI1IEMgNDUuMjAzMTI1IC0yMS4wMDM5MDYgNDUuMjgxMjUgLTIxLjc1IDQ1LjI4MTI1IC0yMi4zMTI1IEMgNDUuMjgxMjUgLTIzLjIzODI4MSA0NS4xMTMyODEgLTI0LjE3OTY4OCA0NC43ODEyNSAtMjUuMTQwNjI1IEMgNDQuNDQ1MzEyIC0yNi4xMDkzNzUgNDMuNzk2ODc1IC0yNyA0Mi44MjgxMjUgLTI3LjgxMjUgQyA0MS44NjcxODggLTI4LjYyNSA0MC41IC0yOS4yODEyNSAzOC43MTg3NSAtMjkuNzgxMjUgQyAzNi45Mzc1IC0zMC4yODEyNSAzNC41OTc2NTYgLTMwLjUzMTI1IDMxLjcwMzEyNSAtMzAuNTMxMjUgWiBNIDIwLjI1IC0zMC41MzEyNSAiLz48L2c+PC9zdmc+">
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20261007167;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20261008168;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -2601,8 +2601,8 @@ h1,
     </div>
     <div class="dk-actions">
       <span class="dk-actions-lbl">Report</span>
-      <button class="dk-ghost" onclick="downloadPLReport('monthly','current')">Monthly</button>
-      <button class="dk-ghost" onclick="downloadPLReport('monthly','previous')" title="Download last month's P&amp;L">Last Month</button>
+      <button class="dk-ghost" onclick="downloadPLSimple('current')">Monthly</button>
+      <button class="dk-ghost" onclick="downloadPLSimple('previous')" title="Download last month's P&amp;L (simple, accountant-ready)">Last Month</button>
       <button class="dk-ghost" onclick="downloadPLReport('quarterly','current')">Quarterly</button>
       <button class="dk-ghost" onclick="downloadPLReport('quarterly','previous')" title="Download last quarter's P&amp;L">Last Quarter</button>
       <button class="dk-ghost" onclick="downloadPLReport('annual','current')">FY Annual</button>
@@ -10682,6 +10682,87 @@ function downloadPLReport(period, which){
 
 
 // ── SOLD TODAY ────────────────────────────────────────────────────
+// ── SIMPLE monthly P&L for the accountant — income by area (ledger, sales basis), real payroll BPJS/PPh21,
+// commission, per-area taxes. No targets, no bloat. which = 'current' | 'previous'. ──
+window.downloadPLSimple=function(which){
+  try{
+   var now=(typeof baliNow==='function'?baliNow():new Date());
+   var ref=(which==='current')?{y:now.getFullYear(),m:now.getMonth()}
+          :(now.getMonth()===0?{y:now.getFullYear()-1,m:11}:{y:now.getFullYear(),m:now.getMonth()-1});
+   var ym=ref.y+'-'+('0'+(ref.m+1)).slice(-2);
+   var MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
+   var label=MN[ref.m]+' '+ref.y;
+   var fmt=function(n){return Number(Math.round(n||0)).toLocaleString('id-ID');};
+   var docs=window._lastLedgerDocs||[];
+   var seen={},recNon=0,clinGross=0,cafeNet=0,cafePB1=0,cafeSvc=0,supply=0,therapyRev=0,recN=0;
+   docs.forEach(function(r){
+     if(!r)return; var det={}; try{det=r.detail?JSON.parse(r.detail):{};}catch(e){}
+     var sess=(det.date||r.bizDate||''); if(String(sess).slice(0,7)!==ym)return;
+     if((det.status||'').toLowerCase()==='cancelled'||r.status==='cancelled')return;
+     var id=String(r.id||''),base=id.replace(/_bal$/,''),key=r.kind+':'+base;
+     if(seen[key])return; seen[key]=1;
+     if(r.kind==='recovery'){
+       var price=parseFloat(det.price||0)||0;
+       if(det.clinical||det.partner){clinGross+=price;}
+       else{recNon+=price;recN++; var ther=det.therapist||'',svc=String(det.service||det.pathway||'');
+         if(ther&&svc.toLowerCase().indexOf('compress')<0)therapyRev+=price;}
+     }else if(r.kind==='fuel'){cafeNet+=parseFloat(det.subtotal||0)||0;cafePB1+=parseFloat(det.tax||0)||0;cafeSvc+=parseFloat(det.serviceTax||0)||0;}
+     else if(r.kind==='supply'){var o=det.order||det;supply+=parseFloat((o&&o.total)||0)||0;}
+   });
+   var clinComm=Math.round(clinGross*0.20),clinPayable=clinGross-clinComm,clinPph23=Math.round(clinComm*0.02);
+   var comm=Math.round(therapyRev*0.10);
+   var totalIncome=Math.round(recNon+supply+cafeNet+clinComm);
+   var wages=0,bonus=0,allow=0,bpjsKesCo=0,bpjsTkCo=0,pph21=0,nst=0;
+   (typeof STAFF!=='undefined'?STAFF:[]).forEach(function(s){
+     var adj=(window.PAYROLL&&window.PAYROLL[String(s.id)+'__'+ym])||{};
+     var flat=(typeof _isFlat==='function')?_isFlat(s.id,ym):false;
+     wages+=(+s.salary||0); bonus+=(+adj.bonus||0); allow+=(+adj.allowance||0); nst++;
+     if(!flat){bpjsKesCo+=(+adj.bpjsKesCo||0);bpjsTkCo+=(+adj.bpjsTkCo||0);pph21+=(+adj.pph21||0);}
+   });
+   var empBpjs=bpjsKesCo+bpjsTkCo;
+   var totalExp=wages+bonus+allow+comm+empBpjs;
+   var opProfit=totalIncome-totalExp;
+   var cit=opProfit>0?Math.round(opProfit*0.22):0; var net=opProfit-cit;
+   var NL='\n',Q=function(s){s=String(s==null?'':s);return (s.indexOf(',')>=0||s.indexOf('"')>=0||s.indexOf('\n')>=0)?'"'+s.replace(/"/g,'""')+'"':s;};
+   var row=function(){return Array.prototype.slice.call(arguments).map(Q).join(',')+NL;};
+   var csv='DISTRIK — PROFIT & LOSS'+NL+label+NL+'PT PMA · NON-PKP (no PPN)'+NL+'Income = sales recorded in the system — reconcile against bank deposits.'+NL+NL;
+   csv+=row('INCOME — BY AREA (sales)','Amount (IDR)');
+   csv+=row('Recovery',fmt(recNon));
+   csv+=row('Supply / Retail (owned)',fmt(supply));
+   csv+=row('Fuel / Café (net of PB1 & service)',fmt(cafeNet));
+   csv+=row('HUMAN+ — DISTRIK commission (20% of '+fmt(clinGross)+' collected)',fmt(clinComm));
+   csv+=row('TOTAL INCOME',fmt(totalIncome))+NL;
+   csv+=row('EXPENSES','Amount (IDR)');
+   csv+=row('Wages (gross salaries · '+nst+' staff)',fmt(wages));
+   if(bonus)csv+=row('Bonuses',fmt(bonus));
+   if(allow)csv+=row('Allowances',fmt(allow));
+   csv+=row('Therapist commission (10% own therapy)',fmt(comm));
+   csv+=row('Health insurance — BPJS Kesehatan (employer)',fmt(bpjsKesCo));
+   csv+=row('BPJS Ketenagakerjaan (employer)',fmt(bpjsTkCo));
+   csv+=row('Cost of goods (café + supply)','— tracking from October');
+   csv+=row('Other operating (rent / utilities / etc.)','— tracking from October');
+   csv+=row('TOTAL EXPENSES (recorded so far)',fmt(totalExp))+NL;
+   csv+=row('RESULT','Amount (IDR)');
+   csv+=row('Operating profit / (loss)',fmt(opProfit));
+   csv+=row('CIT / PPh Badan (22% if profit)',fmt(cit));
+   csv+=row('NET PROFIT / (LOSS)',fmt(net))+NL;
+   csv+=row('TAXES — PAID / COLLECTED','Amount (IDR)');
+   csv+=row('PPh 21 — payroll (actual withheld)',fmt(pph21));
+   csv+=row('PPh 23 — on HUMAN+ commission (2%)',fmt(clinPph23));
+   csv+=row('PB1 / PBJT — café (10%, collected for govt)',fmt(cafePB1));
+   csv+=row('PPN','N/A — NON-PKP');
+   csv+=row('CIT / PPh Badan',cit>0?fmt(cit):'0 (loss)')+NL;
+   csv+=row('COLLECTED — NOT DISTRIK MONEY (liabilities)','Amount (IDR)');
+   csv+=row('Payable to HUMAN+ (80%)',fmt(clinPayable));
+   csv+=row('Service charge (7% — tip pool to staff)',fmt(cafeSvc))+NL;
+   csv+='NOTE: COGS + operating expenses tracked from October. PPh 21 is the actual withheld figure. Targets removed until ~6 months of trading data.'+NL;
+   var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+   var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+   a.download='DISTRIK_PL_'+MN[ref.m].slice(0,3)+'_'+ref.y+'.csv';
+   document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(a.href);},100);
+   if(typeof clinNotify==='function')clinNotify('Downloaded '+label+' P&L');
+  }catch(e){ console.error('downloadPLSimple',e); alert('P&L export failed: '+(e&&e.message||e)); }
+};
 function renderSoldToday(keys){
   const el=document.getElementById('sold-today-list'); if(!el) return;
   const fmt=n=>Math.round(n).toLocaleString('id-ID');
