@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMEEwQTBBIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYsNzgpIHNjYWxlKDEuMzApIiBmaWxsPSIjRjJGMkYwIj48cGF0aCBkPSJNIDAuMDYyNSAwIEwgNi42MjUgLTQxLjM5MDYyNSBMIDMzLjU5Mzc1IC00MS4zOTA2MjUgQyAzOS4wMDc4MTIgLTQxLjM5MDYyNSA0My41MDM5MDYgLTQwLjkwNjI1IDQ3LjA3ODEyNSAtMzkuOTM3NSBDIDUwLjY2MDE1NiAtMzguOTc2NTYyIDUzLjUgLTM3LjY2MDE1NiA1NS41OTM3NSAtMzUuOTg0Mzc1IEMgNTcuNjg3NSAtMzQuMzE2NDA2IDU5LjE3NTc4MSAtMzIuNDE0MDYyIDYwLjA2MjUgLTMwLjI4MTI1IEMgNjAuOTU3MDMxIC0yOC4xNTYyNSA2MS40MDYyNSAtMjUuOTIxODc1IDYxLjQwNjI1IC0yMy41NzgxMjUgQyA2MS40MDYyNSAtMjEuOTEwMTU2IDYxLjI5Njg3NSAtMjAuMzE2NDA2IDYxLjA3ODEyNSAtMTguNzk2ODc1IEMgNjAuODE2NDA2IC0xNy4wOTc2NTYgNjAuMzMyMDMxIC0xNS4zNTkzNzUgNTkuNjI1IC0xMy41NzgxMjUgQyA1OC45MjU3ODEgLTExLjc5Njg3NSA1Ny44Nzg5MDYgLTEwLjA5NzY1NiA1Ni40ODQzNzUgLTguNDg0Mzc1IEMgNTUuMDk3NjU2IC02Ljg2NzE4OCA1My4yNjk1MzEgLTUuNDIxODc1IDUxIC00LjE0MDYyNSBDIDQ4LjczODI4MSAtMi44NTkzNzUgNDUuOTIxODc1IC0xLjg0NzY1NiA0Mi41NDY4NzUgLTEuMTA5Mzc1IEMgMzkuMTcxODc1IC0wLjM2NzE4OCAzNS4xNDg0MzggMCAzMC40ODQzNzUgMCBaIE0gMjAuMjUgLTMwLjUzMTI1IEwgMTcuMTI1IC0xMC45NTMxMjUgTCAyOC42NDA2MjUgLTEwLjk1MzEyNSBDIDMxLjgzNTkzOCAtMTAuOTUzMTI1IDM0LjQ3MjY1NiAtMTEuMjUgMzYuNTQ2ODc1IC0xMS44NDM3NSBDIDM4LjYxNzE4OCAtMTIuNDM3NSA0MC4yNSAtMTMuMjA3MDMxIDQxLjQzNzUgLTE0LjE1NjI1IEMgNDIuNjI1IC0xNS4xMDE1NjIgNDMuNDg0Mzc1IC0xNi4wOTM3NSA0NC4wMTU2MjUgLTE3LjEyNSBDIDQ0LjU1NDY4OCAtMTguMTY0MDYyIDQ0Ljg5ODQzOCAtMTkuMTQ4NDM4IDQ1LjA0Njg3NSAtMjAuMDc4MTI1IEMgNDUuMjAzMTI1IC0yMS4wMDM5MDYgNDUuMjgxMjUgLTIxLjc1IDQ1LjI4MTI1IC0yMi4zMTI1IEMgNDUuMjgxMjUgLTIzLjIzODI4MSA0NS4xMTMyODEgLTI0LjE3OTY4OCA0NC43ODEyNSAtMjUuMTQwNjI1IEMgNDQuNDQ1MzEyIC0yNi4xMDkzNzUgNDMuNzk2ODc1IC0yNyA0Mi44MjgxMjUgLTI3LjgxMjUgQyA0MS44NjcxODggLTI4LjYyNSA0MC41IC0yOS4yODEyNSAzOC43MTg3NSAtMjkuNzgxMjUgQyAzNi45Mzc1IC0zMC4yODEyNSAzNC41OTc2NTYgLTMwLjUzMTI1IDMxLjcwMzEyNSAtMzAuNTMxMjUgWiBNIDIwLjI1IC0zMC41MzEyNSAiLz48L2c+PC9zdmc+">
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20261009172;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20261009176;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -10688,14 +10688,17 @@ function downloadPLReport(period, which){
 // ── SOLD TODAY ────────────────────────────────────────────────────
 // ── SIMPLE monthly P&L for the accountant — income by area (ledger, sales basis), real payroll BPJS/PPh21,
 // commission, per-area taxes. No targets, no bloat. which = 'current' | 'previous'. ──
-// ── DAILY SHEET — per-day sales by category + Card/QRIS/Xendit payments + variance, for a month. which='current'|'previous' ──
+// ── DAILY SHEET — per-day sales by category + Card/QRIS/Xendit payments + variance + ACTUAL bank deposits, for a month. which='current'|'previous' ──
+// Bank deposits are PULLED LIVE from the Bank Settlement Reconciliation screen (window.SETTLEMENTS, Firestore
+// `settlements`) — whatever you type in there as it lands shows up here automatically. Nothing is hardcoded.
 window._dailyCSV=function(ref,ym){
  try{
   var MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
   var label=MN[ref.m]+' '+ref.y, dim=new Date(ref.y,ref.m+1,0).getDate();
   function pm(m){m=(m||'').toLowerCase();if(m==='card')return 'card';if(m==='qr'||m==='qris'||m==='gopay'||m==='ovo'||m==='dana')return 'qris';if(m==='online'||m==='xendit')return 'xen';if(m==='cash')return 'cash';return 'card';}
   var docs=window._lastLedgerDocs||[],S={},recg={};
-  function R(d){if(!S[d])S[d]={rec:0,ivb:0,pep:0,fuel:0,sup:0,tax:0,comm:0,pay:0,card:0,qris:0,xen:0,cash:0};return S[d];}
+  function R(d){if(!S[d])S[d]={rec:0,ivb:0,pep:0,fuel:0,sup:0,tax:0,comm:0,pay:0,card:0,qris:0,xen:0,cash:0,bcard:0,bqris:0,bxen:0};return S[d];}
+  function bfam(m){m=(m||'').toString().toLowerCase();if(m==='xendit'||m==='online')return 'xen';return (m==='qris'||m==='qr'||m==='gopay'||m==='ovo'||m==='dana')?'qris':'card';}
   docs.forEach(function(r){
     if(!r)return; var det={};try{det=r.detail?JSON.parse(r.detail):{};}catch(e){}
     if((det.status||r.status||'').toLowerCase()==='cancelled')return;
@@ -10708,21 +10711,26 @@ window._dailyCSV=function(ref,ym){
     var m=recg[base].main||{},b=recg[base].bal||{},det=(m.det||b.det||{}),price=+det.price||0;
     var sess=det.date||m.biz||b.biz||'',svc=String(det.serviceName||det.service||det.pathway||'').toLowerCase();
     if(String(sess).slice(0,7)===ym){var v=R(sess);
-      if(det.peptide||svc.indexOf('peptide')>=0||det.cat==='peptide')v.pep+=price;
-      else if(det.clinical||det.partner)v.ivb+=price; else v.rec+=price;
-      if(det.clinical||det.partner){var c=Math.round(price*0.20);v.comm+=c;v.pay+=(price-c);v.tax+=Math.round(c*0.02);}
+      var isPep=(det.peptide===true||det.cat==='peptide');          // peptides are tagged by cat/flag, NOT by name ("Bloods — Peptide Ready" is BLOODS)
+      var isClin=(det.clinical||det.partner);
+      if(isPep)v.pep+=price; else if(isClin)v.ivb+=price; else v.rec+=price;
+      if(isPep||isClin){var rate=isPep?0.10:0.20;var c=Math.round(price*rate);v.comm+=c;v.pay+=(price-c);v.tax+=Math.round(c*0.02)+Math.round(+det.tax||0);}
     }
     var ma=+m.amt||0,ba=+b.amt||0;
     if(price>0&&(ma+ba)>price*1.01){var leg=ma>0?m:b;if(String(leg.biz||'').slice(0,7)===ym)R(leg.biz)[pm(leg.meth)]+=price;}
     else{if(ma>0&&String(m.biz||'').slice(0,7)===ym)R(m.biz)[pm(m.meth)]+=ma;if(ba>0&&String(b.biz||'').slice(0,7)===ym)R(b.biz)[pm(b.meth)]+=ba;}
   });
-  var hdr=['Date','Sales-Recovery','Sales-IV/Bloods','Sales-Peptides','Sales-Fuel','Sales-Supply','Total Sales','Tax collected (PB1+PPh23)','HUMAN+ commission','Payable to HUMAN+','Card','QRIS','Xendit','Cash','Total Payments','Variance (sales-payments)'];
-  var NL='\n',csv=label+' — DAILY SALES & PAYMENTS'+NL+hdr.join(',')+NL,tot=[];for(var i=0;i<15;i++)tot[i]=0;
+  // ── ACTUAL bank deposits — pulled live from the Bank Settlement Reconciliation screen (window.SETTLEMENTS) ──
+  try{ var SET=window.SETTLEMENTS||{}; Object.keys(SET).forEach(function(k){ var s=SET[k]; if(!s)return; var td=String(s.tradeDate||''); if(td.slice(0,7)!==ym)return; var fam=bfam(s.method); var amt=Math.round(+s.amount||0); R(td)['b'+fam]+=amt; }); }catch(e){}
+  var hdr=['Date','Sales-Recovery','Sales-IV/Bloods','Sales-Peptides','Sales-Fuel','Sales-Supply','Total Sales','Tax collected (PB1+PPh23)','HUMAN+ commission','Payable to HUMAN+','Card','QRIS','Xendit','Cash','Total Payments','Variance (sales-payments)','Bank Card (actual)','Bank QRIS (actual)','Bank Xendit (actual)','Bank Total (actual)','Bank − Sales'];
+  var NCOL=20;
+  var NL='\n',csv=label+' — DAILY SALES, PAYMENTS & BANK DEPOSITS'+NL+hdr.join(',')+NL,tot=[];for(var i=0;i<NCOL;i++)tot[i]=0;
   for(var dn=1;dn<=dim;dn++){var d=ym+'-'+('0'+dn).slice(-2),v=S[d]||{};
     var rec=Math.round(v.rec||0),ivb=Math.round(v.ivb||0),pep=Math.round(v.pep||0),fuel=Math.round(v.fuel||0),sup=Math.round(v.sup||0),ts=rec+ivb+pep+fuel+sup;
     var card=Math.round(v.card||0),qris=Math.round(v.qris||0),xen=Math.round(v.xen||0),cash=Math.round(v.cash||0),tp=card+qris+xen+cash;
-    var a=[d,rec,ivb,pep,fuel,sup,ts,Math.round(v.tax||0),Math.round(v.comm||0),Math.round(v.pay||0),card,qris,xen,cash,tp,ts-tp];
-    csv+=a.join(',')+NL;for(var j=1;j<16;j++)tot[j-1]+=a[j];
+    var bcard=Math.round(v.bcard||0),bqris=Math.round(v.bqris||0),bxen=Math.round(v.bxen||0),btot=bcard+bqris+bxen;
+    var a=[d,rec,ivb,pep,fuel,sup,ts,Math.round(v.tax||0),Math.round(v.comm||0),Math.round(v.pay||0),card,qris,xen,cash,tp,ts-tp,bcard,bqris,bxen,btot,btot-ts];
+    csv+=a.join(',')+NL;for(var j=1;j<=NCOL;j++)tot[j-1]+=a[j];
   }
   csv+=(['TOTAL'].concat(tot)).join(',')+NL;
   return csv;
@@ -10740,7 +10748,7 @@ window.downloadPLSimple=function(which){
    var label=MN[ref.m]+' '+ref.y;
    var fmt=function(n){return Number(Math.round(n||0)).toLocaleString('en-US');}; // commas (not dots) so Excel reads them as numbers & sums
    var docs=window._lastLedgerDocs||[];
-   var seen={},recNon=0,clinGross=0,cafeNet=0,cafePB1=0,cafeSvc=0,supply=0,therapyRev=0,recN=0;
+   var seen={},recNon=0,ivbGross=0,pepGross=0,ivbComm=0,pepComm=0,hpPay=0,hpPph=0,pepTax=0,cafeNet=0,cafePB1=0,cafeSvc=0,supply=0,therapyRev=0,recN=0;
    docs.forEach(function(r){
      if(!r)return; var det={}; try{det=r.detail?JSON.parse(r.detail):{};}catch(e){}
      var sess=(det.date||r.bizDate||''); if(String(sess).slice(0,7)!==ym)return;
@@ -10749,15 +10757,16 @@ window.downloadPLSimple=function(which){
      if(seen[key])return; seen[key]=1;
      if(r.kind==='recovery'){
        var price=parseFloat(det.price||0)||0;
-       if(det.clinical||det.partner){clinGross+=price;}
+       var isPep=(det.peptide===true||det.cat==='peptide'), isClin=(det.clinical||det.partner);
+       if(isPep){ pepGross+=price; var rp=0.10; pepComm+=Math.round(price*rp); hpPay+=Math.round(price*(1-rp)); hpPph+=Math.round(price*rp*0.02); pepTax+=Math.round(+det.tax||0); }
+       else if(isClin){ ivbGross+=price; var ri=0.20; ivbComm+=Math.round(price*ri); hpPay+=Math.round(price*(1-ri)); hpPph+=Math.round(price*ri*0.02); }
        else{recNon+=price;recN++; var ther=det.therapist||'',svc=String(det.service||det.pathway||'');
          if(ther&&svc.toLowerCase().indexOf('compress')<0)therapyRev+=price;}
      }else if(r.kind==='fuel'){cafeNet+=parseFloat(det.subtotal||0)||0;cafePB1+=parseFloat(det.tax||0)||0;cafeSvc+=parseFloat(det.serviceTax||0)||0;}
      else if(r.kind==='supply'){var o=det.order||det;supply+=parseFloat((o&&o.total)||0)||0;}
    });
-   var clinComm=Math.round(clinGross*0.20),clinPayable=clinGross-clinComm,clinPph23=Math.round(clinComm*0.02);
    var comm=Math.round(therapyRev*0.10);
-   var totalIncome=Math.round(recNon+supply+cafeNet+clinComm);
+   var totalIncome=Math.round(recNon+supply+cafeNet+ivbComm+pepComm);
    var wages=0,bonus=0,allow=0,bpjsKesCo=0,bpjsTkCo=0,pph21=0,nst=0;
    (typeof STAFF!=='undefined'?STAFF:[]).forEach(function(s){
      var adj=(window.PAYROLL&&window.PAYROLL[String(s.id)+'__'+ym])||{};
@@ -10793,7 +10802,8 @@ window.downloadPLSimple=function(which){
    csv+=row('Recovery',fmt(recNon));
    csv+=row('Supply / Retail (owned)',fmt(supply));
    csv+=row('Fuel / Café (net of PB1 & service)',fmt(cafeNet));
-   csv+=row('HUMAN+ — DISTRIK commission (20% of '+fmt(clinGross)+' collected)',fmt(clinComm));
+   if(ivbGross>0)csv+=row('HUMAN+ IV/Bloods — commission (20% of '+fmt(ivbGross)+' collected)',fmt(ivbComm));
+   if(pepGross>0)csv+=row('HUMAN+ Peptides — commission (10% of '+fmt(pepGross)+' collected)',fmt(pepComm));
    csv+=row('TOTAL INCOME',fmt(totalIncome))+NL;
    csv+=row('EXPENSES','Amount (IDR)');
    csv+=row('Wages (gross salaries · '+nst+' staff)',fmt(wages));
@@ -10815,12 +10825,13 @@ window.downloadPLSimple=function(which){
    csv+=row('NET PROFIT / (LOSS)',fmt(net))+NL;
    csv+=row('TAXES — PAID / COLLECTED','Amount (IDR)');
    csv+=row('PPh 21 — payroll (actual withheld)',fmt(pph21));
-   csv+=row('PPh 23 — on HUMAN+ commission (2%)',fmt(clinPph23));
+   csv+=row('PPh 23 — on HUMAN+ commission (2%)',fmt(hpPph));
+   if(pepTax>0)csv+=row('PPN 11% — peptides (collected for govt)',fmt(pepTax));
    csv+=row('PB1 / PBJT — café (10%, collected for govt)',fmt(cafePB1));
    csv+=row('PPN','N/A — NON-PKP');
    csv+=row('CIT / PPh Badan',cit>0?fmt(cit):'0 (loss)')+NL;
    csv+=row('COLLECTED — NOT DISTRIK MONEY (liabilities)','Amount (IDR)');
-   csv+=row('Payable to HUMAN+ (80%)',fmt(clinPayable));
+   csv+=row('Payable to HUMAN+ (IV/Bloods 80% + Peptides 90%)',fmt(hpPay));
    csv+=row('Service charge (7% — tip pool to staff)',fmt(cafeSvc))+NL;
    csv+='NOTE: COGS + operating expenses tracked from October. PPh 21 is the actual withheld figure. Targets removed until ~6 months of trading data.'+NL;
    csv+=NL+NL+'═══ DAILY BREAKDOWN — sales by area + Card/QRIS/Xendit payments + variance ═══'+NL+(typeof window._dailyCSV==='function'?window._dailyCSV(ref,ym):'');
@@ -11619,6 +11630,32 @@ function renderTodayBookings(){
   }).join('');
   return localHtml+onlineHtml;
 }
+// Peptide/pen items sold on a given day. They are RETAIL sales (no chair/time), so they're kept out of the
+// bookings list above — but they still happened that day and must stay VISIBLE here so a sale never looks "deleted".
+function todayPeptideSales(){ try{ var dk=clinKey(); return ((recoveryData[dk]&&recoveryData[dk].bookings)||[]).filter(function(b){ return b&&(b.peptide||b.cat==='peptide')&&b.status!=='cancelled'; }); }catch(e){ return []; } }
+function renderTodayPeptideSales(){
+  var sales=todayPeptideSales();
+  if(!sales.length) return '';
+  var _canDel=(typeof currentUser==='undefined'||!currentUser||!currentUser.type||currentUser.type==='admin');
+  var tot=sales.reduce(function(s,b){return s+(+b.price||+b.gross||0);},0);
+  var rows=sales.map(function(b){
+    var id=(b.id||'').replace(/'/g,'');
+    var amt=Math.round(+b.price||+b.gross||0);
+    var meth=b.payMethod||b.method||'';
+    return '<div class="clin-bk-row2" style="border-left:3px solid #a855f7;background:#faf5ff;">'
+      +'<div class="clin-bk-line"><span class="clin-bk-time">RETAIL</span>'
+      +'<span class="clin-bk-svc">'+_escHtml(b.serviceName||b.service||'Peptide')+'<em>'+_escHtml(b.client||'Guest')+'</em>'
+      +'<span style="color:#1a9e54;"> · IDR '+amt.toLocaleString('id-ID')+' paid in full'+(meth?(' · '+_escHtml(meth)):'')+'</span></span>'
+      +'<span class="clin-bk-det"><span class="clin-bk-tag" style="background:#a855f7;">HUMAN+ · Peptide</span></span></div>'
+      +(_canDel?('<div class="clin-bk-acts"><button class="clin-bk-act danger" onclick="clinCancelBooking(\''+id+'\')">Cancel sale</button></div>'):'')
+      +'</div>';
+  }).join('');
+  return '<div style="display:flex;align-items:center;gap:8px;margin:18px 0 6px;padding-bottom:6px;border-bottom:1px solid #e8e8e8;">'
+    +'<span style="width:8px;height:8px;border-radius:50%;background:#a855f7;display:inline-block;flex:none;"></span>'
+    +'<span style="font-family:\'Space Mono\',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#0A0A0A;font-weight:600;">Peptide / retail sales</span>'
+    +'<span style="margin-left:auto;font-family:\'Space Mono\',monospace;font-size:10px;color:#9a9a9e;">'+sales.length+' sale'+(sales.length!==1?'s':'')+' · IDR '+Math.round(tot).toLocaleString('id-ID')+'</span>'
+    +'</div>'+rows;
+}
 
 // A booking can end up marked paid when the money never arrived — the deposit link expired, the card was
 // declined, or it was confirmed on "Full" by mistake. This puts it back to pay-on-arrival and takes the money
@@ -12362,7 +12399,7 @@ function renderClinicalBooking(){
       +_clinCartStrip()
       // everything queued and nothing in the builder — staff still need to say how the guest is paying
       +(clinCart.length?_clinPaymentBlock('·'):'')
-      +'<div class="clin-rooms-lbl" style="margin-top:14px;">Bookings '+clinDateWord()+' <span>· '+todayBookingCount()+'</span></div>'+renderTodayBookings()
+      +'<div class="clin-rooms-lbl" style="margin-top:14px;">Bookings '+clinDateWord()+' <span>· '+todayBookingCount()+'</span></div>'+renderTodayBookings()+renderTodayPeptideSales()
       +'<div class="clin-placeholder" style="padding-top:10px;text-align:left;">'+(clinCart.length?'Pick the next service for this booking — or press Confirm to take them all.':'Select a service · tap a room to assign.')+'</div>'
       +'</div>';
     buildClinRoomGrid();
