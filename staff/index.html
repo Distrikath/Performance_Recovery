@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMEEwQTBBIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYsNzgpIHNjYWxlKDEuMzApIiBmaWxsPSIjRjJGMkYwIj48cGF0aCBkPSJNIDAuMDYyNSAwIEwgNi42MjUgLTQxLjM5MDYyNSBMIDMzLjU5Mzc1IC00MS4zOTA2MjUgQyAzOS4wMDc4MTIgLTQxLjM5MDYyNSA0My41MDM5MDYgLTQwLjkwNjI1IDQ3LjA3ODEyNSAtMzkuOTM3NSBDIDUwLjY2MDE1NiAtMzguOTc2NTYyIDUzLjUgLTM3LjY2MDE1NiA1NS41OTM3NSAtMzUuOTg0Mzc1IEMgNTcuNjg3NSAtMzQuMzE2NDA2IDU5LjE3NTc4MSAtMzIuNDE0MDYyIDYwLjA2MjUgLTMwLjI4MTI1IEMgNjAuOTU3MDMxIC0yOC4xNTYyNSA2MS40MDYyNSAtMjUuOTIxODc1IDYxLjQwNjI1IC0yMy41NzgxMjUgQyA2MS40MDYyNSAtMjEuOTEwMTU2IDYxLjI5Njg3NSAtMjAuMzE2NDA2IDYxLjA3ODEyNSAtMTguNzk2ODc1IEMgNjAuODE2NDA2IC0xNy4wOTc2NTYgNjAuMzMyMDMxIC0xNS4zNTkzNzUgNTkuNjI1IC0xMy41NzgxMjUgQyA1OC45MjU3ODEgLTExLjc5Njg3NSA1Ny44Nzg5MDYgLTEwLjA5NzY1NiA1Ni40ODQzNzUgLTguNDg0Mzc1IEMgNTUuMDk3NjU2IC02Ljg2NzE4OCA1My4yNjk1MzEgLTUuNDIxODc1IDUxIC00LjE0MDYyNSBDIDQ4LjczODI4MSAtMi44NTkzNzUgNDUuOTIxODc1IC0xLjg0NzY1NiA0Mi41NDY4NzUgLTEuMTA5Mzc1IEMgMzkuMTcxODc1IC0wLjM2NzE4OCAzNS4xNDg0MzggMCAzMC40ODQzNzUgMCBaIE0gMjAuMjUgLTMwLjUzMTI1IEwgMTcuMTI1IC0xMC45NTMxMjUgTCAyOC42NDA2MjUgLTEwLjk1MzEyNSBDIDMxLjgzNTkzOCAtMTAuOTUzMTI1IDM0LjQ3MjY1NiAtMTEuMjUgMzYuNTQ2ODc1IC0xMS44NDM3NSBDIDM4LjYxNzE4OCAtMTIuNDM3NSA0MC4yNSAtMTMuMjA3MDMxIDQxLjQzNzUgLTE0LjE1NjI1IEMgNDIuNjI1IC0xNS4xMDE1NjIgNDMuNDg0Mzc1IC0xNi4wOTM3NSA0NC4wMTU2MjUgLTE3LjEyNSBDIDQ0LjU1NDY4OCAtMTguMTY0MDYyIDQ0Ljg5ODQzOCAtMTkuMTQ4NDM4IDQ1LjA0Njg3NSAtMjAuMDc4MTI1IEMgNDUuMjAzMTI1IC0yMS4wMDM5MDYgNDUuMjgxMjUgLTIxLjc1IDQ1LjI4MTI1IC0yMi4zMTI1IEMgNDUuMjgxMjUgLTIzLjIzODI4MSA0NS4xMTMyODEgLTI0LjE3OTY4OCA0NC43ODEyNSAtMjUuMTQwNjI1IEMgNDQuNDQ1MzEyIC0yNi4xMDkzNzUgNDMuNzk2ODc1IC0yNyA0Mi44MjgxMjUgLTI3LjgxMjUgQyA0MS44NjcxODggLTI4LjYyNSA0MC41IC0yOS4yODEyNSAzOC43MTg3NSAtMjkuNzgxMjUgQyAzNi45Mzc1IC0zMC4yODEyNSAzNC41OTc2NTYgLTMwLjUzMTI1IDMxLjcwMzEyNSAtMzAuNTMxMjUgWiBNIDIwLjI1IC0zMC41MzEyNSAiLz48L2c+PC9zdmc+">
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20261008169;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20261009172;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -2429,6 +2429,7 @@ h1,
     </div>
     <div style="margin-left:auto;display:flex;gap:8px;">
       <button onclick="openMenuMgr()" class="nav-action-btn">Menu</button>
+      <button onclick="openExpense('fuel')" class="nav-action-btn">+ Expense</button>
     </div>
   </div>
   <div class="pos-order-tabs" id="pos-order-tabs"></div>
@@ -2521,6 +2522,7 @@ h1,
       <button onclick="openBrandReportMenu(supActiveBrand)" class="nav-action-btn" id="sup-report-btn">↓ Report</button>
       <button onclick="openAddBrand()" class="nav-action-btn">+ Brand</button>
       <button onclick="openAddItem(supActiveBrand)" class="rf-primary-btn">+ Item</button>
+      <button onclick="openExpense('supply')" class="nav-action-btn">+ Expense</button>
     </div>
   </div>
 
@@ -2606,7 +2608,6 @@ h1,
       <button class="dk-ghost" onclick="downloadPLReport('quarterly','current')">Quarterly</button>
       <button class="dk-ghost" onclick="downloadPLReport('quarterly','previous')" title="Download last quarter's P&amp;L">Last Quarter</button>
       <button class="dk-ghost" onclick="downloadPLReport('annual','current')">FY Annual</button>
-      <button class="dk-ghost" onclick="exportXeroCSV()" title="Every transaction from the permanent ledger, as a CSV for Xero / your accountant">⤓ Xero</button>
       <button class="dk-ghost" onclick="switchTab('hplus')" title="HUMAN+ agent-model settlements — commission, payable, PPh 23, invoice" style="border-color:#a855f7;color:#a855f7;">HUMAN+ Settlements →</button>
       <span style="flex:1"></span>
       <button class="dk-ghost" onclick="openPLModal('income')">+ Income</button>
@@ -4533,7 +4534,10 @@ function renderPL(){
   // ── EXPENSES: Wages from Roster + manual entries ────────────────
   const wagesObj = calcWages(period, start, end);
   const manualExp = plEntries.filter(e=>e.type==='expense'&&e.date>=start&&e.date<=end);
-  const totalExp  = wagesObj.total + manualExp.reduce((s,e)=>s+e.amount,0);
+  // Staff-logged expenses from the ledger (kind='expense') for the period — so the on-screen net reflects them too
+  let ledgerExp = 0;
+  (window._lastLedgerDocs||[]).forEach(function(r){ if(!r||r.kind!=='expense')return; var d={};try{d=r.detail?JSON.parse(r.detail):{};}catch(e){} var dt=d.date||r.bizDate||''; if(dt>=start&&dt<=end&&(d.status||r.status||'').toLowerCase()!=='cancelled') ledgerExp+=(+r.amount||+d.cost||0); });
+  const totalExp  = wagesObj.total + manualExp.reduce((s,e)=>s+e.amount,0) + ledgerExp;
 
   // ── NET ─────────────────────────────────────────────────────────
   const net    = totalInAll - totalExp;
@@ -10684,6 +10688,48 @@ function downloadPLReport(period, which){
 // ── SOLD TODAY ────────────────────────────────────────────────────
 // ── SIMPLE monthly P&L for the accountant — income by area (ledger, sales basis), real payroll BPJS/PPh21,
 // commission, per-area taxes. No targets, no bloat. which = 'current' | 'previous'. ──
+// ── DAILY SHEET — per-day sales by category + Card/QRIS/Xendit payments + variance, for a month. which='current'|'previous' ──
+window._dailyCSV=function(ref,ym){
+ try{
+  var MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var label=MN[ref.m]+' '+ref.y, dim=new Date(ref.y,ref.m+1,0).getDate();
+  function pm(m){m=(m||'').toLowerCase();if(m==='card')return 'card';if(m==='qr'||m==='qris'||m==='gopay'||m==='ovo'||m==='dana')return 'qris';if(m==='online'||m==='xendit')return 'xen';if(m==='cash')return 'cash';return 'card';}
+  var docs=window._lastLedgerDocs||[],S={},recg={};
+  function R(d){if(!S[d])S[d]={rec:0,ivb:0,pep:0,fuel:0,sup:0,tax:0,comm:0,pay:0,card:0,qris:0,xen:0,cash:0};return S[d];}
+  docs.forEach(function(r){
+    if(!r)return; var det={};try{det=r.detail?JSON.parse(r.detail):{};}catch(e){}
+    if((det.status||r.status||'').toLowerCase()==='cancelled')return;
+    var kind=r.kind,id=String(r.id||''),amt=+r.amount||0,biz=r.bizDate||det.date||'',meth=r.method||det.payMethod||(det.online?'online':'card');
+    if(kind==='recovery'){var base=id.replace(/_bal$/,'');if(!recg[base])recg[base]={};recg[base][/_bal$/.test(id)?'bal':'main']={amt:amt,biz:biz,meth:meth,det:det};}
+    else if(kind==='fuel'){var s1=det.date||biz;if(String(s1).slice(0,7)===ym){var v1=R(s1);v1.fuel+=(+det.total||0);v1.tax+=(+det.tax||0);}if(String(biz).slice(0,7)===ym&&amt>0)R(biz)[pm(meth)]+=amt;}
+    else if(kind==='supply'){var s2=det.date||biz;if(String(s2).slice(0,7)===ym){var o=det.order||det;R(s2).sup+=(+(o&&o.total)||0);}if(String(biz).slice(0,7)===ym&&amt>0)R(biz)[pm(meth)]+=amt;}
+  });
+  Object.keys(recg).forEach(function(base){
+    var m=recg[base].main||{},b=recg[base].bal||{},det=(m.det||b.det||{}),price=+det.price||0;
+    var sess=det.date||m.biz||b.biz||'',svc=String(det.serviceName||det.service||det.pathway||'').toLowerCase();
+    if(String(sess).slice(0,7)===ym){var v=R(sess);
+      if(det.peptide||svc.indexOf('peptide')>=0||det.cat==='peptide')v.pep+=price;
+      else if(det.clinical||det.partner)v.ivb+=price; else v.rec+=price;
+      if(det.clinical||det.partner){var c=Math.round(price*0.20);v.comm+=c;v.pay+=(price-c);v.tax+=Math.round(c*0.02);}
+    }
+    var ma=+m.amt||0,ba=+b.amt||0;
+    if(price>0&&(ma+ba)>price*1.01){var leg=ma>0?m:b;if(String(leg.biz||'').slice(0,7)===ym)R(leg.biz)[pm(leg.meth)]+=price;}
+    else{if(ma>0&&String(m.biz||'').slice(0,7)===ym)R(m.biz)[pm(m.meth)]+=ma;if(ba>0&&String(b.biz||'').slice(0,7)===ym)R(b.biz)[pm(b.meth)]+=ba;}
+  });
+  var hdr=['Date','Sales-Recovery','Sales-IV/Bloods','Sales-Peptides','Sales-Fuel','Sales-Supply','Total Sales','Tax collected (PB1+PPh23)','HUMAN+ commission','Payable to HUMAN+','Card','QRIS','Xendit','Cash','Total Payments','Variance (sales-payments)'];
+  var NL='\n',csv=label+' — DAILY SALES & PAYMENTS'+NL+hdr.join(',')+NL,tot=[];for(var i=0;i<15;i++)tot[i]=0;
+  for(var dn=1;dn<=dim;dn++){var d=ym+'-'+('0'+dn).slice(-2),v=S[d]||{};
+    var rec=Math.round(v.rec||0),ivb=Math.round(v.ivb||0),pep=Math.round(v.pep||0),fuel=Math.round(v.fuel||0),sup=Math.round(v.sup||0),ts=rec+ivb+pep+fuel+sup;
+    var card=Math.round(v.card||0),qris=Math.round(v.qris||0),xen=Math.round(v.xen||0),cash=Math.round(v.cash||0),tp=card+qris+xen+cash;
+    var a=[d,rec,ivb,pep,fuel,sup,ts,Math.round(v.tax||0),Math.round(v.comm||0),Math.round(v.pay||0),card,qris,xen,cash,tp,ts-tp];
+    csv+=a.join(',')+NL;for(var j=1;j<16;j++)tot[j-1]+=a[j];
+  }
+  csv+=(['TOTAL'].concat(tot)).join(',')+NL;
+  return csv;
+ }catch(e){console.error('_dailyCSV',e);return 'DAILY SHEET — error: '+(e&&e.message||e)+'\n';}
+};
+// ── SIMPLE monthly P&L for the accountant — income by area (ledger, sales basis), real payroll BPJS/PPh21,
+// commission, per-area taxes. No targets, no bloat. which = 'current' | 'previous'. ──
 window.downloadPLSimple=function(which){
   try{
    var now=(typeof baliNow==='function'?baliNow():new Date());
@@ -10720,7 +10766,24 @@ window.downloadPLSimple=function(which){
      if(!flat){bpjsKesCo+=(+adj.bpjsKesCo||0);bpjsTkCo+=(+adj.bpjsTkCo||0);pph21+=(+adj.pph21||0);}
    });
    var empBpjs=bpjsKesCo+bpjsTkCo;
-   var totalExp=wages+bonus+allow+comm+empBpjs;
+   // Expenses logged this month — ledger (staff-writable, kind='expense') + admin plEntries — grouped by AREA
+   var exRec=0,exFuel=0,exSup=0,exGen=0;
+   docs.forEach(function(r){
+     if(!r||r.kind!=='expense')return;
+     var d={};try{d=r.detail?JSON.parse(r.detail):{};}catch(e){}
+     if(String(d.date||r.bizDate||'').slice(0,7)!==ym)return;
+     if((d.status||r.status||'').toLowerCase()==='cancelled')return;
+     var amt=+r.amount||+d.cost||+d.amount||0, a=(d.area||'general');
+     if(a==='recovery')exRec+=amt;else if(a==='fuel')exFuel+=amt;else if(a==='supply')exSup+=amt;else exGen+=amt;
+   });
+   (typeof plEntries!=='undefined'?plEntries:[]).forEach(function(e){
+     if(!e||e.type!=='expense'||String(e.date||'').slice(0,7)!==ym)return;
+     var c=(e.cat||'');if(c==='payroll'||c==='bpjs')return;
+     var a=(e.source||e.area||'general'),amt=+e.amount||0;
+     if(a==='recovery')exRec+=amt;else if(a==='fuel')exFuel+=amt;else if(a==='supply')exSup+=amt;else exGen+=amt;
+   });
+   var opEx=exRec+exFuel+exSup+exGen;
+   var totalExp=wages+bonus+allow+comm+empBpjs+opEx;
    var opProfit=totalIncome-totalExp;
    var cit=opProfit>0?Math.round(opProfit*0.22):0; var net=opProfit-cit;
    var NL='\n',Q=function(s){s=String(s==null?'':s);return (s.indexOf(',')>=0||s.indexOf('"')>=0||s.indexOf('\n')>=0)?'"'+s.replace(/"/g,'""')+'"':s;};
@@ -10739,8 +10802,12 @@ window.downloadPLSimple=function(which){
    csv+=row('Therapist commission (10% own therapy)',fmt(comm));
    csv+=row('Health insurance — BPJS Kesehatan (employer)',fmt(bpjsKesCo));
    csv+=row('BPJS Ketenagakerjaan (employer)',fmt(bpjsTkCo));
-   csv+=row('Cost of goods (café + supply)','— tracking from October');
-   csv+=row('Other operating (rent / utilities / etc.)','— tracking from October');
+   if(opEx>0){
+     if(exRec)csv+=row('Expenses — Recovery',fmt(exRec));
+     if(exFuel)csv+=row('Expenses — Fuel / Café',fmt(exFuel));
+     if(exSup)csv+=row('Expenses — Supply',fmt(exSup));
+     if(exGen)csv+=row('Expenses — General / shared',fmt(exGen));
+   } else csv+=row('Operating expenses (rent / utilities / stock / etc.)','— none entered yet');
    csv+=row('TOTAL EXPENSES (recorded so far)',fmt(totalExp))+NL;
    csv+=row('RESULT','Amount (IDR)');
    csv+=row('Operating profit / (loss)',fmt(opProfit));
@@ -10756,6 +10823,7 @@ window.downloadPLSimple=function(which){
    csv+=row('Payable to HUMAN+ (80%)',fmt(clinPayable));
    csv+=row('Service charge (7% — tip pool to staff)',fmt(cafeSvc))+NL;
    csv+='NOTE: COGS + operating expenses tracked from October. PPh 21 is the actual withheld figure. Targets removed until ~6 months of trading data.'+NL;
+   csv+=NL+NL+'═══ DAILY BREAKDOWN — sales by area + Card/QRIS/Xendit payments + variance ═══'+NL+(typeof window._dailyCSV==='function'?window._dailyCSV(ref,ym):'');
    var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
    var a=document.createElement('a');a.href=URL.createObjectURL(blob);
    a.download='DISTRIK_PL_'+MN[ref.m].slice(0,3)+'_'+ref.y+'.csv';
@@ -16416,6 +16484,100 @@ window.injectWaCapture = function(confirmId, sale){
     var takingPayment=/deposit|IDR/i.test(label);
     payConfirm(label, '', takingPayment?clinPay:'', confirmClinical);
   };
+})();
+</script>
+
+<!-- ═══ STAFF EXPENSE ENTRY — writes to ledger (kind='expense') so staff can save; flows to P&L by area ═══ -->
+<div id="expModal" style="display:none;position:fixed;inset:0;z-index:99997;align-items:center;justify-content:center;background:rgba(10,10,10,.6);">
+  <div style="background:#141417;color:#f4f4f5;width:min(480px,95vw);max-height:90vh;overflow:auto;border:1px solid #2c2c31;border-radius:6px;font-family:'Space Mono',monospace;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.5);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:18px;">Add Expense</div>
+      <button onclick="closeExpense()" style="border:none;background:none;font-size:22px;cursor:pointer;color:#999;">&times;</button>
+    </div>
+    <div style="display:grid;gap:10px;">
+      <div><label style="font-size:10px;letter-spacing:.1em;color:#9a9a9e;text-transform:uppercase;">Date</label><input type="date" id="exp-date" style="width:100%;box-sizing:border-box;background:#0f0f12;border:1px solid #2c2c31;color:#f4f4f5;padding:9px;font-family:'Space Mono',monospace;"></div>
+      <div><label style="font-size:10px;letter-spacing:.1em;color:#9a9a9e;text-transform:uppercase;">Area</label>
+        <select id="exp-area" style="width:100%;box-sizing:border-box;background:#0f0f12;border:1px solid #2c2c31;color:#f4f4f5;padding:9px;font-family:'Space Mono',monospace;">
+          <option value="recovery">Recovery</option><option value="fuel">Fuel / Café</option><option value="supply">Supply</option><option value="general" selected>General / running</option>
+        </select></div>
+      <div><label style="font-size:10px;letter-spacing:.1em;color:#9a9a9e;text-transform:uppercase;">Category</label>
+        <select id="exp-cat" onchange="expCatChange()" style="width:100%;box-sizing:border-box;background:#0f0f12;border:1px solid #2c2c31;color:#f4f4f5;padding:9px;font-family:'Space Mono',monospace;"></select>
+        <input id="exp-cat-new" placeholder="Type the new category name" style="display:none;margin-top:6px;width:100%;box-sizing:border-box;background:#0f0f12;border:1px solid #FF2D2D;color:#f4f4f5;padding:9px;font-family:'Space Mono',monospace;"></div>
+      <div><label style="font-size:10px;letter-spacing:.1em;color:#9a9a9e;text-transform:uppercase;">Cost (IDR)</label><input type="number" id="exp-cost" inputmode="numeric" placeholder="0" style="width:100%;box-sizing:border-box;background:#0f0f12;border:1px solid #2c2c31;color:#f4f4f5;padding:9px;font-family:'Space Mono',monospace;"></div>
+      <div><label style="font-size:10px;letter-spacing:.1em;color:#9a9a9e;text-transform:uppercase;">Note / supplier (optional)</label><input id="exp-note" placeholder="e.g. supplier name, invoice no." style="width:100%;box-sizing:border-box;background:#0f0f12;border:1px solid #2c2c31;color:#f4f4f5;padding:9px;font-family:'Space Mono',monospace;"></div>
+    </div>
+    <button onclick="saveExpense()" style="width:100%;margin-top:14px;padding:12px;border:none;background:#FF2D2D;color:#fff;cursor:pointer;font-family:'Space Mono',monospace;font-size:12px;letter-spacing:.12em;text-transform:uppercase;">Save Expense</button>
+    <div id="exp-status" style="font-size:11px;margin-top:8px;min-height:14px;"></div>
+    <div style="margin-top:16px;border-top:1px solid #2c2c31;padding-top:12px;">
+      <div style="font-size:10px;letter-spacing:.1em;color:#9a9a9e;text-transform:uppercase;margin-bottom:8px;">This month's expenses</div>
+      <div id="exp-recent" style="font-size:11px;"></div>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var EXPENSE_GROUPS=[
+   {g:'Utilities',items:['Electricity / Power','Water','Gas (LPG)','Internet / WiFi','Phone / SIM','Banjar','Canang / Offerings']},
+   {g:'Fuel / Café stock',items:['Coffee beans','Milk & alt-milks','Tea','Matcha','Syrups / Sugar','Cacao powder','Protein powder','Re-Salt Hydration','Sodas','Bakery / pastries','Fruit & produce','Ice','Cafeto chemicals','N2O chargers','Cups / lids / sleeves','Straws & napkins','Takeaway packaging','Plastic wraps']},
+   {g:'Recovery consumables',items:['Massage oil / lotion','Essential oils','Linens & towels','Disposable covers','Cupping consumables','Electrode / stim pads','Gloves / sanitiser','Hand soap & body/shampoo','Room perfume spray','Air refresher']},
+   {g:'Cleaning & hygiene',items:['Cleaning products','Dishwashing liquid','Laundry','Toilet paper / paper towels','Face tissue','Bin bags','Amenities','Cleaning tools (mop/broom)','Pest control']},
+   {g:'Premises',items:['Rent','Repairs & maintenance','Security','Rubbish pick-up','Plants / garden','Furniture & fittings']},
+   {g:'Equipment',items:['Small equipment / tools','Café equipment (grinder/machine)','IT / hardware','Equipment repair','Equipment purchase']},
+   {g:'Staff & admin',items:['Staff meals','Training','Uniforms','Recruitment / hiring','Visa / KITAS / work permits','Software / subscriptions','Spotify','Bank / Xendit fees','Accounting / legal','Licenses / permits','Insurance','Office supplies']},
+   {g:'Marketing',items:['Google / Meta ads','Photo / video','Printing & signage','Influencer / promo','Events','Website / hosting']},
+   {g:'Transport / logistics',items:['Delivery / courier','Vehicle fuel','Grab / Gojek (business)']},
+   {g:'Other',items:['Miscellaneous','Petty cash']}
+  ];
+  window._expCustom=[]; try{ window._expCustom=JSON.parse(localStorage.getItem('distrik_exp_custom')||'[]'); }catch(e){}
+  function esc(s){return String(s==null?'':s).replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+  function buildCatOptions(){
+    var sel=document.getElementById('exp-cat'); if(!sel)return; var h='';
+    EXPENSE_GROUPS.forEach(function(G){ h+='<optgroup label="'+esc(G.g)+'">'; G.items.forEach(function(it){ h+='<option value="'+esc(it)+'">'+esc(it)+'</option>'; }); h+='</optgroup>'; });
+    if(window._expCustom.length){ h+='<optgroup label="Custom">'; window._expCustom.forEach(function(it){ h+='<option value="'+esc(it)+'">'+esc(it)+'</option>'; }); h+='</optgroup>'; }
+    h+='<option value="__new">+ Add new category…</option>'; sel.innerHTML=h;
+  }
+  window.expCatChange=function(){ var ni=document.getElementById('exp-cat-new'),sel=document.getElementById('exp-cat'); if(ni){ni.style.display=(sel&&sel.value==='__new')?'block':'none'; if(sel&&sel.value==='__new')ni.focus();} };
+  window.openExpense=function(area){
+    buildCatOptions();
+    var d=document.getElementById('exp-date'); if(d)d.value=(typeof baliNow==='function'?baliNow():new Date()).toLocaleDateString('en-CA');
+    var a=document.getElementById('exp-area'); if(a&&area)a.value=area;
+    ['exp-cost','exp-note'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+    var ni=document.getElementById('exp-cat-new'); if(ni){ni.value='';ni.style.display='none';}
+    var st=document.getElementById('exp-status'); if(st)st.textContent='';
+    renderRecent(); var m=document.getElementById('expModal'); if(m)m.style.display='flex';
+  };
+  window.closeExpense=function(){ var m=document.getElementById('expModal'); if(m)m.style.display='none'; };
+  window.saveExpense=function(){
+    var date=(document.getElementById('exp-date')||{}).value||'';
+    var area=(document.getElementById('exp-area')||{}).value||'general';
+    var sel=(document.getElementById('exp-cat')||{}).value||'';
+    var cat=sel; if(sel==='__new')cat=((document.getElementById('exp-cat-new')||{}).value||'').trim();
+    var cost=Math.round(parseFloat((document.getElementById('exp-cost')||{}).value||'0')||0);
+    var note=((document.getElementById('exp-note')||{}).value||'').trim();
+    var st=document.getElementById('exp-status');
+    if(!date||!cat||!cost){ if(st){st.style.color='#FF2D2D';st.textContent='Fill in date, category and cost.';} return; }
+    if(sel==='__new'&&cat&&window._expCustom.indexOf(cat)<0){ window._expCustom.push(cat); try{localStorage.setItem('distrik_exp_custom',JSON.stringify(window._expCustom));}catch(e){} }
+    var id='exp_'+Date.now()+'_'+Math.floor(Math.random()*1000);
+    if(typeof ledgerWrite==='function'){
+      ledgerWrite('expense', id, date, cost, 0, '', {kind:'expense',date:date,area:area,category:cat,note:note,cost:cost}, 'completed');
+      if(st){st.style.color='#22c55e';st.textContent='✓ Saved — it flows into the P&L for '+area+'.';}
+      ['exp-cost','exp-note'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';});
+      var ni=document.getElementById('exp-cat-new'); if(ni){ni.value='';ni.style.display='none';}
+      setTimeout(renderRecent,500);
+    } else if(st){ st.style.color='#FF2D2D';st.textContent='Save unavailable — reload the page and try again.'; }
+  };
+  function renderRecent(){
+    var el=document.getElementById('exp-recent'); if(!el)return;
+    var ym=(typeof baliNow==='function'?baliNow():new Date()).toLocaleDateString('en-CA').slice(0,7);
+    var docs=window._lastLedgerDocs||[],rows=[];
+    docs.forEach(function(r){ if(!r||r.kind!=='expense')return; var d={};try{d=r.detail?JSON.parse(r.detail):{};}catch(e){} if(String(d.date||r.bizDate||'').slice(0,7)!==ym)return; if((d.status||r.status||'').toLowerCase()==='cancelled')return; rows.push({id:r.id,date:d.date||r.bizDate,area:d.area,cat:d.category,cost:(+r.amount||+d.cost||0)}); });
+    rows.sort(function(a,b){return String(b.date||'').localeCompare(String(a.date||''));});
+    if(!rows.length){ el.innerHTML='<div style="color:#6b6b72;">None entered yet this month.</div>'; return; }
+    var tot=rows.reduce(function(s,x){return s+x.cost;},0);
+    el.innerHTML=rows.slice(0,40).map(function(x){ return '<div style="display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px solid #222;"><span style="color:#bbb;">'+String(x.date||'').slice(5)+' · '+esc(x.area||'')+' · '+esc(x.cat||'')+'</span><span style="white-space:nowrap;">IDR '+Number(x.cost).toLocaleString('en-US')+' <a onclick="expCancel(\''+x.id+'\')" title="Remove" style="color:#FF2D2D;cursor:pointer;margin-left:6px;">&times;</a></span></div>'; }).join('')
+      +'<div style="display:flex;justify-content:space-between;margin-top:10px;font-weight:700;"><span>Total this month</span><span>IDR '+Number(tot).toLocaleString('en-US')+'</span></div>';
+  }
+  window.expCancel=function(id){ if(!confirm('Remove this expense?'))return; if(typeof ledgerUpdate==='function')ledgerUpdate(id,{status:'cancelled'}); if(window._lastLedgerDocs){window._lastLedgerDocs.forEach(function(r){if(r&&String(r.id)===String(id))r.status='cancelled';});} setTimeout(renderRecent,300); };
 })();
 </script>
 
