@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMEEwQTBBIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYsNzgpIHNjYWxlKDEuMzApIiBmaWxsPSIjRjJGMkYwIj48cGF0aCBkPSJNIDAuMDYyNSAwIEwgNi42MjUgLTQxLjM5MDYyNSBMIDMzLjU5Mzc1IC00MS4zOTA2MjUgQyAzOS4wMDc4MTIgLTQxLjM5MDYyNSA0My41MDM5MDYgLTQwLjkwNjI1IDQ3LjA3ODEyNSAtMzkuOTM3NSBDIDUwLjY2MDE1NiAtMzguOTc2NTYyIDUzLjUgLTM3LjY2MDE1NiA1NS41OTM3NSAtMzUuOTg0Mzc1IEMgNTcuNjg3NSAtMzQuMzE2NDA2IDU5LjE3NTc4MSAtMzIuNDE0MDYyIDYwLjA2MjUgLTMwLjI4MTI1IEMgNjAuOTU3MDMxIC0yOC4xNTYyNSA2MS40MDYyNSAtMjUuOTIxODc1IDYxLjQwNjI1IC0yMy41NzgxMjUgQyA2MS40MDYyNSAtMjEuOTEwMTU2IDYxLjI5Njg3NSAtMjAuMzE2NDA2IDYxLjA3ODEyNSAtMTguNzk2ODc1IEMgNjAuODE2NDA2IC0xNy4wOTc2NTYgNjAuMzMyMDMxIC0xNS4zNTkzNzUgNTkuNjI1IC0xMy41NzgxMjUgQyA1OC45MjU3ODEgLTExLjc5Njg3NSA1Ny44Nzg5MDYgLTEwLjA5NzY1NiA1Ni40ODQzNzUgLTguNDg0Mzc1IEMgNTUuMDk3NjU2IC02Ljg2NzE4OCA1My4yNjk1MzEgLTUuNDIxODc1IDUxIC00LjE0MDYyNSBDIDQ4LjczODI4MSAtMi44NTkzNzUgNDUuOTIxODc1IC0xLjg0NzY1NiA0Mi41NDY4NzUgLTEuMTA5Mzc1IEMgMzkuMTcxODc1IC0wLjM2NzE4OCAzNS4xNDg0MzggMCAzMC40ODQzNzUgMCBaIE0gMjAuMjUgLTMwLjUzMTI1IEwgMTcuMTI1IC0xMC45NTMxMjUgTCAyOC42NDA2MjUgLTEwLjk1MzEyNSBDIDMxLjgzNTkzOCAtMTAuOTUzMTI1IDM0LjQ3MjY1NiAtMTEuMjUgMzYuNTQ2ODc1IC0xMS44NDM3NSBDIDM4LjYxNzE4OCAtMTIuNDM3NSA0MC4yNSAtMTMuMjA3MDMxIDQxLjQzNzUgLTE0LjE1NjI1IEMgNDIuNjI1IC0xNS4xMDE1NjIgNDMuNDg0Mzc1IC0xNi4wOTM3NSA0NC4wMTU2MjUgLTE3LjEyNSBDIDQ0LjU1NDY4OCAtMTguMTY0MDYyIDQ0Ljg5ODQzOCAtMTkuMTQ4NDM4IDQ1LjA0Njg3NSAtMjAuMDc4MTI1IEMgNDUuMjAzMTI1IC0yMS4wMDM5MDYgNDUuMjgxMjUgLTIxLjc1IDQ1LjI4MTI1IC0yMi4zMTI1IEMgNDUuMjgxMjUgLTIzLjIzODI4MSA0NS4xMTMyODEgLTI0LjE3OTY4OCA0NC43ODEyNSAtMjUuMTQwNjI1IEMgNDQuNDQ1MzEyIC0yNi4xMDkzNzUgNDMuNzk2ODc1IC0yNyA0Mi44MjgxMjUgLTI3LjgxMjUgQyA0MS44NjcxODggLTI4LjYyNSA0MC41IC0yOS4yODEyNSAzOC43MTg3NSAtMjkuNzgxMjUgQyAzNi45Mzc1IC0zMC4yODEyNSAzNC41OTc2NTYgLTMwLjUzMTI1IDMxLjcwMzEyNSAtMzAuNTMxMjUgWiBNIDIwLjI1IC0zMC41MzEyNSAiLz48L2c+PC9zdmc+">
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20261009177;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20261009179;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -2726,7 +2726,7 @@ h1,
     </div>
 
     <!-- Expenses (admin review + add; staff also add from Fuel/Supply) -->
-    <div id="pl-expenses" style="margin-top:18px;"></div>
+    <div id="pl-expense-panel" style="margin-top:18px;"></div>
 
     <!-- Bank settlement reconciliation -->
     <div id="pl-recon" style="margin-top:18px;"></div>
@@ -10722,7 +10722,19 @@ window._dailyCSV=function(ref,ym){
       if(isPep||isClin){var rate=isPep?0.10:0.20;var c=Math.round(price*rate);v.comm+=c;v.pay+=(price-c);v.tax+=Math.round(c*0.02)+Math.round(+det.tax||0);}
     }
     var ma=+m.amt||0,ba=+b.amt||0;
-    if(price>0&&(ma+ba)>price*1.01){var leg=ma>0?m:b;if(String(leg.biz||'').slice(0,7)===ym)R(leg.biz)[pm(leg.meth)]+=price;}
+    // Online bookings take the 50% deposit via Xendit (website link); the balance is paid in store (card/QRIS).
+    // Split the deposit -> its method on the DEPOSIT date, the balance -> its method on the BALANCE date, using
+    // det amounts (this also sidesteps the main-leg double-count). XEN_DEP backfills the go-live deposits that
+    // were saved as "card" but actually went through Xendit (confirmed against the Xendit dashboard).
+    var dep=+det.deposit||0, XEN_DEP={mu0z18373yp:1,muf8xxozshc:1,murl6rgl7ks:1};
+    if(det.depositPaid&&dep>0&&ma>0&&ba>0&&price>0){
+      var depMeth=(m.meth==='online'||XEN_DEP[base])?'xen':pm(m.meth);
+      var balMeth=pm(b.meth||m.meth), bal2=Math.max(0,price-dep);
+      var depDate=m.biz||det.date, balDate=b.biz||m.biz;
+      if(String(depDate).slice(0,7)===ym)R(depDate)[depMeth]+=dep;
+      if(bal2>0&&String(balDate).slice(0,7)===ym)R(balDate)[balMeth]+=bal2;
+    }
+    else if(price>0&&(ma+ba)>price*1.01){var leg=ma>0?m:b;if(String(leg.biz||'').slice(0,7)===ym)R(leg.biz)[pm(leg.meth)]+=price;}
     else{if(ma>0&&String(m.biz||'').slice(0,7)===ym)R(m.biz)[pm(m.meth)]+=ma;if(ba>0&&String(b.biz||'').slice(0,7)===ym)R(b.biz)[pm(b.meth)]+=ba;}
   });
   // ── ACTUAL bank deposits — pulled live from the Bank Settlement Reconciliation screen (window.SETTLEMENTS) ──
@@ -16653,7 +16665,7 @@ window.injectWaCapture = function(confirmId, sale){
     if(ok){ if(st){st.style.color='#22c55e';st.textContent='✓ added';} ['pexp-amount','pexp-note'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';}); var ni=document.getElementById('pexp-cat-new'); if(ni){ni.value='';ni.style.display='none';} setTimeout(window.renderExpensePanel,500); }
   };
   window.renderExpensePanel=function(){
-    var el=document.getElementById('pl-expenses'); if(!el) return;
+    var el=document.getElementById('pl-expense-panel'); if(!el) return;
     var isAdmin=(typeof currentUser==='undefined')||!currentUser||currentUser.type==='admin'||currentUser.role==='2IC';
     if(!isAdmin){ el.innerHTML=''; return; }
     var ym=_expMonthNow(), mp=ym.split('-');
