@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMEEwQTBBIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYsNzgpIHNjYWxlKDEuMzApIiBmaWxsPSIjRjJGMkYwIj48cGF0aCBkPSJNIDAuMDYyNSAwIEwgNi42MjUgLTQxLjM5MDYyNSBMIDMzLjU5Mzc1IC00MS4zOTA2MjUgQyAzOS4wMDc4MTIgLTQxLjM5MDYyNSA0My41MDM5MDYgLTQwLjkwNjI1IDQ3LjA3ODEyNSAtMzkuOTM3NSBDIDUwLjY2MDE1NiAtMzguOTc2NTYyIDUzLjUgLTM3LjY2MDE1NiA1NS41OTM3NSAtMzUuOTg0Mzc1IEMgNTcuNjg3NSAtMzQuMzE2NDA2IDU5LjE3NTc4MSAtMzIuNDE0MDYyIDYwLjA2MjUgLTMwLjI4MTI1IEMgNjAuOTU3MDMxIC0yOC4xNTYyNSA2MS40MDYyNSAtMjUuOTIxODc1IDYxLjQwNjI1IC0yMy41NzgxMjUgQyA2MS40MDYyNSAtMjEuOTEwMTU2IDYxLjI5Njg3NSAtMjAuMzE2NDA2IDYxLjA3ODEyNSAtMTguNzk2ODc1IEMgNjAuODE2NDA2IC0xNy4wOTc2NTYgNjAuMzMyMDMxIC0xNS4zNTkzNzUgNTkuNjI1IC0xMy41NzgxMjUgQyA1OC45MjU3ODEgLTExLjc5Njg3NSA1Ny44Nzg5MDYgLTEwLjA5NzY1NiA1Ni40ODQzNzUgLTguNDg0Mzc1IEMgNTUuMDk3NjU2IC02Ljg2NzE4OCA1My4yNjk1MzEgLTUuNDIxODc1IDUxIC00LjE0MDYyNSBDIDQ4LjczODI4MSAtMi44NTkzNzUgNDUuOTIxODc1IC0xLjg0NzY1NiA0Mi41NDY4NzUgLTEuMTA5Mzc1IEMgMzkuMTcxODc1IC0wLjM2NzE4OCAzNS4xNDg0MzggMCAzMC40ODQzNzUgMCBaIE0gMjAuMjUgLTMwLjUzMTI1IEwgMTcuMTI1IC0xMC45NTMxMjUgTCAyOC42NDA2MjUgLTEwLjk1MzEyNSBDIDMxLjgzNTkzOCAtMTAuOTUzMTI1IDM0LjQ3MjY1NiAtMTEuMjUgMzYuNTQ2ODc1IC0xMS44NDM3NSBDIDM4LjYxNzE4OCAtMTIuNDM3NSA0MC4yNSAtMTMuMjA3MDMxIDQxLjQzNzUgLTE0LjE1NjI1IEMgNDIuNjI1IC0xNS4xMDE1NjIgNDMuNDg0Mzc1IC0xNi4wOTM3NSA0NC4wMTU2MjUgLTE3LjEyNSBDIDQ0LjU1NDY4OCAtMTguMTY0MDYyIDQ0Ljg5ODQzOCAtMTkuMTQ4NDM4IDQ1LjA0Njg3NSAtMjAuMDc4MTI1IEMgNDUuMjAzMTI1IC0yMS4wMDM5MDYgNDUuMjgxMjUgLTIxLjc1IDQ1LjI4MTI1IC0yMi4zMTI1IEMgNDUuMjgxMjUgLTIzLjIzODI4MSA0NS4xMTMyODEgLTI0LjE3OTY4OCA0NC43ODEyNSAtMjUuMTQwNjI1IEMgNDQuNDQ1MzEyIC0yNi4xMDkzNzUgNDMuNzk2ODc1IC0yNyA0Mi44MjgxMjUgLTI3LjgxMjUgQyA0MS44NjcxODggLTI4LjYyNSA0MC41IC0yOS4yODEyNSAzOC43MTg3NSAtMjkuNzgxMjUgQyAzNi45Mzc1IC0zMC4yODEyNSAzNC41OTc2NTYgLTMwLjUzMTI1IDMxLjcwMzEyNSAtMzAuNTMxMjUgWiBNIDIwLjI1IC0zMC41MzEyNSAiLz48L2c+PC9zdmc+">
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20261009176;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20261009177;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -2725,6 +2725,9 @@ h1,
       <div id="cat-breakdown" style="padding:10px 13px;display:flex;gap:6px;flex-wrap:wrap;font-family:'Space Mono',monospace;font-size:10px;"></div>
     </div>
 
+    <!-- Expenses (admin review + add; staff also add from Fuel/Supply) -->
+    <div id="pl-expenses" style="margin-top:18px;"></div>
+
     <!-- Bank settlement reconciliation -->
     <div id="pl-recon" style="margin-top:18px;"></div>
 
@@ -4577,6 +4580,7 @@ function renderPL(){
   // ── CHART ───────────────────────────────────────────────────────
   renderPLChart();
   try{ if(typeof renderSettlementRecon==='function') renderSettlementRecon(); }catch(e){}
+  try{ if(typeof window.renderExpensePanel==='function') window.renderExpensePanel(); }catch(e){}
   renderCatBreakdown(manualExp);
 }
 
@@ -10697,7 +10701,7 @@ window._dailyCSV=function(ref,ym){
   var label=MN[ref.m]+' '+ref.y, dim=new Date(ref.y,ref.m+1,0).getDate();
   function pm(m){m=(m||'').toLowerCase();if(m==='card')return 'card';if(m==='qr'||m==='qris'||m==='gopay'||m==='ovo'||m==='dana')return 'qris';if(m==='online'||m==='xendit')return 'xen';if(m==='cash')return 'cash';return 'card';}
   var docs=window._lastLedgerDocs||[],S={},recg={};
-  function R(d){if(!S[d])S[d]={rec:0,ivb:0,pep:0,fuel:0,sup:0,tax:0,comm:0,pay:0,card:0,qris:0,xen:0,cash:0,bcard:0,bqris:0,bxen:0};return S[d];}
+  function R(d){if(!S[d])S[d]={rec:0,ivb:0,pep:0,fuel:0,sup:0,tax:0,comm:0,pay:0,card:0,qris:0,xen:0,cash:0,bcard:0,bqris:0,bxen:0,eRec:0,eFuel:0,eSup:0,eGen:0};return S[d];}
   function bfam(m){m=(m||'').toString().toLowerCase();if(m==='xendit'||m==='online')return 'xen';return (m==='qris'||m==='qr'||m==='gopay'||m==='ovo'||m==='dana')?'qris':'card';}
   docs.forEach(function(r){
     if(!r)return; var det={};try{det=r.detail?JSON.parse(r.detail):{};}catch(e){}
@@ -10706,6 +10710,7 @@ window._dailyCSV=function(ref,ym){
     if(kind==='recovery'){var base=id.replace(/_bal$/,'');if(!recg[base])recg[base]={};recg[base][/_bal$/.test(id)?'bal':'main']={amt:amt,biz:biz,meth:meth,det:det};}
     else if(kind==='fuel'){var s1=det.date||biz;if(String(s1).slice(0,7)===ym){var v1=R(s1);v1.fuel+=(+det.total||0);v1.tax+=(+det.tax||0);}if(String(biz).slice(0,7)===ym&&amt>0)R(biz)[pm(meth)]+=amt;}
     else if(kind==='supply'){var s2=det.date||biz;if(String(s2).slice(0,7)===ym){var o=det.order||det;R(s2).sup+=(+(o&&o.total)||0);}if(String(biz).slice(0,7)===ym&&amt>0)R(biz)[pm(meth)]+=amt;}
+    else if(kind==='expense'){var se=det.date||biz;if(String(se).slice(0,7)===ym){var ea=(det.area||'general'),ec=(+amt||+det.cost||0);var ve=R(se);if(ea==='recovery')ve.eRec+=ec;else if(ea==='fuel')ve.eFuel+=ec;else if(ea==='supply')ve.eSup+=ec;else ve.eGen+=ec;}}
   });
   Object.keys(recg).forEach(function(base){
     var m=recg[base].main||{},b=recg[base].bal||{},det=(m.det||b.det||{}),price=+det.price||0;
@@ -10733,6 +10738,16 @@ window._dailyCSV=function(ref,ym){
     csv+=a.join(',')+NL;for(var j=1;j<=NCOL;j++)tot[j-1]+=a[j];
   }
   csv+=(['TOTAL'].concat(tot)).join(',')+NL;
+  // ── DAILY EXPENSES — by area (entered from Fuel/Supply pages & the admin Expenses panel) ──
+  var ehdr=['Date','Exp-Recovery','Exp-Fuel/Café','Exp-Supply','Exp-General','Total Expenses'],et=[0,0,0,0,0];
+  var ecsv=NL+NL+'DAILY EXPENSES — BY AREA'+NL+ehdr.join(',')+NL,anyExp=false;
+  for(var en=1;en<=dim;en++){var ed=ym+'-'+('0'+en).slice(-2),ev=S[ed]||{};
+    var er=Math.round(ev.eRec||0),ef=Math.round(ev.eFuel||0),es=Math.round(ev.eSup||0),eg=Math.round(ev.eGen||0),et5=er+ef+es+eg;
+    if(et5>0)anyExp=true;
+    ecsv+=[ed,er,ef,es,eg,et5].join(',')+NL; et[0]+=er;et[1]+=ef;et[2]+=es;et[3]+=eg;et[4]+=et5;
+  }
+  ecsv+=(['TOTAL'].concat(et)).join(',')+NL;
+  csv+=ecsv+(anyExp?'':NL+'(No expenses entered for this month yet — add them on the Fuel/Supply pages or the admin Expenses panel.)'+NL);
   return csv;
  }catch(e){console.error('_dailyCSV',e);return 'DAILY SHEET — error: '+(e&&e.message||e)+'\n';}
 };
@@ -16553,29 +16568,47 @@ window.injectWaCapture = function(confirmId, sale){
 </div>
 <script>
 (function(){
-  var EXPENSE_GROUPS=[
-   {g:'Utilities',items:['Electricity / Power','Water','Gas (LPG)','Internet / WiFi','Phone / SIM','Banjar','Canang / Offerings']},
-   {g:'Fuel / Café stock',items:['Coffee beans','Milk & alt-milks','Tea','Matcha','Syrups / Sugar','Cacao powder','Protein powder','Re-Salt Hydration','Sodas','Bakery / pastries','Fruit & produce','Ice','Cafeto chemicals','N2O chargers','Cups / lids / sleeves','Straws & napkins','Takeaway packaging','Plastic wraps']},
-   {g:'Recovery consumables',items:['Massage oil / lotion','Essential oils','Linens & towels','Disposable covers','Cupping consumables','Electrode / stim pads','Gloves / sanitiser','Hand soap & body/shampoo','Room perfume spray','Air refresher']},
-   {g:'Cleaning & hygiene',items:['Cleaning products','Dishwashing liquid','Laundry','Toilet paper / paper towels','Face tissue','Bin bags','Amenities','Cleaning tools (mop/broom)','Pest control']},
-   {g:'Premises',items:['Rent','Repairs & maintenance','Security','Rubbish pick-up','Plants / garden','Furniture & fittings']},
-   {g:'Equipment',items:['Small equipment / tools','Café equipment (grinder/machine)','IT / hardware','Equipment repair','Equipment purchase']},
-   {g:'Staff & admin',items:['Staff meals','Training','Uniforms','Recruitment / hiring','Visa / KITAS / work permits','Software / subscriptions','Spotify','Bank / Xendit fees','Accounting / legal','Licenses / permits','Insurance','Office supplies']},
-   {g:'Marketing',items:['Google / Meta ads','Photo / video','Printing & signage','Influencer / promo','Events','Website / hosting']},
-   {g:'Transport / logistics',items:['Delivery / courier','Vehicle fuel','Grab / Gojek (business)']},
-   {g:'Other',items:['Miscellaneous','Petty cash']}
+  // Groups align with the P&L expense AREAS (recovery / fuel / supply / general) so picking a category auto-files
+  // it the SAME way the P&L groups it — no double categorising. `area` is the default P&L bucket for that group.
+  window.EXPENSE_GROUPS=[
+   {g:'Utilities',area:'general',items:['Electricity / Power','Water','Internet / WiFi','Banjar','Canang / Offerings']},
+   {g:'Fuel / Café stock',area:'fuel',items:['Coffee beans','Milk & alt-milks','Tea','Syrups / Sugar','Bakery / pastries','Fruit & produce','Ice','Straws & napkins','Takeaway packaging (cups/lids/sleeves)','Protein powder','Re-Salt Hydration','Sodas','Cafeto chemicals','N2O chargers','Cacao powder','Plastic wraps']},
+   {g:'Recovery consumables',area:'recovery',items:['Massage oil / lotion','Linens & towels','Disposable covers','Gloves / sanitiser','Room perfume spray','Air refresher','Hand soap & body/shampoo soap']},
+   {g:'Cleaning & hygiene',area:'general',items:['Cleaning products','Laundry','Toilet paper / paper towels','Bin bags','Amenities','Pest control','Face tissue']},
+   {g:'Premises',area:'general',items:['Rent','Repairs & maintenance','Security','Plants / garden','Furniture & fittings','Rubbish pick-up']},
+   {g:'Equipment',area:'general',items:['Small equipment / tools','Equipment repair','Equipment purchase']},
+   {g:'Staff & admin',area:'general',items:['Training','Uniforms','Software / subscriptions','Bank / Xendit fees','Accounting / legal','Licenses / permits','Insurance','Spotify']},
+   {g:'Marketing',area:'general',items:['Google / Meta ads','Photo / video','Printing & signage','Influencer / promo','Events']},
+   {g:'Other',area:'general',items:['Miscellaneous','Petty cash']}
   ];
+  var EXPENSE_GROUPS=window.EXPENSE_GROUPS;
+  // category -> default P&L area
+  window.EXP_AREA_OF={}; EXPENSE_GROUPS.forEach(function(G){ G.items.forEach(function(it){ window.EXP_AREA_OF[it]=G.area; }); });
   window._expCustom=[]; try{ window._expCustom=JSON.parse(localStorage.getItem('distrik_exp_custom')||'[]'); }catch(e){}
   function esc(s){return String(s==null?'':s).replace(/"/g,'&quot;').replace(/</g,'&lt;');}
-  function buildCatOptions(){
-    var sel=document.getElementById('exp-cat'); if(!sel)return; var h='';
+  var AREA_LBL={recovery:'Recovery',fuel:'Fuel / Café',supply:'Supply',general:'General / running'};
+  // Shared grouped <option> builder — used by the Fuel/Supply modal AND the admin P&L panel.
+  window.buildExpCatOptions=function(sel){
+    if(!sel)return; var h='<option value="" disabled selected>Pick a category…</option>';
     EXPENSE_GROUPS.forEach(function(G){ h+='<optgroup label="'+esc(G.g)+'">'; G.items.forEach(function(it){ h+='<option value="'+esc(it)+'">'+esc(it)+'</option>'; }); h+='</optgroup>'; });
     if(window._expCustom.length){ h+='<optgroup label="Custom">'; window._expCustom.forEach(function(it){ h+='<option value="'+esc(it)+'">'+esc(it)+'</option>'; }); h+='</optgroup>'; }
     h+='<option value="__new">+ Add new category…</option>'; sel.innerHTML=h;
+  };
+  function _autoArea(catVal,areaSelId){ var a=document.getElementById(areaSelId); if(a&&window.EXP_AREA_OF[catVal])a.value=window.EXP_AREA_OF[catVal]; }
+  // persist + write one expense; returns true on success
+  function _writeExpense(o,statusEl){
+    if(!o.date||!o.cat||!o.cost){ if(statusEl){statusEl.style.color='#FF2D2D';statusEl.textContent='Fill in date, category and amount.';} return false; }
+    if(o.isNew&&o.cat&&window._expCustom.indexOf(o.cat)<0){ window._expCustom.push(o.cat); try{localStorage.setItem('distrik_exp_custom',JSON.stringify(window._expCustom));}catch(e){} }
+    if(typeof ledgerWrite!=='function'){ if(statusEl){statusEl.style.color='#FF2D2D';statusEl.textContent='Save unavailable — reload and try again.';} return false; }
+    var id='exp_'+Date.now()+'_'+Math.floor(Math.random()*1000);
+    ledgerWrite('expense', id, o.date, o.cost, 0, '', {kind:'expense',date:o.date,area:o.area,category:o.cat,note:o.note||'',cost:o.cost}, 'completed');
+    return true;
   }
-  window.expCatChange=function(){ var ni=document.getElementById('exp-cat-new'),sel=document.getElementById('exp-cat'); if(ni){ni.style.display=(sel&&sel.value==='__new')?'block':'none'; if(sel&&sel.value==='__new')ni.focus();} };
+
+  // ── Fuel / Supply MODAL (staff add) ──────────────────────────────
+  window.expCatChange=function(){ var ni=document.getElementById('exp-cat-new'),sel=document.getElementById('exp-cat'); if(!sel)return; if(ni){ni.style.display=(sel.value==='__new')?'block':'none'; if(sel.value==='__new')ni.focus();} if(sel.value!=='__new')_autoArea(sel.value,'exp-area'); };
   window.openExpense=function(area){
-    buildCatOptions();
+    window.buildExpCatOptions(document.getElementById('exp-cat'));
     var d=document.getElementById('exp-date'); if(d)d.value=(typeof baliNow==='function'?baliNow():new Date()).toLocaleDateString('en-CA');
     var a=document.getElementById('exp-area'); if(a&&area)a.value=area;
     ['exp-cost','exp-note'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
@@ -16585,23 +16618,11 @@ window.injectWaCapture = function(confirmId, sale){
   };
   window.closeExpense=function(){ var m=document.getElementById('expModal'); if(m)m.style.display='none'; };
   window.saveExpense=function(){
-    var date=(document.getElementById('exp-date')||{}).value||'';
-    var area=(document.getElementById('exp-area')||{}).value||'general';
     var sel=(document.getElementById('exp-cat')||{}).value||'';
     var cat=sel; if(sel==='__new')cat=((document.getElementById('exp-cat-new')||{}).value||'').trim();
-    var cost=Math.round(parseFloat((document.getElementById('exp-cost')||{}).value||'0')||0);
-    var note=((document.getElementById('exp-note')||{}).value||'').trim();
     var st=document.getElementById('exp-status');
-    if(!date||!cat||!cost){ if(st){st.style.color='#FF2D2D';st.textContent='Fill in date, category and cost.';} return; }
-    if(sel==='__new'&&cat&&window._expCustom.indexOf(cat)<0){ window._expCustom.push(cat); try{localStorage.setItem('distrik_exp_custom',JSON.stringify(window._expCustom));}catch(e){} }
-    var id='exp_'+Date.now()+'_'+Math.floor(Math.random()*1000);
-    if(typeof ledgerWrite==='function'){
-      ledgerWrite('expense', id, date, cost, 0, '', {kind:'expense',date:date,area:area,category:cat,note:note,cost:cost}, 'completed');
-      if(st){st.style.color='#22c55e';st.textContent='✓ Saved — it flows into the P&L for '+area+'.';}
-      ['exp-cost','exp-note'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';});
-      var ni=document.getElementById('exp-cat-new'); if(ni){ni.value='';ni.style.display='none';}
-      setTimeout(renderRecent,500);
-    } else if(st){ st.style.color='#FF2D2D';st.textContent='Save unavailable — reload the page and try again.'; }
+    var ok=_writeExpense({date:(document.getElementById('exp-date')||{}).value||'',area:(document.getElementById('exp-area')||{}).value||'general',cat:cat,cost:Math.round(parseFloat((document.getElementById('exp-cost')||{}).value||'0')||0),note:((document.getElementById('exp-note')||{}).value||'').trim(),isNew:(sel==='__new')},st);
+    if(ok){ if(st){st.style.color='#22c55e';st.textContent='✓ Saved — flows to Daily sales & P&L.';} ['exp-cost','exp-note'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';}); var ni=document.getElementById('exp-cat-new'); if(ni){ni.value='';ni.style.display='none';} setTimeout(renderRecent,500); setTimeout(function(){ if(typeof window.renderExpensePanel==='function')window.renderExpensePanel(); },600); }
   };
   function renderRecent(){
     var el=document.getElementById('exp-recent'); if(!el)return;
@@ -16611,10 +16632,82 @@ window.injectWaCapture = function(confirmId, sale){
     rows.sort(function(a,b){return String(b.date||'').localeCompare(String(a.date||''));});
     if(!rows.length){ el.innerHTML='<div style="color:#6b6b72;">None entered yet this month.</div>'; return; }
     var tot=rows.reduce(function(s,x){return s+x.cost;},0);
-    el.innerHTML=rows.slice(0,40).map(function(x){ return '<div style="display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px solid #222;"><span style="color:#bbb;">'+String(x.date||'').slice(5)+' · '+esc(x.area||'')+' · '+esc(x.cat||'')+'</span><span style="white-space:nowrap;">IDR '+Number(x.cost).toLocaleString('en-US')+' <a onclick="expCancel(\''+x.id+'\')" title="Remove" style="color:#FF2D2D;cursor:pointer;margin-left:6px;">&times;</a></span></div>'; }).join('')
+    el.innerHTML=rows.slice(0,40).map(function(x){ return '<div style="display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px solid #222;"><span style="color:#bbb;">'+String(x.date||'').slice(5)+' · '+esc(AREA_LBL[x.area]||x.area||'')+' · '+esc(x.cat||'')+'</span><span style="white-space:nowrap;">IDR '+Number(x.cost).toLocaleString('en-US')+' <a onclick="expCancel(\''+x.id+'\')" title="Remove" style="color:#FF2D2D;cursor:pointer;margin-left:6px;">&times;</a></span></div>'; }).join('')
       +'<div style="display:flex;justify-content:space-between;margin-top:10px;font-weight:700;"><span>Total this month</span><span>IDR '+Number(tot).toLocaleString('en-US')+'</span></div>';
   }
-  window.expCancel=function(id){ if(!confirm('Remove this expense?'))return; if(typeof ledgerUpdate==='function')ledgerUpdate(id,{status:'cancelled'}); if(window._lastLedgerDocs){window._lastLedgerDocs.forEach(function(r){if(r&&String(r.id)===String(id))r.status='cancelled';});} setTimeout(renderRecent,300); };
+  window.expCancel=function(id){ if(!confirm('Remove this expense?'))return; if(typeof ledgerUpdate==='function')ledgerUpdate(id,{status:'cancelled'}); if(window._lastLedgerDocs){window._lastLedgerDocs.forEach(function(r){if(r&&String(r.id)===String(id))r.status='cancelled';});} setTimeout(renderRecent,300); setTimeout(function(){ if(typeof window.renderExpensePanel==='function')window.renderExpensePanel(); },350); };
+
+  // ── ADMIN P&L PANEL (review + add, styled like Bank Settlement Reconciliation) ───
+  var _expMonth=null;
+  function _expMonthNow(){ if(!_expMonth){ var d=(typeof baliNow==='function'?baliNow():new Date()); _expMonth=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2); } return _expMonth; }
+  window.expPanelChangeMonth=function(n){ var p=_expMonthNow().split('-'); var d=new Date(+p[0],+p[1]-1+n,1); _expMonth=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2); window.renderExpensePanel(); };
+  window.expPanelThisMonth=function(){ _expMonth=null; window.renderExpensePanel(); };
+  window.expPanelCatChange=function(){ var ni=document.getElementById('pexp-cat-new'),sel=document.getElementById('pexp-cat'); if(!sel)return; if(ni){ni.style.display=(sel.value==='__new')?'block':'none'; if(sel.value==='__new')ni.focus();} if(sel.value!=='__new')_autoArea(sel.value,'pexp-area'); };
+  window.expPanelAdd=function(){
+    var sel=(document.getElementById('pexp-cat')||{}).value||'';
+    var cat=sel; if(sel==='__new')cat=((document.getElementById('pexp-cat-new')||{}).value||'').trim();
+    var raw=(((document.getElementById('pexp-amount')||{}).value||'').replace(/[^0-9.,]/g,'')).replace(/[.,]\d{2}$/,'');
+    var cost=parseInt(raw.replace(/[^0-9]/g,''),10)||0;
+    var st=document.getElementById('pexp-status');
+    var ok=_writeExpense({date:(document.getElementById('pexp-date')||{}).value||'',area:(document.getElementById('pexp-area')||{}).value||'general',cat:cat,cost:cost,note:((document.getElementById('pexp-note')||{}).value||'').trim(),isNew:(sel==='__new')},st);
+    if(ok){ if(st){st.style.color='#22c55e';st.textContent='✓ added';} ['pexp-amount','pexp-note'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';}); var ni=document.getElementById('pexp-cat-new'); if(ni){ni.value='';ni.style.display='none';} setTimeout(window.renderExpensePanel,500); }
+  };
+  window.renderExpensePanel=function(){
+    var el=document.getElementById('pl-expenses'); if(!el) return;
+    var isAdmin=(typeof currentUser==='undefined')||!currentUser||currentUser.type==='admin'||currentUser.role==='2IC';
+    if(!isAdmin){ el.innerHTML=''; return; }
+    var ym=_expMonthNow(), mp=ym.split('-');
+    var mLbl=['January','February','March','April','May','June','July','August','September','October','November','December'][+mp[1]-1]+' '+mp[0];
+    var f=function(n){ return 'IDR '+Math.round(n||0).toLocaleString('id-ID'); };
+    var C='#232327', MUT='#6b6b72', TX='#f4f4f5';
+    var docs=window._lastLedgerDocs||[], rows=[], sub={recovery:0,fuel:0,supply:0,general:0};
+    docs.forEach(function(r){ if(!r||r.kind!=='expense')return; var d={};try{d=r.detail?JSON.parse(r.detail):{};}catch(e){} if(String(d.date||r.bizDate||'').slice(0,7)!==ym)return; if((d.status||r.status||'').toLowerCase()==='cancelled')return; var amt=+r.amount||+d.cost||0, a=(d.area||'general'); if(sub[a]==null)a='general'; sub[a]+=amt; rows.push({id:r.id,date:d.date||r.bizDate,area:a,cat:d.category,note:d.note,cost:amt}); });
+    rows.sort(function(a,b){return String(b.date||'').localeCompare(String(a.date||''));});
+    var tot=sub.recovery+sub.fuel+sub.supply+sub.general;
+    var today=(typeof baliNow==='function'?baliNow():new Date()); var todayStr=today.getFullYear()+'-'+('0'+(today.getMonth()+1)).slice(-2)+'-'+('0'+today.getDate()).slice(-2);
+    var areaOpts=['general','recovery','fuel','supply'].map(function(a){return '<option value="'+a+'">'+esc(AREA_LBL[a])+'</option>';}).join('');
+    function cell(lbl,v){ return '<div style="background:#0f0f11;padding:10px 12px;"><div style="font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:'+MUT+';">'+lbl+'</div><div style="font-family:\'Space Mono\',monospace;font-size:14px;color:'+TX+';margin-top:3px;">'+f(v)+'</div></div>'; }
+    var rowsHtml = rows.length ? rows.map(function(x){ var dd=String(x.date||'').slice(8); var mm=['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+String(x.date||'0-0').slice(5,7)]||'';
+      return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid #1b1b1e;font-family:\'Space Mono\',monospace;font-size:11px;">'
+        +'<span style="color:'+MUT+';min-width:52px;">'+dd+' '+mm+'</span>'
+        +'<span style="color:'+TX+';min-width:92px;">'+esc(AREA_LBL[x.area]||x.area)+'</span>'
+        +'<span style="color:'+TX+';flex:1;">'+esc(x.cat||'')+(x.note?(' <span style="color:'+MUT+';font-size:10px;">· '+esc(x.note)+'</span>'):'')+'</span>'
+        +'<span style="color:'+TX+';font-weight:700;">'+f(x.cost)+'</span>'
+        +'<span onclick="expCancel(\''+esc(x.id)+'\')" style="cursor:pointer;color:#5a5a5f;padding:0 2px;" title="Delete">✕</span></div>';
+    }).join('') : '<div style="padding:12px 14px;color:'+MUT+';font-family:\'Space Mono\',monospace;font-size:11px;">No expenses logged for '+mLbl+' yet.</div>';
+    el.innerHTML=''
+      +'<div class="ledger" style="border:1px solid '+C+';">'
+      +'<div class="ledger-head" style="align-items:center;">'
+        +'<h3>Expenses</h3>'
+        +'<div style="display:flex;align-items:center;gap:6px;">'
+          +'<button class="dk-ghost" onclick="expPanelChangeMonth(-1)" style="min-width:34px;">‹</button>'
+          +'<span style="font-family:\'Space Mono\',monospace;font-size:11px;color:'+TX+';min-width:130px;text-align:center;">'+mLbl+'</span>'
+          +'<button class="dk-ghost" onclick="expPanelChangeMonth(1)" style="min-width:34px;">›</button>'
+          +'<button class="dk-ghost" onclick="expPanelThisMonth()">This month</button>'
+        +'</div>'
+      +'</div>'
+      +'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:'+C+';">'
+        +cell('Recovery',sub.recovery)+cell('Fuel / Café',sub.fuel)+cell('Supply',sub.supply)+cell('General / running',sub.general)
+      +'</div>'
+      +'<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:12px 14px;border-bottom:1px solid '+C+';">'
+        +'<input id="pexp-date" type="date" value="'+todayStr+'" style="font-family:\'Space Mono\',monospace;font-size:11px;background:#0f0f11;color:'+TX+';border:1px solid '+C+';padding:7px;">'
+        +'<select id="pexp-area" style="font-family:\'Space Mono\',monospace;font-size:11px;background:#0f0f11;color:'+TX+';border:1px solid '+C+';padding:7px;">'+areaOpts+'</select>'
+        +'<select id="pexp-cat" onchange="expPanelCatChange()" style="font-family:\'Space Mono\',monospace;font-size:11px;background:#0f0f11;color:'+TX+';border:1px solid '+C+';padding:7px;min-width:150px;"></select>'
+        +'<input id="pexp-cat-new" placeholder="New category name" style="display:none;font-family:\'Space Mono\',monospace;font-size:11px;background:#0f0f11;color:'+TX+';border:1px solid #FF2D2D;padding:7px;">'
+        +'<input id="pexp-amount" type="text" inputmode="numeric" placeholder="Amount (IDR)" style="font-family:\'Space Mono\',monospace;font-size:11px;background:#0f0f11;color:'+TX+';border:1px solid '+C+';padding:7px;width:120px;">'
+        +'<input id="pexp-note" type="text" placeholder="Supplier / note (optional)" style="font-family:\'Space Mono\',monospace;font-size:11px;background:#0f0f11;color:'+TX+';border:1px solid '+C+';padding:7px;flex:1;min-width:100px;">'
+        +'<button class="dk-ghost" onclick="expPanelAdd()" style="background:#0A0A0A;color:#fff;">+ Add expense</button>'
+        +'<span id="pexp-status" style="font-family:\'Space Mono\',monospace;font-size:10px;color:'+MUT+';min-width:60px;"></span>'
+      +'</div>'
+      +rowsHtml
+      +'<div style="display:flex;justify-content:space-between;align-items:center;padding:11px 14px;background:#111114;font-family:\'Space Mono\',monospace;font-size:12px;">'
+        +'<span style="color:'+MUT+';">Total expenses '+mLbl+'</span>'
+        +'<span style="color:'+TX+';font-weight:700;">'+f(tot)+'</span>'
+      +'</div>'
+      +'<div style="padding:8px 14px;color:'+MUT+';font-family:\'Space Mono\',monospace;font-size:9px;">Staff add from the Fuel &amp; Supply pages too. Each entry flows into the Daily sales sheet and the P&amp;L under its area. Categories are grouped the same way the P&amp;L groups expenses.</div>'
+      +'</div>';
+    window.buildExpCatOptions(document.getElementById('pexp-cat'));
+  };
 })();
 </script>
 
