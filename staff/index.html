@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMEEwQTBBIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYsNzgpIHNjYWxlKDEuMzApIiBmaWxsPSIjRjJGMkYwIj48cGF0aCBkPSJNIDAuMDYyNSAwIEwgNi42MjUgLTQxLjM5MDYyNSBMIDMzLjU5Mzc1IC00MS4zOTA2MjUgQyAzOS4wMDc4MTIgLTQxLjM5MDYyNSA0My41MDM5MDYgLTQwLjkwNjI1IDQ3LjA3ODEyNSAtMzkuOTM3NSBDIDUwLjY2MDE1NiAtMzguOTc2NTYyIDUzLjUgLTM3LjY2MDE1NiA1NS41OTM3NSAtMzUuOTg0Mzc1IEMgNTcuNjg3NSAtMzQuMzE2NDA2IDU5LjE3NTc4MSAtMzIuNDE0MDYyIDYwLjA2MjUgLTMwLjI4MTI1IEMgNjAuOTU3MDMxIC0yOC4xNTYyNSA2MS40MDYyNSAtMjUuOTIxODc1IDYxLjQwNjI1IC0yMy41NzgxMjUgQyA2MS40MDYyNSAtMjEuOTEwMTU2IDYxLjI5Njg3NSAtMjAuMzE2NDA2IDYxLjA3ODEyNSAtMTguNzk2ODc1IEMgNjAuODE2NDA2IC0xNy4wOTc2NTYgNjAuMzMyMDMxIC0xNS4zNTkzNzUgNTkuNjI1IC0xMy41NzgxMjUgQyA1OC45MjU3ODEgLTExLjc5Njg3NSA1Ny44Nzg5MDYgLTEwLjA5NzY1NiA1Ni40ODQzNzUgLTguNDg0Mzc1IEMgNTUuMDk3NjU2IC02Ljg2NzE4OCA1My4yNjk1MzEgLTUuNDIxODc1IDUxIC00LjE0MDYyNSBDIDQ4LjczODI4MSAtMi44NTkzNzUgNDUuOTIxODc1IC0xLjg0NzY1NiA0Mi41NDY4NzUgLTEuMTA5Mzc1IEMgMzkuMTcxODc1IC0wLjM2NzE4OCAzNS4xNDg0MzggMCAzMC40ODQzNzUgMCBaIE0gMjAuMjUgLTMwLjUzMTI1IEwgMTcuMTI1IC0xMC45NTMxMjUgTCAyOC42NDA2MjUgLTEwLjk1MzEyNSBDIDMxLjgzNTkzOCAtMTAuOTUzMTI1IDM0LjQ3MjY1NiAtMTEuMjUgMzYuNTQ2ODc1IC0xMS44NDM3NSBDIDM4LjYxNzE4OCAtMTIuNDM3NSA0MC4yNSAtMTMuMjA3MDMxIDQxLjQzNzUgLTE0LjE1NjI1IEMgNDIuNjI1IC0xNS4xMDE1NjIgNDMuNDg0Mzc1IC0xNi4wOTM3NSA0NC4wMTU2MjUgLTE3LjEyNSBDIDQ0LjU1NDY4OCAtMTguMTY0MDYyIDQ0Ljg5ODQzOCAtMTkuMTQ4NDM4IDQ1LjA0Njg3NSAtMjAuMDc4MTI1IEMgNDUuMjAzMTI1IC0yMS4wMDM5MDYgNDUuMjgxMjUgLTIxLjc1IDQ1LjI4MTI1IC0yMi4zMTI1IEMgNDUuMjgxMjUgLTIzLjIzODI4MSA0NS4xMTMyODEgLTI0LjE3OTY4OCA0NC43ODEyNSAtMjUuMTQwNjI1IEMgNDQuNDQ1MzEyIC0yNi4xMDkzNzUgNDMuNzk2ODc1IC0yNyA0Mi44MjgxMjUgLTI3LjgxMjUgQyA0MS44NjcxODggLTI4LjYyNSA0MC41IC0yOS4yODEyNSAzOC43MTg3NSAtMjkuNzgxMjUgQyAzNi45Mzc1IC0zMC4yODEyNSAzNC41OTc2NTYgLTMwLjUzMTI1IDMxLjcwMzEyNSAtMzAuNTMxMjUgWiBNIDIwLjI1IC0zMC41MzEyNSAiLz48L2c+PC9zdmc+">
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20261011181;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20261011182;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -2978,7 +2978,9 @@ const TOTAL_SLOTS=32; // 6am–10pm, 30min each
 const SLOT_START=6;   // 6am
 
 const ZONES=[
-  {id:'FOH',       rows:6, start:7,  end:20, col:'#3b82f6', label:'Front of House', min:'', rowLabels:['Manager','Fuel / Reception','Reception','Reception','Supply','Club Assistant']},
+  {id:'Fuel',      rows:2, start:6,  end:20, col:'#FF2D2D', label:'Fuel',      min:'2 staff', rowLabels:['Fuel Open','Fuel Close']},
+  {id:'Reception', rows:4, start:10, end:22, col:'#3b82f6', label:'Reception', min:'2 staff', rowLabels:['Manager','Reception Open','Reception Close','Club Assistant']},
+  {id:'Supply',    rows:2, start:8,  end:20, col:'#10b981', label:'Supply',    min:'1 staff', rowLabels:['Supply','Supply Cover']},
   {id:'Therapy',   rows:3, start:10, end:22, col:'#8b5cf6', label:'Therapy',   min:'3 rooms', rowLabels:['Room 1','Room 2','Room 3']},
   {id:'Event',     rows:3, start:6,  end:21, col:'#14b8a6', label:'Event',     min:'not bookable', rowLabels:['Event 1','Event 2','Event 3']},
 ];
@@ -3133,13 +3135,18 @@ function populateDefaults(){
 
   // TUESDAY–FRIDAY
   ['Tuesday','Wednesday','Thursday','Friday'].forEach(day=>{
-    // FRONT OF HOUSE — Manager / Fuel+Reception / Reception / Reception / Supply / Club Assistant
-    shift(day,'FOH',0,'Amri',10,18,14);                           // Manager
-    shift(day,'FOH',1,'SA',7,15,11);                              // Fuel / Reception (open)
-    shift(day,'FOH',2,'HS',10,18,14);                             // Reception
-    shift(day,'FOH',3,'SC',12,20,16);                             // Reception (close)
-    shift(day,'FOH',4,'SD',10,18,14);                             // Supply
-    shift(day,'FOH',5,'SE',10,18,14);                             // Club Assistant
+    // FUEL
+    if(day!=='Wednesday') shift(day,'Fuel',0,'SA',6,14,10);      // SA fuel open 6-2pm break@10
+    shift(day,'Fuel',1,'SB',12,20,16);                            // SB fuel close 12-8pm break@4
+
+    // RECEPTION
+    shift(day,'Reception',0,'Amri',10,18,14);                     // Amri 10-6pm break@2
+    shift(day,'Reception',1,'HS',10,18,14);                       // HS 10-6pm break@2
+    shift(day,'Reception',2,'SC',14,22,18);                       // SC close 2-10pm break@6
+
+
+    // SUPPLY
+    shift(day,'Supply',0,'SD',10,18,14);                          // SD supply 10-6pm
 
     // THERAPY (10am-10pm, 3 rooms — 4 therapists share across them)
     shift(day,'Therapy',0,'TA',10,18,14);                         // TA — Room 1
@@ -3150,13 +3157,17 @@ function populateDefaults(){
 
   // SATURDAY–SUNDAY (shorter hours, 8am start)
   ['Saturday','Sunday'].forEach(day=>{
-    // FRONT OF HOUSE (weekend)
-    shift(day,'FOH',0,'Amri',8,16,12);                            // Manager
-    shift(day,'FOH',1,'SA',7,15,11);                              // Fuel / Reception
-    shift(day,'FOH',2,'HS',8,16,12);                              // Reception
-    shift(day,'FOH',3,'SC',12,20,16);                             // Reception (close)
-    shift(day,'FOH',4,'SD',8,16,12);                              // Supply
-    shift(day,'FOH',5,'SE',8,16,12);                              // Club Assistant
+    // FUEL 6am-8pm
+    shift(day,'Fuel',0,'SA',6,14,10);
+    shift(day,'Fuel',1,'SB',12,20,16);
+
+    // RECEPTION 8am-8pm (weekend)
+    shift(day,'Reception',0,'HS',8,16,12);
+    shift(day,'Reception',1,'Amri',8,16,12);
+    shift(day,'Reception',2,'SC',12,20,16);
+
+    // SUPPLY 8am-6pm (weekend)
+    shift(day,'Supply',0,'SD',8,16,12);
 
     // THERAPY 10am-10pm — 3 rooms, 4 therapists share
     shift(day,'Therapy',0,'TA',10,18,14);
@@ -5028,8 +5039,11 @@ function resetSaved(){
 // Zone hours config — group 1 (Tue-Thu) = wd*, group 2 (Fri-Sun) = we*
 // Each zone: {label, col, wdOpen, wdClose, weOpen, weClose}
 let ZONE_HOURS = [
-  {id:'FOH',       label:'Front of House', col:'#3b82f6', wdOpen:7, wdClose:20, weOpen:6, weClose:20},
+  {id:'Fuel',      label:'Cafe / Fuel',  col:'#FF2D2D', wdOpen:6,  wdClose:20, weOpen:6,  weClose:20},
+  {id:'Reception', label:'Reception',    col:'#3b82f6', wdOpen:10, wdClose:22, weOpen:8,  weClose:20},
+  {id:'Supply',    label:'Supply',       col:'#10b981', wdOpen:10, wdClose:20, weOpen:8,  weClose:18},
   {id:'Therapy',   label:'Therapy',      col:'#8b5cf6', wdOpen:10, wdClose:22, weOpen:10, weClose:22},
+  {id:'Recovery',  label:'Recovery',     col:'#f59e0b', wdOpen:10, wdClose:22, weOpen:8,  weClose:20},
   {id:'Event',     label:'Event',        col:'#14b8a6', wdOpen:6,  wdClose:21, weOpen:6,  weClose:21},
 ];
 
