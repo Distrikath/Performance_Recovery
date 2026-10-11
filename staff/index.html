@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMEEwQTBBIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYsNzgpIHNjYWxlKDEuMzApIiBmaWxsPSIjRjJGMkYwIj48cGF0aCBkPSJNIDAuMDYyNSAwIEwgNi42MjUgLTQxLjM5MDYyNSBMIDMzLjU5Mzc1IC00MS4zOTA2MjUgQyAzOS4wMDc4MTIgLTQxLjM5MDYyNSA0My41MDM5MDYgLTQwLjkwNjI1IDQ3LjA3ODEyNSAtMzkuOTM3NSBDIDUwLjY2MDE1NiAtMzguOTc2NTYyIDUzLjUgLTM3LjY2MDE1NiA1NS41OTM3NSAtMzUuOTg0Mzc1IEMgNTcuNjg3NSAtMzQuMzE2NDA2IDU5LjE3NTc4MSAtMzIuNDE0MDYyIDYwLjA2MjUgLTMwLjI4MTI1IEMgNjAuOTU3MDMxIC0yOC4xNTYyNSA2MS40MDYyNSAtMjUuOTIxODc1IDYxLjQwNjI1IC0yMy41NzgxMjUgQyA2MS40MDYyNSAtMjEuOTEwMTU2IDYxLjI5Njg3NSAtMjAuMzE2NDA2IDYxLjA3ODEyNSAtMTguNzk2ODc1IEMgNjAuODE2NDA2IC0xNy4wOTc2NTYgNjAuMzMyMDMxIC0xNS4zNTkzNzUgNTkuNjI1IC0xMy41NzgxMjUgQyA1OC45MjU3ODEgLTExLjc5Njg3NSA1Ny44Nzg5MDYgLTEwLjA5NzY1NiA1Ni40ODQzNzUgLTguNDg0Mzc1IEMgNTUuMDk3NjU2IC02Ljg2NzE4OCA1My4yNjk1MzEgLTUuNDIxODc1IDUxIC00LjE0MDYyNSBDIDQ4LjczODI4MSAtMi44NTkzNzUgNDUuOTIxODc1IC0xLjg0NzY1NiA0Mi41NDY4NzUgLTEuMTA5Mzc1IEMgMzkuMTcxODc1IC0wLjM2NzE4OCAzNS4xNDg0MzggMCAzMC40ODQzNzUgMCBaIE0gMjAuMjUgLTMwLjUzMTI1IEwgMTcuMTI1IC0xMC45NTMxMjUgTCAyOC42NDA2MjUgLTEwLjk1MzEyNSBDIDMxLjgzNTkzOCAtMTAuOTUzMTI1IDM0LjQ3MjY1NiAtMTEuMjUgMzYuNTQ2ODc1IC0xMS44NDM3NSBDIDM4LjYxNzE4OCAtMTIuNDM3NSA0MC4yNSAtMTMuMjA3MDMxIDQxLjQzNzUgLTE0LjE1NjI1IEMgNDIuNjI1IC0xNS4xMDE1NjIgNDMuNDg0Mzc1IC0xNi4wOTM3NSA0NC4wMTU2MjUgLTE3LjEyNSBDIDQ0LjU1NDY4OCAtMTguMTY0MDYyIDQ0Ljg5ODQzOCAtMTkuMTQ4NDM4IDQ1LjA0Njg3NSAtMjAuMDc4MTI1IEMgNDUuMjAzMTI1IC0yMS4wMDM5MDYgNDUuMjgxMjUgLTIxLjc1IDQ1LjI4MTI1IC0yMi4zMTI1IEMgNDUuMjgxMjUgLTIzLjIzODI4MSA0NS4xMTMyODEgLTI0LjE3OTY4OCA0NC43ODEyNSAtMjUuMTQwNjI1IEMgNDQuNDQ1MzEyIC0yNi4xMDkzNzUgNDMuNzk2ODc1IC0yNyA0Mi44MjgxMjUgLTI3LjgxMjUgQyA0MS44NjcxODggLTI4LjYyNSA0MC41IC0yOS4yODEyNSAzOC43MTg3NSAtMjkuNzgxMjUgQyAzNi45Mzc1IC0zMC4yODEyNSAzNC41OTc2NTYgLTMwLjUzMTI1IDMxLjcwMzEyNSAtMzAuNTMxMjUgWiBNIDIwLjI1IC0zMC41MzEyNSAiLz48L2c+PC9zdmc+">
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20261009179;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20261011180;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -11784,8 +11784,9 @@ function clinSendReminder(id){
     var _rdue=_rp?_rp.due:(b.balanceDue||0);
     var bal=(!b.partner && _rdue>0)?('\n\n'+((_rp&&_rp.depositPaid)?'Balance due on arrival: IDR ':'Amount due on arrival: IDR ')+Math.round(_rdue).toLocaleString('id-ID')+'.'):'';
     var _addr='Jl. Raya Babakan Canggu No. 4, Canggu, Kec. Kuta Utara, Kabupaten Badung, Bali 80351';
+    var _map='https://maps.app.goo.gl/zzqVHpkymhQ9Nezw5?g_st=ic';
     var msg='Hey '+(b.client||'there')+' — just a quick reminder you’re booked for '+svc+' at DISTRIK on '+_dateStr+' at '+_timeStr+'.'
-      +'\n\n'+_addr
+      +'\n\n'+_addr+'\n'+_map
       +'\n\nPlease arrive 15 minutes early so we can check you in and get you ready.'
       +'\n\nIf you’re running late, please message us so we can let your therapist know. Your session may need to be shortened if we have another appointment directly afterwards. Arrivals more than 15 minutes late will need to be rescheduled.'
       +bal
@@ -11826,7 +11827,10 @@ function _onreqSub(r){
 }
 function _onreqWaMsg(r,action,altTimes){
   var n=r.name||'there', svc=_onreqLabel(r), dt=(r.date||'')+(r.time?' at '+r.time:'');
-  if(action==='confirm') return 'Hi '+n+' — DISTRIK here! Your '+svc+' booking on '+dt+' is confirmed. We’re looking forward to seeing you 🙏';
+  if(action==='confirm') return 'Hi '+n+' — DISTRIK here! Your '+svc+' booking on '+dt+' is confirmed. We’re looking forward to seeing you 🙏'
+    +'\n\nJl. Raya Babakan Canggu No. 4, Canggu, Kec. Kuta Utara, Kabupaten Badung, Bali 80351'
+    +'\nhttps://maps.app.goo.gl/zzqVHpkymhQ9Nezw5?g_st=ic'
+    +'\n\nPlease arrive 15 minutes early so we can check you in and get you ready.';
   if(action==='decline') return 'Hi '+n+' — DISTRIK here. Unfortunately we’re unable to confirm your '+svc+' booking for '+dt+'. Please reach out to us to arrange an alternative time.';
   if(action==='suggest') return 'Hi '+n+' — DISTRIK here. Your requested '+svc+' on '+(r.date||'')+' at '+(r.time||'')+' isn’t available. Could you do '+altTimes+' instead? Please let us know!';
   return '';
@@ -11997,10 +12001,10 @@ function acceptOnlineBooking(id){
       var _roomName=(typeof ROOMS!=='undefined'?((ROOMS.find(function(x){return x.id===_roomId;})||{}).name):null)||'';
       // BUFFER GUARD: never confirm into a slot that overlaps another booking (+15-min buffer) in this room — warn staff.
       try{
-        var _cb=(typeof CLIN_BUFFER_MIN!=='undefined'?CLIN_BUFFER_MIN:15)/60;
+        var _cb=(typeof _clinBuf==='function')?_clinBuf(r):((typeof CLIN_BUFFER_MIN!=='undefined'?CLIN_BUFFER_MIN:15)/60);  // consultation → 0 buffer
         var _cday=(recoveryData[r.date]&&recoveryData[r.date].bookings)||[];
         var _cns=(typeof parseTime==='function'?parseTime(_st):0), _cne=_cns+((r.duration||60)/60)+_cb;
-        if(_cday.some(function(b){ if(!b||b.status==='cancelled'||b.room!==_roomId||!b.start)return false; var bs=parseTime(b.start), be=bs+((b.duration||60)/60)+_cb; return _cns<be-1e-9 && _cne>bs+1e-9; })
+        if(_cday.some(function(b){ if(!b||b.status==='cancelled'||b.room!==_roomId||!b.start)return false; var _eb=(typeof _clinBuf==='function')?_clinBuf(b):_cb; var bs=parseTime(b.start), be=bs+((b.duration||60)/60)+_eb; return _cns<be-1e-9 && _cne>bs+1e-9; })
            && !confirm('⚠ '+_roomName+' already has a booking within the 15-min buffer around '+_st+'.\n\nConfirm anyway (this will double-book)?')) return;
       }catch(e){}
       // Online deposit paid by card? The Xendit webhook stamps the public_bookings request (depositPaid / paymentStatus).
@@ -12283,9 +12287,12 @@ function clin12(h){ var H=Math.floor(h+1e-9); var M=Math.round((h-H)*60); if(M==
 var CLIN_BUFFER_MIN = 15; // turnover buffer after every session
 // Available start times for the selected service in the selected room, honouring roster hours,
 // existing bookings, and session duration + 15-min buffer.
+// Consultations take NO turnover buffer — they're quick chats, so the next appointment can sit right after.
+function _clinIsConsult(x){ if(!x) return false; var s=((x.name||'')+' '+(x.serviceName||'')+' '+(x.service||'')+' '+(x.label||'')+' '+(x.pathway||'')).toLowerCase(); return s.indexOf('consult')>=0; }
+function _clinBuf(x){ return (_clinIsConsult(x)?0:(typeof CLIN_BUFFER_MIN!=='undefined'?CLIN_BUFFER_MIN:15))/60; }
 function clinAvailableTimes(){
   var s=clinSvc(); if(!s||!clinRoom) return [];
-  var dur=clinCurrentDuration()/60, buf=CLIN_BUFFER_MIN/60;   // clinical uses .dur (+ boots), recovery uses .duration
+  var dur=clinCurrentDuration()/60, buf=_clinBuf(s);   // consultations: 0 buffer. clinical uses .dur (+ boots), recovery uses .duration
   var winStart=(typeof SCHED_START!=='undefined'?SCHED_START:10), winEnd=(typeof SCHED_END!=='undefined'?SCHED_END:22);
   var roomObj=(typeof ROOMS!=='undefined')?ROOMS.find(function(r){return r.name===clinRoom;}):null;
   var isChair=roomObj&&roomObj.type==='recovery';
@@ -12295,14 +12302,14 @@ function clinAvailableTimes(){
   var dayBks=(typeof recoveryData!=='undefined'&&recoveryData[key]&&recoveryData[key].bookings)||[];
   var roomId=roomObj?roomObj.id:clinRoom;
   var occ=dayBks.filter(function(b){return b.room===roomId&&b.status!=='cancelled'&&b.start&&b.id!==clinEditingId&&!_clinSameOrder(b);}).map(function(b){
-    var st=parseTime(b.start); return [st, st+((b.duration||60)/60)+buf];
+    var st=parseTime(b.start); return [st, st+((b.duration||60)/60)+_clinBuf(b)];
   });
   // Treatments queued on THIS booking are deliberately NOT blocked out: the guest can have their boots on while
   // the drip runs, so 7pm stays offered even though another treatment on the same booking already has it.
   // EVENT LOCK: if this room's therapist is running events that day (they're in the EVENT roster rows), block the
   // class time windows so they can't also be booked for a 1:1 during their class.
   try{ if(!isChair && rt && rt.therapistId && typeof _eventStaffOn==='function' && _eventStaffOn(key)[rt.therapistId] && typeof eventsForDate==='function'){
-    eventsForDate(key).forEach(function(ev){ var es=parseTime(ev.time); if(es!=null&&!isNaN(es)){ occ.push([es, es+((+ev.duration||60)/60)+buf]); } });
+    eventsForDate(key).forEach(function(ev){ var es=parseTime(ev.time); if(es!=null&&!isNaN(es)){ occ.push([es, es+((+ev.duration||60)/60)+((typeof CLIN_BUFFER_MIN!=='undefined'?CLIN_BUFFER_MIN:15)/60)]); } });
   } }catch(e){}
   // Hide times already PASSED today so the picker isn't cluttered — but keep the one currently selected (e.g. an
   // in-progress booking being extended), so a passed booking can still be kept/extended. Past DATES stay fully open.
@@ -12330,7 +12337,7 @@ function _clinTimeField(stepNo){
   var dayAb=clinDate.toLocaleDateString('en-US',{weekday:'short'});
   var isToday=(clinKey()===((typeof todayKey==='function')?todayKey():''));
   var nowHr=-1; if(isToday){ var _bnw=(typeof baliNow==='function'?baliNow():new Date()); nowHr=_bnw.getHours()+_bnw.getMinutes()/60; }
-  return '<div class="clin-field"><label>'+lbl+' <span style="text-transform:none;color:#9a9a9e">· '+clinCurrentDuration()+' min + '+CLIN_BUFFER_MIN+' min buffer after</span></label><div class="clin-windows">'
+  return '<div class="clin-field"><label>'+lbl+' <span style="text-transform:none;color:#9a9a9e">· '+clinCurrentDuration()+' min'+(_clinIsConsult(clinSvc())?' · no buffer':(' + '+CLIN_BUFFER_MIN+' min buffer after'))+'</span></label><div class="clin-windows">'
     +times.map(function(t){ var hh=clinHHMM(t); var pst=(isToday && t < nowHr-1e-9);
         return '<button class="clin-win'+(clinTime===hh?' sel':'')+'"'+(pst?' style="opacity:.5;" title="already passed — for edits or after-the-fact walk-ins"':'')+' onclick="clinSelectTime(\''+hh+'\')">'+dayAb+' '+hh+(pst?' ·past':'')+'</button>'; }).join('')
     +'</div></div>';
@@ -12928,14 +12935,15 @@ function _clinSameOrder(b){
 function clinHasConflict(roomId, startHHMM, durationMin, excludeId){
   try{
     var dk=clinKey(); var day=recoveryData&&recoveryData[dk];
-    var buf=(typeof CLIN_BUFFER_MIN!=='undefined'?CLIN_BUFFER_MIN:15)/60;
-    var ns=parseTime(startHHMM), ne=ns+(durationMin/60)+buf;
+    var newBuf=(typeof _clinBuf==='function')?_clinBuf(clinSvc()):((typeof CLIN_BUFFER_MIN!=='undefined'?CLIN_BUFFER_MIN:15)/60);  // consultation being placed → 0 buffer
+    var ns=parseTime(startHHMM), ne=ns+(durationMin/60)+newBuf;
     return (day&&day.bookings)?day.bookings.some(function(b){
       if(!b||b.status==='cancelled') return false;
       if(excludeId && b.id===excludeId) return false;
       if(_clinSameOrder(b)) return false;              // another treatment on this same booking — same guest
       if(b.room!==roomId || !b.start) return false;
-      var bs=parseTime(b.start), be=bs+((b.duration||60)/60)+buf;
+      var _bb=(typeof _clinBuf==='function')?_clinBuf(b):((typeof CLIN_BUFFER_MIN!=='undefined'?CLIN_BUFFER_MIN:15)/60);  // existing consultation blocks no buffer after
+      var bs=parseTime(b.start), be=bs+((b.duration||60)/60)+_bb;
       return ns < be-1e-9 && ne > bs+1e-9; // ranges overlap
     }):false;
   }catch(e){ return false; }
