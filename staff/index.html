@@ -11567,10 +11567,10 @@ function clinSendReminder(id){
     var _rp=(typeof _clinPay==='function')?_clinPay(b):null;
     var _rdue=_rp?_rp.due:(b.balanceDue||0);
     var bal=(!b.partner && _rdue>0)?('\n\n'+((_rp&&_rp.depositPaid)?'Balance due on arrival: IDR ':'Amount due on arrival: IDR ')+Math.round(_rdue).toLocaleString('id-ID')+'.'):'';
-    var _addr='Jl. Raya Babakan Canggu No. 4, Canggu, Kec. Kuta Utara, Kabupaten Badung, Bali 80351';
-    var msg='Hey '+(b.client||'there')+' — just a quick reminder you’re booked for '+svc+' at DISTRIK on '+_dateStr+' at '+_timeStr+'.'
-      +'\n\n'+_addr
-      +'\n\nPlease arrive 15 minutes early so we can check you in and get you ready.'
+    var _addr=’Jl. Raya Babakan Canggu No. 4, Canggu, Kec. Kuta Utara, Kabupaten Badung, Bali 80351\nhttps://maps.app.goo.gl/zzqVHpkymhQ9Nezw5?g_st=ic’;
+    var msg=’Hey ‘+(b.client||’there’)+’ — just a quick reminder you’re booked for ‘+svc+’ at DISTRIK on ‘+_dateStr+’ at ‘+_timeStr+’.’
+      +’\n\n’+_addr
+      +’\n\nPlease arrive 15 minutes early so we can check you in and get you ready.’
       +'\n\nIf you’re running late, please message us so we can let your therapist know. Your session may need to be shortened if we have another appointment directly afterwards. Arrivals more than 15 minutes late will need to be rescheduled.'
       +bal
       +'\n\nSee you soon!';
@@ -11610,7 +11610,7 @@ function _onreqSub(r){
 }
 function _onreqWaMsg(r,action,altTimes){
   var n=r.name||'there', svc=_onreqLabel(r), dt=(r.date||'')+(r.time?' at '+r.time:'');
-  if(action==='confirm') return 'Hi '+n+' — DISTRIK here! Your '+svc+' booking on '+dt+' is confirmed. We’re looking forward to seeing you 🙏';
+  if(action===’confirm’) return ‘Hi ‘+n+’ — DISTRIK here! Your ‘+svc+’ booking on ‘+dt+’ is confirmed. We’re looking forward to seeing you 🙏\n\nJl. Raya Babakan Canggu No. 4, Canggu, Kec. Kuta Utara, Kabupaten Badung, Bali 80351\nhttps://maps.app.goo.gl/zzqVHpkymhQ9Nezw5?g_st=ic\n\nPlease arrive 15 minutes early so we can check you in and get you ready.’;
   if(action==='decline') return 'Hi '+n+' — DISTRIK here. Unfortunately we’re unable to confirm your '+svc+' booking for '+dt+'. Please reach out to us to arrange an alternative time.';
   if(action==='suggest') return 'Hi '+n+' — DISTRIK here. Your requested '+svc+' on '+(r.date||'')+' at '+(r.time||'')+' isn’t available. Could you do '+altTimes+' instead? Please let us know!';
   return '';
