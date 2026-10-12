@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMEEwQTBBIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYsNzgpIHNjYWxlKDEuMzApIiBmaWxsPSIjRjJGMkYwIj48cGF0aCBkPSJNIDAuMDYyNSAwIEwgNi42MjUgLTQxLjM5MDYyNSBMIDMzLjU5Mzc1IC00MS4zOTA2MjUgQyAzOS4wMDc4MTIgLTQxLjM5MDYyNSA0My41MDM5MDYgLTQwLjkwNjI1IDQ3LjA3ODEyNSAtMzkuOTM3NSBDIDUwLjY2MDE1NiAtMzguOTc2NTYyIDUzLjUgLTM3LjY2MDE1NiA1NS41OTM3NSAtMzUuOTg0Mzc1IEMgNTcuNjg3NSAtMzQuMzE2NDA2IDU5LjE3NTc4MSAtMzIuNDE0MDYyIDYwLjA2MjUgLTMwLjI4MTI1IEMgNjAuOTU3MDMxIC0yOC4xNTYyNSA2MS40MDYyNSAtMjUuOTIxODc1IDYxLjQwNjI1IC0yMy41NzgxMjUgQyA2MS40MDYyNSAtMjEuOTEwMTU2IDYxLjI5Njg3NSAtMjAuMzE2NDA2IDYxLjA3ODEyNSAtMTguNzk2ODc1IEMgNjAuODE2NDA2IC0xNy4wOTc2NTYgNjAuMzMyMDMxIC0xNS4zNTkzNzUgNTkuNjI1IC0xMy41NzgxMjUgQyA1OC45MjU3ODEgLTExLjc5Njg3NSA1Ny44Nzg5MDYgLTEwLjA5NzY1NiA1Ni40ODQzNzUgLTguNDg0Mzc1IEMgNTUuMDk3NjU2IC02Ljg2NzE4OCA1My4yNjk1MzEgLTUuNDIxODc1IDUxIC00LjE0MDYyNSBDIDQ4LjczODI4MSAtMi44NTkzNzUgNDUuOTIxODc1IC0xLjg0NzY1NiA0Mi41NDY4NzUgLTEuMTA5Mzc1IEMgMzkuMTcxODc1IC0wLjM2NzE4OCAzNS4xNDg0MzggMCAzMC40ODQzNzUgMCBaIE0gMjAuMjUgLTMwLjUzMTI1IEwgMTcuMTI1IC0xMC45NTMxMjUgTCAyOC42NDA2MjUgLTEwLjk1MzEyNSBDIDMxLjgzNTkzOCAtMTAuOTUzMTI1IDM0LjQ3MjY1NiAtMTEuMjUgMzYuNTQ2ODc1IC0xMS44NDM3NSBDIDM4LjYxNzE4OCAtMTIuNDM3NSA0MC4yNSAtMTMuMjA3MDMxIDQxLjQzNzUgLTE0LjE1NjI1IEMgNDIuNjI1IC0xNS4xMDE1NjIgNDMuNDg0Mzc1IC0xNi4wOTM3NSA0NC4wMTU2MjUgLTE3LjEyNSBDIDQ0LjU1NDY4OCAtMTguMTY0MDYyIDQ0Ljg5ODQzOCAtMTkuMTQ4NDM4IDQ1LjA0Njg3NSAtMjAuMDc4MTI1IEMgNDUuMjAzMTI1IC0yMS4wMDM5MDYgNDUuMjgxMjUgLTIxLjc1IDQ1LjI4MTI1IC0yMi4zMTI1IEMgNDUuMjgxMjUgLTIzLjIzODI4MSA0NS4xMTMyODEgLTI0LjE3OTY4OCA0NC43ODEyNSAtMjUuMTQwNjI1IEMgNDQuNDQ1MzEyIC0yNi4xMDkzNzUgNDMuNzk2ODc1IC0yNyA0Mi44MjgxMjUgLTI3LjgxMjUgQyA0MS44NjcxODggLTI4LjYyNSA0MC41IC0yOS4yODEyNSAzOC43MTg3NSAtMjkuNzgxMjUgQyAzNi45Mzc1IC0zMC4yODEyNSAzNC41OTc2NTYgLTMwLjUzMTI1IDMxLjcwMzEyNSAtMzAuNTMxMjUgWiBNIDIwLjI1IC0zMC41MzEyNSAiLz48L2c+PC9zdmc+">
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20261011188;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20261011189;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -13125,7 +13125,16 @@ function _clinSaveOne(orderId, sendEmail){
       rec.price=Math.round((rec.gross||0)*(1-_rvPct/100));
       rec.discPct=_rvPct; rec.discReason=(_rvDsc?(_rvDsc.reason||''):''); rec.discCode=(_rvDsc?(_rvDsc.code||''):'');
       if(_o.online){ rec.online=true; rec.deposit=Math.round(rec.price*0.5); rec.balanceDue=Math.max(0,rec.price-rec.deposit); rec.balancePaid=(rec.price===0); }
-      else { rec.online=false; rec.deposit=0; rec.balanceDue=0; rec.balancePaid=(rec.price===0); rec.payType='full'; }
+      else {
+        // Re-pricing must NOT mark the booking paid: keep the ACTUAL money state. Nothing collected (pay-on-arrival)
+        // stays pay-on-arrival with the new price due at Check out; a partial deposit is kept; only a fully-paid
+        // booking stays fully paid. (Was: always forced payType='full' + balanceDue=0, so editing a WhatsApp/Fresha
+        // pay-on-arrival booking wrongly showed "PAID IN FULL" and counted as takings before check-out.)
+        rec.online=false;
+        if(_collectedO<=0){ rec.payType='later'; rec.deposit=0; rec.depositPaid=false; rec.balanceDue=rec.price; rec.balancePaid=(rec.price<=0); }
+        else if(_collectedO<rec.price){ rec.payType='deposit'; rec.deposit=_collectedO; rec.depositPaid=true; rec.balanceDue=Math.max(0,rec.price-_collectedO); rec.balancePaid=(rec.balanceDue<=0); }
+        else { rec.payType='full'; rec.deposit=0; rec.balanceDue=0; rec.balancePaid=true; }
+      }
     } else if(_durChanged){
       // EXTEND / change duration → re-price to the NEW duration (keeping the original % discount). Money already
       // collected is preserved; only the difference is due, collected at Check out. Shortening → nothing extra due.
@@ -13476,6 +13485,7 @@ function clinEditBooking(id){
     try{ window.clinPromo=null; ['recovery-disc-pct','recovery-disc-code'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';}); var _em=document.getElementById('recovery-disc-msg');if(_em)_em.textContent=''; }catch(e){}
     clinEditingId=id; clinEditingDate=dk; clinDone=false; clinDoneHold=false; clinCart=[];   // an edit moves this one booking
     clinType=b.clinical?'clinical':'recovery';
+    clinPayType=b.payType||(b.online?'deposit':'full');   // preserve the booking's pay state (pay-on-arrival/deposit/full) so an edit never silently marks it paid
     var list=(clinType==='clinical'?CLINICAL_SERVICES:(typeof SERVICES!=='undefined'?SERVICES:[]));
     // Online/Fresha confirmed bookings store `service` as the PATHWAY ("MOVE") + a `duration`, and serviceName can be
     // just "MOVE" — so DURATION-aware matches must win, else name-match grabs the first MOVE tier (30min) and mis-prices.
