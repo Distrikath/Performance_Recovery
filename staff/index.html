@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMEEwQTBBIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYsNzgpIHNjYWxlKDEuMzApIiBmaWxsPSIjRjJGMkYwIj48cGF0aCBkPSJNIDAuMDYyNSAwIEwgNi42MjUgLTQxLjM5MDYyNSBMIDMzLjU5Mzc1IC00MS4zOTA2MjUgQyAzOS4wMDc4MTIgLTQxLjM5MDYyNSA0My41MDM5MDYgLTQwLjkwNjI1IDQ3LjA3ODEyNSAtMzkuOTM3NSBDIDUwLjY2MDE1NiAtMzguOTc2NTYyIDUzLjUgLTM3LjY2MDE1NiA1NS41OTM3NSAtMzUuOTg0Mzc1IEMgNTcuNjg3NSAtMzQuMzE2NDA2IDU5LjE3NTc4MSAtMzIuNDE0MDYyIDYwLjA2MjUgLTMwLjI4MTI1IEMgNjAuOTU3MDMxIC0yOC4xNTYyNSA2MS40MDYyNSAtMjUuOTIxODc1IDYxLjQwNjI1IC0yMy41NzgxMjUgQyA2MS40MDYyNSAtMjEuOTEwMTU2IDYxLjI5Njg3NSAtMjAuMzE2NDA2IDYxLjA3ODEyNSAtMTguNzk2ODc1IEMgNjAuODE2NDA2IC0xNy4wOTc2NTYgNjAuMzMyMDMxIC0xNS4zNTkzNzUgNTkuNjI1IC0xMy41NzgxMjUgQyA1OC45MjU3ODEgLTExLjc5Njg3NSA1Ny44Nzg5MDYgLTEwLjA5NzY1NiA1Ni40ODQzNzUgLTguNDg0Mzc1IEMgNTUuMDk3NjU2IC02Ljg2NzE4OCA1My4yNjk1MzEgLTUuNDIxODc1IDUxIC00LjE0MDYyNSBDIDQ4LjczODI4MSAtMi44NTkzNzUgNDUuOTIxODc1IC0xLjg0NzY1NiA0Mi41NDY4NzUgLTEuMTA5Mzc1IEMgMzkuMTcxODc1IC0wLjM2NzE4OCAzNS4xNDg0MzggMCAzMC40ODQzNzUgMCBaIE0gMjAuMjUgLTMwLjUzMTI1IEwgMTcuMTI1IC0xMC45NTMxMjUgTCAyOC42NDA2MjUgLTEwLjk1MzEyNSBDIDMxLjgzNTkzOCAtMTAuOTUzMTI1IDM0LjQ3MjY1NiAtMTEuMjUgMzYuNTQ2ODc1IC0xMS44NDM3NSBDIDM4LjYxNzE4OCAtMTIuNDM3NSA0MC4yNSAtMTMuMjA3MDMxIDQxLjQzNzUgLTE0LjE1NjI1IEMgNDIuNjI1IC0xNS4xMDE1NjIgNDMuNDg0Mzc1IC0xNi4wOTM3NSA0NC4wMTU2MjUgLTE3LjEyNSBDIDQ0LjU1NDY4OCAtMTguMTY0MDYyIDQ0Ljg5ODQzOCAtMTkuMTQ4NDM4IDQ1LjA0Njg3NSAtMjAuMDc4MTI1IEMgNDUuMjAzMTI1IC0yMS4wMDM5MDYgNDUuMjgxMjUgLTIxLjc1IDQ1LjI4MTI1IC0yMi4zMTI1IEMgNDUuMjgxMjUgLTIzLjIzODI4MSA0NS4xMTMyODEgLTI0LjE3OTY4OCA0NC43ODEyNSAtMjUuMTQwNjI1IEMgNDQuNDQ1MzEyIC0yNi4xMDkzNzUgNDMuNzk2ODc1IC0yNyA0Mi44MjgxMjUgLTI3LjgxMjUgQyA0MS44NjcxODggLTI4LjYyNSA0MC41IC0yOS4yODEyNSAzOC43MTg3NSAtMjkuNzgxMjUgQyAzNi45Mzc1IC0zMC4yODEyNSAzNC41OTc2NTYgLTMwLjUzMTI1IDMxLjcwMzEyNSAtMzAuNTMxMjUgWiBNIDIwLjI1IC0zMC41MzEyNSAiLz48L2c+PC9zdmc+">
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20261011187;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20261011188;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -12030,6 +12030,10 @@ function acceptOnlineBooking(id){
     // Recovery/therapy online bookings land on the Recovery schedule. IV & blood are partner-billed → status only.
     if(r.type!=='iv_therapy' && r.type!=='blood_work' && typeof recoveryData!=='undefined'){
       var _pn=(function(){ if(typeof r.priceNum==='number') return r.priceNum; var m=String(r.price||'').match(/([\d.,]+)\s*([km])?/i); if(!m) return 0; var n=parseFloat(m[1].replace(/,/g,'')); var u=(m[2]||'').toLowerCase(); if(u==='k')n*=1000; else if(u==='m')n*=1000000; return Math.round(n||0); })();
+      // RULE: everything coming from Fresha gets an automatic 10% discount (Oct promo) — until told otherwise. Skips
+      // if the request already carries its own discount, so we never double-discount.
+      var _frDisc=(r.source==='fresha' && !(+r.discPct>0) && _pn>0)?10:0;
+      if(_frDisc){ _pn=Math.round(_pn*(1-_frDisc/100)); }
       var _free=(_pn<=0);                                             // 100%-off / promo booking → nothing owed
       var _dep=_free?0:((typeof r.deposit==='number'&&r.deposit)?r.deposit:Math.round(_pn/2));
       var _st=(function(){ var t=String(r.time||'').match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i); if(!t) return r.time||''; var hh=parseInt(t[1]); var mm=t[2]||'00'; var ap=(t[3]||'').toLowerCase(); if(ap==='pm'&&hh!==12)hh+=12; if(ap==='am'&&hh===12)hh=0; return ('0'+hh).slice(-2)+':'+mm; })();
@@ -12080,7 +12084,7 @@ function acceptOnlineBooking(id){
         client:r.name||'Guest', email:r.email||'', whatsapp:r.phone||'', phone:r.phone||'',
         price:_pn, pressure:r.pressure||null, payType:(_isLater?'later':'deposit'),
         source:'Online', fresha:(r.source==='fresha'), status:'confirmed', payMethod:(_isLater?'':'online'),
-        online:(!_isLater), deposit:(_isLater?0:_dep), balanceDue:(_free?0:(_isLater?_pn:Math.max(0,_pn-_dep))), balancePaid:_free, depositPaid:(_free?true:(_isLater?false:_depPaid)), discPct:(r.discPct||0), discCode:(r.discCode||''), discReason:(r.discReason||''),
+        online:(!_isLater), deposit:(_isLater?0:_dep), balanceDue:(_free?0:(_isLater?_pn:Math.max(0,_pn-_dep))), balancePaid:_free, depositPaid:(_free?true:(_isLater?false:_depPaid)), discPct:(_frDisc||r.discPct||0), discCode:(_frDisc?'FRESHA':(r.discCode||'')), discReason:(_frDisc?'Fresha 10% (promo)':(r.discReason||'')),
         onlineRef:r.ref||id, date:r.date, _ts:Date.now()
       };
       if(!recoveryData[r.date]) recoveryData[r.date]={revenue:0,bookings:[]};
@@ -13473,13 +13477,14 @@ function clinEditBooking(id){
     clinEditingId=id; clinEditingDate=dk; clinDone=false; clinDoneHold=false; clinCart=[];   // an edit moves this one booking
     clinType=b.clinical?'clinical':'recovery';
     var list=(clinType==='clinical'?CLINICAL_SERVICES:(typeof SERVICES!=='undefined'?SERVICES:[]));
-    var svc=list.find(function(x){return x.id===b.service;})||list.find(function(x){return x.name===b.serviceName;});
-    // Online/Fresha confirmed bookings store `service` as the PATHWAY ("MOVE"/"RECOVER"/…) + a `duration`, not a tier
-    // id — so match the correct tier by pathway + duration (same logic as editOnlineRequest). Otherwise the edit
-    // loaded the wrong tier (e.g. MOVE 30min/400k instead of 60min/650k) and mis-priced the discount.
-    if(!svc){ var _pw=String(b.service||b.pathway||'').toUpperCase(), _du=+b.duration||0;
-      svc=list.find(function(x){return String(x.name||x.pathway||'').toUpperCase()===_pw && (!_du||x.duration===_du);})
-         || list.find(function(x){return String(x.name||x.pathway||'').toUpperCase()===_pw;}); }
+    // Online/Fresha confirmed bookings store `service` as the PATHWAY ("MOVE") + a `duration`, and serviceName can be
+    // just "MOVE" — so DURATION-aware matches must win, else name-match grabs the first MOVE tier (30min) and mis-prices.
+    var _du=+b.duration||0, _pw=String(b.service||b.pathway||b.serviceName||'').toUpperCase();
+    var svc=list.find(function(x){return x.id===b.service;})
+          || list.find(function(x){return x.name===b.serviceName && (!_du||x.duration===_du);})
+          || list.find(function(x){return String(x.name||x.pathway||'').toUpperCase()===_pw && (!_du||x.duration===_du);})
+          || list.find(function(x){return x.name===b.serviceName;})
+          || list.find(function(x){return String(x.name||x.pathway||'').toUpperCase()===_pw;});
     clinSel=svc?svc.id:b.service;
     clinAddons=(b.addons&&b.addons.length)?b.addons.map(function(a){return a.id;}):[];  // restore IV enhancements for the move
     clinComp=!!b.compression;                                                            // ...and the compression boots
