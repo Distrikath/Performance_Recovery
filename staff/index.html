@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMEEwQTBBIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYsNzgpIHNjYWxlKDEuMzApIiBmaWxsPSIjRjJGMkYwIj48cGF0aCBkPSJNIDAuMDYyNSAwIEwgNi42MjUgLTQxLjM5MDYyNSBMIDMzLjU5Mzc1IC00MS4zOTA2MjUgQyAzOS4wMDc4MTIgLTQxLjM5MDYyNSA0My41MDM5MDYgLTQwLjkwNjI1IDQ3LjA3ODEyNSAtMzkuOTM3NSBDIDUwLjY2MDE1NiAtMzguOTc2NTYyIDUzLjUgLTM3LjY2MDE1NiA1NS41OTM3NSAtMzUuOTg0Mzc1IEMgNTcuNjg3NSAtMzQuMzE2NDA2IDU5LjE3NTc4MSAtMzIuNDE0MDYyIDYwLjA2MjUgLTMwLjI4MTI1IEMgNjAuOTU3MDMxIC0yOC4xNTYyNSA2MS40MDYyNSAtMjUuOTIxODc1IDYxLjQwNjI1IC0yMy41NzgxMjUgQyA2MS40MDYyNSAtMjEuOTEwMTU2IDYxLjI5Njg3NSAtMjAuMzE2NDA2IDYxLjA3ODEyNSAtMTguNzk2ODc1IEMgNjAuODE2NDA2IC0xNy4wOTc2NTYgNjAuMzMyMDMxIC0xNS4zNTkzNzUgNTkuNjI1IC0xMy41NzgxMjUgQyA1OC45MjU3ODEgLTExLjc5Njg3NSA1Ny44Nzg5MDYgLTEwLjA5NzY1NiA1Ni40ODQzNzUgLTguNDg0Mzc1IEMgNTUuMDk3NjU2IC02Ljg2NzE4OCA1My4yNjk1MzEgLTUuNDIxODc1IDUxIC00LjE0MDYyNSBDIDQ4LjczODI4MSAtMi44NTkzNzUgNDUuOTIxODc1IC0xLjg0NzY1NiA0Mi41NDY4NzUgLTEuMTA5Mzc1IEMgMzkuMTcxODc1IC0wLjM2NzE4OCAzNS4xNDg0MzggMCAzMC40ODQzNzUgMCBaIE0gMjAuMjUgLTMwLjUzMTI1IEwgMTcuMTI1IC0xMC45NTMxMjUgTCAyOC42NDA2MjUgLTEwLjk1MzEyNSBDIDMxLjgzNTkzOCAtMTAuOTUzMTI1IDM0LjQ3MjY1NiAtMTEuMjUgMzYuNTQ2ODc1IC0xMS44NDM3NSBDIDM4LjYxNzE4OCAtMTIuNDM3NSA0MC4yNSAtMTMuMjA3MDMxIDQxLjQzNzUgLTE0LjE1NjI1IEMgNDIuNjI1IC0xNS4xMDE1NjIgNDMuNDg0Mzc1IC0xNi4wOTM3NSA0NC4wMTU2MjUgLTE3LjEyNSBDIDQ0LjU1NDY4OCAtMTguMTY0MDYyIDQ0Ljg5ODQzOCAtMTkuMTQ4NDM4IDQ1LjA0Njg3NSAtMjAuMDc4MTI1IEMgNDUuMjAzMTI1IC0yMS4wMDM5MDYgNDUuMjgxMjUgLTIxLjc1IDQ1LjI4MTI1IC0yMi4zMTI1IEMgNDUuMjgxMjUgLTIzLjIzODI4MSA0NS4xMTMyODEgLTI0LjE3OTY4OCA0NC43ODEyNSAtMjUuMTQwNjI1IEMgNDQuNDQ1MzEyIC0yNi4xMDkzNzUgNDMuNzk2ODc1IC0yNyA0Mi44MjgxMjUgLTI3LjgxMjUgQyA0MS44NjcxODggLTI4LjYyNSA0MC41IC0yOS4yODEyNSAzOC43MTg3NSAtMjkuNzgxMjUgQyAzNi45Mzc1IC0zMC4yODEyNSAzNC41OTc2NTYgLTMwLjUzMTI1IDMxLjcwMzEyNSAtMzAuNTMxMjUgWiBNIDIwLjI1IC0zMC41MzEyNSAiLz48L2c+PC9zdmc+">
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20261011183;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20261011187;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -3506,6 +3506,8 @@ function setAbsence(zoneId,row,reason){
 window.setAbsence=setAbsence;
 function buildGrid(){
   syncZonesFromHours();
+  // Label the roster Event rows from the configured Event lanes (name · coach) set in Settings → Rooms & Recovery.
+  try{ var _evz=ZONES.find(function(z){return z.id==='Event';}); if(_evz && typeof EVENT_LANES!=='undefined' && EVENT_LANES.length){ _evz.rowLabels=EVENT_LANES.map(function(e){ var cn=''; try{ if(e.staff&&e.staff.length && typeof STAFF_MAP!=='undefined' && STAFF_MAP[e.staff[0]]) cn=' · '+String(STAFF_MAP[e.staff[0]].name||'').split(' ')[0]; }catch(_){} return (e.name||'Event')+cn; }); } }catch(e){}
   const el=document.getElementById('rosterGrid');
   const day=DAYS[activeDay];
   let html='';
@@ -5292,12 +5294,13 @@ function buildSettingsManagers(){
   const el=document.getElementById('settings-managers'); if(!el) return;
   const rooms=(typeof ROOMS!=='undefined'?ROOMS:[]);
   const roomBtns=rooms.map(r=>`<button onclick="openRoomConfig('${r.id}')" class="set-room-btn">${r.name}</button>`).join('');
+  const eventBtns=(typeof EVENT_LANES!=='undefined'?EVENT_LANES:[]).map(e=>`<button onclick="openEventLaneConfig('${e.id}')" class="set-room-btn" style="border-color:#14b8a6;color:#0f766e;">${e.name}</button>`).join('');
   const cards=[
     {t:'Recovery — Services &amp; Treatments', d:'Treatment prices, RRP, duration, eligible rooms &amp; therapists, clinical (Human+) menu &amp; packages.', a:`<button onclick="openServicesMgr()" class="set-mgr-btn">Open →</button>`},
     {t:'Events &amp; Classes', d:'Group classes / events (title, date, time, spots, price). Show on the website Events tab &amp; the Recovery day grid. Price 0 = free.', a:`<button onclick="openEventsMgr()" class="set-mgr-btn">Open →</button>`},
     {t:'Fuel — Café Menu &amp; Add-ons', d:'Drinks, food, RRP / cost / price, plus sizes, milks &amp; add-on rules.', a:`<button onclick="openMenuMgr()" class="set-mgr-btn">Open →</button>`},
     {t:'Supply — Brands &amp; Products', d:'Brands &amp; split %, products, per-size stock, pricing &amp; tax.', a:`<div class="set-mgr-actions"><button onclick="goToModule('supply')" class="set-mgr-btn">Open →</button><button onclick="openAddBrand()" class="set-mgr-btn alt">+ Brand</button></div>`},
-    {t:'Rooms &amp; Recovery Chairs', d:'Set which services each room/chair can host, assigned staff &amp; type.', a:`<div class="set-room-list">${roomBtns||'<span style="color:#6b6b72;font-family:Space Mono,monospace;font-size:10px;">No rooms configured</span>'}</div>`},
+    {t:'Rooms &amp; Recovery Chairs', d:'Set which services each room/chair can host, assigned staff &amp; type. Event lanes (green) set the run-club / class coach &amp; bookable type.', a:`<div class="set-room-list">${roomBtns}${eventBtns}${(!roomBtns&&!eventBtns)?'<span style="color:#6b6b72;font-family:Space Mono,monospace;font-size:10px;">No rooms configured</span>':''}</div>`},
     {t:'Recruitment — Job Applications', d:'Review, rate &amp; action careers applications from the website (status, rating, notes).', a:`<button onclick="openApplications()" class="set-mgr-btn">Open →</button>`},
     {t:'Discounts &amp; Promotions', d:'Set a % discount per channel (Recovery / Fuel / Supply / All) with a reason &amp; date range — auto-applied at the till during the promo window.', a:`<button onclick="openDiscountsMgr()" class="set-mgr-btn">Open →</button>`},
     {t:'Payments — Xendit Deposit Link', d:'Paste your Xendit payment link URL here. Staff will see a WhatsApp button to send it to patients when taking a deposit.', a:`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><input id="set-xendit-url" type="url" placeholder="https://checkout.xendit.co/..." style="flex:1;min-width:200px;font-family:'Space Mono',monospace;font-size:10px;border:1px solid #d3d3ce;padding:8px 10px;background:#fafafa;color:#0A0A0A;" value="${(function(){try{return JSON.parse(localStorage.getItem('distrik_payments')||'{}').xenditLink||'';}catch(e){return '';}})()}"><button onclick="saveXenditLink()" class="set-mgr-btn">Save</button></div>`},
@@ -6406,9 +6409,10 @@ function renderSchedule(){
         +'<div style="padding:11px 14px;border-bottom:1px solid #3a1f22;background:#1c1315;font-family:\'Space Mono\',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#ff6b6b;">Online requests · pending confirmation</div>';
       reqs.slice().sort(function(a,b){return (a.time||'').localeCompare(b.time||'');}).forEach(function(r){
         var lbl=(typeof _onreqLabel==='function')?_onreqLabel(r):(r.service||'Recovery');
+        var _frB=(r.source==='fresha')?' <span style="display:inline-block;background:#7c3aed;color:#fff;font-size:7px;letter-spacing:.1em;padding:1px 5px;text-transform:uppercase;vertical-align:middle;">Fresha</span>':'';
         body+='<div style="display:grid;grid-template-columns:64px 1fr auto;gap:10px;align-items:baseline;padding:11px 14px;border-bottom:1px solid #1a1a1d;font-family:\'Space Mono\',monospace;">'
           +'<span style="font-size:13px;color:#f4f4f5;">'+(r.time||'—')+'</span>'
-          +'<span style="font-size:12px;color:#a6a6ad;">'+lbl+' &middot; <span style="color:#f4f4f5;">'+((r.name||'Guest'))+'</span></span>'
+          +'<span style="font-size:12px;color:#a6a6ad;">'+lbl+_frB+' &middot; <span style="color:#f4f4f5;">'+((r.name||'Guest'))+'</span></span>'
           +'<span style="font-size:9px;text-align:right;letter-spacing:.1em;color:'+(((r.depositPaid===true)||(r.paymentStatus==='deposit_paid')||(r.paymentStatus==='paid'))?'#10b981':'#ff6b6b')+';">'+(((r.depositPaid===true)||(r.paymentStatus==='deposit_paid')||(r.paymentStatus==='paid'))?'✓ 50% DEPOSIT PAID':'AWAITING DEPOSIT')+'</span>'
         +'</div>';
       });
@@ -6502,6 +6506,15 @@ var ROOMS = [
   {id:'rec2',  name:'Recovery Chair 2', type:'recovery', color:'#e8621a', services:[], staff:[]},
 ];
 
+// Event lanes — group classes / run club etc. Configured like rooms (name · assigned coach · bookable type) in
+// Settings → Rooms & Recovery Chairs. Kept SEPARATE from ROOMS so booking/room logic is never affected; the lane
+// names flow onto the roster's Event rows. Persisted inside distrik_rf alongside ROOMS.
+var EVENT_LANES = [
+  {id:'event1', name:'Event 1', staff:[], bookable:false, color:'#14b8a6'},
+  {id:'event2', name:'Event 2', staff:[], bookable:false, color:'#0d9488'},
+  {id:'event3', name:'Event 3', staff:[], bookable:false, color:'#0f766e'},
+];
+
 // Services / treatments master list
 var SERVICES = [
   {id:'s1', name:'Swedish Massage',   duration:60,  buffer:15, price:450000, commission:5, rooms:['room1','room2','room3'], therapists:[]},
@@ -6570,12 +6583,13 @@ function loadRFFromStorage(){
       if(d.SERVICES)  SERVICES.splice(0,SERVICES.length,...d.SERVICES);
     if(d.PACKAGES)  PACKAGES.splice(0,PACKAGES.length,...d.PACKAGES);
       if(d.ROOMS)     ROOMS.forEach((r,i)=>{ if(d.ROOMS[i]) Object.assign(r,d.ROOMS[i]); });
+      if(d.EVENT_LANES && Array.isArray(d.EVENT_LANES)) EVENT_LANES.forEach((e,i)=>{ if(d.EVENT_LANES[i]) Object.assign(e, d.EVENT_LANES[i]); });
     }
   }catch(e){}
 }
 
 function saveRFToStorage(){
-  try{ localStorage.setItem('distrik_rf', JSON.stringify({bookings,SERVICES,PACKAGES,ROOMS})); }catch(e){}
+  try{ localStorage.setItem('distrik_rf', JSON.stringify({bookings,SERVICES,PACKAGES,ROOMS,EVENT_LANES})); }catch(e){}
   try{ if(typeof window.dkHardSave==='function') window.dkHardSave(['distrik_rf']); }catch(e){}  // hard-save so therapies/packages/rooms stick across devices + logout
 }
 
@@ -6671,8 +6685,10 @@ function buildTimeline(room, roomBks){
   let html=`<div class="rf-timeline"><div class="rf-timeline-inner">
     <div class="rf-time-bg">`;
 
-  // Hour markers
-  for(let h=SCHED_START;h<=SCHED_END;h++){
+  // Hour markers — ONE flex cell per hour of the span (exclusive of SCHED_END) so each cell is exactly 1/SPAN wide
+  // and its left edge lands on rfPct(h); otherwise (SPAN+1 cells) the hour lines drift from the blocks, which use
+  // rfPct over SPAN hours, making bookings render progressively late through the day (~20 min by 1pm).
+  for(let h=SCHED_START;h<SCHED_END;h++){
     const isHour=true;
     html+=`<div class="rf-time-slot hour" style="flex:1">
       <div class="rf-time-label">${h===12?'12pm':h<12?h+'am':(h-12)+'pm'}</div>
@@ -7333,7 +7349,7 @@ window.buildClinicalSvcList=buildClinicalSvcList; window.addClinicalSvc=addClini
 // ── ROOM CONFIG ───────────────────────────────────────────────────
 var configuringRoom = null;
 function openRoomConfig(roomId){
-  configuringRoom=roomId;
+  configuringRoom=roomId; configuringEventLane=null;
   const room=ROOMS.find(r=>r.id===roomId);
   document.getElementById('rcm-title').textContent=room.name+' — Configure';
   const body=document.getElementById('rcm-body');
@@ -7385,7 +7401,45 @@ function openRoomConfig(roomId){
   const modal=document.getElementById('roomConfigModal');
   modal.style.display='flex';
 }
+// ── EVENT LANES — configured like rooms (coach + bookable), reusing the room modal ──
+var configuringEventLane = null;
+function openEventLaneConfig(laneId){
+  configuringEventLane = laneId; configuringRoom = null;
+  var lane=(EVENT_LANES||[]).find(function(e){return e.id===laneId;}); if(!lane) return;
+  document.getElementById('rcm-title').textContent=(lane.name||'Event')+' — Configure';
+  var bk=(lane.bookable===true);
+  document.getElementById('rcm-body').innerHTML=
+    '<div style="font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#BFC2C7;margin-bottom:8px;">Event name</div>'
+    +'<input type="text" id="evl-name" value="'+(lane.name||'').replace(/"/g,'&quot;')+'" placeholder="e.g. Run Club" style="width:100%;box-sizing:border-box;font-family:\'Space Mono\',monospace;font-size:12px;padding:8px;border:1px solid #e0e0e0;border-radius:2px;margin-bottom:14px;">'
+    +'<div style="font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#BFC2C7;margin-bottom:8px;">Assigned coach / staff</div>'
+    +(STAFF||[]).map(function(s){ var checked=(lane.staff||[]).indexOf(s.id)>=0; return '<div class="rcm-row"><input type="checkbox" class="evl-check" id="evl_'+s.id+'" value="'+s.id+'" '+(checked?'checked':'')+'><div style="width:8px;height:8px;border-radius:50%;background:'+s.col+';flex-shrink:0;margin:0 6px;"></div><label for="evl_'+s.id+'" style="cursor:pointer;color:#0A0A0A;flex:1;font-family:\'Space Mono\',monospace;font-size:10px;">'+s.name+'</label><span style="font-size:9px;color:#777;">'+s.role+'</span></div>'; }).join('')
+    +'<div style="font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#BFC2C7;margin:16px 0 8px;">Bookable type</div>'
+    +'<div style="display:flex;gap:8px;margin-bottom:12px;">'
+      +'<button type="button" id="evl-bk-yes" onclick="window._evlBk=true;this.style.background=\'#10b981\';this.style.color=\'#fff\';this.style.borderColor=\'#10b981\';document.getElementById(\'evl-bk-no\').style.background=\'transparent\';document.getElementById(\'evl-bk-no\').style.color=\'#777\';document.getElementById(\'evl-bk-no\').style.borderColor=\'#e0e0e0\';" style="font-family:\'Space Mono\',monospace;font-size:9px;padding:4px 10px;border-radius:2px;border:1px solid '+(bk?'#10b981':'#e0e0e0')+';background:'+(bk?'#10b981':'transparent')+';color:'+(bk?'#fff':'#777')+';cursor:pointer;">Bookable</button>'
+      +'<button type="button" id="evl-bk-no" onclick="window._evlBk=false;this.style.background=\'#0A0A0A\';this.style.color=\'#fff\';this.style.borderColor=\'#0A0A0A\';document.getElementById(\'evl-bk-yes\').style.background=\'transparent\';document.getElementById(\'evl-bk-yes\').style.color=\'#777\';document.getElementById(\'evl-bk-yes\').style.borderColor=\'#e0e0e0\';" style="font-family:\'Space Mono\',monospace;font-size:9px;padding:4px 10px;border-radius:2px;border:1px solid '+(!bk?'#0A0A0A':'#e0e0e0')+';background:'+(!bk?'#0A0A0A':'transparent')+';color:'+(!bk?'#fff':'#777')+';cursor:pointer;">Not bookable</button>'
+    +'</div>'
+    +'<div style="font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#BFC2C7;margin-bottom:8px;">Lane colour</div>'
+    +'<input type="color" id="evl-color" value="'+(lane.color||'#14b8a6')+'" style="width:36px;height:36px;border-radius:50%;border:2px solid #e8e8e8;cursor:pointer;padding:2px;">';
+  window._evlBk=bk;
+  document.getElementById('roomConfigModal').style.display='flex';
+}
+function saveEventLaneConfig(){
+  var lane=(EVENT_LANES||[]).find(function(e){return e.id===configuringEventLane;}); if(!lane) return;
+  var nm=(document.getElementById('evl-name')||{}).value; if(nm!=null && nm.trim()) lane.name=nm.trim();
+  lane.staff=(STAFF||[]).filter(function(s){ var cb=document.getElementById('evl_'+s.id); return cb&&cb.checked; }).map(function(s){return s.id;});
+  lane.bookable=(window._evlBk===true);
+  var cc=document.getElementById('evl-color'); if(cc) lane.color=cc.value;
+  if(typeof saveRFToStorage==='function') saveRFToStorage();
+  configuringEventLane=null;
+  document.getElementById('roomConfigModal').style.display='none';
+  try{ if(typeof buildSettingsManagers==='function') buildSettingsManagers(); }catch(e){}
+  try{ if(typeof buildGrid==='function') buildGrid(); }catch(e){}
+  var n=document.getElementById('notif'); if(n){ n.textContent='Event lane saved ✓'; n.classList.add('on'); setTimeout(function(){n.classList.remove('on');},2000); }
+}
+window.openEventLaneConfig=openEventLaneConfig; window.saveEventLaneConfig=saveEventLaneConfig;
+
 function saveRoomConfig(){
+  if(typeof configuringEventLane!=='undefined' && configuringEventLane){ return saveEventLaneConfig(); }
   const room=ROOMS.find(r=>r.id===configuringRoom);
   if(!room) return;
   // Save staff
@@ -11647,10 +11701,13 @@ function renderTodayBookings(){
       : (_isLater
         ? '<span style="display:inline-block;background:#3b82f6;color:#fff;font-family:\'Space Mono\',monospace;font-size:7px;letter-spacing:.12em;padding:2px 6px;text-transform:uppercase;margin-left:6px;vertical-align:middle;">PAY ON ARRIVAL</span>'
         : '<span style="display:inline-block;background:#f59e0b;color:#fff;font-family:\'Space Mono\',monospace;font-size:7px;letter-spacing:.12em;padding:2px 6px;text-transform:uppercase;margin-left:6px;vertical-align:middle;">AWAITING DEPOSIT</span>');
-    return '<div class="clin-bk-row2" style="border-left:3px solid '+(_dp?'#10b981':(_isLater?'#3b82f6':'#FF2D2D'))+';background:'+(_dp?'#f2fff7':(_isLater?'#f2f7ff':'#fff2f2'))+';">'
+    // Fresha-ingested requests get their own purple badge + tint so staff instantly see they came from Fresha, not the website.
+    var _fresha=(r.source==='fresha');
+    var _freshaBadge=_fresha?'<span style="display:inline-block;background:#7c3aed;color:#fff;font-family:\'Space Mono\',monospace;font-size:7px;letter-spacing:.12em;padding:2px 6px;text-transform:uppercase;margin-left:6px;vertical-align:middle;">FRESHA</span>':'';
+    return '<div class="clin-bk-row2" style="border-left:3px solid '+(_fresha?'#7c3aed':(_dp?'#10b981':(_isLater?'#3b82f6':'#FF2D2D')))+';background:'+(_fresha?'#f5f3ff':(_dp?'#f2fff7':(_isLater?'#f2f7ff':'#fff2f2')))+';">'
       +'<div class="clin-bk-line">'
       +'<span class="clin-bk-time">'+_escHtml(r.time||'—')+'</span>'
-      +'<span class="clin-bk-svc">'+label+'<em>'+client+'</em>'
+      +'<span class="clin-bk-svc">'+label+_freshaBadge+'<em>'+client+'</em>'
       +_depBadge   /* deposit badge carries the state: "✓ 50% DEPOSIT PAID" or "AWAITING DEPOSIT" — no redundant "TENTATIVE" */
       +'</span></div>'
       +'<div class="clin-bk-acts">'
@@ -12022,7 +12079,7 @@ function acceptOnlineBooking(id){
         start:_st, time:_st, duration:r.duration||60,
         client:r.name||'Guest', email:r.email||'', whatsapp:r.phone||'', phone:r.phone||'',
         price:_pn, pressure:r.pressure||null, payType:(_isLater?'later':'deposit'),
-        source:'Online', status:'confirmed', payMethod:(_isLater?'':'online'),
+        source:'Online', fresha:(r.source==='fresha'), status:'confirmed', payMethod:(_isLater?'':'online'),
         online:(!_isLater), deposit:(_isLater?0:_dep), balanceDue:(_free?0:(_isLater?_pn:Math.max(0,_pn-_dep))), balancePaid:_free, depositPaid:(_free?true:(_isLater?false:_depPaid)), discPct:(r.discPct||0), discCode:(r.discCode||''), discReason:(r.discReason||''),
         onlineRef:r.ref||id, date:r.date, _ts:Date.now()
       };
@@ -12293,7 +12350,8 @@ var CLIN_BUFFER_MIN = 15; // turnover buffer after every session
 // existing bookings, and session duration + 15-min buffer.
 // Consultations take NO turnover buffer — they're quick chats, so the next appointment can sit right after.
 function _clinIsConsult(x){ if(!x) return false; var s=((x.name||'')+' '+(x.serviceName||'')+' '+(x.service||'')+' '+(x.label||'')+' '+(x.pathway||'')).toLowerCase(); return s.indexOf('consult')>=0; }
-function _clinBuf(x){ return (_clinIsConsult(x)?0:(typeof CLIN_BUFFER_MIN!=='undefined'?CLIN_BUFFER_MIN:15))/60; }
+// Fresha-sourced bookings are scheduled back-to-back with no turnover gap, so they take NO buffer (same as consultations).
+function _clinBuf(x){ var noBuf=_clinIsConsult(x)||(x&&(x.fresha===true||x.source==='fresha')); return (noBuf?0:(typeof CLIN_BUFFER_MIN!=='undefined'?CLIN_BUFFER_MIN:15))/60; }
 function clinAvailableTimes(){
   var s=clinSvc(); if(!s||!clinRoom) return [];
   var dur=clinCurrentDuration()/60, buf=_clinBuf(s);   // consultations: 0 buffer. clinical uses .dur (+ boots), recovery uses .duration
@@ -12939,7 +12997,9 @@ function _clinSameOrder(b){
 function clinHasConflict(roomId, startHHMM, durationMin, excludeId){
   try{
     var dk=clinKey(); var day=recoveryData&&recoveryData[dk];
-    var newBuf=(typeof _clinBuf==='function')?_clinBuf(clinSvc()):((typeof CLIN_BUFFER_MIN!=='undefined'?CLIN_BUFFER_MIN:15)/60);  // consultation being placed → 0 buffer
+    // The booking being placed/edited: a Fresha or consultation booking takes no trailing buffer.
+    var _editing=excludeId?((day&&day.bookings)||[]).find(function(x){return x.id===excludeId;}):null;
+    var newBuf=(typeof _clinBuf==='function')?_clinBuf(_editing||clinSvc()):((typeof CLIN_BUFFER_MIN!=='undefined'?CLIN_BUFFER_MIN:15)/60);
     var ns=parseTime(startHHMM), ne=ns+(durationMin/60)+newBuf;
     return (day&&day.bookings)?day.bookings.some(function(b){
       if(!b||b.status==='cancelled') return false;
@@ -13414,6 +13474,12 @@ function clinEditBooking(id){
     clinType=b.clinical?'clinical':'recovery';
     var list=(clinType==='clinical'?CLINICAL_SERVICES:(typeof SERVICES!=='undefined'?SERVICES:[]));
     var svc=list.find(function(x){return x.id===b.service;})||list.find(function(x){return x.name===b.serviceName;});
+    // Online/Fresha confirmed bookings store `service` as the PATHWAY ("MOVE"/"RECOVER"/…) + a `duration`, not a tier
+    // id — so match the correct tier by pathway + duration (same logic as editOnlineRequest). Otherwise the edit
+    // loaded the wrong tier (e.g. MOVE 30min/400k instead of 60min/650k) and mis-priced the discount.
+    if(!svc){ var _pw=String(b.service||b.pathway||'').toUpperCase(), _du=+b.duration||0;
+      svc=list.find(function(x){return String(x.name||x.pathway||'').toUpperCase()===_pw && (!_du||x.duration===_du);})
+         || list.find(function(x){return String(x.name||x.pathway||'').toUpperCase()===_pw;}); }
     clinSel=svc?svc.id:b.service;
     clinAddons=(b.addons&&b.addons.length)?b.addons.map(function(a){return a.id;}):[];  // restore IV enhancements for the move
     clinComp=!!b.compression;                                                            // ...and the compression boots
@@ -14404,7 +14470,7 @@ window.showRoomCalendar=showRoomCalendar;
       if(k==='distrik_rf'){ var a=JSON.parse(L),b=JSON.parse(R); var o=Object.assign({},pl?a:b); var ds={}; Object.keys(a.bookings||{}).forEach(function(d){ds[d]=1;}); Object.keys(b.bookings||{}).forEach(function(d){ds[d]=1;}); var bk={}; Object.keys(ds).forEach(function(d){ bk[d]=mById((a.bookings||{})[d],(b.bookings||{})[d]); }); o.bookings=bk;
         // SERVICES/PACKAGES/ROOMS: newest edit wins (by _cfgTs) so the admin's therapy changes propagate to every device. (WAS "local always wins" — a device with old therapies never adopted the correct ones.)
         var _at=+a._cfgTs||0, _bt=+b._cfgTs||0, _nw=(_bt>_at)?b:a;
-        if(_nw.SERVICES)o.SERVICES=_nw.SERVICES; if(_nw.PACKAGES)o.PACKAGES=_nw.PACKAGES; if(_nw.ROOMS)o.ROOMS=_nw.ROOMS; o._cfgTs=Math.max(_at,_bt);
+        if(_nw.SERVICES)o.SERVICES=_nw.SERVICES; if(_nw.PACKAGES)o.PACKAGES=_nw.PACKAGES; if(_nw.ROOMS)o.ROOMS=_nw.ROOMS; if(_nw.EVENT_LANES)o.EVENT_LANES=_nw.EVENT_LANES; o._cfgTs=Math.max(_at,_bt);
         return JSON.stringify(o); }
     }catch(e){ console.warn('[sync] merge',k,e); }
     return R;
