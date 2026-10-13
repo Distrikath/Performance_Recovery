@@ -295,12 +295,12 @@ ${[c.supply, c.fuel]
 <section class="hero hero--dark community" id="${c.community.id}" aria-labelledby="community-title">
   <div class="hero__media">${picture(c.community.image, { span: 4 })}</div>
   <div class="hero__inner">
-    <div class="g hero__meta"><p class="mono c1 w1">(06) ${esc(c.community.label)}</p><p class="mono c2 w1">${esc(c.community.when)}</p><p class="mono c3 w1">Free · every pace</p></div>
+    <div class="g hero__meta">${c.community.details.map((d, i) => `<p class="mono c${i + 1} w1">${i === 0 ? '(06) ' : ''}${esc(d)}</p>`).join('')}</div>
     <div class="hero__foot">
-      <h2 id="community-title" class="display"><span class="ln">${rich(c.community.headline)}</span></h2>
+      <h2 id="community-title" class="display run-lockup"><span class="ln"><span class="run-lockup__words">${esc(c.community.headline)}</span> ${distrikLogo('distrik-logo--lockup')}</span></h2>
       <div class="g hero__row">
-        <p class="mono c1 w1 hero__label">${esc(c.community.when)}</p>
-        <p class="hero__body c2 w1">${esc(c.community.body)}</p>
+        <p class="mono c1 w1 hero__label">${esc(c.community.label)}</p>
+        <p class="hero__body c2 w2">${esc(c.community.body)}</p>
         <div class="c4 w1">${ctaStack([{ label: 'Follow on Instagram', href: distrik.instagram }], 'cta--light')}</div>
       </div>
     </div>
@@ -446,9 +446,7 @@ ${textHero(c.hero, ['Corporate Wellness — Australia', 'DISTRIK — Canggu, Bal
   <a class="c1 w2 pathway" href="#${c.corporate.id}"><span class="mono">(01)</span><span class="cond-xl">${esc(
     c.corporate.label
   )}</span><span class="mono muted">Workplace programs in Australia →</span></a>
-  <a class="c3 w2 pathway" href="#${c.distrik.id}"><span class="mono">(02)</span><span class="cond-xl">${esc(
-    c.distrik.label
-  )}</span><span class="mono muted">Performance recovery in Canggu, Bali →</span></a>
+  <a class="c3 w2 pathway" href="#${c.distrik.id}"><span class="mono">(02)</span>${distrikLogo('distrik-logo--pathway')}<span class="mono muted">Performance recovery in Canggu, Bali →</span></a>
 </nav>
 
 ${section(

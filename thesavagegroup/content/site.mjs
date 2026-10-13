@@ -341,7 +341,7 @@ export const projects = [
     category: 'community',
     title: 'Run the Distrik',
     location: 'Canggu, Bali',
-    summary: 'A free community run every Friday at 6:00am. Every pace welcome.',
+    summary: 'A free 5 km community run through the rice fields, every Friday at 6:00am from DISTRIK. Every pace welcome.',
     image: 'runners-motion',
     href: '/distrik/#community',
     linkLabel: 'Community',
@@ -562,9 +562,11 @@ export const pages = {
     community: {
       id: 'community',
       label: 'Community',
-      headline: 'Run the *Distrik.*',
+      // Shown as a lockup: "RUN THE" + the DISTRIK logo (as on the event poster).
+      headline: 'Run the',
       when: 'Fridays at 6:00am.',
-      body: 'A free community run welcoming every pace.',
+      body: 'More than just running: a free weekly community run built around movement, connection and showing up. Every Friday at 6:00am we run 5 km together through the rice fields, welcoming every pace, every level and everyone.',
+      details: ['Every Friday · 6:00am', 'Meeting point: DISTRIK', 'Distance: 5 km', 'Free for everyone'],
       image: 'runners-motion',
     },
     clinical: {

@@ -387,6 +387,11 @@ p + p { margin-top: 1em; }
 .distrik-logo svg { width: 100%; height: auto; fill: currentColor; }
 .distrik-logo--hero { width: clamp(160px, 22vw, 340px); margin: 0 var(--gutter) 24px; }
 .distrik-logo--lg { width: 100%; max-width: 760px; }
+.run-lockup .ln { display: flex; align-items: baseline; gap: 0.18em; white-space: nowrap; }
+.run-lockup__words { font-family: var(--sans); font-weight: 700; font-stretch: 100%; letter-spacing: -0.06em; }
+.distrik-logo--lockup { display: inline-block; height: 0.74em; width: auto; flex: none; }
+.distrik-logo--lockup svg { height: 100%; width: auto; }
+.distrik-logo--pathway { width: clamp(180px, 22vw, 340px); margin-block: 6px 4px; }
 .distrik-logo--md { width: 180px; margin-bottom: 28px; }
 
 .hero-text { padding-top: calc(var(--header-h) + 14px); padding-bottom: clamp(56px, 7vw, 112px); }

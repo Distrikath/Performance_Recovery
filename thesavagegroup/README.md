@@ -7,7 +7,7 @@ thesavagegroup/
 ├── content/site.mjs     ← ALL copy, links, image references, projects
 ├── assets/source/       ← original photographs (replace these)
 ├── assets/img/          ← generated responsive images (do not edit by hand)
-├── assets/distrik-logo.svg
+├── assets/brand/DISTRIK.svg  ← supplied DISTRIK logo (replace to update every instance)
 ├── src/                 ← templates (layout, components, pages), CSS, JS
 ├── tools/images.py      ← makes responsive image sizes
 ├── build.mjs            ← renders every page into dist/

@@ -11,12 +11,24 @@ import { layout } from './src/layout.mjs';
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const DIST = join(ROOT, 'dist');
 
+// The supplied DISTRIK logo (assets/brand/DISTRIK.svg) is black on a white
+// square. For the site: drop the white background, crop to the wordmark and
+// let it take the surrounding text colour.
+const LOGO_CROP = '24 186 352 56';
+function webLogo(svg) {
+  return svg
+    .replace(/<path fill="#ffffff"[^>]*\/>/gi, '')
+    .replace(/fill="#000000"/gi, 'fill="currentColor"')
+    .replace(/viewBox="[^"]*"/, `viewBox="${LOGO_CROP}"`)
+    .replace(/<svg[^>]*>/, (tag) => tag.replace(/\s(width|height)="[^"]*"/g, ''));
+}
+
 export function build() {
 
   const manifestPath = join(ROOT, 'assets/img/manifest.json');
   if (!existsSync(manifestPath)) throw new Error('assets/img/manifest.json missing — run `npm run images` first.');
   comps.setManifest(JSON.parse(readFileSync(manifestPath, 'utf8')));
-  pagesMod.setDistrikSvg(readFileSync(join(ROOT, 'assets/distrik-logo.svg'), 'utf8'));
+  pagesMod.setDistrikSvg(webLogo(readFileSync(join(ROOT, 'assets/brand/DISTRIK.svg'), 'utf8')));
 
   rmSync(DIST, { recursive: true, force: true });
   mkdirSync(join(DIST, 'assets'), { recursive: true });
