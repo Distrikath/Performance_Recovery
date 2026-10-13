@@ -1,12 +1,15 @@
 // Page templates. Each returns { path, title, description, body, hero }.
-// Layout rule: everything sits on the 4-column grid (.g). Images span
-// 1/4 (w1), 1/2 (w2), 3/4 (w3) or full width (w4) — nothing in between.
+//
+// Every section follows the grid slots described in components.mjs:
+//   col 1 LABEL · col 2 HEAD/TEXT · col 3 TEXT 2 · col 4 ACTION
+// Images span 1/4 (w1), 1/2 (w2), 3/4 (w3) or full width only.
 import { pages, projects, projectCategories, distrik, forms } from '../content/site.mjs';
-import { esc, rich, lines, label, note, link, cta, picture, photoHero, textHero, statement, ctaBand } from './components.mjs';
+import { esc, rich, label, note, link, cta, picture, photoHero, textHero, ctaBand, sectionHead, row, ctaStack } from './components.mjs';
 
 const publicProjects = () => projects.filter((p) => p.verified && p.public);
 const book = { label: 'Book Recovery', href: distrik.booking };
 const pad = (n) => String(n).padStart(2, '0');
+const paras = (list) => list.map((p) => `<p>${esc(p)}</p>`).join('');
 
 let distrikSvg = '';
 export function setDistrikSvg(svg) {
@@ -24,114 +27,103 @@ const distrikLogo = (cls = '') => {
   return `<span class="distrik-logo ${cls}" role="img" aria-label="DISTRIK">${svg}</span>`;
 };
 
-// Index row: (num) label | title | text | optional ¼ image.
+// Index row — the same four slots: (num) label | title | text | ¼ image.
 function indexRow({ num, labelText, title, body, extra = '', image, id, tag = 'h3' }) {
   return `<div class="g index-row"${id ? ` id="${id}"` : ''}>
     <p class="mono c1 w1">(${esc(num)}) ${esc(labelText || '')}</p>
     <${tag} class="cond-lg c2 w1">${rich(title)}</${tag}>
-    <div class="c3 w1 index-row__text">${body}${extra}</div>
+    <div class="c3 w1 flow">${body}${extra}</div>
     ${image ? `<div class="c4 w1">${picture(image, { span: 1, shape: 'landscape' })}</div>` : ''}
   </div>`;
 }
 
+const section = (inner, { cls = '', id = '', labelledby = '', ariaLabel = '' } = {}) =>
+  `<section class="section ${cls}"${id ? ` id="${id}"` : ''}${labelledby ? ` aria-labelledby="${labelledby}"` : ''}${
+    ariaLabel ? ` aria-label="${esc(ariaLabel)}"` : ''
+  }>${inner}</section>`;
+
 // ------------------------------------------------------------------ HOME
 export function home() {
   const c = pages.home;
-  const work = publicProjects();
+  const work = publicProjects().slice(0, 3);
   return {
     ...c,
     hero: 'dark',
     image: c.hero.image,
     body: `
-${photoHero({ hero: c.hero, meta: ['The Savage Group', '(AU) Corporate Wellness', '(ID) DISTRIK, Canggu', 'Founded by Justin Savage'] })}
+${photoHero({ hero: c.hero, meta: ['(AU) Corporate Wellness', '(ID) DISTRIK, Canggu', '', 'Founded by Justin Savage'] })}
 
-${statement({
-  id: 'intro',
-  num: '01',
-  labelText: c.intro.label,
-  headline: c.intro.headline,
-  extra: `<p class="c3 w1 statement__body">${esc(c.intro.body)}</p>
-    <div class="c4 w1 statement__img">${picture('distrik-bodywork-detail', { span: 1, shape: 'portrait' })}</div>`,
-})}
+${section(
+  sectionHead({ id: 'intro-t', num: '01', labelText: c.intro.label, headline: c.intro.headline }) +
+    row([
+      { col: 2, cls: 'flow', html: `<p class="lead">${esc(c.intro.body)}</p>` },
+      { col: 4, html: picture('distrik-bodywork-detail', { span: 1, shape: 'portrait' }) },
+    ]),
+  { labelledby: 'intro-t' }
+)}
 
-<section class="section" aria-labelledby="corp-title">
-  <div class="g align-end">
-    <div class="c1 w2">${picture(c.corporate.image, { span: 2, shape: 'portrait' })}</div>
-    <div class="c3 w2 feature-text">
-      ${label(c.corporate.label, '02')}
-      <h2 id="corp-title" class="cond-xl">${lines(c.corporate.headline)}</h2>
-      <div class="g g--nested">
-        <p class="c1 w1">${esc(c.corporate.body)}</p>
-        <div class="c2 w1">${cta(c.corporate.cta)}</div>
-      </div>
-    </div>
-  </div>
-</section>
+${section(
+  sectionHead({ id: 'corp-t', num: '02', labelText: c.corporate.label, headline: c.corporate.headline }) +
+    row([
+      { col: 1, span: 2, html: picture(c.corporate.image, { span: 2, shape: 'portrait' }) },
+      { col: 3, cls: 'flow', html: `<p>${esc(c.corporate.body)}</p>` },
+      { col: 4, html: ctaStack([c.corporate.cta]) },
+    ]),
+  { labelledby: 'corp-t' }
+)}
 
-<section class="section on-dark distrik-band" aria-labelledby="distrik-title">
-  <div class="g align-end">
-    <div class="c1 w2">${distrikLogo('distrik-logo--lg')}</div>
-    <p class="mono c4 w1 t-right">${esc(c.distrik.label)}</p>
-  </div>
-  <div class="bleed">${picture(c.distrik.image, { span: 4, shape: 'wide' })}</div>
-  <div class="g distrik-band__body">
-    <div class="c1 w1">${label('DISTRIK', '03')}</div>
-    <h2 id="distrik-title" class="cond-xl c2 w1">${rich(c.distrik.headline)}</h2>
-    <div class="c3 w1">
-      <p>${esc(c.distrik.body)}</p>
-      <div class="cta-stack">${cta({ label: 'Discover DISTRIK', href: '/distrik/' }, 'cta--light')}${cta(book, 'cta--light')}</div>
-    </div>
-    <ul class="mono-list c4 w1" aria-label="At DISTRIK">${c.distrik.list.map((i) => `<li>${esc(i)}</li>`).join('')}</ul>
-  </div>
-  <div class="g strip">
-    ${['distrik-cupping', 'distrik-treatment-room', 'distrik-lounge', 'distrik-furniture-detail']
-      .map((k, i) => `<div class="c${i + 1} w1 m1">${picture(k, { span: 1, shape: 'portrait' })}</div>`)
-      .join('')}
-  </div>
-</section>
+${section(
+  `<div class="g sh"><div class="c1 w1">${label(c.distrik.label, '03')}</div><div class="c2 w2">${distrikLogo('distrik-logo--lg')}</div></div>
+  <div class="bleed row">${picture(c.distrik.image, { span: 4, shape: 'wide' })}</div>
+  ${sectionHead({ id: 'distrik-t', num: '', labelText: '', headline: c.distrik.headline })}
+  ${row([
+    { col: 2, cls: 'flow', html: `<p>${esc(c.distrik.body)}</p>` },
+    { col: 3, html: `<ul class="mono-list" aria-label="At DISTRIK">${c.distrik.list.map((i) => `<li>${esc(i)}</li>`).join('')}</ul>` },
+    { col: 4, html: ctaStack([{ label: 'Discover DISTRIK', href: '/distrik/' }, book], 'cta--light') },
+  ])}
+  ${row(
+    ['distrik-cupping', 'distrik-treatment-room', 'distrik-lounge', 'distrik-furniture-detail'].map((k, i) => ({
+      col: i + 1,
+      m1: true,
+      html: picture(k, { span: 1, shape: 'portrait' }),
+    })),
+    'row--media'
+  )}`,
+  { cls: 'on-dark', labelledby: 'distrik-t' }
+)}
 
 ${
   work.length
-    ? `<section class="section" aria-labelledby="work-title">
-  <div class="g section-head">
-    <div class="c1 w1">${label(c.work.label, '04')}</div>
-    <h2 id="work-title" class="head-xl c2 w2">${rich(c.work.headline)}</h2>
-    <div class="c4 w1 t-right">${cta({ label: 'All projects', href: '/projects/' })}</div>
-  </div>
-  <div class="g cards">
-    ${work
-      .slice(0, 3)
-      .map((p, i) => {
-        const span = i === 0 ? 2 : 1;
-        const col = i === 0 ? 1 : i + 2;
-        return `<article class="c${col} w${span}${i ? ' m1' : ''} card">
-      <a href="${esc(p.href)}" class="card__link">
-        ${picture(p.image, { span, shape: 'portrait' })}
-        <p class="mono card__meta">(${pad(i + 1)}) ${esc(projectCategories[p.category])}</p>
-        <h3 class="cond-md">${esc(p.title)}</h3>
-        <p class="mono muted">${esc(p.location)}</p>
-      </a>
-    </article>`;
-      })
-      .join('')}
-  </div>
-</section>`
+    ? section(
+        sectionHead({ id: 'work-t', num: '04', labelText: c.work.label, headline: c.work.headline }) +
+          row(
+            work.map((p, i) => ({
+              col: i === 0 ? 1 : i + 2,
+              span: i === 0 ? 2 : 1,
+              m1: i > 0,
+              html: `<article class="card"><a href="${esc(p.href)}" class="card__link">
+          ${picture(p.image, { span: i === 0 ? 2 : 1, shape: 'portrait' })}
+          <p class="mono card__meta">(${pad(i + 1)}) ${esc(projectCategories[p.category])}</p>
+          <h3 class="cond-md">${esc(p.title)}</h3>
+          <p class="mono muted">${esc(p.location)}</p>
+        </a></article>`,
+            }))
+          ) +
+          row([{ col: 4, html: ctaStack([{ label: 'All projects', href: '/projects/' }]) }]),
+        { labelledby: 'work-t' }
+      )
     : ''
 }
 
-<section class="section" aria-labelledby="story-title">
-  <div class="g align-end">
-    <div class="c1 w1 story-label">${label(c.story.label, '05')}</div>
-    <div class="c2 w1">${picture(c.story.image, { span: 1, shape: 'portrait', caption: true })}</div>
-    <div class="c3 w2">
-      <h2 id="story-title" class="head-xl">${lines(c.story.headline)}</h2>
-      <div class="g g--nested story-row">
-        <p class="c1 w1">${esc(c.story.body)}</p>
-        <div class="c2 w1">${cta(c.story.cta)}</div>
-      </div>
-    </div>
-  </div>
-</section>
+${section(
+  sectionHead({ id: 'story-t', num: '05', labelText: c.story.label, headline: c.story.headline }) +
+    row([
+      { col: 1, html: picture(c.story.image, { span: 1, shape: 'portrait', caption: true }) },
+      { col: 2, cls: 'flow', html: `<p>${esc(c.story.body)}</p>` },
+      { col: 4, html: ctaStack([c.story.cta]) },
+    ]),
+  { labelledby: 'story-t' }
+)}
 
 ${ctaBand({ id: 'cta-title', labelText: c.contact.label, headline: c.contact.headline, ctas: c.contact.ctas })}
 `,
@@ -141,24 +133,21 @@ ${ctaBand({ id: 'cta-title', labelText: c.contact.label, headline: c.contact.hea
 // ------------------------------------------------------- CORPORATE
 export function corporate() {
   const c = pages.corporate;
-
   return {
     ...c,
     hero: c.hero.tone,
     image: c.hero.image,
     body: `
-${photoHero({ hero: c.hero, meta: ['Corporate Wellness', '(AU) Australia', 'Programs for workplaces', ''] })}
+${photoHero({ hero: c.hero, meta: ['(AU) Australia', 'Programs for workplaces'] })}
 
-${statement({
-  id: 'offer',
-  num: '01',
-  labelText: 'What we offer',
-  headline: 'Five ways *in.*',
-  body: 'Start with one area or bring them together. Every program is shaped around your teams, spaces and calendar.',
-})}
+${section(
+  sectionHead({ id: 'offer-t', num: '01', labelText: 'What we offer', headline: 'Five ways *in.*' }) +
+    row([{ col: 2, span: 2, html: '<p class="lead">Start with one area or bring them together. Every program is shaped around your teams, spaces and calendar.</p>' }]),
+  { labelledby: 'offer-t' }
+)}
 
-<section class="section index" aria-label="Offering areas">
-  ${c.offerings
+${section(
+  c.offerings
     .map((x, i) =>
       indexRow({
         id: x.id,
@@ -170,45 +159,41 @@ ${statement({
         image: x.image,
       })
     )
-    .join('')}
-</section>
+    .join(''),
+  { cls: 'index', ariaLabel: 'Offering areas' }
+)}
 
-<section class="section process" aria-labelledby="process-title">
-  <div class="g section-head">
-    <div class="c1 w1">${label(c.process.label, '02')}</div>
-    <h2 id="process-title" class="head-xl c2 w3">${rich(c.process.headline)}</h2>
-  </div>
-  <ol class="g process__steps">
-    ${c.process.steps
+${section(
+  sectionHead({ id: 'process-t', num: '02', labelText: c.process.label, headline: c.process.headline }) +
+    `<ol class="g row process__steps">${c.process.steps
       .map(
-        (s, i) => `<li class="c${i + 1} w1 m1"><span class="mono">${pad(i + 1)} ${i < 3 ? '→' : ''}</span><h3 class="cond-md">${esc(
-          s.title
-        )}</h3><p>${esc(s.body)}</p></li>`
+        (s, i) =>
+          `<li class="c${i + 1} w1 m1"><span class="mono">${pad(i + 1)}${i < 3 ? ' →' : ''}</span><h3 class="cond-md">${esc(s.title)}</h3><p>${esc(s.body)}</p></li>`
       )
-      .join('')}
-  </ol>
-</section>
+      .join('')}</ol>`,
+  { labelledby: 'process-t' }
+)}
 
-<section class="section on-dark client" id="${c.client.id}" aria-labelledby="client-title">
-  <div class="g">
-    <div class="c1 w1">${label(c.client.label, '03')}</div>
-    <h2 id="client-title" class="head-xl c2 w3">${rich(c.client.headline)}</h2>
-  </div>
-  <div class="g client__body">
-    <div class="c1 w1 m1">${picture(c.client.image, { span: 1, shape: 'portrait' })}</div>
-    <div class="c3 w1">
-      <p class="lead">${esc(c.client.body)}</p>
-      ${c.client.details.length ? `<ul class="mono-list">${c.client.details.map((d) => `<li>${esc(d)}</li>`).join('')}</ul>` : ''}
-      ${note(c.client.reviewNote)}
-    </div>
-    <p class="mono muted c4 w1">${esc(c.client.disclaimer)}</p>
-  </div>
-  <div class="g index-row index-row--dark">
-    <p class="mono c1 w1">(→) ${esc(c.future.label)}</p>
-    <h3 class="cond-lg c2 w1">${rich(c.future.headline)}</h3>
-    <p class="c3 w1">${esc(c.future.body)}</p>
-  </div>
-</section>
+${section(
+  sectionHead({ id: 'client-t', num: '03', labelText: c.client.label, headline: c.client.headline }) +
+    row([
+      { col: 1, m1: true, html: picture(c.client.image, { span: 1, shape: 'portrait' }) },
+      {
+        col: 2,
+        cls: 'flow',
+        html: `<p class="lead">${esc(c.client.body)}</p>${
+          c.client.details.length ? `<ul class="mono-list">${c.client.details.map((d) => `<li>${esc(d)}</li>`).join('')}</ul>` : ''
+        }${note(c.client.reviewNote)}`,
+      },
+      { col: 4, html: `<p class="mono muted">${esc(c.client.disclaimer)}</p>` },
+    ]) +
+    `<div class="g index-row index-row--dark">
+      <p class="mono c1 w1">(→) ${esc(c.future.label)}</p>
+      <h3 class="cond-lg c2 w1">${rich(c.future.headline)}</h3>
+      <p class="c3 w1">${esc(c.future.body)}</p>
+    </div>`,
+  { cls: 'on-dark', id: c.client.id, labelledby: 'client-t' }
+)}
 
 ${ctaBand({ id: 'cta-title', headline: c.cta.headline, ctas: [c.cta.button] })}
 `,
@@ -219,7 +204,18 @@ ${ctaBand({ id: 'cta-title', headline: c.cta.headline, ctas: [c.cta.button] })}
 export function distrikPage() {
   const c = pages.distrik;
   const r = c.recovery;
-  const optional = (items, render) => (items.length ? render(items) : '');
+  const prices = distrik.prices.length
+    ? `<div class="g row"><p class="label c1 w1"><span class="label__num">(IDR)</span> Session prices</p></div>
+    <div class="g prices" aria-label="Session prices">
+      ${distrik.prices
+        .map((p, i) => `<div class="c${i + 1} w1 m1 price"><span class="cond-md">${esc(p.name)}</span><span class="mono">${esc(p.price)}</span></div>`)
+        .join('')}
+    </div>
+    ${row(
+      [...(distrik.priceNotes || []), 'Same price for Recover, Perform or Move.'].map((n, i) => ({ col: i + 2, html: `<p class="mono muted">${esc(n)}</p>` })),
+      'row--tight'
+    )}`
+    : '';
 
   return {
     ...c,
@@ -228,113 +224,97 @@ export function distrikPage() {
     body: `
 ${photoHero({
   hero: c.hero,
-  meta: ['DISTRIK', c.hero.label, '(ID) Canggu, Bali', 'Run by PT The Savage Group'],
+  labelText: c.hero.label,
+  meta: ['(ID) Canggu, Bali', 'Run by PT The Savage Group'],
   logo: distrikLogo('distrik-logo--hero'),
   ctas: [book, { label: 'Explore Treatments', href: '#treatments' }],
 })}
 
-<section class="section statement" aria-labelledby="parts-title">
-  <div class="g">
-    <div class="c1 w1">${label(c.intro.label, '01')}</div>
-    <h2 id="parts-title" class="head-xl c2 w3">${rich(c.intro.headline)}</h2>
-  </div>
-  <ul class="g parts">
-    ${c.intro.parts
+${section(
+  sectionHead({ id: 'parts-t', num: '01', labelText: c.intro.label, headline: c.intro.headline }) +
+    `<ul class="g row parts">${c.intro.parts
       .map(
         (p, i) =>
-          `<li class="c${i + 2} w1"><a href="${p.href}"><span class="mono">(${pad(i + 1)})</span><span class="cond-md">${esc(
-            p.label
-          )}</span><span class="cta__arrow" aria-hidden="true">↓</span></a></li>`
+          `<li class="c${i + 2} w1"><a href="${p.href}"><span class="mono">(${pad(i + 1)})</span><span class="cond-md">${esc(p.label)}</span><span class="cta__arrow" aria-hidden="true">↓</span></a></li>`
       )
-      .join('')}
-  </ul>
-</section>
+      .join('')}</ul>`,
+  { labelledby: 'parts-t' }
+)}
 
-<section class="section on-dark treatments" id="${r.id}" aria-labelledby="treat-title">
-  <div class="bleed">${picture(r.image, { span: 4, shape: 'wide' })}</div>
-  <div class="g treatments__head">
-    <div class="c1 w1">${label(r.label, '02')}</div>
-    <h2 id="treat-title" class="cond-xl c2 w2">${rich(r.headline)}</h2>
-    <div class="c4 w1">
-      <p>${esc(r.note)}</p>
-      <div class="cta-stack">${cta(book, 'cta--light')}</div>
-    </div>
-  </div>
-  <ol class="g technique-grid" aria-label="Techniques">
-    ${r.techniques.map((t, i) => `<li class="w1 m1"><span class="mono">${pad(i + 1)}</span>${esc(t)}</li>`).join('')}
-  </ol>
-</section>
+${section(
+  `<div class="bleed">${picture(r.image, { span: 4, shape: 'wide', caption: true })}</div>
+  <div class="row">${sectionHead({ id: 'treat-t', num: '02', labelText: r.label, headline: r.headline })}</div>
+  ${row([
+    { col: 2, cls: 'flow', html: `<p>${esc(r.note)}</p>` },
+    { col: 4, html: ctaStack([book], 'cta--light') },
+  ])}
+  <ol class="g row technique-grid" aria-label="Techniques">${r.techniques
+    .map((t, i) => `<li class="w1 m1"><span class="mono">${pad(i + 1)}</span>${esc(t)}</li>`)
+    .join('')}</ol>`,
+  { cls: 'on-dark treatments', id: r.id, labelledby: 'treat-t' }
+)}
 
-<section class="section index" aria-labelledby="focus-title">
-  <div class="g section-head">
-    <div class="c1 w1">${label('Treatment focus', '03')}</div>
-    <h2 id="focus-title" class="head-xl c2 w3">Three ways to <em>book.</em></h2>
-  </div>
-  ${r.focuses
-    .map((f, i) =>
-      indexRow({
-        num: ['A', 'B', 'C'][i],
-        labelText: 'Focus',
-        title: f.name,
-        body: `<p class="lead">${esc(f.body)}</p>`,
-        image: ['distrik-massage', 'athlete-profile', 'athlete-stretch'][i],
-      })
+${section(
+  sectionHead({ id: 'focus-t', num: '03', labelText: 'Treatment focus', headline: 'Three ways to *book.*' }) +
+    `<div class="row">${r.focuses
+      .map((f, i) =>
+        indexRow({
+          num: ['A', 'B', 'C'][i],
+          labelText: 'Focus',
+          title: f.name,
+          body: `<p class="lead">${esc(f.body)}</p>`,
+          image: ['distrik-massage', 'athlete-profile', 'athlete-stretch'][i],
+        })
+      )
+      .join('')}</div>` +
+    prices +
+    row([{ col: 4, html: ctaStack([book]) }]),
+  { cls: 'index', labelledby: 'focus-t' }
+)}
+
+${[c.supply, c.fuel]
+  .map((x, i) =>
+    section(
+      sectionHead({ id: `${x.id}-t`, num: pad(i + 4), labelText: x.label, headline: x.headline, size: 'head-lg' }) +
+        row(
+          i
+            ? [
+                { col: 1, cls: 'flow', html: `<p>${esc(x.body)}</p>` },
+                { col: 2, span: 3, html: picture(x.image, { span: 3, shape: 'wide' }) },
+              ]
+            : [
+                { col: 1, span: 3, html: picture(x.image, { span: 3, shape: 'wide' }) },
+                { col: 4, cls: 'flow', html: `<p>${esc(x.body)}</p>` },
+              ]
+        ),
+      { id: x.id, labelledby: `${x.id}-t` }
     )
-    .join('')}
-  ${optional(
-    distrik.prices,
-    (ps) => `<div class="g prices" aria-label="Session prices">
-    <p class="mono c1 w4">(IDR) Session prices — Recover, Perform or Move</p>
-    ${ps.map((p) => `<div class="w1 m1 price"><span class="cond-md">${esc(p.name)}</span><span class="mono">${esc(p.price)}</span></div>`).join('')}
-    ${(distrik.priceNotes || []).map((n, i) => `<p class="mono muted c${i * 2 + 1} w2">${esc(n)}</p>`).join('')}
-  </div>`
-  )}
-  <div class="g index-foot"><div class="c3 w1">${cta(book)}</div></div>
-</section>
-
-<section class="section" aria-label="DISTRIK Supply and Recovery Fuel">
-  <div class="g">
-    ${[c.supply, c.fuel]
-      .map(
-        (x, i) => `<article class="c${i * 2 + 1} w2 half" id="${x.id}" aria-labelledby="${x.id}-t">
-      ${picture(x.image, { span: 2, shape: 'landscape' })}
-      <div class="g g--nested half__text">
-        <div class="c1 w1">${label(x.label, pad(i + 4))}</div>
-        <div class="c2 w1"><h2 id="${x.id}-t" class="cond-md">${rich(x.headline)}</h2><p>${esc(x.body)}</p></div>
-      </div>
-    </article>`
-      )
-      .join('')}
-  </div>
-</section>
+  )
+  .join('')}
 
 <section class="hero hero--dark community" id="${c.community.id}" aria-labelledby="community-title">
   <div class="hero__media">${picture(c.community.image, { span: 4 })}</div>
   <div class="hero__inner">
-    <div class="g hero__meta"><p class="mono c1 w1">(06) ${esc(c.community.label)}</p><p class="mono c2 w1">${esc(
-      c.community.when
-    )}</p><p class="mono c3 w1">Free · every pace</p></div>
+    <div class="g hero__meta"><p class="mono c1 w1">(06) ${esc(c.community.label)}</p><p class="mono c2 w1">${esc(c.community.when)}</p><p class="mono c3 w1">Free · every pace</p></div>
     <div class="hero__foot">
-      <h2 id="community-title" class="display">${lines(c.community.headline)}</h2>
+      <h2 id="community-title" class="display"><span class="ln">${rich(c.community.headline)}</span></h2>
       <div class="g hero__row">
-        <p class="hero__body c1 w2">${esc(c.community.body)} ${esc(c.community.when)}</p>
-        <div class="c3 w1">${cta({ label: 'Follow on Instagram', href: distrik.instagram }, 'cta--light')}</div>
+        <p class="mono c1 w1 hero__label">${esc(c.community.when)}</p>
+        <p class="hero__body c2 w1">${esc(c.community.body)}</p>
+        <div class="c4 w1">${ctaStack([{ label: 'Follow on Instagram', href: distrik.instagram }], 'cta--light')}</div>
       </div>
     </div>
   </div>
 </section>
 
-<section class="section clinical" id="${c.clinical.id}" aria-labelledby="clinical-title">
-  <div class="g">
-    <div class="c1 w1">${label(c.clinical.label, '07')}</div>
-    <h2 id="clinical-title" class="head-lg c2 w2">${rich(c.clinical.headline)}</h2>
-    <div class="c4 w1">
-      <p>${esc(c.clinical.body)}</p>
-      <p>${link(`mailto:${distrik.email}`, distrik.email, 'text-link')}</p>
-      ${note(c.clinical.reviewNote)}
-    </div>
-  </div>
-</section>
+${section(
+  sectionHead({ id: 'clinical-t', num: '07', labelText: c.clinical.label, headline: c.clinical.headline, size: 'head-lg' }) +
+    row([
+      { col: 2, cls: 'flow', html: `<p>${esc(c.clinical.body)}</p>${note(c.clinical.reviewNote)}` },
+      { col: 4, html: `<p class="mono muted">Enquiries</p><p>${link(`mailto:${distrik.email}`, distrik.email, 'text-link')}</p>` },
+    ]),
+  { cls: 'clinical', id: c.clinical.id, labelledby: 'clinical-t' }
+)}
 
 ${visit(c.visit)}
 `,
@@ -344,31 +324,29 @@ ${visit(c.visit)}
 function visit(v) {
   const hours = distrik.hours.length
     ? `<dl class="hours">${distrik.hours.map((h) => `<dt>${esc(h.days)}</dt><dd>${esc(h.time)}</dd>`).join('')}</dl>`
-    : note('Opening hours, prices and promotions are hidden until confirmed — add them in content/site.mjs.');
-  return `<section class="section visit" id="${v.id}" aria-labelledby="visit-title">
-  <div class="g section-head">
-    <div class="c1 w1">${label(v.label, '08')}</div>
-    <h2 id="visit-title" class="cond-xl c2 w3">${rich(v.headline)}</h2>
-  </div>
-  <div class="g visit__row">
-    <div class="c1 w1">${picture(v.image, { span: 1, shape: 'portrait', caption: true })}</div>
-    <div class="c2 w1">
-      <h3 class="label">Address</h3>
-      <address>${distrik.address.map(esc).join('<br>')}</address>
-      <p>${link(distrik.mapUrl, 'Open in Google Maps', 'text-link')}</p>
-    </div>
-    <div class="c3 w1">
-      <h3 class="label">Contact</h3>
-      <p>${link(`mailto:${distrik.email}`, distrik.email, 'text-link')}</p>
-      <p>${link(distrik.instagram, `Instagram ${distrik.instagramHandle}`, 'text-link')}</p>
-      <div class="cta-stack">${cta(book)}</div>
-    </div>
-    <div class="c4 w1">
-      <h3 class="label">Hours</h3>
-      ${hours}
-    </div>
-  </div>
-</section>`;
+    : note('Opening hours and promotions are hidden until confirmed — add them in content/site.mjs.');
+  return section(
+    sectionHead({ id: 'visit-t', num: '08', labelText: v.label, headline: v.headline }) +
+      row([
+        { col: 1, html: picture(v.image, { span: 1, shape: 'portrait', caption: true }) },
+        {
+          col: 2,
+          cls: 'flow',
+          html: `<h3 class="label">Address</h3><address>${distrik.address.map(esc).join('<br>')}</address><p>${link(distrik.mapUrl, 'Open in Google Maps', 'text-link')}</p>`,
+        },
+        {
+          col: 3,
+          cls: 'flow',
+          html: `<h3 class="label">Contact</h3><p>${link(`mailto:${distrik.email}`, distrik.email, 'text-link')}</p><p>${link(
+            distrik.instagram,
+            `Instagram ${distrik.instagramHandle}`,
+            'text-link'
+          )}</p><h3 class="label">Hours</h3>${hours}`,
+        },
+        { col: 4, html: ctaStack([book]) },
+      ]),
+    { id: v.id, labelledby: 'visit-t' }
+  );
 }
 
 // ------------------------------------------------------- OUR STORY
@@ -381,35 +359,31 @@ export function story() {
     hero: 'dark',
     image: c.hero.image,
     body: `
-${photoHero({ hero: { ...c.hero, body: '', tone: 'dark' }, meta: [c.hero.label, 'Justin Savage, founder', '(AU) — (ID)', ''], ctas: [] })}
+${photoHero({ hero: { ...c.hero, body: '', tone: 'dark' }, labelText: c.hero.label, meta: ['Justin Savage, founder', '(AU) — (ID)'], ctas: [] })}
 
-${statement({ id: 'story-intro', num: '00', labelText: 'Introduction', headline: c.hero.body, size: 'head-lg statement--long', extra: `<div class="c3 w2">${note(c.reviewNote)}</div>` })}
+${section(
+  sectionHead({ id: 'intro-t', num: '00', labelText: 'Introduction', headline: c.hero.body, size: 'head-lg' }) +
+    (note(c.reviewNote) ? row([{ col: 2, span: 2, html: note(c.reviewNote) }]) : ''),
+  { labelledby: 'intro-t' }
+)}
 
-<section class="section index" aria-label="Chapters">
-  ${chapters
+${section(
+  chapters
     .slice(0, -1)
     .map((ch, i) =>
-      indexRow({
-        tag: 'h2',
-        num: pad(i + 1),
-        labelText: ch.label,
-        title: ch.headline,
-        body: ch.body.map((p) => `<p>${esc(p)}</p>`).join(''),
-        image: ch.image,
-      })
+      indexRow({ tag: 'h2', num: pad(i + 1), labelText: ch.label, title: ch.headline, body: paras(ch.body), image: ch.image })
     )
-    .join('')}
-</section>
+    .join(''),
+  { cls: 'index', ariaLabel: 'Chapters' }
+)}
 
 <div class="bleed">${picture(last.image, { span: 4, shape: 'wide', caption: true })}</div>
 
-<section class="section" aria-labelledby="today-title">
-  <div class="g">
-    <div class="c1 w1">${label(last.label, pad(chapters.length))}</div>
-    <h2 id="today-title" class="head-xl c2 w3">${rich(last.headline)}</h2>
-    ${last.body.map((p, i) => `<p class="c${i + 3} w1 statement__body">${esc(p)}</p>`).join('')}
-  </div>
-</section>
+${section(
+  sectionHead({ id: 'today-t', num: pad(chapters.length), labelText: last.label, headline: last.headline }) +
+    row(last.body.map((p, i) => ({ col: i + 2, cls: 'flow', html: `<p>${esc(p)}</p>` }))),
+  { labelledby: 'today-t' }
+)}
 
 ${ctaBand({ id: 'story-cta', headline: pages.home.contact.headline, ctas: pages.home.contact.ctas })}
 `,
@@ -429,24 +403,25 @@ export function projectsPage() {
     body: `
 ${textHero(c.hero, [`${work.length} projects`, groups.map((g) => g.name).join(' · ')])}
 ${groups
-  .map(
-    (g, gi) => `<section class="section project-group" id="${g.key}" aria-labelledby="g-${g.key}">
-  ${g.items
-    .map(
-      (p) => `<article class="g project">
-      <div class="c1 w1"><h2 id="g-${g.key}" class="label"><span class="label__num">(${pad(gi + 1)})</span> ${esc(g.name)}</h2></div>
+  .map((g, gi) =>
+    section(
+      g.items
+        .map(
+          (p) => `<article class="g index-row project">
+      <h2 id="g-${g.key}" class="label c1 w1"><span class="label__num">(${pad(gi + 1)})</span> ${esc(g.name)}</h2>
       <div class="c2 w2">${picture(p.image, { span: 2, shape: 'landscape' })}</div>
-      <div class="c4 w1 project__text">
+      <div class="c4 w1 flow">
         <h3 class="cond-lg">${esc(p.title)}</h3>
         <p class="mono muted">${esc(p.location)}</p>
         <p>${esc(p.summary)}</p>
         ${note(p.note)}
-        ${p.href ? cta({ label: p.linkLabel || 'Read more', href: p.href }) : ''}
+        ${p.href ? ctaStack([{ label: p.linkLabel || 'Read more', href: p.href }]) : ''}
       </div>
     </article>`
+        )
+        .join(''),
+      { cls: 'index project-group', id: g.key, labelledby: `g-${g.key}` }
     )
-    .join('')}
-</section>`
   )
   .join('\n')}
 ${ctaBand({ id: 'projects-cta', headline: pages.home.contact.headline, ctas: pages.home.contact.ctas })}
@@ -476,62 +451,58 @@ ${textHero(c.hero, ['Corporate Wellness — Australia', 'DISTRIK — Canggu, Bal
   )}</span><span class="mono muted">Performance recovery in Canggu, Bali →</span></a>
 </nav>
 
-<section class="section enquiry" id="${c.corporate.id}" aria-labelledby="corp-enq">
-  <div class="g">
-    <div class="c1 w1">${label(c.corporate.label, '01')}</div>
-    <div class="c2 w1">
-      <h2 id="corp-enq" class="head-lg">${rich(c.corporate.headline)}</h2>
-      <p>${esc(c.corporate.body)}</p>
-    </div>
-    <form class="c3 w2 form" data-enquiry-form data-endpoint="${esc(f.endpoint)}" ${
-      connected ? `action="${esc(f.endpoint)}" method="post"` : ''
-    } novalidate>
-      ${
-        connected
-          ? ''
-          : `<div class="form__preview" role="note"><strong>Preview form.</strong> This form is not connected to a submission service yet, so nothing you enter will be sent.</div>`
-      }
-      <div class="form__grid">
-        ${field('name', 'Name', 'text', 'autocomplete="name" required')}
-        ${field('email', 'Work email', 'email', 'autocomplete="email" required')}
-        ${field('company', 'Company', 'text', 'autocomplete="organization" required')}
-        ${field('location', 'City / country', 'text', 'autocomplete="address-level2"')}
-      </div>
-      <div class="field">
-        <label for="looking-for">What are you looking for?</label>
-        <select id="looking-for" name="looking_for">
-          <option value="">Select an option</option>
-          ${f.lookingFor.map((o) => `<option>${esc(o)}</option>`).join('')}
-        </select>
-      </div>
-      <div class="field">
-        <label for="message">Message</label>
-        <textarea id="message" name="message" rows="6" required></textarea>
-      </div>
-      <div class="hp" aria-hidden="true"><label for="website">Leave this field empty</label><input id="website" name="_gotcha" type="text" tabindex="-1" autocomplete="off"></div>
-      <p class="mono muted small">Name, work email, company and message are required. We use your details only to respond to your enquiry.</p>
-      <button class="btn btn--solid" type="submit">Send enquiry</button>
-      <p class="form__status" data-form-status role="status" aria-live="polite"></p>
-    </form>
-  </div>
-</section>
+${section(
+  sectionHead({ id: 'corp-enq', num: '01', labelText: c.corporate.label, headline: c.corporate.headline, size: 'head-lg' }) +
+    `<div class="g row">
+      <div class="c2 w1 flow"><p>${esc(c.corporate.body)}</p></div>
+      <form class="c3 w2 form" data-enquiry-form data-endpoint="${esc(f.endpoint)}" ${
+        connected ? `action="${esc(f.endpoint)}" method="post"` : ''
+      } novalidate>
+        ${
+          connected
+            ? ''
+            : `<div class="form__preview" role="note"><strong>Preview form.</strong> This form is not connected to a submission service yet, so nothing you enter will be sent.</div>`
+        }
+        <div class="form__grid">
+          ${field('name', 'Name', 'text', 'autocomplete="name" required')}
+          ${field('email', 'Work email', 'email', 'autocomplete="email" required')}
+          ${field('company', 'Company', 'text', 'autocomplete="organization" required')}
+          ${field('location', 'City / country', 'text', 'autocomplete="address-level2"')}
+        </div>
+        <div class="field">
+          <label for="looking-for">What are you looking for?</label>
+          <select id="looking-for" name="looking_for">
+            <option value="">Select an option</option>
+            ${f.lookingFor.map((o) => `<option>${esc(o)}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field">
+          <label for="message">Message</label>
+          <textarea id="message" name="message" rows="6" required></textarea>
+        </div>
+        <div class="hp" aria-hidden="true"><label for="website">Leave this field empty</label><input id="website" name="_gotcha" type="text" tabindex="-1" autocomplete="off"></div>
+        <p class="mono muted small">Name, work email, company and message are required. We use your details only to respond to your enquiry.</p>
+        <button class="btn btn--solid" type="submit">Send enquiry</button>
+        <p class="form__status" data-form-status role="status" aria-live="polite"></p>
+      </form>
+    </div>`,
+  { cls: 'enquiry', id: c.corporate.id, labelledby: 'corp-enq' }
+)}
 
-<section class="section on-dark enquiry" id="${c.distrik.id}" aria-labelledby="distrik-enq">
-  <div class="g">
-    <div class="c1 w1">${label(c.distrik.label + ' · Canggu', '02')}</div>
-    <div class="c2 w1">
-      ${distrikLogo('distrik-logo--md')}
-      <h2 id="distrik-enq" class="head-lg">${rich(c.distrik.headline)}</h2>
-      <p>${esc(c.distrik.body)}</p>
-    </div>
-    <ul class="c3 w2 contact-list">
-      <li><span class="mono">Book</span>${link(distrik.booking, 'Book on Fresha ↗', 'contact-list__link')}</li>
-      <li><span class="mono">Email</span>${link(`mailto:${distrik.email}`, distrik.email, 'contact-list__link')}</li>
-      <li><span class="mono">Instagram</span>${link(distrik.instagram, distrik.instagramHandle + ' ↗', 'contact-list__link')}</li>
-      <li><span class="mono">Address</span><address>${distrik.address.map(esc).join('<br>')}</address></li>
-    </ul>
-  </div>
-</section>
+${section(
+  `<div class="g sh"><div class="c1 w1">${label(c.distrik.label + ' · Canggu', '02')}</div><div class="c2 w1">${distrikLogo('distrik-logo--md')}</div></div>` +
+    sectionHead({ id: 'distrik-enq', num: '', labelText: '', headline: c.distrik.headline, size: 'head-lg' }) +
+    `<div class="g row">
+      <div class="c2 w1 flow"><p>${esc(c.distrik.body)}</p></div>
+      <ul class="c3 w2 contact-list">
+        <li><span class="mono">Book</span>${link(distrik.booking, 'Book on Fresha ↗', 'contact-list__link')}</li>
+        <li><span class="mono">Email</span>${link(`mailto:${distrik.email}`, distrik.email, 'contact-list__link')}</li>
+        <li><span class="mono">Instagram</span>${link(distrik.instagram, distrik.instagramHandle + ' ↗', 'contact-list__link')}</li>
+        <li><span class="mono">Address</span><address>${distrik.address.map(esc).join('<br>')}</address></li>
+      </ul>
+    </div>`,
+  { cls: 'on-dark enquiry', id: c.distrik.id, labelledby: 'distrik-enq' }
+)}
 `,
   };
 }
@@ -544,7 +515,7 @@ export function notFound() {
     hero: 'none',
     noindex: true,
     body: `${textHero({ label: 'Error 404', headline: ['Page not *found.*'], body: 'The page you are looking for has moved or does not exist.' })}
-<div class="g section-tail"><div class="c3 w1">${cta({ label: 'Back to home', href: '/' })}</div></div>`,
+<div class="section-tail">${row([{ col: 4, html: ctaStack([{ label: 'Back to home', href: '/' }]) }])}</div>`,
   };
 }
 
@@ -557,10 +528,15 @@ export function reserved(path) {
     hero: 'none',
     noindex: true,
     body: `${textHero({ label: 'Client hub', headline: [`*${c.headline}*`], body: c.body })}
-<div class="g section-tail">
-  <div class="c3 w1">${cta({ label: 'Corporate Wellness', href: '/corporate-wellness/' })}</div>
-  <div class="c4 w1">${cta({ label: 'Contact', href: '/contact/' })}</div>
-</div>`,
+<div class="section-tail">${row([
+      {
+        col: 4,
+        html: ctaStack([
+          { label: 'Corporate Wellness', href: '/corporate-wellness/' },
+          { label: 'Contact', href: '/contact/' },
+        ]),
+      },
+    ])}</div>`,
   };
 }
 

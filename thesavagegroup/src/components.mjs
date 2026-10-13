@@ -103,22 +103,54 @@ export const imageUrl = (key, width = 1200) => {
   return `${site.domain}/assets/img/${im.src}-${w}.webp`;
 };
 
+/* ---------------------------------------------------------------------
+   GRID SLOTS — every section follows the same four-column map:
+
+     column 1   LABEL    section number + label (nothing else lives here,
+                         except images that start the row)
+     column 2   HEAD     headings start here and run to column 4
+                TEXT     the main paragraph
+     column 3   TEXT 2   a second paragraph, list or detail
+     column 4   ACTION   calls to action, asides, small images
+
+   Rows stack with fixed spacing tokens (--s4 inside a section,
+   --section between sections), and every row is top-aligned.
+   --------------------------------------------------------------------- */
+
+// Section heading row: label in column 1, heading across columns 2–4.
+export function sectionHead({ id, num, labelText, headline, size = 'head-xl', tag = 'h2' }) {
+  return `<div class="g sh">
+    <div class="c1 w1">${label(labelText, num)}</div>
+    <${tag}${id ? ` id="${id}"` : ''} class="${size} c2 w3">${Array.isArray(headline) ? lines(headline) : rich(headline)}</${tag}>
+  </div>`;
+}
+
+// A content row under a heading. Pass cells as { col, span, html, cls }.
+export function row(cells, cls = '') {
+  return `<div class="g row ${cls}">${cells
+    .filter(Boolean)
+    .map((c) => `<div class="c${c.col} w${c.span || 1}${c.m1 ? ' m1' : ''} ${c.cls || ''}">${c.html}</div>`)
+    .join('')}</div>`;
+}
+
+export const ctaStack = (ctas, cls = '') => `<div class="cta-stack">${ctas.map((c) => cta(c, cls)).join('')}</div>`;
+
 /**
- * Full-bleed photographic hero.
- * meta — up to four short mono strings, one per grid column, along the top.
- * logo — optional markup shown above the headline.
+ * Full-bleed photographic hero. Top: up to four mono notes, one per column.
+ * Bottom row uses the same slots as every section: label · text · actions.
  */
-export function photoHero({ hero, meta = [], logo = '', ctas = hero.ctas || [], size = '' }) {
+export function photoHero({ hero, meta = [], logo = '', ctas = hero.ctas || [], labelText = '' }) {
   return `<section class="hero hero--${hero.tone || 'dark'}" aria-labelledby="page-title">
   <div class="hero__media">${picture(hero.image, { span: 4, eager: true })}</div>
   <div class="hero__inner">
-    <div class="g hero__meta">${meta.map((m, i) => `<p class="mono c${i + 1} w1">${esc(m)}</p>`).join('')}</div>
+    <div class="g hero__meta">${meta.map((m, i) => (m ? `<p class="mono c${i + 1} w1">${esc(m)}</p>` : '')).join('')}</div>
     <div class="hero__foot">
       ${logo}
-      <h1 id="page-title" class="display ${size}">${lines(hero.headline)}</h1>
+      <h1 id="page-title" class="display">${lines(hero.headline)}</h1>
       <div class="g hero__row">
-        ${hero.body ? `<p class="hero__body c1 w2">${esc(hero.body)}</p>` : ''}
-        ${ctas.map((c, i) => `<div class="c${3 + i} w1 m1">${cta(c, 'cta--light')}</div>`).join('')}
+        <p class="mono c1 w1 hero__label">${esc(labelText || hero.label || '')}</p>
+        ${hero.body ? `<p class="hero__body c2 w1">${esc(hero.body)}</p>` : ''}
+        ${ctas.length ? `<div class="c4 w1">${ctaStack(ctas, 'cta--light')}</div>` : ''}
       </div>
     </div>
   </div>
@@ -130,29 +162,15 @@ export function textHero(hero, meta = []) {
   return `<section class="hero-text" aria-labelledby="page-title">
   <div class="g hero__meta">${[hero.label, ...meta].map((m, i) => `<p class="mono c${i + 1} w1">${esc(m)}</p>`).join('')}</div>
   <h1 id="page-title" class="display">${lines(hero.headline)}</h1>
-  ${hero.body ? `<div class="g"><p class="lead c3 w2">${esc(hero.body)}</p></div>` : ''}
+  ${hero.body ? `<div class="g row"><p class="lead c2 w2">${esc(hero.body)}</p></div>` : ''}
 </section>`;
 }
 
-// Large statement: label in column 1, serif statement across columns 2–4.
-export function statement({ id, num, labelText, headline, body = '', extra = '', tag = 'h2', size = 'head-xl' }) {
-  return `<section class="section statement"${id ? ` id="${id}"` : ''}${id ? ` aria-labelledby="${id}-t"` : ''}>
-  <div class="g">
-    <div class="c1 w1">${label(labelText, num)}</div>
-    <${tag} class="${size} c2 w3"${id ? ` id="${id}-t"` : ''}>${rich(headline)}</${tag}>
-    ${body ? `<p class="lead c3 w2 statement__body">${esc(body)}</p>` : ''}
-    ${extra}
-  </div>
-</section>`;
-}
-
-// Giant call-to-action band.
-export function ctaBand({ id, headline, ctas = [], labelText = '' }) {
+// Giant call-to-action band: label · full-width headline · actions in column 4.
+export function ctaBand({ id, headline, ctas = [], labelText = 'Contact' }) {
   return `<section class="section cta-band" aria-labelledby="${id}">
-  <div class="g">${labelText ? `<div class="c1 w1">${label(labelText)}</div>` : ''}</div>
+  <div class="g"><div class="c1 w1">${label(labelText)}</div></div>
   <h2 id="${id}" class="display display--band">${lines(headline)}</h2>
-  <div class="g cta-band__row">
-    ${ctas.map((c, i) => `<div class="c${3 + i} w1">${cta(c)}</div>`).join('')}
-  </div>
+  ${row([{ col: 4, html: ctaStack(ctas) }])}
 </section>`;
 }

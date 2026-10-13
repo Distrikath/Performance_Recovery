@@ -111,11 +111,22 @@ Review notes currently on the site:
 
 ### Design system
 
-**Grid.** Every page sits on a 4-column grid (2 columns on phones). Images only ever span
-¼, ½, ¾ or the full width, in one of three shapes: portrait 4:5, landscape 3:2 or wide 16:9.
-Text blocks start on the same quarter lines. In the templates (`src/pages.mjs`), `c1`–`c4` sets the
-starting column and `w1`–`w4` the width; `picture(key, { span, shape })` places a photo.
-In a preview build, press **G** to overlay the grid and check alignment.
+**Grid.** Every page sits on a 4-column grid (2 columns on phones), and every section uses the same
+column slots:
+
+| Column | Slot | What goes there |
+|---|---|---|
+| 1 | Label | Section number and label, e.g. `(02) Corporate Wellness` |
+| 2–4 | Heading | Section headings always start in column 2 |
+| 2 | Text | The main paragraph |
+| 3 | Text 2 | A second paragraph, list or detail |
+| 4 | Action | Buttons and links, asides, small images |
+
+Images only span ¼, ½, ¾ or the full width, in portrait 4:5, landscape 3:2 or wide 16:9. Rows are
+top-aligned and separated by fixed spacing steps (`--s1`–`--s5` in the stylesheet); nothing uses
+one-off margins. In the templates (`src/pages.mjs`), `sectionHead()` builds the label and heading row,
+and `row([{ col, span, html }])` places content in the slots. In a preview build, press **G** to overlay
+the grid and check alignment.
 
 **Type.** Three faces, paired as in the Tanker × Space Grotesk reference:
 - **Tanker** (Indian Type Foundry, via Fontshare, ITF Free Font License): uppercase display headings.
