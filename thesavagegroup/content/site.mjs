@@ -231,6 +231,12 @@ export const images = {
     posMobile: '40% 50%',
     source: 'Supplied by The Savage Group',
   },
+  'shoulder-sweat': {
+    src: 'shoulder-sweat',
+    alt: 'Close detail of an athlete’s shoulder beaded with sweat after training',
+    pos: '55% 40%',
+    source: 'Supplied by The Savage Group',
+  },
   'distrik-furniture-detail': {
     src: 'distrik-furniture-detail',
     alt: 'Black leather seating and a wire side table on a polished concrete floor',
@@ -239,36 +245,28 @@ export const images = {
   },
 
   // ---- Temporary stand-ins and placeholders ----------------------------
-  // Entries marked `temporary: true` use existing DISTRIK photography until
-  // Savage Group images are supplied. Swap `src`/`alt` here when they arrive;
+  // Entries marked `temporary: true` still use existing DISTRIK photography
+  // (founder portrait and recovery fuel) until the right images are supplied. Swap `src`/`alt` here when they arrive;
   // every page using the key updates. In preview they carry a "Temporary image" tag.
   'ph-corporate-hero': {
-    // TEMPORARY. Wanted: wide workplace wellness shot with space on the left for text.
-    temporary: true,
-    src: 'athlete-sunglasses',
-    alt: 'Athlete in sunglasses catching her breath after training',
-    pos: '75% 30%',
-    posMobile: '90% 30%',
-    source: DISTRIK_CAMPAIGN + ' — temporary',
+    src: 'floor-stretch',
+    alt: 'An athlete in sunglasses holding a deep floor stretch under low blue light',
+    pos: '78% 40%',
+    posMobile: '96% 30%',
+    source: 'Supplied by The Savage Group',
   },
   'ph-workplace-session': {
-    // TEMPORARY stand-in until Savage Group workplace photography is supplied.
-    // Wanted: employees moving together in a real office or meeting space.
-    temporary: true,
-    src: 'athlete-stretch',
-    alt: 'Athlete stretching with arms extended against a white background',
-    pos: '62% 35%',
-    posMobile: '68% 30%',
-    source: DISTRIK_CAMPAIGN + ' — temporary',
+    src: 'group-walk',
+    alt: 'Three people walking together in white trainers across sunlit concrete',
+    pos: '30% 60%',
+    posMobile: '25% 60%',
+    source: 'Supplied by The Savage Group',
   },
   'ph-workplace-movement': {
-    // TEMPORARY. Wanted: movement session at work with a mixed group of employees.
-    temporary: true,
-    src: 'boxer-motion',
-    alt: 'Athlete throwing a punch, blurred with motion',
-    pos: '58% 40%',
-    posMobile: '60% 40%',
-    source: DISTRIK_CAMPAIGN + ' — temporary',
+    src: 'hand-wraps',
+    alt: 'A boxer in hand wraps resting his head down between rounds',
+    pos: '55% 45%',
+    source: 'Supplied by The Savage Group',
   },
   'ph-workplace-recovery': {
     placeholder: true,
@@ -276,12 +274,10 @@ export const images = {
     brief: 'Recovery pop-up in an office — seated massage or compression with colleagues nearby.',
   },
   'ph-workplace-connection': {
-    // TEMPORARY. Wanted: team run, walk or social session.
-    temporary: true,
-    src: 'runner-architecture',
-    alt: 'Runner in motion between concrete columns',
-    pos: '52% 60%',
-    source: DISTRIK_CAMPAIGN + ' — temporary',
+    src: 'post-run-coffee',
+    alt: 'Runners sharing coffee around a small table after a run',
+    pos: '55% 50%',
+    source: 'Supplied by The Savage Group',
   },
   'ph-linkedin': {
     placeholder: true,

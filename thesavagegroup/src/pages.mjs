@@ -263,7 +263,7 @@ ${section(
           labelText: 'Focus',
           title: f.name,
           body: `<p class="lead">${esc(f.body)}</p>`,
-          image: ['athlete-rest', 'athlete-profile', 'athlete-stretch'][i],
+          image: ['athlete-rest', 'shoulder-sweat', 'athlete-stretch'][i],
         })
       )
       .join('')}</div>` +
