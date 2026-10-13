@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMEEwQTBBIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYsNzgpIHNjYWxlKDEuMzApIiBmaWxsPSIjRjJGMkYwIj48cGF0aCBkPSJNIDAuMDYyNSAwIEwgNi42MjUgLTQxLjM5MDYyNSBMIDMzLjU5Mzc1IC00MS4zOTA2MjUgQyAzOS4wMDc4MTIgLTQxLjM5MDYyNSA0My41MDM5MDYgLTQwLjkwNjI1IDQ3LjA3ODEyNSAtMzkuOTM3NSBDIDUwLjY2MDE1NiAtMzguOTc2NTYyIDUzLjUgLTM3LjY2MDE1NiA1NS41OTM3NSAtMzUuOTg0Mzc1IEMgNTcuNjg3NSAtMzQuMzE2NDA2IDU5LjE3NTc4MSAtMzIuNDE0MDYyIDYwLjA2MjUgLTMwLjI4MTI1IEMgNjAuOTU3MDMxIC0yOC4xNTYyNSA2MS40MDYyNSAtMjUuOTIxODc1IDYxLjQwNjI1IC0yMy41NzgxMjUgQyA2MS40MDYyNSAtMjEuOTEwMTU2IDYxLjI5Njg3NSAtMjAuMzE2NDA2IDYxLjA3ODEyNSAtMTguNzk2ODc1IEMgNjAuODE2NDA2IC0xNy4wOTc2NTYgNjAuMzMyMDMxIC0xNS4zNTkzNzUgNTkuNjI1IC0xMy41NzgxMjUgQyA1OC45MjU3ODEgLTExLjc5Njg3NSA1Ny44Nzg5MDYgLTEwLjA5NzY1NiA1Ni40ODQzNzUgLTguNDg0Mzc1IEMgNTUuMDk3NjU2IC02Ljg2NzE4OCA1My4yNjk1MzEgLTUuNDIxODc1IDUxIC00LjE0MDYyNSBDIDQ4LjczODI4MSAtMi44NTkzNzUgNDUuOTIxODc1IC0xLjg0NzY1NiA0Mi41NDY4NzUgLTEuMTA5Mzc1IEMgMzkuMTcxODc1IC0wLjM2NzE4OCAzNS4xNDg0MzggMCAzMC40ODQzNzUgMCBaIE0gMjAuMjUgLTMwLjUzMTI1IEwgMTcuMTI1IC0xMC45NTMxMjUgTCAyOC42NDA2MjUgLTEwLjk1MzEyNSBDIDMxLjgzNTkzOCAtMTAuOTUzMTI1IDM0LjQ3MjY1NiAtMTEuMjUgMzYuNTQ2ODc1IC0xMS44NDM3NSBDIDM4LjYxNzE4OCAtMTIuNDM3NSA0MC4yNSAtMTMuMjA3MDMxIDQxLjQzNzUgLTE0LjE1NjI1IEMgNDIuNjI1IC0xNS4xMDE1NjIgNDMuNDg0Mzc1IC0xNi4wOTM3NSA0NC4wMTU2MjUgLTE3LjEyNSBDIDQ0LjU1NDY4OCAtMTguMTY0MDYyIDQ0Ljg5ODQzOCAtMTkuMTQ4NDM4IDQ1LjA0Njg3NSAtMjAuMDc4MTI1IEMgNDUuMjAzMTI1IC0yMS4wMDM5MDYgNDUuMjgxMjUgLTIxLjc1IDQ1LjI4MTI1IC0yMi4zMTI1IEMgNDUuMjgxMjUgLTIzLjIzODI4MSA0NS4xMTMyODEgLTI0LjE3OTY4OCA0NC43ODEyNSAtMjUuMTQwNjI1IEMgNDQuNDQ1MzEyIC0yNi4xMDkzNzUgNDMuNzk2ODc1IC0yNyA0Mi44MjgxMjUgLTI3LjgxMjUgQyA0MS44NjcxODggLTI4LjYyNSA0MC41IC0yOS4yODEyNSAzOC43MTg3NSAtMjkuNzgxMjUgQyAzNi45Mzc1IC0zMC4yODEyNSAzNC41OTc2NTYgLTMwLjUzMTI1IDMxLjcwMzEyNSAtMzAuNTMxMjUgWiBNIDIwLjI1IC0zMC41MzEyNSAiLz48L2c+PC9zdmc+">
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20261011189;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20261011191;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -12349,7 +12349,7 @@ function clinParseTime(str){
 }
 function clinHHMM(h){ var H=Math.floor(h+1e-9); var M=Math.round((h-H)*60); if(M===60){H++;M=0;} return ('0'+H).slice(-2)+':'+('0'+M).slice(-2); }
 function clin12(h){ var H=Math.floor(h+1e-9); var M=Math.round((h-H)*60); if(M===60){H++;M=0;} var ap=H>=12?'PM':'AM'; var hh=H%12; if(hh===0)hh=12; return hh+':'+('0'+M).slice(-2)+' '+ap; }
-var CLIN_BUFFER_MIN = 15; // turnover buffer after every session
+var CLIN_BUFFER_MIN = 0; // turnover buffer after every session — set to 0: bookings can sit back-to-back
 // Available start times for the selected service in the selected room, honouring roster hours,
 // existing bookings, and session duration + 15-min buffer.
 // Consultations take NO turnover buffer — they're quick chats, so the next appointment can sit right after.
@@ -12403,7 +12403,7 @@ function _clinTimeField(stepNo){
   var dayAb=clinDate.toLocaleDateString('en-US',{weekday:'short'});
   var isToday=(clinKey()===((typeof todayKey==='function')?todayKey():''));
   var nowHr=-1; if(isToday){ var _bnw=(typeof baliNow==='function'?baliNow():new Date()); nowHr=_bnw.getHours()+_bnw.getMinutes()/60; }
-  return '<div class="clin-field"><label>'+lbl+' <span style="text-transform:none;color:#9a9a9e">· '+clinCurrentDuration()+' min'+(_clinIsConsult(clinSvc())?' · no buffer':(' + '+CLIN_BUFFER_MIN+' min buffer after'))+'</span></label><div class="clin-windows">'
+  return '<div class="clin-field"><label>'+lbl+' <span style="text-transform:none;color:#9a9a9e">· '+clinCurrentDuration()+' min'+((CLIN_BUFFER_MIN>0 && !_clinIsConsult(clinSvc()))?(' + '+CLIN_BUFFER_MIN+' min buffer after'):'')+'</span></label><div class="clin-windows">'
     +times.map(function(t){ var hh=clinHHMM(t); var pst=(isToday && t < nowHr-1e-9);
         return '<button class="clin-win'+(clinTime===hh?' sel':'')+'"'+(pst?' style="opacity:.5;" title="already passed — for edits or after-the-fact walk-ins"':'')+' onclick="clinSelectTime(\''+hh+'\')">'+dayAb+' '+hh+(pst?' ·past':'')+'</button>'; }).join('')
     +'</div></div>';
@@ -13204,6 +13204,10 @@ function _clinSaveOne(orderId, sendEmail){
         }
       }catch(e){}
       rec.ledgerDate=_bizDate;
+      // A plain MOVE updates the main leg to the new time but would leave the <id>_bal leg at the OLD time — a phantom
+      // that blocks the old slot. For any not-yet-checked-out booking, re-sync (zero) the balance leg to the new slot.
+      // Skip only when the balance was genuinely collected (balancePaid), so a real checked-out amount is never wiped.
+      if(clinEditingId && !rec.balancePaid) rec._repriceClearBal=true;
       if(typeof ledgerWrite==='function') ledgerWrite('recovery', rec.id, _bizDate, (typeof clinCollected==='function'?clinCollected(rec):(rec.price||0)), 0, rec.payMethod, rec, rec.status);
       // On an EXTEND of an already-paid booking we moved the collected money into the base doc above; clear any stale
       // <id>_bal so it isn't counted twice. Check out then writes the real difference back into <id>_bal.
