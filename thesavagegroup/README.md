@@ -108,9 +108,24 @@ Review notes currently on the site:
 - DISTRIK: name the IV and blood-testing clinical partner only once they approve the wording, and
   confirm opening hours and prices.
 
-Design tokens (colours, type scale and spacing) are at the top of `src/assets/styles.css`. The type stack
-is `"Helvetica Neue", Helvetica, Arial, sans-serif`. To use brand fonts, add `@font-face` rules there
-and change `--font`.
+### Design system
+
+**Grid.** Every page sits on a 4-column grid (2 columns on phones). Images only ever span
+¼, ½, ¾ or the full width, in one of three shapes: portrait 4:5, landscape 3:2 or wide 16:9.
+Text blocks start on the same quarter lines. In the templates (`src/pages.mjs`), `c1`–`c4` sets the
+starting column and `w1`–`w4` the width; `picture(key, { span, shape })` places a photo.
+In a preview build, press **G** to overlay the grid and check alignment.
+
+**Type.** All three fonts are open-licence (SIL OFL) and self-hosted in `src/assets/fonts/`, so nothing
+loads from a third-party font service.
+- **Archivo** (variable): compressed uppercase for display headings; normal width for body text.
+- **Instrument Serif**: editorial statements and italic accents.
+- **IBM Plex Mono**: labels, index numbers, captions and navigation.
+
+In `content/site.mjs`, wrap a word in asterisks to set it in the italic serif, for example
+`'Built around *people.*'`.
+
+Colours, spacing and type sizes are defined at the top of `src/assets/styles.css`.
 
 ## 4. Connecting the enquiry form
 
@@ -155,7 +170,8 @@ DISTRIK enquiries go directly to hello@distrikath.com, Instagram and Fresha. No 
 - Mobile menu: keyboard open/close, Esc to close, focus moves into the menu and back, `aria-expanded`.
 - One `h1` per page with no skipped heading levels, and unique titles and meta descriptions.
 - All internal links and anchors resolve, and all images load.
-- Text contrast (WCAG AA): body 16:1, muted text 7:1 (5.3:1 on stone), muted text on dark 8.7:1.
+- Text contrast (WCAG AA): body 16:1, muted text 6.6:1, muted text on dark 8.1:1.
+- Grid overlay check: images, headings and text align to the quarter columns.
 - Form: required-field validation, no network request and an honest "not sent" message while unconnected.
 - `prefers-reduced-motion` disables transitions and smooth scrolling. Images below the fold use `loading="lazy"`,
   and every image has width and height set.

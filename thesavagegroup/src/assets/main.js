@@ -14,7 +14,7 @@
   // Mobile menu.
   const setMenu = (open) => {
     toggle.setAttribute('aria-expanded', String(open));
-    menuLabel.textContent = open ? 'Close menu' : 'Open menu';
+    menuLabel.textContent = open ? 'Close' : 'Menu';
     menu.hidden = !open;
     body.classList.toggle('menu-open', open);
     setSolid();
@@ -43,6 +43,15 @@
     }
   });
   window.matchMedia('(min-width: 1000px)').addEventListener('change', (e) => e.matches && setMenu(false));
+
+  // Preview only: press G to overlay the 4-column grid.
+  if (body.hasAttribute('data-preview')) {
+    document.addEventListener('keydown', (e) => {
+      if (e.key.toLowerCase() === 'g' && !e.target.closest('input, textarea, select') && !e.metaKey && !e.ctrlKey) {
+        body.classList.toggle('show-grid');
+      }
+    });
+  }
 
   // Enquiry form. Never reports success unless the configured endpoint
   // confirms it. With no endpoint, it explains that nothing was sent.

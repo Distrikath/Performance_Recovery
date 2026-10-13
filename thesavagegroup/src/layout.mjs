@@ -9,6 +9,9 @@ export function layout({ path, title, description, body, hero = 'none', noindex 
   const current = (href) => (path === href || (href !== '/' && path.startsWith(href)) ? ' aria-current="page"' : '');
 
   const navLinks = nav.map((n) => `<li><a href="${n.href}"${current(n.href)}>${esc(n.label)}</a></li>`).join('');
+  const menuLinks = nav
+    .map((n, i) => `<li><a href="${n.href}"${current(n.href)}><span class="mono" aria-hidden="true">0${i + 1}</span>${esc(n.label)}</a></li>`)
+    .join('');
 
   return `<!doctype html>
 <html lang="en">
@@ -29,27 +32,30 @@ ${ogImage ? `<meta property="og:image" content="${ogImage}">` : ''}
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#171717">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="/assets/fonts/archivo-var.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/instrument-serif-italic.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/styles.css">
 <script src="/assets/main.js" defer></script>
 </head>
-<body data-hero="${hero}">
+<body data-hero="${hero}"${site.preview ? ' data-preview' : ''}>
 <a class="skip-link" href="#main">Skip to content</a>
 <header class="site-header" data-header>
-  <div class="site-header__inner wrap">
-    <a class="wordmark" href="/"${path === '/' ? ' aria-current="page"' : ''}>${esc(site.wordmark)}</a>
-    <nav class="site-nav" aria-label="Main">
+  <div class="g site-header__inner">
+    <a class="wordmark c1 w1" href="/"${path === '/' ? ' aria-current="page"' : ''}>${esc(site.wordmark)}</a>
+    <nav class="site-nav c2 w2" aria-label="Main">
       <ul>${navLinks}</ul>
     </nav>
-    <a class="btn btn--header" href="${headerCta.href}">${esc(headerCta.label)}</a>
-    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="mobile-menu" data-menu-toggle>
-      <span class="sr-only" data-menu-label>Open menu</span>
-      <span class="menu-toggle__bars" aria-hidden="true"><span></span><span></span></span>
-    </button>
+    <div class="site-header__end c4 w1">
+      <a class="header-cta" href="${headerCta.href}">${esc(headerCta.label)}</a>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="mobile-menu" data-menu-toggle>
+        <span data-menu-label>Menu</span>
+      </button>
+    </div>
   </div>
 </header>
 <div class="mobile-menu" id="mobile-menu" data-menu hidden>
-  <nav class="wrap" aria-label="Mobile">
-    <ul>${navLinks}</ul>
+  <nav aria-label="Mobile">
+    <ul>${menuLinks}</ul>
     <a class="btn btn--solid btn--block" href="${headerCta.href}">${esc(headerCta.label)}</a>
   </nav>
 </div>
@@ -57,41 +63,38 @@ ${ogImage ? `<meta property="og:image" content="${ogImage}">` : ''}
 ${body}
 </main>
 ${footer()}
-${site.preview ? '<div class="preview-bar" role="note">Preview build — not for publication. Review notes and photography placeholders are visible.</div>' : ''}
+${site.preview ? '<div class="preview-bar" role="note">Preview build — not for publication · press G to show the grid</div>' : ''}
+<div class="grid-overlay" aria-hidden="true"><div class="g"><span></span><span></span><span></span><span></span></div></div>
 </body>
 </html>
 `;
 }
 
 function footer() {
-  const legal = site.legal.length
-    ? `<ul class="footer__legal">${site.legal
-        .map((l) => `<li>${esc(l.name)}${l.detail ? ` · ${esc(l.detail)}` : ''}</li>`)
-        .join('')}</ul>`
-    : '';
+  const legal = site.legal.map((l) => `<li>${esc(l.name)}${l.detail ? ` · ${esc(l.detail)}` : ''}</li>`).join('');
   return `<footer class="site-footer on-dark">
-  <div class="wrap">
-    <div class="footer__top">
-      <div>
-        <p class="footer__wordmark">${esc(site.wordmark)}</p>
-        <p class="footer__tagline">${esc(site.tagline)}</p>
-      </div>
-      <nav aria-label="Footer">
-        <ul class="footer__nav">${nav.map((n) => `<li><a href="${n.href}">${esc(n.label)}</a></li>`).join('')}</ul>
-      </nav>
-      <div class="footer__col">
-        <p class="label">DISTRIK · Canggu</p>
-        <ul>
-          <li>${link(`mailto:${distrik.email}`, distrik.email)}</li>
-          <li>${link(distrik.instagram, `Instagram ${distrik.instagramHandle}`)}</li>
-          <li>${link(distrik.booking, 'Book recovery')}</li>
-        </ul>
-      </div>
+  <div class="g footer__top">
+    <p class="serif-md c1 w1 footer__tagline">${esc(site.tagline)}</p>
+    <nav class="c2 w1" aria-label="Footer">
+      <p class="label">Index</p>
+      <ul class="footer__list">${nav.map((n) => `<li><a href="${n.href}">${esc(n.label)}</a></li>`).join('')}</ul>
+    </nav>
+    <div class="c3 w1">
+      <p class="label">DISTRIK · Canggu</p>
+      <ul class="footer__list">
+        <li>${link(`mailto:${distrik.email}`, distrik.email)}</li>
+        <li>${link(distrik.instagram, `Instagram ${distrik.instagramHandle}`)}</li>
+        <li>${link(distrik.booking, 'Book recovery')}</li>
+      </ul>
     </div>
-    <div class="footer__bottom">
-      <p>© ${new Date().getFullYear()} ${esc(site.name)}</p>
-      ${legal}
+    <div class="c4 w1">
+      <p class="label">Information</p>
+      <ul class="footer__list footer__legal">
+        <li>© ${new Date().getFullYear()} ${esc(site.name)}</li>
+        ${legal}
+      </ul>
     </div>
   </div>
+  <p class="footer__wordmark" aria-hidden="true">${esc(site.wordmark)}</p>
 </footer>`;
 }

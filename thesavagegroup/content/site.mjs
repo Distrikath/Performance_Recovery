@@ -196,6 +196,12 @@ export const images = {
     caption: 'A treatment room at DISTRIK, Canggu.',
     source: DISTRIK_PREMISES,
   },
+  'athlete-stretch': {
+    src: 'athlete-stretch',
+    alt: 'Athlete stretching with arms extended against a white background',
+    pos: '62% 35%',
+    source: DISTRIK_CAMPAIGN,
+  },
   'distrik-furniture-detail': {
     src: 'distrik-furniture-detail',
     alt: 'Black leather seating and a wire side table on a polished concrete floor',
@@ -358,7 +364,7 @@ export const pages = {
       'The Savage Group creates wellness experiences for workplaces and communities — corporate wellness programs in Australia and DISTRIK performance recovery in Canggu, Bali.',
     hero: {
       label: 'The Savage Group',
-      headline: ['Movement.', 'Recovery.', 'Connection.'],
+      headline: ['Movement.', 'Recovery.', '*Connection.*'],
       body: 'We create wellness experiences for workplaces and communities. From corporate programs in Australia to performance recovery in Bali.',
       image: 'athlete-sweat',
       tone: 'dark', // dark image → light text
@@ -369,37 +375,37 @@ export const pages = {
     },
     intro: {
       label: 'What we do',
-      headline: 'Built around people.',
+      headline: 'Built around *people.*',
       body: 'Different settings. A shared purpose. We bring together movement, recovery and connection to create experiences people want to be part of—and return to.',
     },
     corporate: {
       label: 'Corporate Wellness',
-      headline: ['Wellness that fits', 'the working day.'],
+      headline: ['Wellness that fits', 'the *working day.*'],
       body: 'Movement, recovery, education and social experiences designed around your people. We manage the program, the instructors and the details that make participation easier.',
       image: 'ph-workplace-session',
       cta: { label: 'Explore Corporate Wellness', href: '/corporate-wellness/' },
     },
     distrik: {
       label: 'DISTRIK · Canggu, Bali',
-      headline: 'Built for recovery.',
+      headline: 'Built for *recovery.*',
       body: 'Sports massage, bodywork, mobility and recovery technology. Alongside Indonesian performance brands, recovery fuel and a community that moves.',
       image: 'distrik-assisted-stretch',
       list: ['Sports massage', 'Bodywork', 'Mobility', 'Recovery technology', 'DISTRIK Supply', 'Recovery fuel', 'Community'],
     },
     work: {
       label: 'Selected work',
-      headline: 'Work in practice.',
+      headline: 'Work in *practice.*',
     },
     story: {
       label: 'Our Story',
-      headline: ['Experience behind', 'every experience.'],
+      headline: ['Experience behind', 'every *experience.*'],
       body: 'Founded by Justin Savage, The Savage Group brings together experience across gym ownership, corporate wellness, design and retail. Today, that work connects workplace programs in Australia with a dedicated performance recovery club in Bali.',
       image: 'distrik-lounge',
       cta: { label: 'Our Story', href: '/our-story/' },
     },
     contact: {
       label: 'Contact',
-      headline: ['Let’s build something', 'people want to be part of.'],
+      headline: ['Let’s build something', 'people want to be *part of.*'],
       ctas: [
         { label: 'Discuss a Workplace Program', href: '/contact/#corporate' },
         { label: 'Visit DISTRIK', href: '/distrik/#visit' },
@@ -414,7 +420,7 @@ export const pages = {
       'Workplace wellness programs built around your people: movement, recovery, education and connection, managed as one program by The Savage Group.',
     hero: {
       label: 'Corporate Wellness',
-      headline: ['Better days', 'at work.'],
+      headline: ['Better days', '*at work.*'],
       body: 'Wellness programs built around your people, your workplace and the way your teams work.',
       image: 'ph-corporate-hero',
       tone: 'dark',
@@ -458,7 +464,7 @@ export const pages = {
     ],
     process: {
       label: 'How we work',
-      headline: 'Listen. Design. Deliver. Review.',
+      headline: 'Listen. Design. Deliver. *Review.*',
       steps: [
         { title: 'Listen', body: 'We start with your people: how they work, where they are based and what they would actually use.' },
         { title: 'Design', body: 'We shape a program and timetable around your spaces, schedules and goals.' },
@@ -469,7 +475,7 @@ export const pages = {
     client: {
       id: 'linkedin',
       label: 'Client work',
-      headline: 'LinkedIn — Sydney and Melbourne.',
+      headline: 'LinkedIn — Sydney and *Melbourne.*',
       body: 'The Savage Group has delivered workplace wellness programming for LinkedIn teams in Sydney and Melbourne.',
       disclaimer: 'LinkedIn is referenced as a client of The Savage Group. This does not imply endorsement by LinkedIn.',
       image: 'ph-linkedin',
@@ -483,7 +489,7 @@ export const pages = {
       body: 'We are exploring Singapore as a potential future expansion of our corporate wellness programs. If your teams are based there, we would welcome the conversation.',
     },
     cta: {
-      headline: ['Let’s design a program', 'your people will use.'],
+      headline: ['Let’s design a program', 'your people will *use.*'],
       button: { label: 'Build Your Workplace Program', href: '/contact/#corporate' },
     },
   },
@@ -495,13 +501,13 @@ export const pages = {
       'DISTRIK is a performance recovery club in Canggu, Bali: sports massage, bodywork, mobility and recovery technology, with DISTRIK Supply, recovery fuel and a Friday community run.',
     hero: {
       label: 'Performance Recovery Club',
-      headline: ['Recover well.', 'Move better.', 'Perform stronger.'],
+      headline: ['Recover well.', 'Move better.', '*Perform stronger.*'],
       image: 'city-night',
       tone: 'dark',
     },
     intro: {
       label: 'One club, three parts',
-      headline: 'Recovery, supply and fuel under one roof in Canggu.',
+      headline: 'Recovery, supply and fuel under one roof in *Canggu.*',
       parts: [
         { label: 'Performance Recovery', href: '#treatments' },
         { label: 'DISTRIK Supply', href: '#supply' },
@@ -549,7 +555,7 @@ export const pages = {
     community: {
       id: 'community',
       label: 'Community',
-      headline: 'Run the Distrik.',
+      headline: 'Run the *Distrik.*',
       when: 'Fridays at 6:00am.',
       body: 'A free community run welcoming every pace.',
       image: 'runners-motion',
@@ -561,7 +567,7 @@ export const pages = {
       body: 'IV therapy and blood testing are available by appointment through our clinical partner. These services are provided and assessed by the partner’s clinical team and are separate from DISTRIK’s massage and bodywork.',
       reviewNote: 'Name the clinical partner here only once the wording is approved by them.',
     },
-    visit: { id: 'visit', label: 'Visit', headline: 'Find us in Canggu.', image: 'distrik-treatment-room' },
+    visit: { id: 'visit', label: 'Visit', headline: 'Find us in *Canggu.*', image: 'distrik-treatment-room' },
   },
 
   story: {
@@ -571,7 +577,7 @@ export const pages = {
       'Founded by Justin Savage, The Savage Group brings together gym ownership, corporate wellness, design and retail — connecting workplace programs in Australia with DISTRIK in Bali.',
     hero: {
       label: 'Our Story',
-      headline: ['Experience behind', 'every experience.'],
+      headline: ['Experience behind', 'every *experience.*'],
       body: 'Founded by Justin Savage, The Savage Group connects workplace programs in Australia with a dedicated performance recovery club in Bali.',
       image: 'ph-founder',
     },
@@ -621,7 +627,7 @@ export const pages = {
       'Selected work from The Savage Group across workplace wellness, recovery experiences and community events.',
     hero: {
       label: 'Projects',
-      headline: ['Selected', 'work.'],
+      headline: ['Selected', '*work.*'],
       body: 'Workplace wellness, recovery experiences and community events. We only list work we can stand behind.',
     },
   },
@@ -633,7 +639,7 @@ export const pages = {
       'Talk to The Savage Group about a workplace wellness program, or get in touch with DISTRIK Performance Recovery Club in Canggu, Bali.',
     hero: {
       label: 'Contact',
-      headline: ['Let’s talk.'],
+      headline: ['Let’s *talk.*'],
       body: 'Two businesses, two ways in. Choose the one that fits.',
     },
     corporate: {
