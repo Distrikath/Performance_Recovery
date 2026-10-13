@@ -1,0 +1,135 @@
+{
+  "athlete-profile": {
+    "width": 1402,
+    "height": 1122,
+    "widths": [
+      480,
+      800,
+      1200,
+      1402
+    ]
+  },
+  "athlete-seated": {
+    "width": 1402,
+    "height": 1122,
+    "widths": [
+      480,
+      800,
+      1200,
+      1402
+    ]
+  },
+  "athlete-sweat": {
+    "width": 1402,
+    "height": 1122,
+    "widths": [
+      480,
+      800,
+      1200,
+      1402
+    ]
+  },
+  "city-night": {
+    "width": 1402,
+    "height": 1122,
+    "widths": [
+      480,
+      800,
+      1200,
+      1402
+    ]
+  },
+  "distrik-assisted-stretch": {
+    "width": 2000,
+    "height": 1333,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600,
+      2000
+    ]
+  },
+  "distrik-bodywork-detail": {
+    "width": 2000,
+    "height": 1333,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600,
+      2000
+    ]
+  },
+  "distrik-cupping": {
+    "width": 2000,
+    "height": 1333,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600,
+      2000
+    ]
+  },
+  "distrik-furniture-detail": {
+    "width": 2000,
+    "height": 1333,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600,
+      2000
+    ]
+  },
+  "distrik-lounge": {
+    "width": 1333,
+    "height": 2000,
+    "widths": [
+      480,
+      800,
+      1200,
+      1333
+    ]
+  },
+  "distrik-massage": {
+    "width": 2000,
+    "height": 1333,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600,
+      2000
+    ]
+  },
+  "distrik-treatment-room": {
+    "width": 1350,
+    "height": 1800,
+    "widths": [
+      480,
+      800,
+      1200,
+      1350
+    ]
+  },
+  "runner-architecture": {
+    "width": 941,
+    "height": 753,
+    "widths": [
+      480,
+      800,
+      941
+    ]
+  },
+  "runners-motion": {
+    "width": 941,
+    "height": 753,
+    "widths": [
+      480,
+      800,
+      941
+    ]
+  }
+}

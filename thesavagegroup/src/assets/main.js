@@ -1,0 +1,87 @@
+// The Savage Group — small progressive enhancements. The site works without JS.
+(() => {
+  const header = document.querySelector('[data-header]');
+  const toggle = document.querySelector('[data-menu-toggle]');
+  const menu = document.querySelector('[data-menu]');
+  const menuLabel = document.querySelector('[data-menu-label]');
+  const body = document.body;
+
+  // Header: transparent over the hero, solid once the page scrolls.
+  const setSolid = () => header.classList.toggle('is-solid', window.scrollY > 24 || body.classList.contains('menu-open'));
+  setSolid();
+  window.addEventListener('scroll', setSolid, { passive: true });
+
+  // Mobile menu.
+  const setMenu = (open) => {
+    toggle.setAttribute('aria-expanded', String(open));
+    menuLabel.textContent = open ? 'Close menu' : 'Open menu';
+    menu.hidden = !open;
+    body.classList.toggle('menu-open', open);
+    setSolid();
+    if (open) menu.querySelector('a')?.focus();
+  };
+  toggle.addEventListener('click', () => setMenu(toggle.getAttribute('aria-expanded') !== 'true'));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !menu.hidden) {
+      setMenu(false);
+      toggle.focus();
+    }
+  });
+  menu.addEventListener('click', (e) => {
+    if (e.target.closest('a')) setMenu(false);
+  });
+  // Keep keyboard focus inside the open menu (menu links + toggle).
+  menu.addEventListener('keydown', (e) => {
+    if (e.key !== 'Tab') return;
+    const items = [...menu.querySelectorAll('a')];
+    if (e.shiftKey && document.activeElement === items[0]) {
+      e.preventDefault();
+      toggle.focus();
+    } else if (!e.shiftKey && document.activeElement === items[items.length - 1]) {
+      e.preventDefault();
+      toggle.focus();
+    }
+  });
+  window.matchMedia('(min-width: 1000px)').addEventListener('change', (e) => e.matches && setMenu(false));
+
+  // Enquiry form. Never reports success unless the configured endpoint
+  // confirms it. With no endpoint, it explains that nothing was sent.
+  const form = document.querySelector('[data-enquiry-form]');
+  if (form) {
+    const status = form.querySelector('[data-form-status]');
+    const endpoint = form.dataset.endpoint;
+    const say = (msg, kind) => {
+      status.textContent = msg;
+      status.dataset.kind = kind;
+    };
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const invalid = [...form.querySelectorAll('[required]')].filter((f) => !f.checkValidity());
+      form.querySelectorAll('[aria-invalid]').forEach((f) => f.removeAttribute('aria-invalid'));
+      if (invalid.length) {
+        invalid.forEach((f) => f.setAttribute('aria-invalid', 'true'));
+        invalid[0].focus();
+        say('Please complete the highlighted fields.', 'error');
+        return;
+      }
+      if (!endpoint) {
+        say('Preview only: this enquiry has not been sent. The form is not yet connected to a submission service.', 'info');
+        return;
+      }
+      const button = form.querySelector('[type="submit"]');
+      button.disabled = true;
+      say('Sending…', 'info');
+      try {
+        const res = await fetch(endpoint, { method: 'POST', body: new FormData(form), headers: { Accept: 'application/json' } });
+        if (!res.ok) throw new Error(String(res.status));
+        form.reset();
+        say('Thank you. Your enquiry has been sent and we will be in touch.', 'success');
+      } catch {
+        say('Sorry, your enquiry could not be sent. Please try again shortly.', 'error');
+      } finally {
+        button.disabled = false;
+      }
+    });
+  }
+})();

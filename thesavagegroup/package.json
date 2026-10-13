@@ -1,0 +1,14 @@
+{
+  "name": "thesavagegroup",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The Savage Group website — static build, no runtime dependencies.",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "dev": "node serve.mjs --watch",
+    "preview": "node serve.mjs",
+    "images": "python3 tools/images.py"
+  },
+  "engines": { "node": ">=18" }
+}
