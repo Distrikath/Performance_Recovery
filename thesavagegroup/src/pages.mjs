@@ -146,7 +146,8 @@ export function corporate() {
 
   return {
     ...c,
-    hero: 'light',
+    hero: c.hero.tone,
+    image: c.hero.image,
     body: `
 ${photoHero({ hero: c.hero })}
 

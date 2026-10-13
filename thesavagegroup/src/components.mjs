@@ -77,7 +77,8 @@ export function picture(key, opts = {}) {
   }" height="${m.height}" alt="${esc(im.alt)}" style="${style}" ${
     eager ? 'fetchpriority="high" loading="eager"' : 'loading="lazy"'
   } decoding="async">`;
-  const frame = `<div class="frame ${cls}"${frameStyle}>${img}</div>`;
+  const tag = site.preview && im.temporary ? '<span class="temp-tag">Temporary image</span>' : '';
+  const frame = `<div class="frame ${cls}"${frameStyle}>${img}${tag}</div>`;
   if (caption && im.caption) {
     return `<figure class="figure">${frame}<figcaption class="caption">${esc(im.caption)}</figcaption></figure>`;
   }

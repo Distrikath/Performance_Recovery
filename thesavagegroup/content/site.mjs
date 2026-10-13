@@ -15,7 +15,7 @@ export const site = {
   name: 'The Savage Group',
   wordmark: 'THE SAVAGE GROUP',
   tagline: 'Movement. Recovery. Connection.',
-  domain: 'https://www.thesavagegroup.com',
+  domain: 'https://www.thesavagegroup.org',
   locale: 'en_AU',
 
   // While `preview` is true the site:
@@ -203,16 +203,37 @@ export const images = {
     source: DISTRIK_PREMISES,
   },
 
-  // ---- Placeholders: approved photography still required --------------
+  // ---- Temporary stand-ins and placeholders ----------------------------
+  // Entries marked `temporary: true` use existing DISTRIK photography until
+  // Savage Group images are supplied. Swap `src`/`alt` here when they arrive;
+  // every page using the key updates. In preview they carry a "Temporary image" tag.
+  'ph-corporate-hero': {
+    // TEMPORARY. Wanted: wide workplace wellness shot with space on the left for text.
+    temporary: true,
+    src: 'athlete-sunglasses',
+    alt: 'Athlete in sunglasses catching her breath after training',
+    pos: '75% 30%',
+    posMobile: '90% 30%',
+    source: DISTRIK_CAMPAIGN + ' — temporary',
+  },
   'ph-workplace-session': {
-    placeholder: true,
-    alt: '',
-    brief: 'Workplace wellness session — employees moving together in a real office or meeting space.',
+    // TEMPORARY stand-in until Savage Group workplace photography is supplied.
+    // Wanted: employees moving together in a real office or meeting space.
+    temporary: true,
+    src: 'athlete-stretch',
+    alt: 'Athlete stretching with arms extended against a white background',
+    pos: '62% 35%',
+    posMobile: '68% 30%',
+    source: DISTRIK_CAMPAIGN + ' — temporary',
   },
   'ph-workplace-movement': {
-    placeholder: true,
-    alt: '',
-    brief: 'Movement session at work — strength, Pilates or mobility with a mixed group of employees.',
+    // TEMPORARY. Wanted: movement session at work with a mixed group of employees.
+    temporary: true,
+    src: 'boxer-motion',
+    alt: 'Athlete throwing a punch, blurred with motion',
+    pos: '58% 40%',
+    posMobile: '60% 40%',
+    source: DISTRIK_CAMPAIGN + ' — temporary',
   },
   'ph-workplace-recovery': {
     placeholder: true,
@@ -220,9 +241,12 @@ export const images = {
     brief: 'Recovery pop-up in an office — seated massage or compression with colleagues nearby.',
   },
   'ph-workplace-connection': {
-    placeholder: true,
-    alt: '',
-    brief: 'Team run, walk or social session — colleagues together, natural moment.',
+    // TEMPORARY. Wanted: team run, walk or social session.
+    temporary: true,
+    src: 'runner-architecture',
+    alt: 'Runner in motion between concrete columns',
+    pos: '52% 60%',
+    source: DISTRIK_CAMPAIGN + ' — temporary',
   },
   'ph-linkedin': {
     placeholder: true,
@@ -230,14 +254,21 @@ export const images = {
     brief: 'Approved image from the LinkedIn program (requires client approval before use).',
   },
   'ph-founder': {
-    placeholder: true,
-    alt: '',
-    brief: 'Portrait of Justin Savage — natural light, at DISTRIK or on location.',
+    // TEMPORARY. Wanted: portrait of Justin Savage. Uses an interior, not a
+    // person, so no one is mistaken for the founder.
+    temporary: true,
+    src: 'distrik-treatment-room',
+    alt: 'A DISTRIK treatment room with a steel-framed glass ceiling and a treatment table',
+    pos: '50% 55%',
+    source: DISTRIK_PREMISES + ' — temporary',
   },
   'ph-recovery-fuel': {
-    placeholder: true,
-    alt: '',
-    brief: 'Coffee and recovery drinks being made at DISTRIK.',
+    // TEMPORARY. Wanted: coffee and recovery drinks being made at DISTRIK.
+    temporary: true,
+    src: 'athlete-eyewear',
+    alt: 'Close-up of an athlete in DISTRIK sunglasses, sweat on his face after training',
+    pos: '55% 45%',
+    source: DISTRIK_CAMPAIGN + ' — temporary',
   },
   'ph-supply': {
     placeholder: true,
@@ -385,8 +416,8 @@ export const pages = {
       label: 'Corporate Wellness',
       headline: ['Better days', 'at work.'],
       body: 'Wellness programs built around your people, your workplace and the way your teams work.',
-      image: 'ph-workplace-session',
-      tone: 'light',
+      image: 'ph-corporate-hero',
+      tone: 'dark',
       ctas: [{ label: 'Build Your Workplace Program', href: '/contact/#corporate' }],
     },
     offerings: [

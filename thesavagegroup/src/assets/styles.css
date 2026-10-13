@@ -221,6 +221,14 @@ h2.h-xl + p, h2.h-lg + p { margin-top: clamp(24px, 3vw, 40px); }
 .on-dark .figure .caption { color: var(--on-dark-muted); }
 .treatments__image .caption, .distrik-feature__image .caption { padding-inline: var(--gutter); }
 
+.temp-tag {
+  position: absolute; right: 12px; bottom: 12px; z-index: 2;
+  background: var(--bg); color: var(--ink);
+  font-size: 0.625rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 5px 8px;
+}
+.hero__media .temp-tag, .community__media .temp-tag { top: calc(var(--header-h) + 12px); bottom: auto; }
+
 /* Labelled placeholder for photography that has not been supplied yet */
 .ph {
   display: flex; flex-direction: column; justify-content: space-between; gap: 16px;

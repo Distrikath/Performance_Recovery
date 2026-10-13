@@ -1,4 +1,14 @@
 {
+  "athlete-eyewear": {
+    "width": 1402,
+    "height": 1122,
+    "widths": [
+      480,
+      800,
+      1200,
+      1402
+    ]
+  },
   "athlete-profile": {
     "width": 1402,
     "height": 1122,
@@ -19,6 +29,24 @@
       1402
     ]
   },
+  "athlete-stretch": {
+    "width": 1200,
+    "height": 960,
+    "widths": [
+      480,
+      800,
+      1200
+    ]
+  },
+  "athlete-sunglasses": {
+    "width": 941,
+    "height": 753,
+    "widths": [
+      480,
+      800,
+      941
+    ]
+  },
   "athlete-sweat": {
     "width": 1402,
     "height": 1122,
@@ -27,6 +55,15 @@
       800,
       1200,
       1402
+    ]
+  },
+  "boxer-motion": {
+    "width": 941,
+    "height": 753,
+    "widths": [
+      480,
+      800,
+      941
     ]
   },
   "city-night": {
