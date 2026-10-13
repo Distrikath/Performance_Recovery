@@ -87,7 +87,7 @@ ${
     ? `<section class="section" aria-labelledby="work-title">
   <div class="g section-head">
     <div class="c1 w1">${label(c.work.label, '04')}</div>
-    <h2 id="work-title" class="serif-xl c2 w2">${rich(c.work.headline)}</h2>
+    <h2 id="work-title" class="head-xl c2 w2">${rich(c.work.headline)}</h2>
     <div class="c4 w1 t-right">${cta({ label: 'All projects', href: '/projects/' })}</div>
   </div>
   <div class="g cards">
@@ -116,7 +116,7 @@ ${
     <div class="c1 w1 story-label">${label(c.story.label, '05')}</div>
     <div class="c2 w1">${picture(c.story.image, { span: 1, shape: 'portrait', caption: true })}</div>
     <div class="c3 w2">
-      <h2 id="story-title" class="serif-xl">${lines(c.story.headline)}</h2>
+      <h2 id="story-title" class="head-xl">${lines(c.story.headline)}</h2>
       <div class="g g--nested story-row">
         <p class="c1 w1">${esc(c.story.body)}</p>
         <div class="c2 w1">${cta(c.story.cta)}</div>
@@ -157,7 +157,7 @@ ${statement({
         num: pad(i + 1),
         labelText: x.label,
         title: x.label,
-        body: `<p class="serif-sm">${esc(x.headline)}</p><p>${esc(x.body)}</p>`,
+        body: `<p class="head-sm">${esc(x.headline)}</p><p>${esc(x.body)}</p>`,
         extra: x.items ? `<ul class="mono-list">${x.items.map((it) => `<li>${esc(it)}</li>`).join('')}</ul>` : '',
         image: x.image,
       })
@@ -168,7 +168,7 @@ ${statement({
 <section class="section process" aria-labelledby="process-title">
   <div class="g section-head">
     <div class="c1 w1">${label(c.process.label, '02')}</div>
-    <h2 id="process-title" class="serif-xl c2 w3">${rich(c.process.headline)}</h2>
+    <h2 id="process-title" class="head-xl c2 w3">${rich(c.process.headline)}</h2>
   </div>
   <ol class="g process__steps">
     ${c.process.steps
@@ -184,7 +184,7 @@ ${statement({
 <section class="section on-dark client" id="${c.client.id}" aria-labelledby="client-title">
   <div class="g">
     <div class="c1 w1">${label(c.client.label, '03')}</div>
-    <h2 id="client-title" class="serif-xl c2 w3">${rich(c.client.headline)}</h2>
+    <h2 id="client-title" class="head-xl c2 w3">${rich(c.client.headline)}</h2>
   </div>
   <div class="g client__body">
     <div class="c1 w1 m1">${picture(c.client.image, { span: 1, shape: 'portrait' })}</div>
@@ -228,7 +228,7 @@ ${photoHero({
 <section class="section statement" aria-labelledby="parts-title">
   <div class="g">
     <div class="c1 w1">${label(c.intro.label, '01')}</div>
-    <h2 id="parts-title" class="serif-xl c2 w3">${rich(c.intro.headline)}</h2>
+    <h2 id="parts-title" class="head-xl c2 w3">${rich(c.intro.headline)}</h2>
   </div>
   <ul class="g parts">
     ${c.intro.parts
@@ -266,7 +266,7 @@ ${photoHero({
 <section class="section index" aria-labelledby="focus-title">
   <div class="g section-head">
     <div class="c1 w1">${label('Treatment focus', '03')}</div>
-    <h2 id="focus-title" class="serif-xl c2 w3">Three ways to <em>book.</em></h2>
+    <h2 id="focus-title" class="head-xl c2 w3">Three ways to <em>book.</em></h2>
   </div>
   ${r.focuses
     .map((f, i) =>
@@ -317,7 +317,7 @@ ${photoHero({
 <section class="section clinical" id="${c.clinical.id}" aria-labelledby="clinical-title">
   <div class="g">
     <div class="c1 w1">${label(c.clinical.label, '07')}</div>
-    <h2 id="clinical-title" class="serif-lg c2 w2">${rich(c.clinical.headline)}</h2>
+    <h2 id="clinical-title" class="head-lg c2 w2">${rich(c.clinical.headline)}</h2>
     <div class="c4 w1">
       <p>${esc(c.clinical.body)}</p>
       <p>${link(`mailto:${distrik.email}`, distrik.email, 'text-link')}</p>
@@ -373,7 +373,7 @@ export function story() {
     body: `
 ${photoHero({ hero: { ...c.hero, body: '', tone: 'dark' }, meta: [c.hero.label, 'Justin Savage, founder', '(AU) — (ID)', ''], ctas: [] })}
 
-${statement({ id: 'story-intro', num: '00', labelText: 'Introduction', headline: c.hero.body, size: 'serif-lg statement--long', extra: `<div class="c3 w2">${note(c.reviewNote)}</div>` })}
+${statement({ id: 'story-intro', num: '00', labelText: 'Introduction', headline: c.hero.body, size: 'head-lg statement--long', extra: `<div class="c3 w2">${note(c.reviewNote)}</div>` })}
 
 <section class="section index" aria-label="Chapters">
   ${chapters
@@ -396,7 +396,7 @@ ${statement({ id: 'story-intro', num: '00', labelText: 'Introduction', headline:
 <section class="section" aria-labelledby="today-title">
   <div class="g">
     <div class="c1 w1">${label(last.label, pad(chapters.length))}</div>
-    <h2 id="today-title" class="serif-xl c2 w3">${rich(last.headline)}</h2>
+    <h2 id="today-title" class="head-xl c2 w3">${rich(last.headline)}</h2>
     ${last.body.map((p, i) => `<p class="c${i + 3} w1 statement__body">${esc(p)}</p>`).join('')}
   </div>
 </section>
@@ -470,7 +470,7 @@ ${textHero(c.hero, ['Corporate Wellness — Australia', 'DISTRIK — Canggu, Bal
   <div class="g">
     <div class="c1 w1">${label(c.corporate.label, '01')}</div>
     <div class="c2 w1">
-      <h2 id="corp-enq" class="serif-lg">${rich(c.corporate.headline)}</h2>
+      <h2 id="corp-enq" class="head-lg">${rich(c.corporate.headline)}</h2>
       <p>${esc(c.corporate.body)}</p>
     </div>
     <form class="c3 w2 form" data-enquiry-form data-endpoint="${esc(f.endpoint)}" ${
@@ -511,7 +511,7 @@ ${textHero(c.hero, ['Corporate Wellness — Australia', 'DISTRIK — Canggu, Bal
     <div class="c1 w1">${label(c.distrik.label + ' · Canggu', '02')}</div>
     <div class="c2 w1">
       ${distrikLogo('distrik-logo--md')}
-      <h2 id="distrik-enq" class="serif-lg">${rich(c.distrik.headline)}</h2>
+      <h2 id="distrik-enq" class="head-lg">${rich(c.distrik.headline)}</h2>
       <p>${esc(c.distrik.body)}</p>
     </div>
     <ul class="c3 w2 contact-list">

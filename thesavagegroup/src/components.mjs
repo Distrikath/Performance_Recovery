@@ -135,7 +135,7 @@ export function textHero(hero, meta = []) {
 }
 
 // Large statement: label in column 1, serif statement across columns 2–4.
-export function statement({ id, num, labelText, headline, body = '', extra = '', tag = 'h2', size = 'serif-xl' }) {
+export function statement({ id, num, labelText, headline, body = '', extra = '', tag = 'h2', size = 'head-xl' }) {
   return `<section class="section statement"${id ? ` id="${id}"` : ''}${id ? ` aria-labelledby="${id}-t"` : ''}>
   <div class="g">
     <div class="c1 w1">${label(labelText, num)}</div>

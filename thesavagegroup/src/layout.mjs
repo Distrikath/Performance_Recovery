@@ -1,6 +1,16 @@
 // Page shell: <head>, header, mobile menu and footer.
 import { site, nav, headerCta, distrik } from '../content/site.mjs';
 import { esc, imageUrl, link } from './components.mjs';
+import { existsSync } from 'node:fs';
+
+// Tanker (display face) — served locally if src/assets/fonts/tanker.woff2
+// exists, otherwise loaded from Fontshare. Compressed Archivo is the fallback.
+const TANKER_LOCAL = existsSync(new URL('./assets/fonts/tanker.woff2', import.meta.url));
+const tankerHead = TANKER_LOCAL
+  ? `<link rel="preload" href="/assets/fonts/tanker.woff2" as="font" type="font/woff2" crossorigin>
+<style>@font-face{font-family:'Tanker';src:url('/assets/fonts/tanker.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap}</style>`
+  : `<link rel="preconnect" href="https://api.fontshare.com" crossorigin>
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=tanker@400&amp;display=swap">`;
 
 export function layout({ path, title, description, body, hero = 'none', noindex = false, image }) {
   const canonical = site.domain + (path === '/404.html' ? '/' : path);
@@ -32,8 +42,9 @@ ${ogImage ? `<meta property="og:image" content="${ogImage}">` : ''}
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#171717">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
-<link rel="preload" href="/assets/fonts/archivo-var.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/assets/fonts/instrument-serif-italic.woff2" as="font" type="font/woff2" crossorigin>
+${tankerHead}
+<link rel="preload" href="/assets/fonts/space-grotesk-var.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/space-mono-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/styles.css">
 <script src="/assets/main.js" defer></script>
 </head>
@@ -74,7 +85,7 @@ function footer() {
   const legal = site.legal.map((l) => `<li>${esc(l.name)}${l.detail ? ` · ${esc(l.detail)}` : ''}</li>`).join('');
   return `<footer class="site-footer on-dark">
   <div class="g footer__top">
-    <p class="serif-md c1 w1 footer__tagline">${esc(site.tagline)}</p>
+    <p class="head-md c1 w1 footer__tagline">${esc(site.tagline)}</p>
     <nav class="c2 w1" aria-label="Footer">
       <p class="label">Index</p>
       <ul class="footer__list">${nav.map((n) => `<li><a href="${n.href}">${esc(n.label)}</a></li>`).join('')}</ul>
@@ -95,6 +106,6 @@ function footer() {
       </ul>
     </div>
   </div>
-  <p class="footer__wordmark" aria-hidden="true">${esc(site.wordmark)}</p>
+  <p class="footer__wordmark" aria-hidden="true"><span>${esc(site.wordmark)}</span></p>
 </footer>`;
 }

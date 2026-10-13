@@ -44,6 +44,35 @@
   });
   window.matchMedia('(min-width: 1000px)').addEventListener('change', (e) => e.matches && setMenu(false));
 
+  // Fit display type to the grid once the real fonts have loaded:
+  // headline lines shrink (never grow) so none overflows; the footer
+  // wordmark scales to fill the full width exactly.
+  const contentWidth = (el) => {
+    const cs = getComputedStyle(el);
+    return el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  };
+  const fitType = () => {
+    document.querySelectorAll('.display').forEach((el) => {
+      el.style.fontSize = '';
+      const widest = Math.max(...[...el.querySelectorAll('.ln')].map((l) => l.offsetWidth));
+      const avail = contentWidth(el);
+      if (widest > avail) el.style.fontSize = `${(parseFloat(getComputedStyle(el).fontSize) * avail) / widest}px`;
+    });
+    document.querySelectorAll('.footer__wordmark').forEach((el) => {
+      const inner = el.firstElementChild;
+      el.style.fontSize = '';
+      const size = parseFloat(getComputedStyle(el).fontSize);
+      el.style.fontSize = `${(size * contentWidth(el)) / inner.offsetWidth}px`;
+    });
+  };
+  let fitFrame;
+  const scheduleFit = () => {
+    cancelAnimationFrame(fitFrame);
+    fitFrame = requestAnimationFrame(fitType);
+  };
+  (document.fonts ? document.fonts.ready : Promise.resolve()).then(scheduleFit);
+  window.addEventListener('resize', scheduleFit);
+
   // Preview only: press G to overlay the 4-column grid.
   if (body.hasAttribute('data-preview')) {
     document.addEventListener('keydown', (e) => {

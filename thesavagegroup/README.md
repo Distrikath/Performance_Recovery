@@ -116,14 +116,22 @@ Text blocks start on the same quarter lines. In the templates (`src/pages.mjs`),
 starting column and `w1`–`w4` the width; `picture(key, { span, shape })` places a photo.
 In a preview build, press **G** to overlay the grid and check alignment.
 
-**Type.** All three fonts are open-licence (SIL OFL) and self-hosted in `src/assets/fonts/`, so nothing
-loads from a third-party font service.
-- **Archivo** (variable): compressed uppercase for display headings; normal width for body text.
-- **Instrument Serif**: editorial statements and italic accents.
-- **IBM Plex Mono**: labels, index numbers, captions and navigation.
+**Type.** Three faces, paired as in the Tanker × Space Grotesk reference:
+- **Tanker** (Indian Type Foundry, via Fontshare, ITF Free Font License): uppercase display headings.
+- **Space Grotesk**: body copy and statements. In display headings, an accent word is set in
+  Space Grotesk Light.
+- **Space Mono** (typewriter): labels, index numbers, captions, navigation and buttons.
 
-In `content/site.mjs`, wrap a word in asterisks to set it in the italic serif, for example
-`'Built around *people.*'`.
+Space Grotesk and Space Mono are open-licence (SIL OFL) and self-hosted in `src/assets/fonts/`.
+Tanker isn't redistributed in this repository. By default the site loads it from Fontshare.
+To self-host it instead, download Tanker from fontshare.com, save the WOFF2 as
+`src/assets/fonts/tanker.woff2` and rebuild; the build detects the file and stops using Fontshare.
+Until Tanker loads (or if it can't), headings fall back to self-hosted compressed Archivo.
+A small script refits headlines after fonts load, so no line overflows the grid, and makes the
+footer wordmark fill the full width.
+
+In `content/site.mjs`, wrap a word in asterisks to set it as the accent, for example
+`'Movement.', 'Recovery.', '*Connection.*'`. In statements, the accent word turns grey.
 
 Colours, spacing and type sizes are defined at the top of `src/assets/styles.css`.
 
