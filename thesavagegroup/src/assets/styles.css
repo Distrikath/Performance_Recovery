@@ -54,7 +54,7 @@
   --ink: #171717;
   --white: #ffffff;
   --stone: #d8d3cb;
-  --muted: #5b5750; /* 6.6:1 on --bg */
+  --muted: #5b5750; /* 6.4:1 on --bg */
   --muted-dark: #b3aea5; /* 8.1:1 on --ink */
   --line: rgba(23, 23, 23, 0.18);
   --line-dark: rgba(255, 255, 255, 0.22);

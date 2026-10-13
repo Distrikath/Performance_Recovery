@@ -170,7 +170,7 @@ DISTRIK enquiries go directly to hello@distrikath.com, Instagram and Fresha. No 
 - Mobile menu: keyboard open/close, Esc to close, focus moves into the menu and back, `aria-expanded`.
 - One `h1` per page with no skipped heading levels, and unique titles and meta descriptions.
 - All internal links and anchors resolve, and all images load.
-- Text contrast (WCAG AA): body 16:1, muted text 6.6:1, muted text on dark 8.1:1.
+- Text contrast (WCAG AA): body 16:1, muted text 6.4:1, muted text on dark 8.1:1.
 - Grid overlay check: images, headings and text align to the quarter columns.
 - Form: required-field validation, no network request and an honest "not sent" message while unconnected.
 - `prefers-reduced-motion` disables transitions and smooth scrolling. Images below the fold use `loading="lazy"`,
