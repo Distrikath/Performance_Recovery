@@ -19,6 +19,15 @@
       1402
     ]
   },
+  "athlete-rest": {
+    "width": 941,
+    "height": 753,
+    "widths": [
+      480,
+      800,
+      941
+    ]
+  },
   "athlete-seated": {
     "width": 1402,
     "height": 1122,
@@ -160,6 +169,15 @@
       941
     ]
   },
+  "runner-stride": {
+    "width": 941,
+    "height": 753,
+    "widths": [
+      480,
+      800,
+      941
+    ]
+  },
   "runners-motion": {
     "width": 941,
     "height": 753,
@@ -167,6 +185,17 @@
       480,
       800,
       941
+    ]
+  },
+  "shoulder-release": {
+    "width": 2000,
+    "height": 1333,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600,
+      2000
     ]
   }
 }

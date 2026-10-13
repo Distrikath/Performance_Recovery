@@ -60,7 +60,9 @@ npm run preview    # serves dist/ without watching
 | `athlete-sweat`, `athlete-profile`, `athlete-seated`, `athlete-sunglasses`, `athlete-stretch`, `athlete-eyewear`, `boxer-motion`, `city-night`, `runner-architecture`, `runners-motion` | DISTRIK brand campaign photography (supplied in this repo) | Campaign imagery. It is not captioned as the DISTRIK premises or the community run. |
 | `distrik-assisted-stretch`, `distrik-cupping`, `distrik-massage`, `distrik-bodywork-detail`, `distrik-lounge`, `distrik-treatment-room`, `distrik-furniture-detail` | DISTRIK premises photography (supplied in this repo) | Actual DISTRIK interiors and treatments, captioned as such. |
 
-`runners-motion` and `runner-architecture` are only 941px wide. Supply larger originals if available.
+Supplied by The Savage Group (October 2026): `shoulder-release`, `athlete-rest`, `runner-stride`. Their location isn't specified, so they're never captioned as DISTRIK.
+
+`runners-motion`, `runner-architecture`, `runner-stride` and `athlete-rest` are only 941px wide. Supply larger originals if available.
 
 **No stock imagery is used.** Until Savage Group photography is supplied, the corporate and founder
 slots use existing DISTRIK photos as **temporary stand-ins**. Each is marked `temporary: true` in

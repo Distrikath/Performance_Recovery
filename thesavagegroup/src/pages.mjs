@@ -57,7 +57,7 @@ ${section(
   sectionHead({ id: 'intro-t', num: '01', labelText: c.intro.label, headline: c.intro.headline }) +
     row([
       { col: 2, cls: 'flow', html: `<p class="lead">${esc(c.intro.body)}</p>` },
-      { col: 4, html: picture('distrik-bodywork-detail', { span: 1, shape: 'portrait' }) },
+      { col: 4, html: picture('shoulder-release', { span: 1, shape: 'portrait' }) },
     ]),
   { labelledby: 'intro-t' }
 )}
@@ -263,7 +263,7 @@ ${section(
           labelText: 'Focus',
           title: f.name,
           body: `<p class="lead">${esc(f.body)}</p>`,
-          image: ['distrik-massage', 'athlete-profile', 'athlete-stretch'][i],
+          image: ['athlete-rest', 'athlete-profile', 'athlete-stretch'][i],
         })
       )
       .join('')}</div>` +

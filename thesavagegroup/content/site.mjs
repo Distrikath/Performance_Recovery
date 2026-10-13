@@ -209,6 +209,28 @@ export const images = {
     pos: '62% 35%',
     source: DISTRIK_CAMPAIGN,
   },
+  // Supplied by The Savage Group (October 2026). Location not specified, so
+  // these are never captioned as DISTRIK premises.
+  'shoulder-release': {
+    src: 'shoulder-release',
+    alt: 'A therapist’s hands working on an athlete’s shoulders after training',
+    pos: '50% 35%',
+    posMobile: '50% 30%',
+    source: 'Supplied by The Savage Group',
+  },
+  'athlete-rest': {
+    src: 'athlete-rest',
+    alt: 'An athlete resting on a concrete step in a shaft of light',
+    pos: '72% 45%',
+    source: 'Supplied by The Savage Group',
+  },
+  'runner-stride': {
+    src: 'runner-stride',
+    alt: 'A runner mid-stride against a concrete wall',
+    pos: '35% 50%',
+    posMobile: '40% 50%',
+    source: 'Supplied by The Savage Group',
+  },
   'distrik-furniture-detail': {
     src: 'distrik-furniture-detail',
     alt: 'Black leather seating and a wire side table on a polished concrete floor',
@@ -342,7 +364,7 @@ export const projects = [
     title: 'Run the Distrik',
     location: 'Canggu, Bali',
     summary: 'A free 5 km community run through the rice fields, every Friday at 6:00am from DISTRIK. Every pace welcome.',
-    image: 'runners-motion',
+    image: 'runner-stride',
     href: '/distrik/#community',
     linkLabel: 'Community',
   },
@@ -446,7 +468,7 @@ export const pages = {
         label: 'Recovery',
         headline: 'Space to reset during the working day.',
         body: 'Massage, compression and recovery pop-ups that create space to reset during the working day.',
-        image: 'distrik-massage',
+        image: 'shoulder-release',
       },
       {
         id: 'education',
@@ -567,7 +589,7 @@ export const pages = {
       when: 'Fridays at 6:00am.',
       body: 'More than just running: a free weekly community run built around movement, connection and showing up. Every Friday at 6:00am we run 5 km together through the rice fields, welcoming every pace, every level and everyone.',
       details: ['Every Friday · 6:00am', 'Meeting point: DISTRIK', 'Distance: 5 km', 'Free for everyone'],
-      image: 'runners-motion',
+      image: 'runner-stride',
     },
     clinical: {
       id: 'clinical',
