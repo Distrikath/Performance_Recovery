@@ -14,7 +14,15 @@ export function setDistrikSvg(svg) {
     .replace(/<svg[^>]*?(viewBox="[^"]*")[^>]*>/, '<svg $1 xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">')
     .replace(/<\?xml[^>]*>/, '');
 }
-const distrikLogo = (cls = '') => `<span class="distrik-logo ${cls}" role="img" aria-label="DISTRIK">${distrikSvg}</span>`;
+export const distrikLogoMarkup = (cls = '') => distrikLogo(cls);
+// Each copy of the inline SVG gets its own internal ids, so several logos can
+// appear on one page without clashing clip paths.
+let logoCount = 0;
+const distrikLogo = (cls = '') => {
+  const n = ++logoCount;
+  const svg = distrikSvg.replace(/(id="|url\(#|href="#)([^")]+)/g, (_, pre, id) => `${pre}${id}-${n}`);
+  return `<span class="distrik-logo ${cls}" role="img" aria-label="DISTRIK">${svg}</span>`;
+};
 
 // Index row: (num) label | title | text | optional ¼ image.
 function indexRow({ num, labelText, title, body, extra = '', image, id, tag = 'h3' }) {
@@ -255,12 +263,6 @@ ${photoHero({
   <ol class="g technique-grid" aria-label="Techniques">
     ${r.techniques.map((t, i) => `<li class="w1 m1"><span class="mono">${pad(i + 1)}</span>${esc(t)}</li>`).join('')}
   </ol>
-  ${optional(
-    distrik.prices,
-    (ps) => `<div class="g"><h3 class="label c1 w1">Prices</h3><ul class="mono-list c2 w2">${ps
-      .map((p) => `<li><span>${esc(p.name)}</span><span>${esc(p.price)}</span></li>`)
-      .join('')}</ul></div>`
-  )}
 </section>
 
 <section class="section index" aria-labelledby="focus-title">
@@ -279,6 +281,14 @@ ${photoHero({
       })
     )
     .join('')}
+  ${optional(
+    distrik.prices,
+    (ps) => `<div class="g prices" aria-label="Session prices">
+    <p class="mono c1 w4">(IDR) Session prices — Recover, Perform or Move</p>
+    ${ps.map((p) => `<div class="w1 m1 price"><span class="cond-md">${esc(p.name)}</span><span class="mono">${esc(p.price)}</span></div>`).join('')}
+    ${(distrik.priceNotes || []).map((n, i) => `<p class="mono muted c${i * 2 + 1} w2">${esc(n)}</p>`).join('')}
+  </div>`
+  )}
   <div class="g index-foot"><div class="c3 w1">${cta(book)}</div></div>
 </section>
 

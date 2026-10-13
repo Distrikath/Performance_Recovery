@@ -67,8 +67,15 @@ export const distrik = {
   // Add only after confirmation. Empty arrays are hidden on the site.
   // Example: [{ days: 'Tuesday – Thursday', time: '7:00am – 8:00pm' }]
   hours: [],
-  // Example: [{ name: 'Recover — 60 minutes', price: 'IDR 000,000' }]
-  prices: [],
+  // Session prices, as published on distrikath.com. Same price for Recover,
+  // Perform or Move. Leave [] to hide.
+  prices: [
+    { name: '30 min', price: 'IDR 400.000' },
+    { name: '45 min', price: 'IDR 550.000' },
+    { name: '60 min', price: 'IDR 650.000' },
+    { name: '90 min', price: 'IDR 900.000' },
+  ],
+  priceNotes: ['Compression boots from IDR 200.000', 'Free 15-minute consultation'],
   // Example: [{ title: 'Opening offer', body: '...' }]
   promotions: [],
 };

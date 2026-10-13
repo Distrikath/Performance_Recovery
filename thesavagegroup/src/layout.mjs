@@ -1,6 +1,7 @@
 // Page shell: <head>, header, mobile menu and footer.
 import { site, nav, headerCta, distrik } from '../content/site.mjs';
-import { esc, imageUrl, link } from './components.mjs';
+import { esc, imageUrl, link, picture } from './components.mjs';
+import { distrikLogoMarkup } from './pages.mjs';
 import { existsSync } from 'node:fs';
 
 // Tanker (display face) — served locally if src/assets/fonts/tanker.woff2
@@ -19,8 +20,8 @@ export function layout({ path, title, description, body, hero = 'none', noindex 
   const current = (href) => (path === href || (href !== '/' && path.startsWith(href)) ? ' aria-current="page"' : '');
 
   const navLinks = nav.map((n) => `<li><a href="${n.href}"${current(n.href)}>${esc(n.label)}</a></li>`).join('');
-  const menuLinks = nav
-    .map((n, i) => `<li><a href="${n.href}"${current(n.href)}><span class="mono" aria-hidden="true">0${i + 1}</span>${esc(n.label)}</a></li>`)
+  const sitemapRows = [{ label: 'Home', href: '/' }, ...nav]
+    .map((n) => `<li><a href="${n.href}"${path === n.href ? ' aria-current="page"' : current(n.href === '/' ? '#' : n.href)}>${esc(n.label)}</a></li>`)
     .join('');
 
   return `<!doctype html>
@@ -40,8 +41,9 @@ ${robots}
 <meta property="og:locale" content="${site.locale}">
 ${ogImage ? `<meta property="og:image" content="${ogImage}">` : ''}
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#171717">
+<meta name="theme-color" content="#0c0c0c">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<script>try{if(!sessionStorage.getItem('tsg-intro')&&!matchMedia('(prefers-reduced-motion: reduce)').matches){document.documentElement.classList.add('is-loading');setTimeout(function(){document.documentElement.classList.remove('is-loading')},4000)}}catch(e){}</script>
 ${tankerHead}
 <link rel="preload" href="/assets/fonts/space-grotesk-var.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/space-mono-400.woff2" as="font" type="font/woff2" crossorigin>
@@ -50,6 +52,16 @@ ${tankerHead}
 </head>
 <body data-hero="${hero}"${site.preview ? ' data-preview' : ''}>
 <a class="skip-link" href="#main">Skip to content</a>
+<div class="loader" aria-hidden="true" data-loader>
+  <span class="loader__cross">+</span>
+  <div class="loader__text mono">
+    <p>${esc(site.wordmark)}</p>
+    <p>Movement<br>Recovery<br>Connection</p>
+    <p>(AU) Corporate Wellness<br>(ID) DISTRIK, Canggu</p>
+  </div>
+  <p class="loader__count mono"><span data-loader-count>000</span> — Loading</p>
+  <span class="loader__bar" data-loader-bar></span>
+</div>
 <header class="site-header" data-header>
   <div class="g site-header__inner">
     <a class="wordmark c1 w1" href="/"${path === '/' ? ' aria-current="page"' : ''}>${esc(site.wordmark)}</a>
@@ -58,17 +70,32 @@ ${tankerHead}
     </nav>
     <div class="site-header__end c4 w1">
       <a class="header-cta" href="${headerCta.href}">${esc(headerCta.label)}</a>
-      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="mobile-menu" data-menu-toggle>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-menu" data-menu-toggle>
         <span data-menu-label>Menu</span>
       </button>
     </div>
   </div>
 </header>
-<div class="mobile-menu" id="mobile-menu" data-menu hidden>
-  <nav aria-label="Mobile">
-    <ul>${menuLinks}</ul>
-    <a class="btn btn--solid btn--block" href="${headerCta.href}">${esc(headerCta.label)}</a>
+<div class="menu-panel" id="site-menu" data-menu hidden>
+  <nav class="g" aria-label="Site menu">
+    <div class="c1 w2 nav-col">
+      <p class="label">Sitemap</p>
+      <ul class="nav-rows nav-rows--big">${sitemapRows}</ul>
+    </div>
+    <div class="c3 w1 nav-col">
+      <p class="label">DISTRIK · Canggu</p>
+      ${distrikRows()}
+    </div>
+    <div class="c4 w1 nav-col">
+      <p class="label">Talk to us</p>
+      <ul class="nav-rows">
+        <li><a href="/contact/#corporate">Workplace program</a></li>
+        <li><a href="/contact/#distrik">DISTRIK enquiry</a></li>
+      </ul>
+      <a class="btn btn--solid btn--block menu-cta" href="${headerCta.href}">${esc(headerCta.label)}</a>
+    </div>
   </nav>
+  ${tiles()}
 </div>
 <main id="main" tabindex="-1">
 ${body}
@@ -81,31 +108,56 @@ ${site.preview ? '<div class="preview-bar" role="note">Preview build — not for
 `;
 }
 
+function distrikRows() {
+  return `<ul class="nav-rows">
+        <li>${link(distrik.booking, 'Book recovery ↗')}</li>
+        <li>${link(distrik.instagram, `Instagram ${distrik.instagramHandle} ↗`)}</li>
+        <li>${link(`mailto:${distrik.email}`, distrik.email)}</li>
+      </ul>`;
+}
+
+// Two image tiles — one per business — shared by the menu and footer.
+function tiles() {
+  return `<div class="g tiles">
+    <a class="tile c1 w2" href="/distrik/">
+      ${picture('distrik-assisted-stretch', { span: 2, shape: 'landscape' })}
+      <span class="tile__body">${distrikLogoMarkup('')}<span class="cta__arrow" aria-hidden="true">→</span></span>
+    </a>
+    <a class="tile c3 w2" href="/corporate-wellness/">
+      ${picture('ph-workplace-session', { span: 2, shape: 'landscape' })}
+      <span class="tile__body"><span class="tile__title">Corporate Wellness</span><span class="cta__arrow" aria-hidden="true">→</span></span>
+    </a>
+  </div>`;
+}
+
 function footer() {
   const legal = site.legal.map((l) => `<li>${esc(l.name)}${l.detail ? ` · ${esc(l.detail)}` : ''}</li>`).join('');
   return `<footer class="site-footer on-dark">
   <div class="g footer__top">
-    <p class="head-md c1 w1 footer__tagline">${esc(site.tagline)}</p>
-    <nav class="c2 w1" aria-label="Footer">
-      <p class="label">Index</p>
-      <ul class="footer__list">${nav.map((n) => `<li><a href="${n.href}">${esc(n.label)}</a></li>`).join('')}</ul>
-    </nav>
-    <div class="c3 w1">
-      <p class="label">DISTRIK · Canggu</p>
-      <ul class="footer__list">
-        <li>${link(`mailto:${distrik.email}`, distrik.email)}</li>
-        <li>${link(distrik.instagram, `Instagram ${distrik.instagramHandle}`)}</li>
-        <li>${link(distrik.booking, 'Book recovery')}</li>
-      </ul>
+    <div class="c1 w1">
+      <p class="head-md footer__tagline">${esc(site.tagline)}</p>
+      <p class="mono muted footer__regions">(AU) — (ID)</p>
     </div>
-    <div class="c4 w1">
+    <nav class="c2 w1 nav-col" aria-label="Footer">
+      <p class="label">Sitemap</p>
+      <ul class="nav-rows">${[{ label: 'Home', href: '/' }, ...nav].map((n) => `<li><a href="${n.href}">${esc(n.label)}</a></li>`).join('')}</ul>
+    </nav>
+    <div class="c3 w1 nav-col">
+      <p class="label">DISTRIK · Canggu</p>
+      ${distrikRows()}
+    </div>
+    <div class="c4 w1 nav-col">
       <p class="label">Information</p>
-      <ul class="footer__list footer__legal">
+      <ul class="nav-rows">
+        <li><a href="#main">Back to top ↑</a></li>
+      </ul>
+      <ul class="footer__legal">
         <li>© ${new Date().getFullYear()} ${esc(site.name)}</li>
         ${legal}
       </ul>
     </div>
   </div>
+  ${tiles()}
   <p class="footer__wordmark" aria-hidden="true"><span>${esc(site.wordmark)}</span></p>
 </footer>`;
 }

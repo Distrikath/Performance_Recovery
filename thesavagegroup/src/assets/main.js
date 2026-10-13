@@ -42,7 +42,25 @@
       toggle.focus();
     }
   });
-  window.matchMedia('(min-width: 1000px)').addEventListener('change', (e) => e.matches && setMenu(false));
+
+  // Intro loader: runs only when the inline head script flagged this visit.
+  const root = document.documentElement;
+  const loader = document.querySelector('[data-loader]');
+  if (loader && root.classList.contains('is-loading')) {
+    const count = loader.querySelector('[data-loader-count]');
+    const DURATION = 1100;
+    const start = performance.now();
+    const tick = (now) => {
+      const p = Math.min(1, (now - start) / DURATION);
+      loader.style.setProperty('--p', p.toFixed(3));
+      count.textContent = String(Math.round(p * 100)).padStart(3, '0');
+      if (p < 1) return requestAnimationFrame(tick);
+      try { sessionStorage.setItem('tsg-intro', '1'); } catch (e) { /* storage unavailable */ }
+      loader.classList.add('is-done');
+      setTimeout(() => root.classList.remove('is-loading'), 500);
+    };
+    requestAnimationFrame(tick);
+  }
 
   // Fit display type to the grid once the real fonts have loaded:
   // headline lines shrink (never grow) so none overflows; the footer

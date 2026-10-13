@@ -92,7 +92,8 @@ To swap one, add the new photo to `assets/source/`, run `npm run images`, then i
 All words, links and settings are in **`content/site.mjs`**. Each page has its own block under `pages`.
 
 - **DISTRIK details** (`distrik`): email, Instagram, Fresha booking link and address.
-  `hours`, `prices` and `promotions` are deliberately empty and hidden. Add them only once confirmed
+  `prices` holds the session prices published on distrikath.com; `hours` and `promotions` are
+  deliberately empty and hidden. Add them only once confirmed
   (examples are in the comments) and they'll appear on the DISTRIK page.
 - **Projects** (`projects`): an entry is published only when both `verified: true` and `public: true`.
   Drafts can stay in the file with `public: false`.
@@ -132,6 +133,17 @@ footer wordmark fill the full width.
 
 In `content/site.mjs`, wrap a word in asterisks to set it as the accent, for example
 `'Movement.', 'Recovery.', '*Connection.*'`. In statements, the accent word turns grey.
+
+**Colour and atmosphere.** Dark and cinematic: near-black backgrounds, off-white text, photography
+shown in black and white (colour returns on hover where an image is a link), a fine film grain, and
+one accent, DISTRIK red (`--accent`). Change `--accent` to restyle every accent at once.
+
+**Intro loader.** On the first page view of each visit, a 1-second loading screen plays (crosshair,
+typewriter text, red progress line). It is skipped for visitors who turn off motion, and the page
+works normally without JavaScript.
+
+**Menu and footer.** The Menu button opens a sitemap panel with two image tiles (DISTRIK and
+Corporate Wellness); the footer repeats the same sitemap rows and tiles.
 
 Colours, spacing and type sizes are defined at the top of `src/assets/styles.css`.
 
