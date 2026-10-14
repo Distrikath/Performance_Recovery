@@ -130,22 +130,15 @@ one-off margins. In the templates (`src/pages.mjs`), `sectionHead()` builds the 
 and `row([{ col, span, html }])` places content in the slots. In a preview build, press **G** to overlay
 the grid and check alignment.
 
-**Type.** Three faces, paired as in the Tanker × Space Grotesk reference:
-- **Tanker** (Indian Type Foundry, via Fontshare, ITF Free Font License): uppercase display headings.
-- **Space Grotesk**: body copy and statements. In display headings, an accent word is set in
-  Space Grotesk Light.
-- **Space Mono** (typewriter): labels, index numbers, captions, navigation and buttons.
+**Type.** One family plus a typewriter, all open-licence (SIL OFL) and self-hosted in `src/assets/fonts/`:
+- **Main:** Space Grotesk Bold, uppercase, for headlines.
+- **Secondary:** Space Grotesk Regular (the same family, not bold) for statements and accent words.
+- **Text:** Space Mono (typewriter) for body copy, labels, buttons and navigation.
 
-Space Grotesk and Space Mono are open-licence (SIL OFL) and self-hosted in `src/assets/fonts/`.
-Tanker isn't redistributed in this repository. By default the site loads it from Fontshare.
-To self-host it instead, download Tanker from fontshare.com, save the WOFF2 as
-`src/assets/fonts/tanker.woff2` and rebuild; the build detects the file and stops using Fontshare.
-Until Tanker loads (or if it can't), headings fall back to self-hosted compressed Archivo.
-A small script refits headlines after fonts load, so no line overflows the grid, and makes the
-footer wordmark fill the full width.
-
-In `content/site.mjs`, wrap a word in asterisks to set it as the accent, for example
-`'Movement.', 'Recovery.', '*Connection.*'`. In statements, the accent word turns grey.
+In `content/site.mjs`, wrap a word in asterisks to set it in the secondary weight, for example
+`'Movement.', 'Recovery.', '*Connection.*'`. In statements, the accent word turns grey. A small script
+refits headlines after the fonts load so no line overflows the grid, and makes the footer wordmark
+fill the full width.
 
 **Colour and atmosphere.** Dark and cinematic: near-black backgrounds, off-white text, photography
 shown in black and white (colour returns on hover where an image is a link), a fine film grain, and

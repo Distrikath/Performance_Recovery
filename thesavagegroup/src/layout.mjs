@@ -2,16 +2,6 @@
 import { site, nav, headerCta, distrik } from '../content/site.mjs';
 import { esc, imageUrl, link, picture } from './components.mjs';
 import { distrikLogoMarkup } from './pages.mjs';
-import { existsSync } from 'node:fs';
-
-// Tanker (display face) — served locally if src/assets/fonts/tanker.woff2
-// exists, otherwise loaded from Fontshare. Compressed Archivo is the fallback.
-const TANKER_LOCAL = existsSync(new URL('./assets/fonts/tanker.woff2', import.meta.url));
-const tankerHead = TANKER_LOCAL
-  ? `<link rel="preload" href="/assets/fonts/tanker.woff2" as="font" type="font/woff2" crossorigin>
-<style>@font-face{font-family:'Tanker';src:url('/assets/fonts/tanker.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap}</style>`
-  : `<link rel="preconnect" href="https://api.fontshare.com" crossorigin>
-<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=tanker@400&amp;display=swap">`;
 
 export function layout({ path, title, description, body, hero = 'none', noindex = false, image }) {
   const canonical = site.domain + (path === '/404.html' ? '/' : path);
@@ -44,7 +34,6 @@ ${ogImage ? `<meta property="og:image" content="${ogImage}">` : ''}
 <meta name="theme-color" content="#0c0c0c">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <script>try{if(!sessionStorage.getItem('tsg-intro')&&!matchMedia('(prefers-reduced-motion: reduce)').matches){document.documentElement.classList.add('is-loading');setTimeout(function(){document.documentElement.classList.remove('is-loading')},4000)}}catch(e){}</script>
-${tankerHead}
 <link rel="preload" href="/assets/fonts/space-grotesk-var.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/space-mono-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/styles.css">

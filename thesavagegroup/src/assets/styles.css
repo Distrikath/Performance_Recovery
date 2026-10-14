@@ -1,11 +1,10 @@
 /* =====================================================================
    THE SAVAGE GROUP — styles
 
-   Type system
-   - Tanker (Fontshare, ITF Free Font License) — display & headings, uppercase.
-     Falls back to compressed Archivo (self-hosted) until Tanker loads.
-   - Space Grotesk — body copy, statements and light accents
-   - Space Mono — typewriter detail: labels, indexes, captions, navigation
+   Type system — one family plus a typewriter
+   - Main:      Space Grotesk Bold, uppercase — headlines
+   - Secondary: Space Grotesk Regular — statements and accent words
+   - Text:      Space Mono (typewriter) — body copy, labels, buttons, navigation
 
    Grid
    - 4 columns on desktop, 2 on mobile. Images span ¼ ½ ¾ or full only.
@@ -14,14 +13,6 @@
    - Press G in preview builds to overlay the grid.
    ===================================================================== */
 
-@font-face {
-  font-family: 'Archivo';
-  src: url('/assets/fonts/archivo-var.woff2') format('woff2-variations'), url('/assets/fonts/archivo-var.woff2') format('woff2');
-  font-weight: 100 900;
-  font-stretch: 62% 125%;
-  font-style: normal;
-  font-display: swap;
-}
 @font-face {
   font-family: 'Space Grotesk';
   src: url('/assets/fonts/space-grotesk-var.woff2') format('woff2-variations'), url('/assets/fonts/space-grotesk-var.woff2') format('woff2');
@@ -58,7 +49,6 @@
   --accent-ink: #0c0c0c;   /* 5.3:1 on --accent */
   --error: #ff9a8f;
 
-  --display: 'Tanker', 'Archivo', 'Helvetica Neue', Arial, sans-serif;
   --sans: 'Space Grotesk', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --mono: 'Space Mono', 'Courier New', Courier, monospace;
 
@@ -84,9 +74,9 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
-  font-family: var(--sans);
-  font-size: 1rem;
-  line-height: 1.65;
+  font-family: var(--mono);
+  font-size: 0.9375rem;
+  line-height: 1.7;
   letter-spacing: 0;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -175,42 +165,37 @@ p + p { margin-top: 1em; }
 .section-tail { padding-bottom: var(--section); }
 
 /* ---------- Type ---------- */
+/* Main — Space Grotesk Bold, uppercase */
 .display, .cond-xl, .cond-lg, .cond-md, .wordmark, .footer__wordmark {
-  font-family: var(--display);
-  font-stretch: 62%;      /* only affects the Archivo fallback */
-  font-weight: 700;       /* Tanker has one weight; synthesis is off so it is never faux-bolded */
-  font-synthesis: none;
+  font-family: var(--sans);
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0;
+  letter-spacing: -0.045em;
 }
 .display {
-  font-size: clamp(3rem, 14.8vw, 19rem);
-  line-height: 0.9;
+  font-size: clamp(2.75rem, 11.5vw, 15rem);
+  line-height: 0.92;
   padding-inline: var(--gutter);
   margin-left: -0.03em;
 }
 .display .ln { display: block; width: max-content; }
 .display { text-wrap: balance; }
-.display--band { font-size: max(2.75rem, calc((100vw - 2 * var(--gutter)) / 9.7)); }
-.cond-xl { font-size: clamp(2.75rem, 6.2vw, 7rem); line-height: 0.95; }
-.cond-lg { font-size: clamp(2rem, 3.2vw, 3.5rem); line-height: 1; }
-.cond-md { font-size: clamp(1.5rem, 2vw, 2.25rem); line-height: 1.04; }
+.display--band { font-size: clamp(2.25rem, 6.6vw, 8.5rem); }
+.cond-xl { font-size: clamp(2.25rem, 4.6vw, 5.25rem); line-height: 1; }
+.cond-lg { font-size: clamp(1.625rem, 2.4vw, 2.625rem); line-height: 1.05; letter-spacing: -0.035em; }
+.cond-md { font-size: clamp(1.25rem, 1.6vw, 1.75rem); line-height: 1.1; letter-spacing: -0.03em; }
 .cond-xl .ln { display: block; }
 
-/* Accent inside display type: Space Grotesk Light, set tight */
+/* Secondary — the same family, not bold (accent words inside headlines) */
 .display em, .cond-xl em, .cond-lg em, .cond-md em {
-  font-family: var(--sans);
   font-style: normal;
-  font-weight: 300;
-  font-stretch: 100%;
-  letter-spacing: -0.06em;
-  font-size: 0.86em;
+  font-weight: 400;
 }
 
-/* Statements — Space Grotesk, tightly tracked; *accent* turns muted */
+/* Secondary — Space Grotesk Regular statements; *accent* turns muted */
 .head-xl, .head-lg, .head-md, .head-sm {
   font-family: var(--sans);
-  font-weight: 300;
+  font-weight: 400;
   letter-spacing: -0.03em;
 }
 .head-xl { font-size: clamp(2.375rem, 4.8vw, 5.5rem); line-height: 1.08; letter-spacing: -0.035em; max-width: 18ch; }
@@ -236,7 +221,7 @@ p + p { margin-top: 1em; }
 .muted { color: var(--muted); }
 .on-dark .muted { color: var(--muted-dark); }
 .small { font-size: 0.6875rem; }
-.lead { font-size: clamp(1.125rem, 1.35vw, 1.3125rem); line-height: 1.5; max-width: 36ch; }
+.lead { font-size: clamp(1rem, 1.15vw, 1.125rem); line-height: 1.65; max-width: 40ch; }
 
 .text-link { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.28em; }
 .text-link:hover { text-decoration-thickness: 2px; }
@@ -374,7 +359,7 @@ p + p { margin-top: 1em; }
 .hero__foot { padding-bottom: clamp(20px, 2.4vw, 36px); }
 .hero__row { margin-top: var(--s4); align-items: start; row-gap: var(--s3); }
 .hero__label { padding-top: 2px; }
-.hero__body { font-size: clamp(1rem, 1.2vw, 1.1875rem); line-height: 1.4; max-width: 38ch; }
+.hero__body { font-size: clamp(0.9375rem, 1.05vw, 1.0625rem); line-height: 1.6; max-width: 40ch; }
 .hero .cta { width: 100%; }
 @media (max-width: 899px) {
   .hero__meta .mono:nth-child(n + 3) { display: none; }
@@ -388,7 +373,7 @@ p + p { margin-top: 1em; }
 .distrik-logo--hero { width: clamp(160px, 22vw, 340px); margin: 0 var(--gutter) 24px; }
 .distrik-logo--lg { width: 100%; max-width: 760px; }
 .run-lockup .ln { display: flex; align-items: baseline; gap: 0.18em; white-space: nowrap; }
-.run-lockup__words { font-family: var(--sans); font-weight: 700; font-stretch: 100%; letter-spacing: -0.06em; }
+.run-lockup__words { letter-spacing: -0.05em; }
 .distrik-logo--lockup { display: inline-block; height: 0.74em; width: auto; flex: none; }
 .distrik-logo--lockup svg { height: 100%; width: auto; }
 .distrik-logo--pathway { width: clamp(180px, 22vw, 340px); margin-block: 6px 4px; }
@@ -553,7 +538,7 @@ body[data-preview] .site-footer { padding-bottom: 28px; }
 .is-loading .loader { display: block; }
 .is-loading body { overflow: hidden; }
 .loader.is-done { opacity: 0; transition: opacity 0.5s ease; }
-.loader__cross { position: absolute; top: 18px; left: var(--gutter); font-family: var(--sans); font-weight: 300; font-size: 2.5rem; line-height: 1; color: var(--white); }
+.loader__cross { position: absolute; top: 18px; left: var(--gutter); font-family: var(--sans); font-weight: 400; font-size: 2.5rem; line-height: 1; color: var(--white); }
 .loader__text { position: absolute; top: 24px; right: var(--gutter); width: min(240px, 55vw); display: grid; gap: 18px; }
 .loader__count { position: absolute; right: var(--gutter); bottom: 52px; }
 .loader__bar {
@@ -583,7 +568,7 @@ body::after {
 }
 .nav-rows a::after { content: '›'; font-family: var(--sans); font-size: 1rem; line-height: 1; }
 .nav-rows a:hover, .nav-rows a[aria-current="page"] { background: var(--ink); color: var(--bg); }
-.nav-rows--big a { font-family: var(--display); font-stretch: 62%; font-weight: 700; font-synthesis: none; font-size: clamp(1.75rem, 3vw, 2.75rem); line-height: 1; padding-block: 10px 8px; }
+.nav-rows--big a { font-family: var(--sans); font-weight: 700; letter-spacing: -0.04em; font-size: clamp(1.5rem, 2.4vw, 2.25rem); line-height: 1; padding-block: 10px 8px; }
 .nav-col .label { margin-bottom: 12px; color: var(--muted); }
 .tiles { margin-top: clamp(32px, 4vw, 56px); }
 .menu-cta { margin-top: 20px; }
@@ -593,7 +578,7 @@ body::after {
 .tile .frame::after { content: ''; position: absolute; inset: 0; background: rgba(0, 0, 0, 0.4); }
 .tile:hover .frame::after { background: rgba(0, 0, 0, 0.2); }
 .tile__body { position: absolute; inset: auto 0 0 0; z-index: 1; padding: clamp(14px, 1.6vw, 24px); display: flex; justify-content: space-between; align-items: end; gap: 16px; }
-.tile__title { font-family: var(--sans); font-weight: 300; letter-spacing: -0.04em; font-size: clamp(1.5rem, 2.4vw, 2.5rem); line-height: 1; }
+.tile__title { font-family: var(--sans); font-weight: 400; letter-spacing: -0.04em; font-size: clamp(1.5rem, 2.4vw, 2.5rem); line-height: 1; }
 .tile .distrik-logo { width: clamp(140px, 16vw, 240px); }
 .tile .cta__arrow { font-size: 1.25rem; }
 .tile .temp-tag { top: 10px; bottom: auto; }
