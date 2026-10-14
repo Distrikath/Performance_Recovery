@@ -140,6 +140,12 @@ In `content/site.mjs`, wrap a word in asterisks to set it in the secondary weigh
 refits headlines after the fonts load so no line overflows the grid, and makes the footer wordmark
 fill the full width.
 
+**Two businesses, two looks.** Corporate Wellness is light (warm off-white, near-black ink, black
+buttons); DISTRIK is black with its red accent; The Savage Group umbrella (homepage hero, menu,
+footer) stays dark. Add `theme: 'light'` to a page in `src/pages.mjs`, or the class `theme-light` /
+`theme-dark` to any section, to switch. The homepage and Contact page open with a side-by-side
+"two businesses" panel (`businesses` in `content/site.mjs`) so visitors pick their side straight away.
+
 **Colour and atmosphere.** Dark and cinematic: near-black backgrounds, off-white text, photography
 shown in black and white (colour returns on hover where an image is a link), a fine film grain, and
 one accent, DISTRIK red (`--accent`). Change `--accent` to restyle every accent at once.

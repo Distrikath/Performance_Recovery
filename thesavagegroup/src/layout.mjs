@@ -3,7 +3,7 @@ import { site, nav, headerCta, distrik } from '../content/site.mjs';
 import { esc, imageUrl, link, picture } from './components.mjs';
 import { distrikLogoMarkup } from './pages.mjs';
 
-export function layout({ path, title, description, body, hero = 'none', noindex = false, image }) {
+export function layout({ path, title, description, body, hero = 'none', noindex = false, image, theme = 'dark' }) {
   const canonical = site.domain + (path === '/404.html' ? '/' : path);
   const ogImage = imageUrl(image || site.shareImage);
   const robots = site.preview || noindex ? '<meta name="robots" content="noindex, nofollow">' : '';
@@ -39,7 +39,7 @@ ${ogImage ? `<meta property="og:image" content="${ogImage}">` : ''}
 <link rel="stylesheet" href="/assets/styles.css">
 <script src="/assets/main.js" defer></script>
 </head>
-<body data-hero="${hero}"${site.preview ? ' data-preview' : ''}>
+<body class="theme-${theme}" data-hero="${hero}"${site.preview ? ' data-preview' : ''}>
 <a class="skip-link" href="#main">Skip to content</a>
 <div class="loader" aria-hidden="true" data-loader>
   <span class="loader__cross">+</span>
@@ -65,7 +65,7 @@ ${ogImage ? `<meta property="og:image" content="${ogImage}">` : ''}
     </div>
   </div>
 </header>
-<div class="menu-panel" id="site-menu" data-menu hidden>
+<div class="menu-panel theme-dark" id="site-menu" data-menu hidden>
   <nav class="g" aria-label="Site menu">
     <div class="c1 w2 nav-col">
       <p class="label">Sitemap</p>
@@ -121,7 +121,7 @@ function tiles() {
 
 function footer() {
   const legal = site.legal.map((l) => `<li>${esc(l.name)}${l.detail ? ` · ${esc(l.detail)}` : ''}</li>`).join('');
-  return `<footer class="site-footer on-dark">
+  return `<footer class="site-footer on-dark theme-dark">
   <div class="g footer__top">
     <div class="c1 w1">
       <p class="head-md footer__tagline">${esc(site.tagline)}</p>

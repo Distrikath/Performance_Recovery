@@ -49,6 +49,8 @@
   --accent: #ff2d2d;       /* DISTRIK red — 5.3:1 on --bg */
   --accent-ink: #0c0c0c;   /* 5.3:1 on --accent */
   --error: #ff9a8f;
+  --band: var(--accent);   /* call-to-action band */
+  --band-ink: var(--accent-ink);
 
   --sans: 'Archivo', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --mono: 'Space Mono', 'Courier New', Courier, monospace;
@@ -66,6 +68,29 @@
   --section: clamp(88px, 11vw, 176px);
   --header-h: 64px;
 }
+
+/* ---------- Business themes ----------
+   The Savage Group (umbrella) and DISTRIK: black, red accent  → .theme-dark
+   Corporate Wellness: warm off-white, near-black ink         → .theme-light
+   Set on <body> per page, or on a section/panel to switch locally. */
+.theme-dark {
+  color-scheme: dark;
+  --bg: #0c0c0c; --surface: #151515; --ink: #ecebe6; --stone: #232321;
+  --muted: #9b978f; --muted-dark: #9b978f;
+  --line: rgba(255, 255, 255, 0.13); --line-dark: rgba(255, 255, 255, 0.13);
+  --accent: #ff2d2d; --accent-ink: #0c0c0c; --error: #ff9a8f;
+  --band: #ff2d2d; --band-ink: #0c0c0c;
+}
+.theme-light {
+  color-scheme: light;
+  --bg: #f4f2ed; --surface: #ffffff; --ink: #171717; --stone: #e4dfd6;
+  --muted: #5b5750; --muted-dark: #5b5750;          /* 6.4:1 on --bg */
+  --line: rgba(23, 23, 23, 0.14); --line-dark: rgba(23, 23, 23, 0.14);
+  --accent: #171717; --accent-ink: #f4f2ed; --error: #a4161a;
+  --band: #dcd6cc; --band-ink: #171717;
+}
+.theme-dark, .theme-light { background: var(--bg); color: var(--ink); }
+body.theme-light::after { opacity: 0.035; }
 
 /* ---------- Reset / base ---------- */
 *, *::before, *::after { box-sizing: border-box; }
@@ -155,7 +180,10 @@ h1, h2, h3, p, li, address, dt, dd, label, figcaption, .cta > span {
 
 /* ---------- Sections ---------- */
 .section { padding-block: var(--section); }
-.section:not(.on-dark, .clinical, .cta-band) + .section:not(.on-dark, .clinical, .cta-band) { padding-top: 0; }
+/* Consecutive sections on the same background share one gap; a change of
+   background (theme, band, surface) always gets full padding. */
+.section:not(.on-dark, .clinical, .cta-band, .theme-light, .theme-dark) + .section:not(.on-dark, .clinical, .cta-band, .theme-light, .theme-dark),
+.theme-light + .theme-light.section, .theme-dark.section + .theme-dark.section:not(.on-dark) { padding-top: 0; }
 .on-dark { background: var(--surface); color: var(--ink); }
 .section-head { margin-bottom: var(--s5); align-items: start; }
 
@@ -291,7 +319,7 @@ h1, h2, h3, p, li, address, dt, dd, label, figcaption, .cta > span {
 .site-nav a:hover, .site-nav a[aria-current="page"] { border-bottom-color: currentColor; }
 .site-header__end { display: flex; justify-content: flex-end; align-items: center; gap: 20px; }
 .header-cta { display: inline-flex; align-items: center; min-height: 34px; padding: 0 14px; border: 1px solid currentColor; }
-.header-cta::after { content: ''; width: 6px; height: 6px; margin-left: 10px; background: var(--accent); }
+.header-cta::after { content: ''; width: 6px; height: 6px; margin-left: 10px; background: #ff2d2d; }
 .header-cta:hover { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .header-cta:hover::after { background: var(--accent-ink); }
 .menu-toggle { display: inline-flex; align-items: center; gap: 8px; background: none; border: 0; padding: 12px 0; cursor: pointer; min-width: 48px; justify-content: flex-end; }
@@ -368,7 +396,7 @@ h1, h2, h3, p, li, address, dt, dd, label, figcaption, .cta > span {
   padding-top: calc(var(--header-h) + 14px);
 }
 .hero__meta { row-gap: 4px; }
-.hero__meta .mono { padding-top: 10px; border-top: 1px solid var(--line-dark); }
+.hero__meta .mono { padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.22); }
 .hero__foot { padding-bottom: clamp(20px, 2.4vw, 36px); }
 .hero__row { margin-top: var(--s4); align-items: start; row-gap: var(--s4); }
 .hero__body { font-size: clamp(0.9375rem, 1.05vw, 1.0625rem); line-height: 1.6; max-width: 40ch; }
@@ -435,8 +463,8 @@ h1, h2, h3, p, li, address, dt, dd, label, figcaption, .cta > span {
 .story-row { margin-top: clamp(24px, 3vw, 40px); align-items: end; }
 
 /* ---------- CTA band ---------- */
-.cta-band { background: var(--accent); color: var(--accent-ink); }
-.cta-band :focus-visible { outline-color: var(--accent-ink); }
+.cta-band { background: var(--band); color: var(--band-ink); }
+.cta-band :focus-visible { outline-color: var(--band-ink); }
 .cta-band .display { margin-top: var(--s4); }
 
 /* ---------- Index rows ---------- */
@@ -480,7 +508,8 @@ h1, h2, h3, p, li, address, dt, dd, label, figcaption, .cta > span {
 /* ---------- Projects ---------- */
 .project { align-items: start; }
 .project + .project { margin-top: clamp(64px, 8vw, 128px); }
-.project-group { padding-top: 0; padding-bottom: clamp(64px, 8vw, 128px); }
+.project-group { padding-top: var(--s5); padding-bottom: var(--s5); }
+.project-group.theme-dark + .project-group.theme-dark { padding-top: 0; }
 .project__text .mono { margin-top: 10px; }
 .project__text p:not(.mono) { margin-top: 18px; }
 .project__text .cta { margin-top: 0; }
@@ -599,6 +628,24 @@ body::after {
 .tile .distrik-logo { width: clamp(140px, 16vw, 240px); }
 .tile .cta__arrow { font-size: 1.25rem; }
 .tile .temp-tag { top: 10px; bottom: auto; }
+
+/* ---------- Two businesses split ----------
+   Two full-bleed halves; inner 2-column grids line up with page columns 1–2 and 3–4. */
+.split2 { display: grid; grid-template-columns: 1fr; }
+.split2__half { padding: var(--s5) var(--gutter); }
+.split2__half .g { padding-inline: 0; }
+.split2__half .row { margin-top: var(--s4); }
+@media (min-width: 900px) {
+  .split2 { grid-template-columns: 1fr 1fr; }
+  .split2__half:first-child { padding-right: calc(var(--gap) / 2); }
+  .split2__half:last-child { padding-left: calc(var(--gap) / 2); }
+  .split2__half .g { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.split2__half .distrik-logo { width: clamp(150px, 16vw, 260px); }
+.split2__half .mono-list li { display: block; }
+.split2__name { line-height: 0; }
+.split2__name .cond-xl { display: block; line-height: 1; }
+.split2__half .head-lg { max-width: 18ch; }
 
 /* ---------- Reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {

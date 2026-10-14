@@ -81,6 +81,35 @@ export const distrik = {
 };
 
 // ---------------------------------------------------------------------
+// The two businesses — shown side by side (light = Corporate Wellness,
+// black = DISTRIK) on the homepage and Contact page.
+// ---------------------------------------------------------------------
+export const businesses = {
+  corporate: {
+    region: '(AU) Australia',
+    name: 'Corporate Wellness',
+    headline: 'Wellness programs for *workplaces.*',
+    audience: 'For companies and their teams in Australia.',
+    offers: ['Movement sessions', 'Recovery pop-ups', 'Education sessions', 'Team and social events', 'Fully managed programs'],
+    ctas: [
+      { label: 'Explore Corporate Wellness', href: '/corporate-wellness/' },
+      { label: 'Build a workplace program', href: '/contact/#corporate' },
+    ],
+  },
+  distrik: {
+    region: '(ID) Canggu, Bali',
+    name: 'DISTRIK',
+    headline: 'A performance recovery *club.*',
+    audience: 'For anyone who trains, in Canggu, Bali.',
+    offers: ['Sports massage and bodywork', 'Recover · Perform · Move', 'DISTRIK Supply', 'Recovery Fuel', 'Run the Distrik, Fridays 6:00am'],
+    ctas: [
+      { label: 'Discover DISTRIK', href: '/distrik/' },
+      { label: 'Book Recovery', href: 'https://www.fresha.com/book-now/distrik-performance-recovery-leq0n6u2/all-offer?share=true&pId=3111290' },
+    ],
+  },
+};
+
+// ---------------------------------------------------------------------
 // Enquiry form
 // ---------------------------------------------------------------------
 export const forms = {

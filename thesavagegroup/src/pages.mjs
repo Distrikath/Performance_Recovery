@@ -3,7 +3,7 @@
 // Every section follows the grid slots described in components.mjs:
 //   col 1 LABEL · col 2 HEAD/TEXT · col 3 TEXT 2 · col 4 ACTION
 // Images span 1/4 (w1), 1/2 (w2), 3/4 (w3) or full width only.
-import { pages, projects, projectCategories, distrik, forms } from '../content/site.mjs';
+import { pages, projects, projectCategories, distrik, forms, businesses } from '../content/site.mjs';
 import { esc, rich, label, note, link, cta, picture, photoHero, textHero, ctaBand, sectionHead, row, ctaStack } from './components.mjs';
 
 const publicProjects = () => projects.filter((p) => p.verified && p.public);
@@ -37,6 +37,26 @@ function indexRow({ num, labelText, title, body, extra = '', image, id, tag = 'h
   </div>`;
 }
 
+// The two businesses side by side: Corporate Wellness (light) | DISTRIK (black).
+function businessSplit({ id = 'businesses', num = '', heading = true, ctas = {} } = {}) {
+  const half = (key, b, theme) => {
+    const name = key === 'distrik' ? distrikLogo('') : `<span class="cond-xl">${esc(b.name)}</span>`;
+    return `<div class="split2__half ${theme}">
+      <div class="g"><p class="mono c1 w2">${esc(b.region)}</p></div>
+      <div class="g row"><h2 class="c1 w2 split2__name">${name}</h2></div>
+      <div class="g row"><p class="head-lg c1 w2">${rich(b.headline)}</p></div>
+      <div class="g row">
+        <div class="c1 w1 flow"><p class="mono muted">${esc(b.audience)}</p><ul class="mono-list" aria-label="${esc(b.name)} offers">${b.offers.map((o) => `<li>${esc(o)}</li>`).join('')}</ul></div>
+        <div class="c2 w1">${ctaStack(ctas[key] || b.ctas)}</div>
+      </div>
+    </div>`;
+  };
+  return `<section class="split2" id="${id}" aria-label="Our two businesses">
+    ${half('corporate', businesses.corporate, 'theme-light')}
+    ${half('distrik', businesses.distrik, 'theme-dark on-dark')}
+  </section>`;
+}
+
 const section = (inner, { cls = '', id = '', labelledby = '', ariaLabel = '' } = {}) =>
   `<section class="section ${cls}"${id ? ` id="${id}"` : ''}${labelledby ? ` aria-labelledby="${labelledby}"` : ''}${
     ariaLabel ? ` aria-label="${esc(ariaLabel)}"` : ''
@@ -62,6 +82,8 @@ ${section(
   { labelledby: 'intro-t' }
 )}
 
+${businessSplit()}
+
 ${section(
   sectionHead({ id: 'corp-t', num: '02', labelText: c.corporate.label, headline: c.corporate.headline }) +
     row([
@@ -69,7 +91,7 @@ ${section(
       { col: 3, cls: 'flow', html: `<p>${esc(c.corporate.body)}</p>` },
       { col: 4, html: ctaStack([c.corporate.cta]) },
     ]),
-  { labelledby: 'corp-t' }
+  { cls: 'theme-light', labelledby: 'corp-t' }
 )}
 
 ${section(
@@ -89,7 +111,7 @@ ${section(
     })),
     'row--media'
   )}`,
-  { cls: 'on-dark', labelledby: 'distrik-t' }
+  { cls: 'theme-dark', labelledby: 'distrik-t' }
 )}
 
 ${
@@ -136,6 +158,7 @@ export function corporate() {
   return {
     ...c,
     hero: c.hero.tone,
+    theme: 'light',
     image: c.hero.image,
     body: `
 ${photoHero({ hero: c.hero, meta: ['(AU) Australia', 'Programs for workplaces'] })}
@@ -422,7 +445,7 @@ ${groups
     </article>`
         )
         .join(''),
-      { cls: 'index project-group', id: g.key, labelledby: `g-${g.key}` }
+      { cls: `index project-group ${g.key === 'workplace' ? 'theme-light' : 'theme-dark'}`, id: g.key, labelledby: `g-${g.key}` }
     )
   )
   .join('\n')}
@@ -444,12 +467,13 @@ export function contact() {
     hero: 'none',
     body: `
 ${textHero(c.hero, ['Corporate Wellness — Australia', 'DISTRIK — Canggu, Bali'])}
-<nav class="g pathways" aria-label="Enquiry type">
-  <a class="c1 w2 pathway" href="#${c.corporate.id}"><span class="mono">(01)</span><span class="cond-xl">${esc(
-    c.corporate.label
-  )}</span><span class="mono muted">Workplace programs in Australia →</span></a>
-  <a class="c3 w2 pathway" href="#${c.distrik.id}"><span class="mono">(02)</span>${distrikLogo('distrik-logo--pathway')}<span class="mono muted">Performance recovery in Canggu, Bali →</span></a>
-</nav>
+${businessSplit({
+  id: 'pathways',
+  ctas: {
+    corporate: [{ label: 'Plan a workplace program', href: '#corporate' }],
+    distrik: [{ label: 'Book, visit or ask', href: '#distrik' }, { label: 'Book Recovery', href: distrik.booking }],
+  },
+})}
 
 ${section(
   sectionHead({ id: 'corp-enq', num: '01', labelText: c.corporate.label, headline: c.corporate.headline, size: 'head-lg' }) +
@@ -486,7 +510,7 @@ ${section(
         <p class="form__status" data-form-status role="status" aria-live="polite"></p>
       </form>
     </div>`,
-  { cls: 'enquiry', id: c.corporate.id, labelledby: 'corp-enq' }
+  { cls: 'enquiry theme-light', id: c.corporate.id, labelledby: 'corp-enq' }
 )}
 
 ${section(
@@ -501,7 +525,7 @@ ${section(
         <li><span class="mono">Address</span><address>${distrik.address.map(esc).join('<br>')}</address></li>
       </ul>
     </div>`,
-  { cls: 'on-dark enquiry', id: c.distrik.id, labelledby: 'distrik-enq' }
+  { cls: 'enquiry theme-dark', id: c.distrik.id, labelledby: 'distrik-enq' }
 )}
 `,
   };
