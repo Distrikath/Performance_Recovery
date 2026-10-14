@@ -355,10 +355,13 @@ h1, h2, h3, p, li, address, dt, dd, label, figcaption, .cta > span {
   width: 100%; height: 100%; object-fit: cover; object-position: var(--pos, 50% 50%);
   filter: grayscale(1) contrast(1.06) brightness(0.92);
 }
-/* Colour returns on hover where the image is a link */
+/* Every photo is black and white. Images flagged `colour: true` in
+   content/site.mjs keep their colour. Linked images brighten on hover. */
+.frame--colour img { filter: none; }
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   .frame img { transition: filter 0.6s ease; }
-  a:hover .frame img, a:focus-visible .frame img { filter: grayscale(0) contrast(1) brightness(1); }
+  a:hover .frame img, a:focus-visible .frame img { filter: grayscale(1) contrast(1.06) brightness(1.04); }
+  a:hover .frame--colour img, a:focus-visible .frame--colour img { filter: brightness(1.04); }
 }
 .frame[style*="aspect-ratio"] img { position: absolute; inset: 0; }
 @media (max-width: 899px) { .frame img { object-position: var(--pos-m, var(--pos, 50% 50%)); } }

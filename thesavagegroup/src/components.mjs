@@ -90,7 +90,7 @@ export function picture(key, opts = {}) {
       eager ? 'fetchpriority="high" loading="eager"' : 'loading="lazy"'
     } decoding="async">`;
     const tag = site.preview && im.temporary ? '<span class="temp-tag">Temporary image</span>' : '';
-    frame = `<div class="frame ${cls}"${frameStyle}>${img}${tag}</div>`;
+    frame = `<div class="frame${im.colour ? ' frame--colour' : ''} ${cls}"${frameStyle}>${img}${tag}</div>`;
   }
   return capText ? `<figure class="figure">${frame}<figcaption class="caption">${esc(capText)}</figcaption></figure>` : frame;
 }

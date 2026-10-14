@@ -143,6 +143,9 @@ export const forms = {
 // photograph. Use it where approved photography does not exist yet, and
 // describe the shot needed in `brief`.
 //
+// Every photograph is shown in black and white. Add `colour: true` to keep
+// an image in colour.
+//
 // `source` documents where every photograph came from.
 // ---------------------------------------------------------------------
 const DISTRIK_CAMPAIGN = 'DISTRIK brand campaign photography (supplied, distrikath.com)';

@@ -147,7 +147,7 @@ footer) stays dark. Add `theme: 'light'` to a page in `src/pages.mjs`, or the cl
 "two businesses" panel (`businesses` in `content/site.mjs`) so visitors pick their side straight away.
 
 **Colour and atmosphere.** Dark and cinematic: near-black backgrounds, off-white text, photography
-shown in black and white (colour returns on hover where an image is a link), a fine film grain, and
+shown in black and white (add `colour: true` to an image in `content/site.mjs` to keep its colour), a fine film grain, and
 one accent, DISTRIK red (`--accent`). Change `--accent` to restyle every accent at once.
 
 **Intro loader.** On the first page view of each visit, a 1-second loading screen plays (crosshair,
