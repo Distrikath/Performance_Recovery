@@ -34,7 +34,7 @@ ${ogImage ? `<meta property="og:image" content="${ogImage}">` : ''}
 <meta name="theme-color" content="#0c0c0c">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <script>try{if(!sessionStorage.getItem('tsg-intro')&&!matchMedia('(prefers-reduced-motion: reduce)').matches){document.documentElement.classList.add('is-loading');setTimeout(function(){document.documentElement.classList.remove('is-loading')},4000)}}catch(e){}</script>
-<link rel="preload" href="/assets/fonts/space-grotesk-var.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/archivo-var.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/space-mono-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/styles.css">
 <script src="/assets/main.js" defer></script>

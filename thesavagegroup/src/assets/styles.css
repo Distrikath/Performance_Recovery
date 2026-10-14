@@ -2,8 +2,8 @@
    THE SAVAGE GROUP — styles
 
    Type system — one family plus a typewriter
-   - Main:      Space Grotesk Bold, uppercase — headlines
-   - Secondary: Space Grotesk Regular — statements and accent words
+   - Main:      Archivo Expanded Bold, uppercase — headlines
+   - Secondary: Archivo Regular — statements and accent words
    - Text:      Space Mono (typewriter) — body copy, labels, buttons, navigation
 
    Grid
@@ -14,9 +14,10 @@
    ===================================================================== */
 
 @font-face {
-  font-family: 'Space Grotesk';
-  src: url('/assets/fonts/space-grotesk-var.woff2') format('woff2-variations'), url('/assets/fonts/space-grotesk-var.woff2') format('woff2');
-  font-weight: 300 700;
+  font-family: 'Archivo';
+  src: url('/assets/fonts/archivo-var.woff2') format('woff2-variations'), url('/assets/fonts/archivo-var.woff2') format('woff2');
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
   font-style: normal;
   font-display: swap;
 }
@@ -49,7 +50,7 @@
   --accent-ink: #0c0c0c;   /* 5.3:1 on --accent */
   --error: #ff9a8f;
 
-  --sans: 'Space Grotesk', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --sans: 'Archivo', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --mono: 'Space Mono', 'Courier New', Courier, monospace;
 
   /* Spacing scale — every gap on the site comes from these */
@@ -165,25 +166,26 @@ p + p { margin-top: 1em; }
 .section-tail { padding-bottom: var(--section); }
 
 /* ---------- Type ---------- */
-/* Main — Space Grotesk Bold, uppercase */
+/* Main — Archivo Expanded Bold, uppercase (wide and solid, like the DISTRIK mark) */
 .display, .cond-xl, .cond-lg, .cond-md, .wordmark, .footer__wordmark {
   font-family: var(--sans);
+  font-stretch: 125%;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: -0.045em;
+  letter-spacing: -0.02em;
 }
 .display {
-  font-size: clamp(2.75rem, 11.5vw, 15rem);
-  line-height: 0.92;
+  font-size: clamp(2.25rem, 8.4vw, 11rem);
+  line-height: 0.98;
   padding-inline: var(--gutter);
   margin-left: -0.03em;
 }
 .display .ln { display: block; width: max-content; }
 .display { text-wrap: balance; }
-.display--band { font-size: clamp(2.25rem, 6.6vw, 8.5rem); }
-.cond-xl { font-size: clamp(2.25rem, 4.6vw, 5.25rem); line-height: 1; }
-.cond-lg { font-size: clamp(1.625rem, 2.4vw, 2.625rem); line-height: 1.05; letter-spacing: -0.035em; }
-.cond-md { font-size: clamp(1.25rem, 1.6vw, 1.75rem); line-height: 1.1; letter-spacing: -0.03em; }
+.display--band { font-size: clamp(1.75rem, 4.6vw, 6rem); }
+.cond-xl { font-size: clamp(1.75rem, 3.4vw, 4rem); line-height: 1.04; }
+.cond-lg { font-size: clamp(1.25rem, 1.8vw, 2rem); line-height: 1.1; }
+.cond-md { font-size: clamp(1rem, 1.2vw, 1.375rem); line-height: 1.2; }
 .cond-xl .ln { display: block; }
 
 /* Secondary — the same family, not bold (accent words inside headlines) */
@@ -192,16 +194,16 @@ p + p { margin-top: 1em; }
   font-weight: 400;
 }
 
-/* Secondary — Space Grotesk Regular statements; *accent* turns muted */
+/* Secondary — Archivo Regular statements; *accent* turns muted */
 .head-xl, .head-lg, .head-md, .head-sm {
   font-family: var(--sans);
   font-weight: 400;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.015em;
 }
-.head-xl { font-size: clamp(2.375rem, 4.8vw, 5.5rem); line-height: 1.08; letter-spacing: -0.035em; max-width: 18ch; }
-.head-lg { font-size: clamp(1.875rem, 3vw, 3.25rem); line-height: 1.12; letter-spacing: -0.03em; max-width: 24ch; }
-.head-md { font-size: clamp(1.375rem, 1.6vw, 1.75rem); line-height: 1.2; letter-spacing: -0.02em; }
-.head-sm { font-size: clamp(1.25rem, 1.4vw, 1.5rem); line-height: 1.3; letter-spacing: -0.02em; max-width: 22ch; }
+.head-xl { font-size: clamp(2.375rem, 4.8vw, 5.5rem); line-height: 1.08; letter-spacing: -0.02em; max-width: 18ch; }
+.head-lg { font-size: clamp(1.875rem, 3vw, 3.25rem); line-height: 1.12; letter-spacing: -0.015em; max-width: 24ch; }
+.head-md { font-size: clamp(1.375rem, 1.6vw, 1.75rem); line-height: 1.2; letter-spacing: -0.01em; }
+.head-sm { font-size: clamp(1.25rem, 1.4vw, 1.5rem); line-height: 1.3; letter-spacing: -0.01em; max-width: 22ch; }
 .head-xl em, .head-lg em, .head-md em, .head-sm em { font-style: normal; color: var(--muted); }
 .on-dark .head-xl em, .on-dark .head-lg em, .hero .head-xl em { color: var(--muted-dark); }
 .head-xl .ln { display: block; }
@@ -269,7 +271,7 @@ p + p { margin-top: 1em; }
 }
 [data-hero="dark"] .site-header:not(.is-solid) { color: var(--white); }
 .site-header__inner { height: 100%; align-items: center; row-gap: 0; }
-.wordmark { font-size: 1.375rem; font-weight: 700; letter-spacing: 0.01em; text-decoration: none; white-space: nowrap; line-height: 1; }
+.wordmark { font-size: 1rem; font-weight: 700; letter-spacing: 0.01em; text-decoration: none; white-space: nowrap; line-height: 1; }
 .site-nav ul { display: flex; gap: clamp(16px, 1.8vw, 28px); }
 .site-nav a, .header-cta, .menu-toggle {
   font-family: var(--mono); font-size: 0.71875rem; letter-spacing: 0.04em; text-transform: uppercase; text-decoration: none;
@@ -373,7 +375,7 @@ p + p { margin-top: 1em; }
 .distrik-logo--hero { width: clamp(160px, 22vw, 340px); margin: 0 var(--gutter) 24px; }
 .distrik-logo--lg { width: 100%; max-width: 760px; }
 .run-lockup .ln { display: flex; align-items: baseline; gap: 0.18em; white-space: nowrap; }
-.run-lockup__words { letter-spacing: -0.05em; }
+.run-lockup__words { letter-spacing: -0.02em; }
 .distrik-logo--lockup { display: inline-block; height: 0.74em; width: auto; flex: none; }
 .distrik-logo--lockup svg { height: 100%; width: auto; }
 .distrik-logo--pathway { width: clamp(180px, 22vw, 340px); margin-block: 6px 4px; }
@@ -508,7 +510,7 @@ p + p { margin-top: 1em; }
 }
 @media (min-width: 640px) { .contact-list li { grid-template-columns: 1fr 1fr; column-gap: var(--gap); align-items: baseline; } }
 .contact-list li:last-child { border-bottom: 1px solid var(--line-dark); }
-.contact-list__link { font-family: var(--sans); letter-spacing: -0.03em; font-size: clamp(1.375rem, 1.8vw, 1.875rem); line-height: 1.1; text-decoration: none; }
+.contact-list__link { font-family: var(--sans); letter-spacing: -0.01em; font-size: clamp(1.375rem, 1.8vw, 1.875rem); line-height: 1.1; text-decoration: none; }
 .contact-list__link:hover { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; }
 
 /* ---------- Footer ---------- */
@@ -568,7 +570,7 @@ body::after {
 }
 .nav-rows a::after { content: '›'; font-family: var(--sans); font-size: 1rem; line-height: 1; }
 .nav-rows a:hover, .nav-rows a[aria-current="page"] { background: var(--ink); color: var(--bg); }
-.nav-rows--big a { font-family: var(--sans); font-weight: 700; letter-spacing: -0.04em; font-size: clamp(1.5rem, 2.4vw, 2.25rem); line-height: 1; padding-block: 10px 8px; }
+.nav-rows--big a { font-family: var(--sans); font-stretch: 125%; font-weight: 700; letter-spacing: -0.02em; text-transform: uppercase; font-size: clamp(1.125rem, 1.7vw, 1.625rem); line-height: 1; padding-block: 10px 8px; }
 .nav-col .label { margin-bottom: 12px; color: var(--muted); }
 .tiles { margin-top: clamp(32px, 4vw, 56px); }
 .menu-cta { margin-top: 20px; }
@@ -578,7 +580,7 @@ body::after {
 .tile .frame::after { content: ''; position: absolute; inset: 0; background: rgba(0, 0, 0, 0.4); }
 .tile:hover .frame::after { background: rgba(0, 0, 0, 0.2); }
 .tile__body { position: absolute; inset: auto 0 0 0; z-index: 1; padding: clamp(14px, 1.6vw, 24px); display: flex; justify-content: space-between; align-items: end; gap: 16px; }
-.tile__title { font-family: var(--sans); font-weight: 400; letter-spacing: -0.04em; font-size: clamp(1.5rem, 2.4vw, 2.5rem); line-height: 1; }
+.tile__title { font-family: var(--sans); font-weight: 400; letter-spacing: -0.015em; font-size: clamp(1.5rem, 2.4vw, 2.5rem); line-height: 1; }
 .tile .distrik-logo { width: clamp(140px, 16vw, 240px); }
 .tile .cta__arrow { font-size: 1.25rem; }
 .tile .temp-tag { top: 10px; bottom: auto; }

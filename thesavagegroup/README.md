@@ -131,8 +131,8 @@ and `row([{ col, span, html }])` places content in the slots. In a preview build
 the grid and check alignment.
 
 **Type.** One family plus a typewriter, all open-licence (SIL OFL) and self-hosted in `src/assets/fonts/`:
-- **Main:** Space Grotesk Bold, uppercase, for headlines.
-- **Secondary:** Space Grotesk Regular (the same family, not bold) for statements and accent words.
+- **Main:** Archivo Expanded Bold, uppercase, for headlines — wide and solid like the DISTRIK mark, but clean and upright.
+- **Secondary:** Archivo Regular (the same family, not bold) for statements and accent words.
 - **Text:** Space Mono (typewriter) for body copy, labels, buttons and navigation.
 
 In `content/site.mjs`, wrap a word in asterisks to set it in the secondary weight, for example
