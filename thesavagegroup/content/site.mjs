@@ -237,6 +237,31 @@ export const images = {
     pos: '55% 40%',
     source: 'Supplied by The Savage Group',
   },
+  'distrik-berry-soda': {
+    src: 'distrik-berry-soda',
+    alt: 'A sparkling berry, lime and mint drink in a DISTRIK cup',
+    pos: '50% 50%',
+    source: 'Supplied by The Savage Group (DISTRIK Recovery Fuel)',
+  },
+  // Training studio interiors — location not specified, so never captioned.
+  'studio-rack': {
+    src: 'studio-rack',
+    alt: 'A dark training studio with a squat rack, bench and plyo boxes under linear lights',
+    pos: '50% 55%',
+    source: 'Supplied by The Savage Group',
+  },
+  'studio-equipment': {
+    src: 'studio-equipment',
+    alt: 'Kettlebells, dumbbells and medicine balls racked along a dark studio wall',
+    pos: '50% 60%',
+    source: 'Supplied by The Savage Group',
+  },
+  'studio-floor': {
+    src: 'studio-floor',
+    alt: 'An open training floor with cable machines and mats ready for a session',
+    pos: '45% 55%',
+    source: 'Supplied by The Savage Group',
+  },
   'distrik-furniture-detail': {
     src: 'distrik-furniture-detail',
     alt: 'Black leather seating and a wire side table on a polished concrete floor',
@@ -246,7 +271,7 @@ export const images = {
 
   // ---- Temporary stand-ins and placeholders ----------------------------
   // Entries marked `temporary: true` still use existing DISTRIK photography
-  // (founder portrait and recovery fuel) until the right images are supplied. Swap `src`/`alt` here when they arrive;
+  // (founder portrait) until the right image is supplied. Swap `src`/`alt` here when they arrive;
   // every page using the key updates. In preview they carry a "Temporary image" tag.
   'ph-corporate-hero': {
     src: 'floor-stretch',
@@ -294,12 +319,10 @@ export const images = {
     source: DISTRIK_PREMISES + ' — temporary',
   },
   'ph-recovery-fuel': {
-    // TEMPORARY. Wanted: coffee and recovery drinks being made at DISTRIK.
-    temporary: true,
-    src: 'athlete-eyewear',
-    alt: 'Close-up of an athlete in DISTRIK sunglasses, sweat on his face after training',
-    pos: '55% 45%',
-    source: DISTRIK_CAMPAIGN + ' — temporary',
+    src: 'distrik-mint-tray',
+    alt: 'A mint-infused drink on a brushed-steel DISTRIK tray beside a pair of sunglasses',
+    pos: '50% 100%',
+    source: 'Supplied by The Savage Group (DISTRIK Recovery Fuel)',
   },
   'ph-supply': {
     placeholder: true,
@@ -471,6 +494,7 @@ export const pages = {
         label: 'Education',
         headline: 'Practical, not preachy.',
         body: 'Practical sessions exploring movement, sleep, stress, recovery and everyday wellbeing.',
+        image: 'studio-floor',
       },
       {
         id: 'connection',
@@ -485,6 +509,7 @@ export const pages = {
         headline: 'One connected program.',
         body: 'Timetables, instructors, communications, bookings and reporting managed as one connected program.',
         items: ['Timetables', 'Instructors', 'Communications', 'Bookings', 'Reporting'],
+        image: 'studio-equipment',
       },
     ],
     process: {

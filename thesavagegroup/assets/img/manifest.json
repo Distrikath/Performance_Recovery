@@ -96,6 +96,15 @@
       2000
     ]
   },
+  "distrik-berry-soda": {
+    "width": 941,
+    "height": 1672,
+    "widths": [
+      480,
+      800,
+      941
+    ]
+  },
   "distrik-bodywork-detail": {
     "width": 2000,
     "height": 1333,
@@ -142,6 +151,17 @@
   "distrik-massage": {
     "width": 2000,
     "height": 1333,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600,
+      2000
+    ]
+  },
+  "distrik-mint-tray": {
+    "width": 2000,
+    "height": 1334,
     "widths": [
       480,
       800,
@@ -246,6 +266,39 @@
       480,
       800,
       941
+    ]
+  },
+  "studio-equipment": {
+    "width": 2000,
+    "height": 1500,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600,
+      2000
+    ]
+  },
+  "studio-floor": {
+    "width": 2000,
+    "height": 1500,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600,
+      2000
+    ]
+  },
+  "studio-rack": {
+    "width": 2000,
+    "height": 1500,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600,
+      2000
     ]
   }
 }

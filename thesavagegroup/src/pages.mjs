@@ -82,7 +82,7 @@ ${section(
     { col: 4, html: ctaStack([{ label: 'Discover DISTRIK', href: '/distrik/' }, book], 'cta--light') },
   ])}
   ${row(
-    ['distrik-cupping', 'distrik-treatment-room', 'distrik-lounge', 'distrik-furniture-detail'].map((k, i) => ({
+    ['distrik-cupping', 'distrik-treatment-room', 'distrik-lounge', 'distrik-berry-soda'].map((k, i) => ({
       col: i + 1,
       m1: true,
       html: picture(k, { span: 1, shape: 'portrait' }),
@@ -162,6 +162,8 @@ ${section(
     .join(''),
   { cls: 'index', ariaLabel: 'Offering areas' }
 )}
+
+<div class="bleed">${picture('studio-rack', { span: 4, shape: 'wide' })}</div>
 
 ${section(
   sectionHead({ id: 'process-t', num: '02', labelText: c.process.label, headline: c.process.headline }) +
