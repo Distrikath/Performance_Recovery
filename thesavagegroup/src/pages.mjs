@@ -186,7 +186,7 @@ ${section(
   { cls: 'index', ariaLabel: 'Offering areas' }
 )}
 
-<div class="bleed">${picture('studio-rack', { span: 4, shape: 'wide' })}</div>
+<div class="bleed">${picture('ph-workplace-session', { span: 4, shape: 'wide' })}</div>
 
 ${section(
   sectionHead({ id: 'process-t', num: '02', labelText: c.process.label, headline: c.process.headline }) +

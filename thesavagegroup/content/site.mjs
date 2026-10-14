@@ -334,9 +334,11 @@ export const images = {
     source: 'Supplied by The Savage Group',
   },
   'ph-linkedin': {
-    placeholder: true,
-    alt: '',
-    brief: 'Approved image from the LinkedIn program (requires client approval before use).',
+    src: 'studio-rack',
+    alt: 'A dark training studio with a squat rack, bench and plyo boxes under linear lights',
+    pos: '50% 55%',
+    posMobile: '50% 55%',
+    source: 'Supplied by The Savage Group (gym photography for the LinkedIn program)',
   },
   'ph-founder': {
     // TEMPORARY. Wanted: portrait of Justin Savage. Uses an interior, not a
@@ -390,7 +392,7 @@ export const projects = [
     image: 'ph-linkedin',
     href: '/corporate-wellness/#linkedin',
     linkLabel: 'Corporate Wellness',
-    note: 'Client reference only. Program detail, imagery and any outcomes to be added once approved by LinkedIn.',
+    note: 'Client reference only. Program detail and any outcomes to be added once approved by LinkedIn.',
   },
   {
     id: 'distrik',
@@ -560,7 +562,7 @@ export const pages = {
       image: 'ph-linkedin',
       // Add approved program detail here, e.g. ['Weekly movement sessions', ...]
       details: [],
-      reviewNote: 'Add approved program detail, imagery and any outcomes once LinkedIn has signed off. No logo, testimonial or statistics without approved assets.',
+      reviewNote: 'Add approved program detail and any outcomes once LinkedIn has signed off. No logo, testimonial or statistics without approved assets.',
     },
     future: {
       label: 'Looking ahead',
