@@ -93,6 +93,17 @@ button, input, select, textarea { font: inherit; color: inherit; }
 p { max-width: 46ch; }
 p + p { margin-top: 1em; }
 
+/* ---------- Horizontal grid ----------
+   Every text box is trimmed to the top of its capitals and to its baseline,
+   so the first line of any text starts exactly on the row line — level with
+   neighbouring text and with the top edge of images. Spacing between rows
+   then comes only from the spacing tokens. */
+h1, h2, h3, p, li, address, dt, dd, label, figcaption, .cta > span {
+  text-box: trim-both cap alphabetic;
+}
+/* Grid cells never inherit stray top margins (e.g. p + p) */
+.g > * { margin-top: 0; }
+
 :focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 
 .sr-only {
@@ -153,7 +164,6 @@ p + p { margin-top: 1em; }
    .row  every following row, separated by one fixed step
    .flow vertical rhythm inside a cell */
 .sh { align-items: start; row-gap: var(--s2); }
-@media (min-width: 900px) { .sh > .c1 { padding-top: 0.9em; } }
 .row { margin-top: var(--s5); align-items: start; }
 .sh + .sh { margin-top: var(--s4); }
 .row--media { margin-top: var(--s4); }
@@ -232,18 +242,19 @@ p + p { margin-top: 1em; }
 .cta {
   display: inline-flex; align-items: baseline; justify-content: space-between; gap: 24px;
   min-width: min(100%, 220px);
-  padding: 12px 0 10px;
+  padding: 0 0 12px;
   border-bottom: 1px solid currentColor;
   font-family: var(--mono); font-size: 0.75rem; font-weight: 400; letter-spacing: 0.02em; text-transform: uppercase;
   text-decoration: none;
 }
-.cta__arrow { font-family: var(--sans); font-size: 1rem; line-height: 1; }
+.cta > span { display: block; }
+.cta__arrow { font-family: var(--sans); font-size: 0.75rem; line-height: 1; }
 @media (prefers-reduced-motion: no-preference) {
   .cta__arrow { transition: transform 0.25s ease; }
   .cta:hover .cta__arrow { transform: translateX(4px); }
 }
 .cta--light { color: var(--white); }
-.cta-stack { display: grid; gap: var(--s2); justify-items: stretch; }
+.cta-stack { display: grid; gap: var(--s3); justify-items: stretch; }
 .cta-stack .cta { width: 100%; min-width: 0; }
 
 .btn {
@@ -322,7 +333,7 @@ p + p { margin-top: 1em; }
 }
 .frame[style*="aspect-ratio"] img { position: absolute; inset: 0; }
 @media (max-width: 899px) { .frame img { object-position: var(--pos-m, var(--pos, 50% 50%)); } }
-.figure .caption { margin-top: 10px; font-family: var(--mono); font-size: 0.6875rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.figure .caption { margin-top: 12px; font-family: var(--mono); font-size: 0.6875rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
 .on-dark .figure .caption { color: var(--muted-dark); }
 .bleed > .figure .caption { padding-inline: var(--gutter); }
 
@@ -359,8 +370,7 @@ p + p { margin-top: 1em; }
 .hero__meta { row-gap: 4px; }
 .hero__meta .mono { padding-top: 10px; border-top: 1px solid var(--line-dark); }
 .hero__foot { padding-bottom: clamp(20px, 2.4vw, 36px); }
-.hero__row { margin-top: var(--s4); align-items: start; row-gap: var(--s3); }
-.hero__label { padding-top: 2px; }
+.hero__row { margin-top: var(--s4); align-items: start; row-gap: var(--s4); }
 .hero__body { font-size: clamp(0.9375rem, 1.05vw, 1.0625rem); line-height: 1.6; max-width: 40ch; }
 .hero .cta { width: 100%; }
 @media (max-width: 899px) {
@@ -376,7 +386,10 @@ p + p { margin-top: 1em; }
 .distrik-logo--lg { width: 100%; max-width: 760px; }
 .run-lockup .ln { display: flex; align-items: baseline; gap: 0.18em; white-space: nowrap; }
 .run-lockup__words { letter-spacing: -0.02em; }
-.distrik-logo--lockup { display: inline-block; height: 0.74em; width: auto; flex: none; }
+/* Logo letters = cap height of the type: the glyphs fill 76.6% of the SVG's
+   height, Archivo's caps are 0.695em → 0.907em tall; shift it down 0.138em
+   (measured) so the glyph base sits on the text baseline. */
+.distrik-logo--lockup { display: inline-block; height: 0.907em; width: auto; flex: none; position: relative; top: 0.138em; }
 .distrik-logo--lockup svg { height: 100%; width: auto; }
 .distrik-logo--pathway { width: clamp(180px, 22vw, 340px); margin-block: 6px 4px; }
 .distrik-logo--md { width: 180px; margin-bottom: 28px; }
@@ -406,15 +419,17 @@ p + p { margin-top: 1em; }
   display: flex; justify-content: space-between; gap: 12px;
 }
 .mono-list li:last-child { border-bottom: 1px solid var(--line); }
+/* First item starts on the row line (rules sit between items) */
+.mono-list li:first-child, .contact-list li:first-child { border-top: 0; padding-top: 0; }
 .on-dark .mono-list li { border-color: var(--line-dark); }
 .index-row__text .mono-list { margin-top: 24px; }
 
 /* ---------- Cards / work ---------- */
 .card__link { display: block; text-decoration: none; }
 .cards { align-items: start; }
-.card__meta { margin-top: 14px; }
-.card h3 { margin-top: 8px; }
-.card .mono.muted { margin-top: 6px; }
+.card__meta { margin-top: var(--s2); }
+.card h3 { margin-top: 12px; }
+.card .mono.muted { margin-top: 10px; }
 .card__link:hover h3 { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 0.1em; }
 .story-label { align-self: start; }
 .story-row { margin-top: clamp(24px, 3vw, 40px); align-items: end; }
@@ -431,7 +446,7 @@ p + p { margin-top: 1em; }
 .index-row__text .head-sm { margin-bottom: 14px; }
 .index-row--dark { border-color: var(--line-dark); margin-top: clamp(64px, 8vw, 128px); }
 .prices { row-gap: var(--s3); align-items: start; }
-.price { display: grid; gap: 6px; padding-top: 12px; border-top: 1px solid var(--accent); }
+.price { display: grid; gap: 12px; padding-top: 12px; border-top: 1px solid var(--accent); }
 
 /* ---------- Corporate ---------- */
 .process__steps li { border-top: 1px solid currentColor; padding-top: 12px; }
@@ -468,7 +483,7 @@ p + p { margin-top: 1em; }
 .project-group { padding-top: 0; padding-bottom: clamp(64px, 8vw, 128px); }
 .project__text .mono { margin-top: 10px; }
 .project__text p:not(.mono) { margin-top: 18px; }
-.project__text .cta { margin-top: 24px; }
+.project__text .cta { margin-top: 0; }
 
 /* ---------- Contact ---------- */
 .pathways { padding-block: 0 var(--section); row-gap: 0; }
@@ -574,7 +589,7 @@ body::after {
 .nav-col .label { margin-bottom: 12px; color: var(--muted); }
 .tiles { margin-top: clamp(32px, 4vw, 56px); }
 .menu-cta { margin-top: 20px; }
-.footer__regions { margin-top: 16px; }
+.footer__regions { margin-top: var(--s3); }
 .footer__legal { margin-top: 20px; }
 .tile { position: relative; display: block; text-decoration: none; color: var(--white); background: var(--surface); overflow: hidden; }
 .tile .frame::after { content: ''; position: absolute; inset: 0; background: rgba(0, 0, 0, 0.4); }
