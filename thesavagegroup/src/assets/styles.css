@@ -201,6 +201,7 @@ h1, h2, h3, p, li, address, dt, dd, label, figcaption, .cta > span {
 .flow > * + * { margin-top: var(--s3); }
 .flow > .label + * { margin-top: var(--s2); }
 @media (max-width: 899px) { .row { margin-top: var(--s4); } }
+@media (max-width: 899px) { .row.intro { row-gap: var(--s5); } }
 .section-tail { padding-bottom: var(--section); }
 
 /* ---------- Type ---------- */

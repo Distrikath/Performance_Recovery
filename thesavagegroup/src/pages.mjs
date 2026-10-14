@@ -76,9 +76,9 @@ ${photoHero({ hero: c.hero, meta: ['(AU) Corporate Wellness', '(ID) DISTRIK, Can
 ${section(
   sectionHead({ id: 'intro-t', num: '01', labelText: c.intro.label, headline: c.intro.headline }) +
     row([
-      { col: 2, cls: 'flow', html: `<p class="lead">${esc(c.intro.body)}</p>` },
-      { col: 4, html: picture('shoulder-release', { span: 1, shape: 'portrait' }) },
-    ]),
+      { col: 1, m1: true, html: picture('shoulder-release', { span: 1, shape: 'portrait' }) },
+      ...c.intro.blocks.map((b, i) => ({ col: i + 2, cls: 'flow', html: `<h3 class="head-md">${rich(b.title)}</h3><p>${esc(b.body)}</p>` })),
+    ], 'intro'),
   { labelledby: 'intro-t' }
 )}
 

@@ -455,7 +455,21 @@ export const pages = {
     intro: {
       label: 'What we do',
       headline: 'Built around *people.*',
-      body: 'Different settings. A shared purpose. We bring together movement, recovery and connection to create experiences people want to be part of—and return to.',
+      // Three short chapters, side by side in columns 2–4.
+      blocks: [
+        {
+          title: 'Wellness at *work.*',
+          body: 'We build workplace wellness around the people who use it—what they enjoy, when they can join and what helps them feel better. Through movement, recovery, education and social experiences, we make wellbeing an accessible part of the working day, giving colleagues more ways to connect and build healthy habits together.',
+        },
+        {
+          title: 'Recovery at *DISTRIK.*',
+          body: 'At DISTRIK, we bring that same approach into a dedicated performance recovery club. Hands-on treatments, mobility and recovery technology support the way people train, move and live. Indonesian performance brands, recovery fuel and community sessions make it a place to spend time, meet others and come back to.',
+        },
+        {
+          title: 'Different settings. *A shared purpose.*',
+          body: 'From the workplace to the recovery club, The Savage Group creates spaces and experiences that help people move better, recover well and feel connected. Built around real needs—and the people who bring them to life.',
+        },
+      ],
     },
     corporate: {
       label: 'Corporate Wellness',
