@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMEEwQTBBIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYsNzgpIHNjYWxlKDEuMzApIiBmaWxsPSIjRjJGMkYwIj48cGF0aCBkPSJNIDAuMDYyNSAwIEwgNi42MjUgLTQxLjM5MDYyNSBMIDMzLjU5Mzc1IC00MS4zOTA2MjUgQyAzOS4wMDc4MTIgLTQxLjM5MDYyNSA0My41MDM5MDYgLTQwLjkwNjI1IDQ3LjA3ODEyNSAtMzkuOTM3NSBDIDUwLjY2MDE1NiAtMzguOTc2NTYyIDUzLjUgLTM3LjY2MDE1NiA1NS41OTM3NSAtMzUuOTg0Mzc1IEMgNTcuNjg3NSAtMzQuMzE2NDA2IDU5LjE3NTc4MSAtMzIuNDE0MDYyIDYwLjA2MjUgLTMwLjI4MTI1IEMgNjAuOTU3MDMxIC0yOC4xNTYyNSA2MS40MDYyNSAtMjUuOTIxODc1IDYxLjQwNjI1IC0yMy41NzgxMjUgQyA2MS40MDYyNSAtMjEuOTEwMTU2IDYxLjI5Njg3NSAtMjAuMzE2NDA2IDYxLjA3ODEyNSAtMTguNzk2ODc1IEMgNjAuODE2NDA2IC0xNy4wOTc2NTYgNjAuMzMyMDMxIC0xNS4zNTkzNzUgNTkuNjI1IC0xMy41NzgxMjUgQyA1OC45MjU3ODEgLTExLjc5Njg3NSA1Ny44Nzg5MDYgLTEwLjA5NzY1NiA1Ni40ODQzNzUgLTguNDg0Mzc1IEMgNTUuMDk3NjU2IC02Ljg2NzE4OCA1My4yNjk1MzEgLTUuNDIxODc1IDUxIC00LjE0MDYyNSBDIDQ4LjczODI4MSAtMi44NTkzNzUgNDUuOTIxODc1IC0xLjg0NzY1NiA0Mi41NDY4NzUgLTEuMTA5Mzc1IEMgMzkuMTcxODc1IC0wLjM2NzE4OCAzNS4xNDg0MzggMCAzMC40ODQzNzUgMCBaIE0gMjAuMjUgLTMwLjUzMTI1IEwgMTcuMTI1IC0xMC45NTMxMjUgTCAyOC42NDA2MjUgLTEwLjk1MzEyNSBDIDMxLjgzNTkzOCAtMTAuOTUzMTI1IDM0LjQ3MjY1NiAtMTEuMjUgMzYuNTQ2ODc1IC0xMS44NDM3NSBDIDM4LjYxNzE4OCAtMTIuNDM3NSA0MC4yNSAtMTMuMjA3MDMxIDQxLjQzNzUgLTE0LjE1NjI1IEMgNDIuNjI1IC0xNS4xMDE1NjIgNDMuNDg0Mzc1IC0xNi4wOTM3NSA0NC4wMTU2MjUgLTE3LjEyNSBDIDQ0LjU1NDY4OCAtMTguMTY0MDYyIDQ0Ljg5ODQzOCAtMTkuMTQ4NDM4IDQ1LjA0Njg3NSAtMjAuMDc4MTI1IEMgNDUuMjAzMTI1IC0yMS4wMDM5MDYgNDUuMjgxMjUgLTIxLjc1IDQ1LjI4MTI1IC0yMi4zMTI1IEMgNDUuMjgxMjUgLTIzLjIzODI4MSA0NS4xMTMyODEgLTI0LjE3OTY4OCA0NC43ODEyNSAtMjUuMTQwNjI1IEMgNDQuNDQ1MzEyIC0yNi4xMDkzNzUgNDMuNzk2ODc1IC0yNyA0Mi44MjgxMjUgLTI3LjgxMjUgQyA0MS44NjcxODggLTI4LjYyNSA0MC41IC0yOS4yODEyNSAzOC43MTg3NSAtMjkuNzgxMjUgQyAzNi45Mzc1IC0zMC4yODEyNSAzNC41OTc2NTYgLTMwLjUzMTI1IDMxLjcwMzEyNSAtMzAuNTMxMjUgWiBNIDIwLjI1IC0zMC41MzEyNSAiLz48L2c+PC9zdmc+">
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20261011191;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20261016200;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -2984,6 +2984,19 @@ const ZONES=[
   {id:'Therapy',   rows:3, start:10, end:22, col:'#8b5cf6', label:'Therapy',   min:'3 rooms', rowLabels:['Room 1','Room 2','Room 3']},
   {id:'Event',     rows:3, start:6,  end:21, col:'#14b8a6', label:'Event',     min:'not bookable', rowLabels:['Event 1','Event 2','Event 3']},
 ];
+// ── DATE-AWARE ROSTER LAYOUT ────────────────────────────────────────────────────────────────────────────
+// From Mon 2 Nov 2026, Fuel + Reception + Supply merge into ONE "Front of House" zone (5 rows). Therapy & Event
+// are unchanged. Dates BEFORE the cutover keep the legacy 5-zone layout and ALL their saved rosters untouched.
+// ZONES_V2 reuses the SAME Therapy/Event objects as ZONES so syncZonesFromHours keeps updating their hours.
+const ROSTER_V2_FROM='2026-11-02';
+const ZONES_V2=[
+  {id:'FOH', rows:5, start:6, end:22, col:'#3b82f6', label:'Front of House', min:'5 staff',
+     rowLabels:['Manager / Reception','Reception','Fuel / Reception','Fuel / Reception','Supply / Reception']},
+  ZONES.find(function(z){return z.id==='Therapy';}),
+  ZONES.find(function(z){return z.id==='Event';}),
+];
+// Which zone set applies to a given date key ('YYYY-MM-DD'). No key / pre-cutover → legacy (identical to today).
+function zonesForDateKey(dk){ return (dk && dk>=ROSTER_V2_FROM) ? ZONES_V2 : ZONES; }
 
 const STAFF=[
   {id:'Amri',     col:'#0A0A0A',name:'Amri',              abbr:'AM',role:'Manager',      salary:6500000,group:'Management'},
@@ -3107,11 +3120,15 @@ function loadGridFromData(){
     const dateKey = getDateKey(i, rosterWeekOffset);
     if(dailyOverrides[dateKey]){
       grid[dayName] = JSON.parse(JSON.stringify(dailyOverrides[dateKey]));
+    } else if(zonesForDateKey(dateKey)===ZONES_V2){
+      // From the cutover, a day with no saved roster starts as EMPTY Front-of-House zones (not the legacy template).
+      grid[dayName] = {};
+      ZONES_V2.forEach(function(z){ grid[dayName][z.id]=Array.from({length:z.rows},function(){return Array(TOTAL_SLOTS).fill(null);}); });
     } else {
       grid[dayName] = _baseGrid ? JSON.parse(JSON.stringify(_baseGrid[dayName])) : emptyGrid()[dayName];
     }
-    // Backfill any zone missing from older saved rosters (e.g. a newly-added zone like Event) so nothing crashes.
-    getLeafZones().forEach(function(z){ if(!grid[dayName][z.id]) grid[dayName][z.id]=Array.from({length:z.rows},function(){return Array(TOTAL_SLOTS).fill(null);}); });
+    // Backfill any zone missing from older saved rosters (e.g. a newly-added zone) so nothing crashes — using THIS date's era.
+    getLeafZones(dateKey).forEach(function(z){ if(!grid[dayName][z.id]) grid[dayName][z.id]=Array.from({length:z.rows},function(){return Array(TOTAL_SLOTS).fill(null);}); });
   });
 }
 
@@ -3329,7 +3346,7 @@ function clickSlot(zone,row,slotIdx){
 }
 function clickBreakSlot(zone,row,slotIdx){
   const day=DAYS[activeDay];
-  const z=ZONES.find(z=>z.id===zone);
+  const z=getLeafZones().find(z=>z.id===zone);
   const slotH=slotToH(slotIdx);
   if(slotH<z.start||slotH>=z.end)return;
   // Mark as break for the last placed staff — find nearest staff in same row
@@ -3548,7 +3565,7 @@ function buildGrid(){
     }
   }
 
-  ZONES.forEach(zone=>{
+  getLeafZones().forEach(zone=>{
     let _evBtn='';
     if(zone.id==='Event'){
       const _edk=(typeof getDateKey==='function')?getDateKey(activeDay, rosterWeekOffset):'';
@@ -3567,6 +3584,7 @@ function buildGrid(){
 
   el.innerHTML=html;
 }
+// (buildGrid renders getLeafZones() — the zone set for the date on screen.)
 
 // Pick readable text colour (black/white) for a given background
 function txtOn(bg){
@@ -3697,8 +3715,12 @@ function toggleTS(){
 }
 
 
-function getLeafZones(){
-  return ZONES.slice();
+// The date currently shown on the roster screen (used to pick legacy vs Front-of-House zones for the UI).
+function _rosterViewKey(){ try{ return getDateKey(activeDay, rosterWeekOffset); }catch(e){ return ''; } }
+// Zone list for a date. Pass a dateKey for per-date logic (analytics/availability); omit it for the roster UI,
+// which uses the date on screen. Pre-cutover dates return the exact same list as before this change.
+function getLeafZones(dk){
+  return zonesForDateKey(dk!==undefined?dk:_rosterViewKey()).slice();
 }
 
 function buildTS(){
@@ -4616,7 +4638,7 @@ function calcWages(period, start, end){
         for(let _dt=new Date(_s); _dt<=_e; _dt.setDate(_dt.getDate()+1)){
           const _dk=_dt.toLocaleDateString('en-CA',{timeZone:BALI_TZ});
           const _g=(typeof _tipDayGrid==='function')?_tipDayGrid(_dk):null; if(!_g) continue;
-          getLeafZones().forEach(z=>{ (_g[z.id]||[]).forEach(row=>{ (row||[]).forEach(cell=>{ if(cell===s.id) hrs+=0.5; }); }); });
+          getLeafZones(_dk).forEach(z=>{ (_g[z.id]||[]).forEach(row=>{ (row||[]).forEach(cell=>{ if(cell===s.id) hrs+=0.5; }); }); });
         }
       }catch(e){}
       if(hrs===0) return;
@@ -4787,7 +4809,7 @@ function _plDayWage(dk){
     var roster=(typeof dailyOverrides!=='undefined'&&dailyOverrides&&dailyOverrides[dk])?dailyOverrides[dk]:((typeof _baseGrid!=='undefined'&&_baseGrid&&_baseGrid[dayName])?_baseGrid[dayName]:((typeof grid!=='undefined'&&grid[dayName])||null));
     if(!roster) return 0;
     var on={};
-    getLeafZones().forEach(function(z){ (roster[z.id]||[]).forEach(function(row){ (row||[]).forEach(function(cell){ if(cell&&!(''+cell).startsWith('Break:')) on[cell]=1; }); }); });
+    getLeafZones(dk).forEach(function(z){ (roster[z.id]||[]).forEach(function(row){ (row||[]).forEach(function(cell){ if(cell&&!(''+cell).startsWith('Break:')) on[cell]=1; }); }); });
     var w=0; STAFF.forEach(function(s){ if(on[s.id]) w+=Math.round((s.salary||0)/26); });
     return w;
   }catch(e){ return 0; }
@@ -5962,7 +5984,7 @@ function _rosteredHoursBetween(sid, startISO, endISO){
     while(d<=end && guard++<400){
       var dk=iso(d), dn=dayNames[d.getDay()];
       var roster=(dailyOverrides&&dailyOverrides[dk])?dailyOverrides[dk]:((typeof _baseGrid!=='undefined'&&_baseGrid&&_baseGrid[dn])?_baseGrid[dn]:((typeof grid!=='undefined'&&grid[dn])||null));
-      if(roster){ zones.forEach(function(z){ var rows=roster[z.id]||[]; rows.forEach(function(row){ (row||[]).forEach(function(cell){ if(cell&&!isBreakCell(cell)&&staffId(cell)===sid) total+=0.5; }); }); }); }
+      if(roster){ getLeafZones(dk).forEach(function(z){ var rows=roster[z.id]||[]; rows.forEach(function(row){ (row||[]).forEach(function(cell){ if(cell&&!isBreakCell(cell)&&staffId(cell)===sid) total+=0.5; }); }); }); }
       d.setDate(d.getDate()+1);
     }
     return total;
@@ -6069,7 +6091,7 @@ function _tipDayGrid(dateKey){
   }catch(e){}
   return null;
 }
-function _tipScheduledSet(dateKey){ var set={}; try{ var g=_tipDayGrid(dateKey); if(g){ getLeafZones().forEach(function(z){ (g[z.id]||[]).forEach(function(row){ (row||[]).forEach(function(cell){ var id=(typeof staffId==='function')?staffId(cell):(cell&&cell.replace('Break:','')); if(id) set[id]=1; }); }); }); } }catch(e){} return set; }
+function _tipScheduledSet(dateKey){ var set={}; try{ var g=_tipDayGrid(dateKey); if(g){ getLeafZones(dateKey).forEach(function(z){ (g[z.id]||[]).forEach(function(row){ (row||[]).forEach(function(cell){ var id=(typeof staffId==='function')?staffId(cell):(cell&&cell.replace('Break:','')); if(id) set[id]=1; }); }); }); } }catch(e){} return set; }
 function _tipAbsentSet(dateKey){ var set={}; try{ var day=(typeof dailyAbsence!=='undefined'&&dailyAbsence)?dailyAbsence[dateKey]:null; if(day){ Object.keys(day).forEach(function(k){ var a=day[k]; if(a&&a.staffId) set[a.staffId]=1; }); } }catch(e){} return set; }
 // TIP_POOL members WORKING on a date = scheduled AND not marked absent. Roster gap for that day → fall back to the
 // full pool; absentees are always removed. So a sick/holiday member is never counted, and the split is among the rest.
@@ -6987,7 +7009,7 @@ function populateTherapists(){
   const availability = {}; // staffId -> {rostered:bool, onBreak:bool}
   STAFF.forEach(s=>{ availability[s.id]={rostered:false, onBreak:false}; });
 
-  getLeafZones().forEach(z=>{
+  getLeafZones(dateVal||undefined).forEach(z=>{
     (grid[rosterDay]?.[z.id]||[]).forEach(row=>{
       row.forEach((cell, slotIdx)=>{
         if(!cell) return;
@@ -9786,7 +9808,7 @@ function renderPLExpenses(allExpenses, period){
       for(let _dt=new Date(_s); _dt<=_e; _dt.setDate(_dt.getDate()+1)){
         const _dk=_dt.toLocaleDateString('en-CA',{timeZone:BALI_TZ});
         const _g=(typeof _tipDayGrid==='function')?_tipDayGrid(_dk):null; if(!_g) continue;
-        getLeafZones().forEach(z=>{ (_g[z.id]||[]).forEach(row=>{ (row||[]).forEach(cell=>{ if(cell && !(''+cell).startsWith('Break:')) _hrs[cell]=(_hrs[cell]||0)+0.5; }); }); });
+        getLeafZones(_dk).forEach(z=>{ (_g[z.id]||[]).forEach(row=>{ (row||[]).forEach(cell=>{ if(cell && !(''+cell).startsWith('Break:')) _hrs[cell]=(_hrs[cell]||0)+0.5; }); }); });
       }
     }catch(e){}
     STAFF.forEach(s=>{
@@ -15490,7 +15512,7 @@ function _scheduledDaysInMonth(sid,y,m){
       var roster=(typeof dailyOverrides!=='undefined'&&dailyOverrides&&dailyOverrides[dk])?dailyOverrides[dk]:((typeof _baseGrid!=='undefined'&&_baseGrid&&_baseGrid[dn])?_baseGrid[dn]:((typeof grid!=='undefined'&&grid[dn])||null));
       if(!roster) continue;
       var here=false;
-      zones.forEach(function(z){ if(here) return; (roster[z.id]||[]).forEach(function(row){ if(here) return; (row||[]).forEach(function(cell){ if(cell&&!isBreakCell(cell)&&staffId(cell)===sid){ here=true; } }); }); });
+      getLeafZones(dk).forEach(function(z){ if(here) return; (roster[z.id]||[]).forEach(function(row){ if(here) return; (row||[]).forEach(function(cell){ if(cell&&!isBreakCell(cell)&&staffId(cell)===sid){ here=true; } }); }); });
       if(here) count++;
     }
     return count;
