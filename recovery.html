@@ -671,6 +671,7 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
     <div class="rc-step-title">Choose your focus</div>
     <p class="rc-step-desc">Select your pathway based on what your body needs today.</p>
     <div class="rc-focus-list">
+      <div class="rc-focus-item">RELAX</div>
       <div class="rc-focus-item">RECOVER</div>
       <div class="rc-focus-item">PERFORM</div>
       <div class="rc-focus-item">MOVE</div>
@@ -718,8 +719,19 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
 <section class="rc-therapies">
   <div class="rc-therapies-eyebrow">[ the therapies ]</div>
   <div class="rc-therapy-grid">
-    <div class="rc-therapy" onclick="showFocusDetail('RECOVER')">
+    <div class="rc-therapy" onclick="showFocusDetail('RELAX')">
       <div class="rc-therapy-num">01</div>
+      <div class="rc-therapy-name">RELAX</div>
+      <p class="rc-therapy-desc"><strong style="color:var(--r);font-weight:700;">For when you just need to switch off.</strong><br>Sometimes your body just needs to switch off. A calming, full-body oil massage using gentle, flowing techniques to ease everyday tension and help you unwind. No tools, no extras. Just pure relaxation.</p>
+      <div class="rc-therapy-tags">
+        <span class="rc-therapy-tag">relaxation</span>
+        <span class="rc-therapy-tag">stress relief</span>
+        <span class="rc-therapy-tag">everyday tension</span>
+        <span class="rc-therapy-tag">full-body oil massage</span>
+      </div>
+    </div>
+    <div class="rc-therapy" onclick="showFocusDetail('RECOVER')">
+      <div class="rc-therapy-num">02</div>
       <div class="rc-therapy-name">RECOVER</div>
       <p class="rc-therapy-desc"><strong style="color:var(--r);font-weight:700;">For when you're sore.</strong><br>Post-training bodywork designed to reduce muscle soreness, fatigue and tension. Your therapist will focus on the areas that have worked hardest, using sports massage and targeted recovery techniques to help you feel fresher and ready for your next session.</p>
       <div class="rc-therapy-tags">
@@ -730,7 +742,7 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
       </div>
     </div>
     <div class="rc-therapy" onclick="showFocusDetail('PERFORM')">
-      <div class="rc-therapy-num">02</div>
+      <div class="rc-therapy-num">03</div>
       <div class="rc-therapy-name">PERFORM</div>
       <p class="rc-therapy-desc"><strong style="color:var(--r);font-weight:700;">For when you train hard.</strong><br>Sports-focused bodywork tailored to your training, performance and recovery needs. Your therapist will use targeted massage, deeper tissue work and movement-based techniques to address muscle tension, problem areas and the physical demands of your sport or training.</p>
       <div class="rc-therapy-tags">
@@ -741,7 +753,7 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
       </div>
     </div>
     <div class="rc-therapy" onclick="showFocusDetail('MOVE')">
-      <div class="rc-therapy-num">03</div>
+      <div class="rc-therapy-num">04</div>
       <div class="rc-therapy-name">MOVE</div>
       <p class="rc-therapy-desc"><strong style="color:var(--r);font-weight:700;">For when you feel tight or restricted.</strong><br>Stretch and release-focused bodywork designed to help you move more freely. Your therapist will combine soft tissue release, assisted stretching and mobility techniques to target tight areas, improve range of motion and reduce restriction.</p>
       <div class="rc-therapy-tags">
@@ -752,7 +764,7 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
       </div>
     </div>
     <div class="rc-therapy" onclick="showFocusDetail('COMPRESSION')">
-      <div class="rc-therapy-num">04</div>
+      <div class="rc-therapy-num">05</div>
       <div class="rc-therapy-name">COMPRESSION BOOTS + SMART GOGGLES</div>
       <p class="rc-therapy-desc"><strong style="color:var(--r);font-weight:700;">For when your legs need a reset.</strong><br>A passive recovery session using pneumatic compression boots that rhythmically inflate and release around the legs. Designed to support circulation and recovery while helping tired, heavy legs feel lighter and fresher.</p>
       <div class="rc-therapy-tags">
@@ -820,26 +832,32 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
       <!-- Step 1: Focus -->
       <div class="bk-step on" id="bks1">
         <div class="bk-grid">
-          <button class="bk-card" id="bkc-RECOVER" onclick="pickPathway(this,'RECOVER')">
+          <button class="bk-card" id="bkc-RELAX" onclick="pickPathway(this,'RELAX')">
             <span class="bk-card-num">01</span>
+            <span class="bk-card-name">RELAX</span>
+            <span class="bk-card-sub">For when you just need to switch off.</span>
+            <span class="bk-card-from">from IDR 300K</span>
+          </button>
+          <button class="bk-card" id="bkc-RECOVER" onclick="pickPathway(this,'RECOVER')">
+            <span class="bk-card-num">02</span>
             <span class="bk-card-name">RECOVER</span>
             <span class="bk-card-sub">For when you're sore.</span>
             <span class="bk-card-from">from IDR 400K</span>
           </button>
           <button class="bk-card" id="bkc-PERFORM" onclick="pickPathway(this,'PERFORM')">
-            <span class="bk-card-num">02</span>
+            <span class="bk-card-num">03</span>
             <span class="bk-card-name">PERFORM</span>
             <span class="bk-card-sub">For when you train hard.</span>
             <span class="bk-card-from">from IDR 400K</span>
           </button>
           <button class="bk-card" id="bkc-MOVE" onclick="pickPathway(this,'MOVE')">
-            <span class="bk-card-num">03</span>
+            <span class="bk-card-num">04</span>
             <span class="bk-card-name">MOVE</span>
             <span class="bk-card-sub">For when you feel tight or restricted.</span>
             <span class="bk-card-from">from IDR 400K</span>
           </button>
           <button class="bk-card" id="bkc-COMPRESSION" onclick="pickPathway(this,'COMPRESSION')">
-            <span class="bk-card-num">04</span>
+            <span class="bk-card-num">05</span>
             <span class="bk-card-name">COMPRESSION BOOTS + SMART GOGGLES</span>
             <span class="bk-card-sub">For when your legs need a reset.</span>
             <span class="bk-card-from">from IDR 200K</span>
@@ -989,9 +1007,10 @@ try{ bkAuth(); }catch(e){}
 
 // ── Focus Detail ──────────────────────────────────────────────────────
 var FD={
-  RECOVER:{num:'01',name:'RECOVER',tagline:'For when you’re sore.',concept:'Post-training bodywork designed to reduce muscle soreness, fatigue and tension. Your therapist will focus on the areas that have worked hardest, using sports massage and targeted recovery techniques to help you feel fresher and ready for your next session.',designed:['Sports massage','DOMS relief','Muscle soreness','Post-training recovery','Muscle fatigue','Heavy legs'],pressure:['Light','Medium','Firm'],vibe:['Restorative','Grounding','Calming','Recharging','Restoring']},
-  PERFORM:{num:'02',name:'PERFORM',tagline:'For when you train hard.',concept:'Sports-focused bodywork tailored to your training, performance and recovery needs. Your therapist will use targeted massage, deeper tissue work and movement-based techniques to address muscle tension, problem areas and the physical demands of your sport or training.',designed:['Sports massage','Deep tissue','Muscle tension','Performance recovery','Competition','Strength training'],pressure:['Light','Medium','Firm'],vibe:['Energising','Activating','Priming','Powerful','Performance-focused']},
-  MOVE:{num:'03',name:'MOVE',tagline:'For when you feel tight or restricted.',concept:'Stretch and release-focused bodywork designed to help you move more freely. Your therapist will combine soft tissue release, assisted stretching and mobility techniques to target tight areas, improve range of motion and reduce restriction.',designed:['Assisted stretching','Mobility','Tissue release','Range of motion','Joint stiffness','Desk workers'],pressure:['Light','Medium','Firm'],vibe:['Fluid','Balanced','Mobile','Functional','Free']},
+  RELAX:{num:'01',name:'RELAX',tagline:'For when you just need to switch off.',concept:'Sometimes your body just needs to switch off. A calming, full-body oil massage using gentle, flowing techniques to ease everyday tension and help you unwind. No tools, no extras. Just pure relaxation.',designed:['Relaxation','Stress relief','Everyday tension','Full-body oil massage','Switching off','Unwinding'],pressure:['Light','Medium'],vibe:['Calming','Soothing','Restorative','Gentle','Unwinding']},
+  RECOVER:{num:'02',name:'RECOVER',tagline:'For when you’re sore.',concept:'Post-training bodywork designed to reduce muscle soreness, fatigue and tension. Your therapist will focus on the areas that have worked hardest, using sports massage and targeted recovery techniques to help you feel fresher and ready for your next session.',designed:['Sports massage','DOMS relief','Muscle soreness','Post-training recovery','Muscle fatigue','Heavy legs'],pressure:['Light','Medium','Firm'],vibe:['Restorative','Grounding','Calming','Recharging','Restoring']},
+  PERFORM:{num:'03',name:'PERFORM',tagline:'For when you train hard.',concept:'Sports-focused bodywork tailored to your training, performance and recovery needs. Your therapist will use targeted massage, deeper tissue work and movement-based techniques to address muscle tension, problem areas and the physical demands of your sport or training.',designed:['Sports massage','Deep tissue','Muscle tension','Performance recovery','Competition','Strength training'],pressure:['Light','Medium','Firm'],vibe:['Energising','Activating','Priming','Powerful','Performance-focused']},
+  MOVE:{num:'04',name:'MOVE',tagline:'For when you feel tight or restricted.',concept:'Stretch and release-focused bodywork designed to help you move more freely. Your therapist will combine soft tissue release, assisted stretching and mobility techniques to target tight areas, improve range of motion and reduce restriction.',designed:['Assisted stretching','Mobility','Tissue release','Range of motion','Joint stiffness','Desk workers'],pressure:['Light','Medium','Firm'],vibe:['Fluid','Balanced','Mobile','Functional','Free']},
   CONSULTATION:{num:'05',name:'CONSULTATION',tagline:'Not sure where to start?',concept:'A free 15-minute sit-down with one of our therapists. Talk through what is bothering you, what you are training for, and what you want to get out of recovery — and leave with a plan. No treatment, no charge, no commitment.',designed:['First visit','Choosing a pathway','Injury history','Training goals','Programme planning','No commitment'],pressure:[],vibe:['Unhurried','Straightforward','Personal','Practical']},
   COMPRESSION:{num:'04',name:'COMPRESSION BOOTS + SMART GOGGLES',tagline:'For when your legs need a reset.',concept:'A passive recovery session using pneumatic compression boots that rhythmically inflate and release around the legs. Designed to support circulation and recovery while helping tired, heavy legs feel lighter and fresher.',designed:['Compression boots','Tired legs','Circulation','Passive recovery','Heavy legs','Swelling reduction'],pressure:['Light','Medium','Firm'],vibe:['Refreshing','Restorative','Lightening','Rejuvenating','Effortless']}
 };
@@ -1014,7 +1033,7 @@ function closeFd(){
 
 // ── Booking ───────────────────────────────────────────────────────────
 var bkState={step:1,pathway:null,duration:null,price:null,pressure:null,date:null,time:null,therapist:'',name:'',phone:'',email:'',payType:'deposit',promo:null};
-var BK_DURS={RECOVER:[{m:30,p:'IDR 400K'},{m:45,p:'IDR 550K'},{m:60,p:'IDR 650K'},{m:90,p:'IDR 900K'}],PERFORM:[{m:30,p:'IDR 400K'},{m:45,p:'IDR 550K'},{m:60,p:'IDR 650K'},{m:90,p:'IDR 900K'}],MOVE:[{m:30,p:'IDR 400K'},{m:45,p:'IDR 550K'},{m:60,p:'IDR 650K'},{m:90,p:'IDR 900K'}],COMPRESSION:[{m:20,p:'IDR 200K'},{m:40,p:'IDR 400K'},{m:60,p:'IDR 600K'}],CONSULTATION:[{m:15,p:'FREE'}]};
+var BK_DURS={RELAX:[{m:30,p:'IDR 300K'},{m:45,p:'IDR 400K'},{m:60,p:'IDR 500K'},{m:90,p:'IDR 700K'}],RECOVER:[{m:30,p:'IDR 400K'},{m:45,p:'IDR 550K'},{m:60,p:'IDR 650K'},{m:90,p:'IDR 900K'}],PERFORM:[{m:30,p:'IDR 400K'},{m:45,p:'IDR 550K'},{m:60,p:'IDR 650K'},{m:90,p:'IDR 900K'}],MOVE:[{m:30,p:'IDR 400K'},{m:45,p:'IDR 550K'},{m:60,p:'IDR 650K'},{m:90,p:'IDR 900K'}],COMPRESSION:[{m:20,p:'IDR 200K'},{m:40,p:'IDR 400K'},{m:60,p:'IDR 600K'}],CONSULTATION:[{m:15,p:'FREE'}]};
 var THER_NAMES={};
 var _bkDeepTher=null;  // preferred therapist from a "Book with X" deep link (?ther=Toni), matched by name once slots load
 var _calState={year:0,month:0};
@@ -1086,7 +1105,7 @@ function buildDurGrid(){
   bkState.duration=null;bkState.price=null;
   // Pre-select the most-common length so the customer starts with a valid choice: 60 min for massage,
   // the single option for a consultation. Compression is left unselected (three even options, no obvious default).
-  var _defM=({RECOVER:60,PERFORM:60,MOVE:60,CONSULTATION:15})[bkState.pathway]||null;
+  var _defM=({RELAX:60,RECOVER:60,PERFORM:60,MOVE:60,CONSULTATION:15})[bkState.pathway]||null;
   durs.forEach(function(d){
     var b=document.createElement('button');
     b.className='bk-dur';
