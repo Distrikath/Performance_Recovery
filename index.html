@@ -111,6 +111,9 @@ section{padding:clamp(70px,10vh,120px) 0}
 
 /* Treatments */
 .grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+#cards{grid-template-columns:repeat(4,1fr)}
+@media(max-width:1080px){#cards{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){#cards{grid-template-columns:1fr}}
 .tcard{background:rgba(12,12,14,.6);backdrop-filter:blur(2px);padding:34px 30px 30px;display:flex;flex-direction:column;transition:background .3s}
 .tcard:hover{background:rgba(20,20,22,.78)}
 .tcard .tnum{font:400 10px var(--mono);letter-spacing:.3em;color:var(--r)}
