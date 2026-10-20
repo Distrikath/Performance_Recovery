@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMEEwQTBBIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYsNzgpIHNjYWxlKDEuMzApIiBmaWxsPSIjRjJGMkYwIj48cGF0aCBkPSJNIDAuMDYyNSAwIEwgNi42MjUgLTQxLjM5MDYyNSBMIDMzLjU5Mzc1IC00MS4zOTA2MjUgQyAzOS4wMDc4MTIgLTQxLjM5MDYyNSA0My41MDM5MDYgLTQwLjkwNjI1IDQ3LjA3ODEyNSAtMzkuOTM3NSBDIDUwLjY2MDE1NiAtMzguOTc2NTYyIDUzLjUgLTM3LjY2MDE1NiA1NS41OTM3NSAtMzUuOTg0Mzc1IEMgNTcuNjg3NSAtMzQuMzE2NDA2IDU5LjE3NTc4MSAtMzIuNDE0MDYyIDYwLjA2MjUgLTMwLjI4MTI1IEMgNjAuOTU3MDMxIC0yOC4xNTYyNSA2MS40MDYyNSAtMjUuOTIxODc1IDYxLjQwNjI1IC0yMy41NzgxMjUgQyA2MS40MDYyNSAtMjEuOTEwMTU2IDYxLjI5Njg3NSAtMjAuMzE2NDA2IDYxLjA3ODEyNSAtMTguNzk2ODc1IEMgNjAuODE2NDA2IC0xNy4wOTc2NTYgNjAuMzMyMDMxIC0xNS4zNTkzNzUgNTkuNjI1IC0xMy41NzgxMjUgQyA1OC45MjU3ODEgLTExLjc5Njg3NSA1Ny44Nzg5MDYgLTEwLjA5NzY1NiA1Ni40ODQzNzUgLTguNDg0Mzc1IEMgNTUuMDk3NjU2IC02Ljg2NzE4OCA1My4yNjk1MzEgLTUuNDIxODc1IDUxIC00LjE0MDYyNSBDIDQ4LjczODI4MSAtMi44NTkzNzUgNDUuOTIxODc1IC0xLjg0NzY1NiA0Mi41NDY4NzUgLTEuMTA5Mzc1IEMgMzkuMTcxODc1IC0wLjM2NzE4OCAzNS4xNDg0MzggMCAzMC40ODQzNzUgMCBaIE0gMjAuMjUgLTMwLjUzMTI1IEwgMTcuMTI1IC0xMC45NTMxMjUgTCAyOC42NDA2MjUgLTEwLjk1MzEyNSBDIDMxLjgzNTkzOCAtMTAuOTUzMTI1IDM0LjQ3MjY1NiAtMTEuMjUgMzYuNTQ2ODc1IC0xMS44NDM3NSBDIDM4LjYxNzE4OCAtMTIuNDM3NSA0MC4yNSAtMTMuMjA3MDMxIDQxLjQzNzUgLTE0LjE1NjI1IEMgNDIuNjI1IC0xNS4xMDE1NjIgNDMuNDg0Mzc1IC0xNi4wOTM3NSA0NC4wMTU2MjUgLTE3LjEyNSBDIDQ0LjU1NDY4OCAtMTguMTY0MDYyIDQ0Ljg5ODQzOCAtMTkuMTQ4NDM4IDQ1LjA0Njg3NSAtMjAuMDc4MTI1IEMgNDUuMjAzMTI1IC0yMS4wMDM5MDYgNDUuMjgxMjUgLTIxLjc1IDQ1LjI4MTI1IC0yMi4zMTI1IEMgNDUuMjgxMjUgLTIzLjIzODI4MSA0NS4xMTMyODEgLTI0LjE3OTY4OCA0NC43ODEyNSAtMjUuMTQwNjI1IEMgNDQuNDQ1MzEyIC0yNi4xMDkzNzUgNDMuNzk2ODc1IC0yNyA0Mi44MjgxMjUgLTI3LjgxMjUgQyA0MS44NjcxODggLTI4LjYyNSA0MC41IC0yOS4yODEyNSAzOC43MTg3NSAtMjkuNzgxMjUgQyAzNi45Mzc1IC0zMC4yODEyNSAzNC41OTc2NTYgLTMwLjUzMTI1IDMxLjcwMzEyNSAtMzAuNTMxMjUgWiBNIDIwLjI1IC0zMC41MzEyNSAiLz48L2c+PC9zdmc+">
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20261016200;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20261020201;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -15821,7 +15821,18 @@ window.HP_SETTLEMENTS={};
 window.hplusSetStatus=function(period, patch){ try{ if(typeof firebase==='undefined'||!firebase.firestore)return; var doc={period:period, ts:firebase.firestore.FieldValue.serverTimestamp(), by:((typeof currentUser!=='undefined'&&currentUser&&currentUser.name)||'?')}; Object.assign(doc,patch||{}); firebase.firestore().collection('human_settlements').doc(String(period)).set(doc,{merge:true}); }catch(e){ console.warn('[hplus] set',e); } };
 
 var _hpMonth=null;
-function _hpMonthNow(){ if(!_hpMonth){ var d=(typeof baliNow==='function'?baliNow():new Date()); _hpMonth=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2); } return _hpMonth; }
+// HUMAN+ settlement cycle runs 21st → 20th (send to accounts + pay HUMAN+). A cycle is keyed by the month it ENDS in:
+// ym '2026-10' = 21 Sep 2026 → 20 Oct 2026. _hpCycle gives the window + a human label.
+function _hpCycle(ym){
+  var p=String(ym).split('-'); var y=+p[0], m=+p[1];           // m = 1..12, cycle ENDS on the 20th of this month
+  var endD=new Date(y, m-1, 20), startD=new Date(y, m-2, 21);  // m-2 handles January → previous December correctly
+  var iso=function(d){ return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2); };
+  var MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var lbl=startD.getDate()+' '+MN[startD.getMonth()]+' – '+endD.getDate()+' '+MN[endD.getMonth()]+' '+endD.getFullYear();
+  return {start:iso(startD), end:iso(endD), startD:startD, endD:endD, label:lbl};
+}
+// Current cycle: on/before the 20th we're still in the cycle ending this month; on/after the 21st we've rolled into next.
+function _hpMonthNow(){ if(!_hpMonth){ var d=(typeof baliNow==='function'?baliNow():new Date()); var y=d.getFullYear(), m=d.getMonth(); if(d.getDate()>=21){ m+=1; } var dd=new Date(y,m,1); _hpMonth=dd.getFullYear()+'-'+('0'+(dd.getMonth()+1)).slice(-2); } return _hpMonth; }
 window.hplusChangeMonth=function(n){ var p=_hpMonthNow().split('-'); var d=new Date(+p[0],+p[1]-1+n,1); _hpMonth=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2); renderHumanSettlements(); };
 window.hplusThisMonth=function(){ _hpMonth=null; renderHumanSettlements(); };
 
@@ -15829,7 +15840,8 @@ window.hplusThisMonth=function(){ _hpMonth=null; renderHumanSettlements(); };
 function _hplusRows(ym){
   var rows=[];
   try{ if(typeof recoveryData!=='object'||!recoveryData) return rows;
-    Object.keys(recoveryData).forEach(function(k){ if(String(k).slice(0,7)!==ym) return; var day=recoveryData[k]; if(!day||!day.bookings) return;
+    var _cyc=_hpCycle(ym);
+    Object.keys(recoveryData).forEach(function(k){ if(k<_cyc.start||k>_cyc.end) return; var day=recoveryData[k]; if(!day||!day.bookings) return;
       day.bookings.forEach(function(b){ if(!b||b.status==='cancelled'||b.status==='hold') return; if(!(typeof _isHumanPlus==='function'&&_isHumanPlus(b))) return;
         var gross=(typeof clinCollected==='function')?clinCollected(b):(b.price||0); if(!(gross>0)) return;
         var _boots=(typeof _compShare==='function')?_compShare(b,gross):0;   // boots collected alongside are ours, not HUMAN+'s
@@ -15849,8 +15861,7 @@ window.renderHumanSettlements=function(){
   var isAdmin=(typeof currentUser==='undefined')||!currentUser||currentUser.access==='admin';
   if(!isAdmin){ el.innerHTML='<div style="padding:20px;color:#888;font-family:\'Space Mono\',monospace;font-size:12px;">Admin only.</div>'; return; }
   var ym=_hpMonthNow(), mp=ym.split('-');
-  var MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
-  var mLbl=MN[+mp[1]-1]+' '+mp[0];
+  var mLbl=_hpCycle(ym).label;   // 21st → 20th cycle, e.g. "21 Sep – 20 Oct 2026"
   var lblEl=document.getElementById('hplus-period-lbl'); if(lblEl) lblEl.textContent=mLbl;
   var f=function(n){ return 'IDR '+Math.round(n||0).toLocaleString('id-ID'); };
   var rows=_hplusRows(ym);
@@ -15865,7 +15876,7 @@ window.renderHumanSettlements=function(){
   var html=''
    +'<div style="display:flex;align-items:center;gap:10px;margin:0 2px 12px;">'
      +'<button class="dk-ghost" onclick="hplusChangeMonth(-1)">‹</button>'
-     +'<div style="font-family:\'Archivo\',sans-serif;font-weight:700;letter-spacing:1px;min-width:170px;text-align:center;">'+mLbl+'</div>'
+     +'<div style="font-family:\'Archivo\',sans-serif;font-weight:700;letter-spacing:1px;min-width:220px;text-align:center;">'+mLbl+'</div>'
      +'<button class="dk-ghost" onclick="hplusChangeMonth(1)">›</button>'
      +'<button class="dk-ghost" onclick="hplusThisMonth()">This month</button>'
      +'<span style="flex:1"></span>'
@@ -15929,8 +15940,11 @@ window.hplusInvoice=function(ym){
   try{
     var rows=_hplusRows(ym); var mp=ym.split('-');
     var MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
-    var mLbl=MN[+mp[1]-1]+' '+mp[0];
-    var lastDay=new Date(+mp[0],+mp[1],0).getDate();
+    var _cyc=_hpCycle(ym);
+    var mLbl=_cyc.label;   // 21st → 20th cycle range
+    var _fd=function(d){ return d.getDate()+' '+MN[d.getMonth()]+' '+d.getFullYear(); };
+    var invDate=_fd(_cyc.endD);           // invoice dated the 20th (cycle close / settlement date)
+    var periodCovered=_fd(_cyc.startD)+' – '+_fd(_cyc.endD);
     var rate=(typeof _hpRate==='function')?_hpRate():0.20, pph=(typeof _hpPphRate==='function')?_hpPphRate():0.02;
     var pkp=(typeof TAX_CFG!=='undefined'&&TAX_CFG.pkp);
     var f=function(n){ return 'IDR '+Math.round(n||0).toLocaleString('id-ID'); };
@@ -15942,8 +15956,8 @@ window.hplusInvoice=function(ym){
       +'<style>body{font-family:Arial,Helvetica,sans-serif;color:#111;max-width:760px;margin:24px auto;padding:0 20px;font-size:13px;}h1{font-size:18px;margin:0;}h2{font-size:13px;font-weight:normal;color:#555;margin:2px 0 18px;}table{width:100%;border-collapse:collapse;margin:10px 0;}th,td{padding:7px 8px;border-bottom:1px solid #ddd;text-align:left;font-size:12px;}th{background:#f4f4f4;}td.r,th.r{text-align:right;}.tot td{font-weight:bold;border-top:2px solid #333;}.meta td{border:none;padding:2px 8px;}.box{border:1px solid #ccc;border-radius:6px;padding:12px 14px;margin:14px 0;}.note{font-size:10px;color:#666;line-height:1.6;margin-top:16px;}.sig{margin-top:40px;display:flex;justify-content:space-between;}</style></head><body>'
       +'<h1>PT THE SAVAGE GROUP (DISTRIK)</h1>'
       +'<h2>Commission Invoice — Agent / Collection Model ('+(rate*100)+'%) · accountant Version B</h2>'
-      +'<table><tr class="meta"><td style="width:170px;color:#666;">Invoice Date</td><td>'+lastDay+' '+mLbl+'</td></tr>'
-      +'<tr class="meta"><td style="color:#666;">Period Covered</td><td>1 – '+lastDay+' '+mLbl+'</td></tr>'
+      +'<table><tr class="meta"><td style="width:170px;color:#666;">Invoice Date</td><td>'+invDate+'</td></tr>'
+      +'<tr class="meta"><td style="color:#666;">Period Covered</td><td>'+periodCovered+'</td></tr>'
       +'<tr class="meta"><td style="color:#666;">Billed To</td><td>PT Biohacking Klinik Indonesia (HUMAN+)</td></tr>'
       +'<tr class="meta"><td style="color:#666;">DISTRIK NPWP</td><td>'+npwp+'</td></tr></table>'
       +'<table><thead><tr><th>Date</th><th>Customer / Ref</th><th>Treatment</th><th class="r">Gross Value (100%)</th><th class="r">Rate</th><th class="r">Commission</th></tr></thead>'
