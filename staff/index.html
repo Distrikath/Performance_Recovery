@@ -5251,6 +5251,7 @@ function buildSettingsPanel(){
   buildSettingsStaff();
   buildSettingsManagers();
   buildSettingsTax();
+  buildSettingsNotif();
   buildSettingsApps();
   buildSettingsZones();
 }
@@ -5286,6 +5287,23 @@ async function testAppsConnection(){
   catch(e){ if(r){ r.textContent='✕ Failed: '+e.message+' — check URL, key & that the server is running (CORS allowed).'; r.style.color='#FF2D2D'; } }
 }
 window.buildSettingsApps=buildSettingsApps; window.saveSettingsApps=saveSettingsApps; window.testAppsConnection=testAppsConnection;
+function buildSettingsNotif(){
+  var el=document.getElementById('settings-notif'); if(!el) return;
+  var inp="font-family:'Space Mono',monospace;font-size:12px;padding:8px 10px;border:1px solid #e0e0e0;background:#fff;color:#0A0A0A;width:100%;box-sizing:border-box;";
+  var lbl="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:#9a9a9e;margin-bottom:4px;display:block;";
+  var cur=localStorage.getItem('distrik_notif_email')||'';
+  el.innerHTML=''
+    +'<div style="margin-bottom:10px;"><label style="'+lbl+'">Notification Gmail address</label>'
+    +'<input id="notif-email-input" type="email" value="'+cur+'" placeholder="distrikath@gmail.com" style="'+inp+'"></div>'
+    +'<button onclick="saveSettingsNotif()" style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:9px 16px;background:#0A0A0A;color:#fff;border:none;cursor:pointer;">Save</button>'
+    +'<div style="font-family:\'Space Mono\',monospace;font-size:9px;color:#9a9a9e;margin-top:8px;line-height:1.55;">Every confirmed booking (including walk-ins) sends an email to this address via Formspree. Gmail will auto-create a Google Calendar event from it. Requires Formspree to be configured above in <b>Tax &amp; Compliance → Confirmation email</b>.</div>';
+}
+function saveSettingsNotif(){
+  var v=(document.getElementById('notif-email-input')||{}).value||'';
+  localStorage.setItem('distrik_notif_email',v.trim());
+  var n=document.getElementById('notif'); if(n){n.textContent='Notification email saved ✓';n.classList.add('on');setTimeout(function(){n.classList.remove('on');},2000);}
+}
+window.buildSettingsNotif=buildSettingsNotif; window.saveSettingsNotif=saveSettingsNotif;
 function buildSettingsTax(){
   var el=document.getElementById('settings-tax'); if(!el) return;
   var inp="font-family:'Space Mono',monospace;font-size:12px;padding:8px 10px;border:1px solid #e0e0e0;background:#fff;color:#0A0A0A;width:100%;box-sizing:border-box;";
@@ -12808,27 +12826,44 @@ function clinFormspreeEndpoint(){ try{ return localStorage.getItem('distrik_form
 function sendBookingEmail(rec, dateLabel, kind){
   try{
     var ep=clinFormspreeEndpoint();
-    if(!rec || !rec.email || !ep || ep.indexOf('YOUR_FORM_ID')>=0) return; // skip if no email / not configured
-    var when=(dateLabel||'')+' · '+(rec.window||rec.start||'');
-    var held=(kind==='hold');
+    if(!ep || ep.indexOf(‘YOUR_FORM_ID’)>=0) return; // Formspree not configured
+    var notifEmail=(localStorage.getItem(‘distrik_notif_email’)||’’).trim();
+    var clientEmail=(rec&&rec.email||’’).trim();
+    if(!clientEmail && !notifEmail) return; // nowhere to send
+    var when=(dateLabel||’’)+’ · ‘+(rec.window||rec.start||’’);
+    var held=(kind===’hold’);
     var payload={
-      email: rec.email,
-      name: rec.client||'',
-      _subject: held ? 'Distrik — your space is held' : 'Distrik — booking confirmed',
-      status: held ? 'HELD (intake pending)' : 'CONFIRMED',
-      service: (rec.serviceName||'')+(rec.compression?(' + '+rec.compression.name):''),
-      date: dateLabel||'',
-      time: rec.window||rec.start||'',
-      location: rec.roomName||'',
-      with: rec.therapistName||(rec.clinical?'Nurse · Human+':''),
-      price: 'IDR '+Math.round(rec.price||0).toLocaleString('id-ID'),
+      name: rec.client||’’,
+      _subject: held ? ‘Distrik — your space is held’ : ‘Distrik — booking confirmed · ‘+(rec.serviceName||’’)+(dateLabel?’ · ‘+dateLabel:’’),
+      status: held ? ‘HELD (intake pending)’ : ‘CONFIRMED’,
+      service: (rec.serviceName||’’)+(rec.compression?(‘ + ‘+rec.compression.name):’’),
+      date: dateLabel||’’,
+      time: rec.window||rec.start||’’,
+      location: rec.roomName||’’,
+      with: rec.therapistName||(rec.clinical?’Nurse · Human+’:’’),
+      price: ‘IDR ‘+Math.round(rec.price||0).toLocaleString(‘id-ID’),
+      source: rec.source||’Walk-in’,
       message: (held
-        ? 'Hi '+(rec.client||'')+', we’ve held your space for '+(rec.serviceName||'')+' on '+when+'. Please complete your intake form to confirm.'
-        : 'Hi '+(rec.client||'')+', your booking for '+(rec.serviceName||'')+' on '+when+' is confirmed. See you then!')
+        ? ‘Hi ‘+(rec.client||’’)+’, we’ve held your space for ‘+(rec.serviceName||’’)+’ on ‘+when+’. Please complete your intake form to confirm.’
+        : ‘Hi ‘+(rec.client||’’)+’, your booking for ‘+(rec.serviceName||’’)+’ on ‘+when+’ is confirmed. See you then!’)
     };
-    fetch(ep,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(payload)})
-      .then(function(r){ if(r&&r.ok) clinNotify(held?'Hold notice emailed to '+rec.email:'Confirmation emailed to '+rec.email); })
-      .catch(function(){});
+    // Send to client if they have an email
+    if(clientEmail){
+      var p1=Object.assign({},payload,{email:clientEmail});
+      fetch(ep,{method:’POST’,headers:{‘Content-Type’:’application/json’,’Accept’:’application/json’},body:JSON.stringify(p1)})
+        .then(function(r){ if(r&&r.ok) clinNotify(held?’Hold notice emailed to ‘+clientEmail:’Confirmation emailed to ‘+clientEmail); })
+        .catch(function(){});
+    }
+    // Always notify business Gmail (even walk-ins with no client email)
+    if(notifEmail && notifEmail!==clientEmail){
+      var p2=Object.assign({},payload,{
+        email:notifEmail,
+        _subject:’[Distrik booking] ‘+(rec.client||’Walk-in’)+’ · ‘+(rec.serviceName||’’)+(dateLabel?’ · ‘+dateLabel:’’),
+        message:’New booking: ‘+(rec.client||’Walk-in’)+’ · ‘+(rec.serviceName||’’)+’ · ‘+when+’ · ‘+((rec.roomName||rec.room||’’))+’ · Source: ‘+(rec.source||’Walk-in’),
+      });
+      fetch(ep,{method:’POST’,headers:{‘Content-Type’:’application/json’,’Accept’:’application/json’},body:JSON.stringify(p2)})
+        .catch(function(){});
+    }
   }catch(e){}
 }
 
@@ -13432,6 +13467,15 @@ window.showRoomCalendar=showRoomCalendar;
         <div style="font-family:'Space Mono',monospace;font-size:9.5px;color:#333;margin-top:3px;">Drives POS receipts &amp; finance reports — confirm rates with your konsultan pajak</div>
       </div>
       <div style="padding:12px 14px;" id="settings-tax"></div>
+    </div>
+
+    <!-- BOOKING NOTIFICATIONS -->
+    <div style="background:#fff;border:1px solid #e8e8e8;border-radius:3px;overflow:hidden;margin-bottom:14px;">
+      <div style="background:#fafafa;border-bottom:1px solid #e8e8e8;padding:10px 14px;">
+        <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#888;">Booking Notifications</div>
+        <div style="font-family:'Space Mono',monospace;font-size:9.5px;color:#333;margin-top:3px;">Email sent on every booking — walk-ins included — so it appears in Gmail &amp; Google Calendar</div>
+      </div>
+      <div style="padding:12px 14px;" id="settings-notif"></div>
     </div>
 
     <!-- RECRUITMENT · APPLICATIONS API -->
