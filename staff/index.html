@@ -2291,6 +2291,8 @@ h1,
         </div>
         <button onclick="rfChangeDate(1)" class="rf-date-btn">›</button>
         <button onclick="rfGoToday()" class="rf-today-btn">Today</button>
+        <button onclick="freshaImport()" class="rf-today-btn" title="Import Fresha CSV export for this date" style="margin-left:6px;opacity:.7;">↑ Fresha</button>
+        <input type="file" id="fresha-csv-input" accept=".csv,.CSV" style="display:none" onchange="freshaHandleFile(this)">
       </div>
 
       <!-- Staff available -->
@@ -4384,7 +4386,62 @@ function shortName(full){
   return parts[0] + ' ' + parts[parts.length-1][0] + '.';
 }
 
-// doImport removed - sales data comes from internal modules
+// ── Fresha CSV import UI ──────────────────────────────────────────────────
+function freshaImport(){
+  var el=document.getElementById('fresha-csv-input'); if(el) el.click();
+}
+function freshaHandleFile(input){
+  var file=input.files&&input.files[0]; if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var csv=e.target.result||'';
+    var imported=parseFreshaBookings(csv);
+    input.value='';
+    if(!imported.length){ alert('No bookings found in this CSV.\n\nMake sure you exported from Fresha with Date, Time, Client, Service, Staff and Room columns.'); return; }
+
+    // Use the date currently displayed in the booking panel
+    var key=(typeof rfDateKey==='function'&&typeof rfDate!=='undefined')?rfDateKey(rfDate):new Date().toISOString().slice(0,10);
+
+    if(!bookings[key]) bookings[key]=[];
+    // Clear any previous Fresha import for this date so re-importing replaces cleanly
+    bookings[key]=bookings[key].filter(function(b){ return b.source!=='fresha'; });
+
+    var ts=Date.now();
+    imported.forEach(function(fb,i){
+      var h=Math.floor(fb.start), m=Math.round((fb.start-h)*60);
+      if(m>=60){ h+=1; m=0; }
+      var startStr=(h<10?'0':'')+h+':'+(m<10?'0':'')+m;
+      var dur=Math.max(15,Math.round((fb.end-fb.start)*60));
+      bookings[key].push({
+        id:'fresha_'+ts+'_'+i,
+        source:'fresha',
+        client:fb.client,
+        serviceName:fb.therapist||'Fresha',
+        therapist:fb.therapist||'',
+        room:fb.room,
+        start:startStr,
+        duration:dur,
+        price:0,
+        status:'confirmed',
+        _freshaCol:fb.col||'#8b5cf6',
+      });
+    });
+
+    // Persist via existing sync infrastructure
+    try{
+      var rf=JSON.parse(localStorage.getItem('distrik_rf')||'{}');
+      rf.bookings=rf.bookings||{};
+      rf.bookings[key]=bookings[key];
+      localStorage.setItem('distrik_rf',JSON.stringify(rf));
+    }catch(ex){ console.warn('[freshaImport] save',ex); }
+
+    if(typeof buildRoomGrid==='function') buildRoomGrid();
+    var n=document.getElementById('notif');
+    if(n){ n.textContent=imported.length+' Fresha booking'+(imported.length>1?'s':'')+' imported for '+key+' ✓'; n.classList.add('on'); setTimeout(function(){ n.classList.remove('on'); },3000); }
+  };
+  reader.readAsText(file);
+}
+window.freshaImport=freshaImport; window.freshaHandleFile=freshaHandleFile;
 
 // Also allow manual booking entry if no CSV
 function addManualBooking(room, client, therapist, startH, endH){
@@ -6689,19 +6746,23 @@ function buildTimeline(room, roomBks){
     const width=rfPct(endH)-left;
     const svc=SERVICES.find(s=>s.id===bk.service);
     const therapist=STAFF.find(s=>s.id===bk.therapist);
-    const col=therapist?.col||room.color;
+    const isFresha=bk.source==='fresha';
+    const col=isFresha?(bk._freshaCol||'#8b5cf6'):(therapist?.col||room.color);
     const isDark=['#f5c842','#84cc16','#f59e0b'].includes(col);
     const tc=isDark?'#060606':'#fff';
     // a treatment queued on the booking being built isn't saved yet: dashed, and not clickable
     const pend=!!bk._pending;
-    const blockStyle=(pend?`left:${left}%;width:${width}%;background:${col}1f;color:#0A0A0A;border:1px dashed ${col};`
-                          :`left:${left}%;width:${width}%;background:${col};color:${tc};`)+_laneBox(bk);
-    const blockClick=pend?'':`onclick="openBookingDetail('${bk.id}')"`;
-    html+=`<div class="rf-booking-block" 
+    const blockStyle=(isFresha
+      ?`left:${left}%;width:${width}%;background:${col}28;color:#0A0A0A;border:1.5px dashed ${col};`
+      :pend?`left:${left}%;width:${width}%;background:${col}1f;color:#0A0A0A;border:1px dashed ${col};`
+           :`left:${left}%;width:${width}%;background:${col};color:${tc};`)+_laneBox(bk);
+    const blockClick=(pend||isFresha)?'':`onclick="openBookingDetail('${bk.id}')"`;
+    const freshaTag=isFresha?` <span style="font-size:8px;opacity:.65;letter-spacing:.5px;">Fresha</span>`:'';
+    html+=`<div class="rf-booking-block"
       style="${blockStyle}"
       ${blockClick}
-      title="${bk.client} · ${svc?.name||bk.serviceName||''} · ${bk.start}${pend?' · on this booking (not saved yet)':''}${bk.compression?' · + '+bk.compression.name+' (same chair)':''}">
-      <span class="rf-block-client">${bk.client}${bk.compression?' <span title="compression boots in this chair">+B</span>':''}</span>
+      title="${bk.client} · ${svc?.name||bk.serviceName||''} · ${bk.start}${isFresha?' · Fresha':pend?' · on this booking (not saved yet)':''}${bk.compression?' · + '+bk.compression.name+' (same chair)':''}">
+      <span class="rf-block-client">${bk.client}${bk.compression?' <span title="compression boots in this chair">+B</span>':''}${freshaTag}</span>
       <span class="rf-block-time">${bk.start}</span>
     </div>`;
     // Buffer block — EVERY booking gets a 15-min buffer after (a service may override with a longer one).
