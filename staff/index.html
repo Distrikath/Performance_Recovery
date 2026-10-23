@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMEEwQTBBIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYsNzgpIHNjYWxlKDEuMzApIiBmaWxsPSIjRjJGMkYwIj48cGF0aCBkPSJNIDAuMDYyNSAwIEwgNi42MjUgLTQxLjM5MDYyNSBMIDMzLjU5Mzc1IC00MS4zOTA2MjUgQyAzOS4wMDc4MTIgLTQxLjM5MDYyNSA0My41MDM5MDYgLTQwLjkwNjI1IDQ3LjA3ODEyNSAtMzkuOTM3NSBDIDUwLjY2MDE1NiAtMzguOTc2NTYyIDUzLjUgLTM3LjY2MDE1NiA1NS41OTM3NSAtMzUuOTg0Mzc1IEMgNTcuNjg3NSAtMzQuMzE2NDA2IDU5LjE3NTc4MSAtMzIuNDE0MDYyIDYwLjA2MjUgLTMwLjI4MTI1IEMgNjAuOTU3MDMxIC0yOC4xNTYyNSA2MS40MDYyNSAtMjUuOTIxODc1IDYxLjQwNjI1IC0yMy41NzgxMjUgQyA2MS40MDYyNSAtMjEuOTEwMTU2IDYxLjI5Njg3NSAtMjAuMzE2NDA2IDYxLjA3ODEyNSAtMTguNzk2ODc1IEMgNjAuODE2NDA2IC0xNy4wOTc2NTYgNjAuMzMyMDMxIC0xNS4zNTkzNzUgNTkuNjI1IC0xMy41NzgxMjUgQyA1OC45MjU3ODEgLTExLjc5Njg3NSA1Ny44Nzg5MDYgLTEwLjA5NzY1NiA1Ni40ODQzNzUgLTguNDg0Mzc1IEMgNTUuMDk3NjU2IC02Ljg2NzE4OCA1My4yNjk1MzEgLTUuNDIxODc1IDUxIC00LjE0MDYyNSBDIDQ4LjczODI4MSAtMi44NTkzNzUgNDUuOTIxODc1IC0xLjg0NzY1NiA0Mi41NDY4NzUgLTEuMTA5Mzc1IEMgMzkuMTcxODc1IC0wLjM2NzE4OCAzNS4xNDg0MzggMCAzMC40ODQzNzUgMCBaIE0gMjAuMjUgLTMwLjUzMTI1IEwgMTcuMTI1IC0xMC45NTMxMjUgTCAyOC42NDA2MjUgLTEwLjk1MzEyNSBDIDMxLjgzNTkzOCAtMTAuOTUzMTI1IDM0LjQ3MjY1NiAtMTEuMjUgMzYuNTQ2ODc1IC0xMS44NDM3NSBDIDM4LjYxNzE4OCAtMTIuNDM3NSA0MC4yNSAtMTMuMjA3MDMxIDQxLjQzNzUgLTE0LjE1NjI1IEMgNDIuNjI1IC0xNS4xMDE1NjIgNDMuNDg0Mzc1IC0xNi4wOTM3NSA0NC4wMTU2MjUgLTE3LjEyNSBDIDQ0LjU1NDY4OCAtMTguMTY0MDYyIDQ0Ljg5ODQzOCAtMTkuMTQ4NDM4IDQ1LjA0Njg3NSAtMjAuMDc4MTI1IEMgNDUuMjAzMTI1IC0yMS4wMDM5MDYgNDUuMjgxMjUgLTIxLjc1IDQ1LjI4MTI1IC0yMi4zMTI1IEMgNDUuMjgxMjUgLTIzLjIzODI4MSA0NS4xMTMyODEgLTI0LjE3OTY4OCA0NC43ODEyNSAtMjUuMTQwNjI1IEMgNDQuNDQ1MzEyIC0yNi4xMDkzNzUgNDMuNzk2ODc1IC0yNyA0Mi44MjgxMjUgLTI3LjgxMjUgQyA0MS44NjcxODggLTI4LjYyNSA0MC41IC0yOS4yODEyNSAzOC43MTg3NSAtMjkuNzgxMjUgQyAzNi45Mzc1IC0zMC4yODEyNSAzNC41OTc2NTYgLTMwLjUzMTI1IDMxLjcwMzEyNSAtMzAuNTMxMjUgWiBNIDIwLjI1IC0zMC41MzEyNSAiLz48L2c+PC9zdmc+">
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20261021202;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20261022203;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -15968,6 +15968,15 @@ window.hplusInvoice=function(ym){
       +'<tr class="meta"><td style="color:#333;">Less: PPh 23 Withholding ('+(pph*100)+'%) — withheld by HUMAN+</td><td class="r">− '+f(pphAmt)+'</td></tr>'
       +'<tr class="meta" style="border-top:1px solid #ccc;"><td style="color:#333;font-weight:bold;">NET AMOUNT RECEIVABLE BY DISTRIK</td><td class="r" style="font-weight:bold;">'+f(net)+'</td></tr>'
       +'</table></div>'
+      // SETTLEMENT — the actionable figure: what DISTRIK actually transfers to HUMAN+ (DISTRIK already holds the full POS takings)
+      +'<div class="box" style="border:2px solid #333;background:#fafafa;"><table>'
+      +'<tr class="meta"><td style="width:60%;color:#111;font-weight:bold;">SETTLEMENT — AMOUNT DISTRIK PAYS HUMAN+</td><td></td></tr>'
+      +'<tr class="meta"><td style="color:#333;">Gross collected by DISTRIK (POS, 100%)</td><td class="r">'+f(T.gross)+'</td></tr>'
+      +'<tr class="meta"><td style="color:#333;">Less: DISTRIK commission (kept by DISTRIK)</td><td class="r">− '+f(T.commission)+'</td></tr>'
+      +'<tr class="meta" style="border-top:1px solid #333;"><td style="color:#111;font-weight:bold;">PAYABLE TO HUMAN+ (pay by the 20th)</td><td class="r" style="font-weight:bold;font-size:14px;">'+f(T.gross-T.commission)+'</td></tr>'
+      +'</table>'
+      +'<div style="font-size:10px;color:#666;margin-top:6px;line-height:1.5;">HUMAN+ receives their full share — PPh 23 ('+(pph*100)+'%) is withheld on DISTRIK&rsquo;s commission only (a DISTRIK tax credit) and does not reduce this payable. HUMAN+ issues the Bukti Potong PPh 23.</div>'
+      +'</div>'
       +'<div class="note">'
       +'1. This invoice documents DISTRIK'+"'"+'s '+(rate*100)+'% commission for booking, venue and payment-collection services provided to HUMAN+, calculated on the gross treatment value collected via DISTRIK'+"'"+'s POS during the period.<br>'
       +'2. As an agency/commission service fee, this commission is subject to Art. 23 withholding tax ('+(pph*100)+'%) — HUMAN+, as the payor, withholds this amount when settling DISTRIK'+"'"+'s commission.<br>'
