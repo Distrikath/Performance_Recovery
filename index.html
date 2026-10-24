@@ -114,6 +114,11 @@ section{padding:clamp(70px,10vh,120px) 0}
 #cards{grid-template-columns:repeat(4,1fr)}
 @media(max-width:1080px){#cards{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:600px){#cards{grid-template-columns:1fr}}
+#spec-cards{grid-template-columns:repeat(5,1fr);margin-top:1px}
+#spec-cards .tcard h3{font-size:19px;line-height:1.15;margin:12px 0 9px}
+.spec-eyebrow{font:400 11px var(--mono);letter-spacing:.3em;text-transform:uppercase;color:var(--r);margin:40px 0 14px}
+@media(max-width:1080px){#spec-cards{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){#spec-cards{grid-template-columns:1fr}}
 .tcard{background:rgba(12,12,14,.6);backdrop-filter:blur(2px);padding:34px 30px 30px;display:flex;flex-direction:column;transition:background .3s}
 .tcard:hover{background:rgba(20,20,22,.78)}
 .tcard .tnum{font:400 10px var(--mono);letter-spacing:.3em;color:var(--r)}
@@ -127,7 +132,7 @@ section{padding:clamp(70px,10vh,120px) 0}
 .opt{flex:1 1 0;text-align:center;white-space:nowrap;border:1px solid var(--line-mid);padding:9px 4px;font:400 11px var(--mono);letter-spacing:.01em;cursor:pointer;background:none;color:var(--ink-d)}
 .opt.on{background:var(--ink);color:var(--b);border-color:var(--ink)}
 .trow{display:flex;justify-content:space-between;align-items:center;margin-top:22px;padding-top:20px;border-top:1px solid var(--line)}
-.price{font:700 24px var(--display);letter-spacing:-.02em}
+.price{font:700 24px var(--display);letter-spacing:-.02em;text-transform:uppercase}
 .tbook{font:700 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;background:var(--r);color:#fff;padding:12px 20px}
 .tmethods{margin-top:26px;max-width:72ch;color:var(--ink-d);font-size:14px;line-height:1.7}
 .addon-line{margin-top:16px;color:var(--ink-d);font:400 13px var(--mono);letter-spacing:.03em;line-height:2}
@@ -272,6 +277,8 @@ footer .ft-line{line-height:1.9}
       <p class="note">Ease soreness, target specific areas or move more freely. Choose your focus &mdash; we&rsquo;ll tailor the session.</p>
     </div>
     <div class="grid3" id="cards"></div>
+    <div class="spec-eyebrow">[ specialty treatments · from Rp 500k ]</div>
+    <div class="grid3" id="spec-cards"></div>
     <p class="tmethods">Every session may include sports massage, soft-tissue mobilisation, dry cupping, electrical therapeutic stimulation and massage-gun work &mdash; selected to suit you, with pressure always tailored to your preference.</p>
     <div class="addon-line">
       <b>Also at DISTRIK:</b> Compression Boots + Smart Goggles · Free 15-min consultation
@@ -423,18 +430,29 @@ var TREATMENTS=[
  {id:"PERFORM",num:"03",tag:"Focused bodywork for the way you train.",desc:"<p>A targeted session built around your sport and the areas it demands most &mdash; shoulders after lifting, hips for boxing or calves for running, with more time dedicated to your specific areas of concern.</p><p class='tchoose'><b>Choose PERFORM when</b> you have a specific training-related area you want to work on.</p>",prices:{30:"Rp 400k",45:"Rp 550k",60:"Rp 650k",90:"Rp 900k"}},
  {id:"MOVE",num:"04",tag:"For tight bodies that need more freedom to move.",desc:"<p>A stretch-and-mobility-led session for when you feel stiff or restricted. Assisted stretching and controlled movements take the lead, with hands-on work supporting the areas that need attention.</p><p class='tchoose'><b>Choose MOVE when</b> your priority is flexibility, mobility and feeling less restricted.</p>",prices:{30:"Rp 400k",45:"Rp 550k",60:"Rp 650k",90:"Rp 900k"}}
 ];
+// lowest price in a prices map, e.g. {30:"Rp 300k",...} -> "Rp 300k"
+function _lowest(prices){ var v=Object.keys(prices).map(function(d){return parseInt(String(prices[d]).replace(/[^0-9]/g,''),10)||0;}).filter(function(x){return x>0;}); return 'Rp '+Math.min.apply(null,v)+'k'; }
 var cards=document.getElementById("cards");
 TREATMENTS.forEach(function(t){
   var el=document.createElement("article");el.className="tcard";
-  var durs=Object.keys(t.prices);
   el.innerHTML='<span class="tnum">'+t.num+'</span><h3>'+t.id+'</h3><div class="tag">'+t.tag+'</div><div class="tbody">'+t.desc+'</div>'
-    +'<div class="opts">'+durs.map(function(d){return '<button class="opt'+(d==='60'?' on':'')+'" data-d="'+d+'">'+d+' min</button>';}).join('')+'</div>'
-    +'<div class="trow"><span class="price">'+t.prices['60']+'</span><a class="tbook" href="'+BOOK+'">Book &#8594;</a></div>';
-  var bk=el.querySelector('.tbook');
-  function setBook(d){ bk.href='recovery.html?pathway='+t.id+'&dur='+d+'#book'; }  // carry focus + length so booking jumps to date/time
-  setBook('60');
-  el.querySelectorAll('.opt').forEach(function(b){b.onclick=function(){el.querySelectorAll('.opt').forEach(function(x){x.classList.remove('on');});b.classList.add('on');el.querySelector('.price').textContent=t.prices[b.dataset.d];setBook(b.dataset.d);};});
+    +'<div class="trow"><span class="price">from '+_lowest(t.prices)+'</span><a class="tbook" href="recovery.html?pathway='+t.id+'#book">Book &#8594;</a></div>';
   cards.appendChild(el);
+});
+// Specialty treatments — second row (all 45 min, from Rp 500k)
+var SPECIALTY=[
+ {num:"05",name:"Bodywork & Joint Mobility",ther:"with Nanda",desc:"Soft-tissue release with controlled joint movement for muscle tension, joint mobility and ease of movement."},
+ {num:"06",name:"Myofascial Release & Mobility",ther:"with Luli",desc:"Myofascial release, assisted stretching and targeted movement for better movement quality and body mechanics."},
+ {num:"07",name:"Sports &amp; Deep Tissue",ther:"with Toni",desc:"Sports and deep-tissue techniques focused on areas of muscular tension, tailored to your training."},
+ {num:"08",name:"Dry Cupping Therapy",ther:"all therapists",desc:"Targeted suction-cup therapy to support circulation and release &mdash; no needles. Temporary circular marks may remain."},
+ {num:"09",name:"Targeted Electrical Recovery",ther:"all therapists",desc:"Electrical stimulation therapy to activate and support targeted muscle recovery."}
+];
+var spec=document.getElementById("spec-cards");
+if(spec) SPECIALTY.forEach(function(t){
+  var el=document.createElement("article");el.className="tcard";
+  el.innerHTML='<span class="tnum">'+t.num+'</span><h3>'+t.name+'</h3><div class="tag">'+t.ther+'</div><div class="tbody"><p>'+t.desc+'</p></div>'
+    +'<div class="trow"><span class="price">from Rp 500k</span><a class="tbook" href="recovery.html#book">Book &#8594;</a></div>';
+  spec.appendChild(el);
 });
 // Crossfade the background photos as you scroll
 (function(){
