@@ -9,7 +9,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sports Massage Canggu | Performance Recovery Studio — DISTRIK.</title>
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
-<meta name="description" content="Sports massage &amp; performance recovery studio in Canggu, Bali — deep tissue, assisted stretching, mobility, compression &amp; recovery therapy. Book your session online. From Rp 400,000.">
+<meta name="description" content="Sports massage &amp; performance recovery studio in Canggu, Bali — deep tissue, assisted stretching, mobility, compression &amp; recovery therapy. Book your session online. From Rp 300,000.">
 <link rel="canonical" href="https://distrikath.com/recovery.html">
 <script type="application/ld+json">
 {
@@ -29,9 +29,7 @@
     "addressCountry": "ID"
   },
   "openingHoursSpecification": [
-    { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Tuesday","Wednesday","Thursday","Saturday"], "opens": "07:00", "closes": "20:00" },
-    { "@type": "OpeningHoursSpecification", "dayOfWeek": "Friday", "opens": "06:00", "closes": "20:00" },
-    { "@type": "OpeningHoursSpecification", "dayOfWeek": "Sunday", "opens": "08:00", "closes": "18:00" }
+    { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"], "opens": "07:00", "closes": "20:00" }
   ]
 }
 </script>
@@ -736,7 +734,7 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
   </div>
   <div class="ft-block">
     <div class="ft-label">[ hours ]</div>
-    <div class="ft-value">tue–thu &nbsp;7am–8pm<br>fri &nbsp;6am–8pm<br>sat &nbsp;7am–8pm<br>sun &nbsp;8am–6pm<br>mon &nbsp;closed</div>
+    <div class="ft-value">mon–sat<br>fuel &nbsp;7am–8pm<br>therapy &nbsp;8am–8pm<br>sunday &nbsp;closed</div>
   </div>
   <div class="ft-block">
     <div class="ft-label">[ social ]</div>
@@ -794,9 +792,6 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
             <span><span class="bk-li-name">Blood Testing</span><span class="bk-li-sub">Provided through HUMAN+ by their licensed medical team · advance arrangement</span></span>
             <span class="bk-li-price">enquire &#8594;</span>
           </a>
-        </div>
-        <div style="margin-top:14px;padding:14px 16px;border:1px solid rgba(242,242,240,.1);font-family:var(--mono);font-size:10px;color:var(--ink-d);letter-spacing:.03em;line-height:1.7;">
-          <b style="color:var(--ink);">Two treatments, back-to-back?</b> Book your first 45-min session, then <a href="https://wa.me/6281994801516" target="_blank" rel="noopener" style="color:var(--r);">message us on WhatsApp</a> to add a second — combined rate from IDR 800K (two core), 850K (core + speciality) or 900K (two specialities), subject to availability.
         </div>
       </div>
 
@@ -1042,7 +1037,7 @@ var BK_DURS={
   SIG_NANDA:[{m:45,p:'IDR 550K'},{m:60,p:'IDR 650K'},{m:90,p:'IDR 900K'}],
   CUPPING:[{m:45,p:'IDR 450K'}],
   ESTIM:[{m:45,p:'IDR 450K'}],
-  COMPRESSION:[{m:20,p:'IDR 200K'},{m:40,p:'IDR 400K'},{m:60,p:'IDR 600K'}],
+  COMPRESSION:[{m:20,p:'IDR 200K'},{m:40,p:'IDR 350K'},{m:60,p:'IDR 500K'}],
   CONSULTATION:[{m:15,p:'FREE'}]
 };
 // Specialities are locked to one named therapist (enforced in _bkGetAvailSlots). id = roster STAFF id.
@@ -1218,9 +1213,8 @@ var _bkRosterCache=null;
 var _bkRfCache=null;
 var _DAY_NAMES=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
-// Rule 1 hard-lock: returns {start,end} hours or null (closed) based on pathway and day-of-week
-// Recovery (RECOVER/RELEASE): Tue-Thu 10-22, Fri-Sun 8-20, Mon closed
-// Compression/IV/Bloods: Thu 10-22, Fri-Sun 8-20, Mon-Wed closed
+// Availability is roster-driven within the studio's opening hours.
+// THERAPY: Mon–Sat 8:00am–8:00pm (bookings start ≥8:00 and finish ≤20:00, incl. any complimentary boots), closed Sunday.
 var _bkRosterLoading=false,_bkRosterTries=0,_bkRosterFailed=false;
 // Preload roster + rooms so the calendar can grey days that have no staffed availability. Re-renders the calendar once loaded.
 // EVERY day greys out until this lands, so a read that fails — or worse, one that never settles because Firestore's
@@ -1301,16 +1295,17 @@ function _bkGetAvailSlots(rData,dateStr,durMins,pathway,rooms){
   var dow=new Date(dateStr+'T12:00:00').getDay();
   var dayName=_DAY_NAMES[dow];
   var isCompression=(pathway==='COMPRESSION');
-  if(dow===1) return [];   // CLOSED MONDAYS — no public bookings, whatever the roster shows
+  if(dow===0) return [];   // CLOSED SUNDAYS — no public bookings, whatever the roster shows (open Mon–Sat)
 
   // 15-MINUTE NOTICE for recovery — hide only slots starting within the next 15 min (Bali time), so near-term
   // same-day bookings still show. (The 24-hour rule applies only to Blood & IV, on their own booking pages.)
   var _nowBali; try{ _nowBali=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Makassar'})); }catch(e){ _nowBali=new Date(); }
   var _minStart=new Date(_nowBali.getTime()+15*60*1000);
   var _dp=dateStr.split('-');
-  // STUDIO HOURS CAP: 8am earliest start, 7pm latest Mon–Sat, 5pm Sun (1h before the Sunday 6pm close).
-  var _hMax=(dow===0)?17:19;
-  function slotOk(si){ var hh=SLOT_START+si*0.25; if(hh<8 || hh>_hMax) return false; var sd=new Date(parseInt(_dp[0]),parseInt(_dp[1])-1,parseInt(_dp[2]),Math.floor(hh),(hh%1?30:0),0,0); return sd>=_minStart; }
+  // THERAPY HOURS: Mon–Sat 8:00am–8:00pm. A booking must START at/after 8:00 and FINISH by 20:00 — including the
+  // complimentary 20-min recovery boots that comes with a therapist speciality (those finish by close too).
+  var _bootsMins=(typeof FD!=='undefined'&&FD[pathway]&&FD[pathway].incl)?20:0;
+  function slotOk(si){ var hh=SLOT_START+si*0.25; if(hh<8) return false; if(hh+(durMins+_bootsMins)/60>20+1e-9) return false; var mn=Math.round((hh-Math.floor(hh))*60); var sd=new Date(parseInt(_dp[0]),parseInt(_dp[1])-1,parseInt(_dp[2]),Math.floor(hh),mn,0,0); return sd>=_minStart; }
 
   // Availability is driven ENTIRELY by the roster + who's nominated to run the session — NO hard-coded hours.
   // Scan the full possible day window; the per-slot roster checks below filter to actual staffed times.
@@ -1688,11 +1683,13 @@ function submitBk(){
     try{ var _ss=(_bkRfCache&&_bkRfCache.SERVICES)||[]; var _h=_ss.find(function(x){return x&&!x.retired&&String(x.name||'').toLowerCase()===String(svcName).toLowerCase()&&(+x.duration===+s.duration);}); if(_h)svcId=_h.id; }catch(e){}
     var num=gt.nums[i], combo=gt.priced[i].combo, orig=bkPriceNum(s.price)||1;
     var who=(String(s.forName||'').trim())||lead;
+    var inclBoots=!!fd.incl;   // therapist specialities include a complimentary 20-min boots session (staff add it)
     return {ref:(groupRef+(all.length>1?('-'+(i+1)):'')), groupRef:groupRef, groupSize:all.length,
       pathway:pwOut, service:(svcId||pwOut), serviceName:svcName, duration:s.duration,
       price:_bkMoney(num), priceNum:num, deposit:Math.round(num/2),
       discPct:(combo?Math.max(0,Math.round((1-num/orig)*100)):_ppct), discCode:(combo?'COMBO':(_pr?(_pr.code||''):'')), discReason:(combo?'Two-treatment combination':(_pr?(_pr.reason||''):'')),
       pressure:s.pressure, date:s.date, time:s.time, therapist:s.therapist||null,
+      inclBoots:inclBoots, note:(inclBoots?'Includes complimentary 20-min recovery boots — please book a boots chair after the treatment.':''),
       name:who, phone:phone, email:email,
       payType:((num>0)?payType:'free'),
       status:((payType==='later')?'tentative':(num>0?'pending_payment':'tentative')),
