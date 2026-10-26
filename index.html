@@ -119,11 +119,12 @@ section{padding:clamp(70px,10vh,120px) 0}
 .spec-eyebrow{font:400 11px var(--mono);letter-spacing:.3em;text-transform:uppercase;color:var(--r);margin:40px 0 14px}
 @media(max-width:1080px){#spec-cards{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:600px){#spec-cards{grid-template-columns:1fr}}
-.tcard{background:rgba(12,12,14,.6);backdrop-filter:blur(2px);padding:24px 24px 22px;display:flex;flex-direction:column;transition:background .3s}
+.tcard{background:rgba(12,12,14,.6);backdrop-filter:blur(2px);padding:24px 24px 22px;display:flex;flex-direction:column;transition:background .3s;cursor:pointer;text-decoration:none;color:inherit}
 .tcard:hover{background:rgba(20,20,22,.78)}
 .tcard .tnum{font:400 10px var(--mono);letter-spacing:.3em;color:var(--r)}
 .tcard h3{font-size:19px;font-weight:900;letter-spacing:-.02em;line-height:1.15;margin:0 0 9px}
-.tcard .tag{font:400 11px var(--mono);letter-spacing:.04em;color:var(--r);margin-bottom:0}
+.tcard .tag{font:400 11px var(--mono);letter-spacing:.04em;color:var(--ink-d);line-height:1.55;margin-bottom:0}
+.tprice{font:400 11px var(--mono);letter-spacing:.12em;color:var(--r);text-transform:uppercase;margin-top:14px}
 .tcard .tbody{flex:1;display:flex;flex-direction:column}
 .tcard p{color:var(--ink-d);font-size:14px;line-height:1.65;margin-bottom:12px}
 .tcard .tchoose{color:var(--ink);font-size:13.5px;margin-top:2px}
@@ -436,9 +437,8 @@ var TREATMENTS=[
 function _lowest(prices){ var v=Object.keys(prices).map(function(d){return parseInt(String(prices[d]).replace(/[^0-9]/g,''),10)||0;}).filter(function(x){return x>0;}); return 'Rp '+Math.min.apply(null,v)+'k'; }
 var cards=document.getElementById("cards");
 TREATMENTS.forEach(function(t){
-  var el=document.createElement("article");el.className="tcard";
-  el.innerHTML='<h3>'+t.name+'</h3><div class="tag">'+t.tag+'</div>'
-    +'<div class="trow"><span class="price">from '+_lowest(t.prices)+'</span><a class="tbook" href="recovery.html?pathway='+t.id+'#book">Book &#8594;</a></div>';
+  var el=document.createElement("a");el.className="tcard";el.href="recovery.html?pathway="+t.id+"#book";
+  el.innerHTML='<h3>'+t.name+'</h3><div class="tag">'+t.tag+'</div><div class="tprice">from '+_lowest(t.prices)+'</div>';
   cards.appendChild(el);
 });
 // Therapist specialities (from Rp 550k) + targeted therapies (45 min, Rp 450k) — second row
@@ -451,9 +451,8 @@ var SPECIALTY=[
 ];
 var spec=document.getElementById("spec-cards");
 if(spec) SPECIALTY.forEach(function(t){
-  var el=document.createElement("article");el.className="tcard";
-  el.innerHTML='<h3>'+t.name+'</h3><div class="tag">'+t.ther+'</div>'
-    +'<div class="trow"><span class="price">from '+t.from+'</span><a class="tbook" href="recovery.html?pathway='+t.id+'#book">Book &#8594;</a></div>';
+  var el=document.createElement("a");el.className="tcard";el.href="recovery.html?pathway="+t.id+"#book";
+  el.innerHTML='<h3>'+t.name+'</h3><div class="tag">'+t.ther+'</div><div class="tprice">from '+t.from+'</div>';
   spec.appendChild(el);
 });
 // Crossfade the background photos as you scroll
