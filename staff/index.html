@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMEEwQTBBIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYsNzgpIHNjYWxlKDEuMzApIiBmaWxsPSIjRjJGMkYwIj48cGF0aCBkPSJNIDAuMDYyNSAwIEwgNi42MjUgLTQxLjM5MDYyNSBMIDMzLjU5Mzc1IC00MS4zOTA2MjUgQyAzOS4wMDc4MTIgLTQxLjM5MDYyNSA0My41MDM5MDYgLTQwLjkwNjI1IDQ3LjA3ODEyNSAtMzkuOTM3NSBDIDUwLjY2MDE1NiAtMzguOTc2NTYyIDUzLjUgLTM3LjY2MDE1NiA1NS41OTM3NSAtMzUuOTg0Mzc1IEMgNTcuNjg3NSAtMzQuMzE2NDA2IDU5LjE3NTc4MSAtMzIuNDE0MDYyIDYwLjA2MjUgLTMwLjI4MTI1IEMgNjAuOTU3MDMxIC0yOC4xNTYyNSA2MS40MDYyNSAtMjUuOTIxODc1IDYxLjQwNjI1IC0yMy41NzgxMjUgQyA2MS40MDYyNSAtMjEuOTEwMTU2IDYxLjI5Njg3NSAtMjAuMzE2NDA2IDYxLjA3ODEyNSAtMTguNzk2ODc1IEMgNjAuODE2NDA2IC0xNy4wOTc2NTYgNjAuMzMyMDMxIC0xNS4zNTkzNzUgNTkuNjI1IC0xMy41NzgxMjUgQyA1OC45MjU3ODEgLTExLjc5Njg3NSA1Ny44Nzg5MDYgLTEwLjA5NzY1NiA1Ni40ODQzNzUgLTguNDg0Mzc1IEMgNTUuMDk3NjU2IC02Ljg2NzE4OCA1My4yNjk1MzEgLTUuNDIxODc1IDUxIC00LjE0MDYyNSBDIDQ4LjczODI4MSAtMi44NTkzNzUgNDUuOTIxODc1IC0xLjg0NzY1NiA0Mi41NDY4NzUgLTEuMTA5Mzc1IEMgMzkuMTcxODc1IC0wLjM2NzE4OCAzNS4xNDg0MzggMCAzMC40ODQzNzUgMCBaIE0gMjAuMjUgLTMwLjUzMTI1IEwgMTcuMTI1IC0xMC45NTMxMjUgTCAyOC42NDA2MjUgLTEwLjk1MzEyNSBDIDMxLjgzNTkzOCAtMTAuOTUzMTI1IDM0LjQ3MjY1NiAtMTEuMjUgMzYuNTQ2ODc1IC0xMS44NDM3NSBDIDM4LjYxNzE4OCAtMTIuNDM3NSA0MC4yNSAtMTMuMjA3MDMxIDQxLjQzNzUgLTE0LjE1NjI1IEMgNDIuNjI1IC0xNS4xMDE1NjIgNDMuNDg0Mzc1IC0xNi4wOTM3NSA0NC4wMTU2MjUgLTE3LjEyNSBDIDQ0LjU1NDY4OCAtMTguMTY0MDYyIDQ0Ljg5ODQzOCAtMTkuMTQ4NDM4IDQ1LjA0Njg3NSAtMjAuMDc4MTI1IEMgNDUuMjAzMTI1IC0yMS4wMDM5MDYgNDUuMjgxMjUgLTIxLjc1IDQ1LjI4MTI1IC0yMi4zMTI1IEMgNDUuMjgxMjUgLTIzLjIzODI4MSA0NS4xMTMyODEgLTI0LjE3OTY4OCA0NC43ODEyNSAtMjUuMTQwNjI1IEMgNDQuNDQ1MzEyIC0yNi4xMDkzNzUgNDMuNzk2ODc1IC0yNyA0Mi44MjgxMjUgLTI3LjgxMjUgQyA0MS44NjcxODggLTI4LjYyNSA0MC41IC0yOS4yODEyNSAzOC43MTg3NSAtMjkuNzgxMjUgQyAzNi45Mzc1IC0zMC4yODEyNSAzNC41OTc2NTYgLTMwLjUzMTI1IDMxLjcwMzEyNSAtMzAuNTMxMjUgWiBNIDIwLjI1IC0zMC41MzEyNSAiLz48L2c+PC9zdmc+">
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20261024206;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20261026211;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -11316,7 +11316,7 @@ var clinRecommendedBy=''; // IV/blood: therapist (TC/TB/TD) who recommended it �
 var clinPayType='full'; // 'deposit' | 'full'
 var clinPatient='', clinEmail='', clinWhatsapp='', clinTime='';
 var clinDate=(typeof baliNow==='function'?baliNow():new Date());
-var clinGroupOpen={specialty:true,recovery:true,iv:false,blood:false,peptide:false};  // Recovery open (most-used); IV / Blood / Peptides collapsed to keep the long menu tidy
+var clinGroupOpen={core:true,specialty:true,dedicated:true,addon:false,recovery:false,iv:false,blood:false,peptide:false};  // Recovery open (most-used); IV / Blood / Peptides collapsed to keep the long menu tidy
 var clinViewYear=null, clinViewMonth=null;
 function clinKey(){ try{ return clinDate.toLocaleDateString('en-CA',(typeof BALI_TZ!=='undefined'?{timeZone:BALI_TZ}:undefined)); }catch(e){ return clinDate.toLocaleDateString('en-CA'); } }
 function clinDayName(){ try{ return clinDate.toLocaleDateString('en-US',Object.assign({weekday:'long'},(typeof BALI_TZ!=='undefined'?{timeZone:BALI_TZ}:{}))); }catch(e){ return clinDate.toLocaleDateString('en-US',{weekday:'long'}); } }
@@ -11490,6 +11490,54 @@ function clinCartRemove(i){
   renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); buildClinRoomGrid();
 }
 window.clinAddAnother=clinAddAnother; window.clinCartRemove=clinCartRemove; window.clinCartTotal=clinCartTotal;
+// ── TWO-TREATMENT COMBINATION PRICING ────────────────────────────────────────────────────────────────────
+// When exactly two eligible 45-min treatments are booked TOGETHER (parked on one order), the pair is charged a
+// single fixed combination price instead of the sum of the two stickers:
+//   two Core = 800k · one Core + one Speciality = 850k · two Specialities = 900k.
+// Only 45-min Core/Speciality treatments qualify — NOT the 30-min massages, NOT Dedicated cupping/electrical,
+// NOT clinical/IV/peptide lines. The combo price overrides any promo. (26 Oct 2026, catalogue overhaul.)
+var _clinComboShare=null;   // set per-line by confirmClinical so _clinSaveOne can bake the combo share
+function _comboKindOf(svc){
+  if(!svc || (svc.duration||0)!==45) return null;
+  if(svc.cat==='core') return 'core';
+  if(svc.cat==='specialty') return 'specialty';
+  return null;
+}
+function _comboPriceFor(nSpec){ return nSpec<=0?800000:(nSpec===1?850000:900000); }
+// The treatment services on the order being built — parked cart lines + the one still in the builder.
+function _comboOrderSvcs(){
+  var out=(clinCart||[]).map(_clinItemSvc).filter(Boolean);
+  var s=(typeof clinSvc==='function')?clinSvc():null;
+  if(s && clinType!=='clinical') out.push(s);
+  return out;
+}
+// {price,label,nSpec,sticker} when the order is exactly two eligible 45-min treatments; null otherwise.
+function _comboInfo(){
+  if(clinEditingId) return null;              // combos only on a NEW order, never on an edit/move
+  var svcs=_comboOrderSvcs();
+  if(svcs.length!==2) return null;
+  var k=[_comboKindOf(svcs[0]),_comboKindOf(svcs[1])];
+  if(!k[0]||!k[1]) return null;
+  var nSpec=(k[0]==='specialty'?1:0)+(k[1]==='specialty'?1:0);
+  var label=nSpec===0?'Combination · two core':(nSpec===1?'Combination · core + speciality':'Combination · two specialities');
+  return {price:_comboPriceFor(nSpec), label:label, nSpec:nSpec, sticker:(svcs[0].price||0)+(svcs[1].price||0)};
+}
+// Per-line prices for a confirmed two-treatment combo: the fixed combo total split across the two lines in
+// proportion to their stickers (exact sum, no rounding drift). null when it's not an eligible pair.
+function _clinComboShares(items){
+  if(!items || items.length!==2) return null;
+  var svcs=[_clinItemSvc(items[0]),_clinItemSvc(items[1])];
+  if(!svcs[0]||!svcs[1]) return null;
+  if(items[0].type==='clinical'||items[1].type==='clinical') return null;
+  var k=[_comboKindOf(svcs[0]),_comboKindOf(svcs[1])];
+  if(!k[0]||!k[1]) return null;
+  var nSpec=(k[0]==='specialty'?1:0)+(k[1]==='specialty'?1:0);
+  var combo=_comboPriceFor(nSpec);
+  var sum=(svcs[0].price||0)+(svcs[1].price||0); if(sum<=0) return null;
+  var s0=Math.round(combo*(svcs[0].price||0)/sum);
+  return [s0, combo-s0];
+}
+window._comboInfo=_comboInfo;
 // ── PEPTIDE / PEN ITEMS (retail line-items — no chair, no time, no therapist) ────────────────────────────
 // Added straight to the order with a qty. Accounted as HUMAN+ agent model at 10% commission (DISTRIK collects
 // the full price, keeps 10%, 90% is Payable to HUMAN+, PPh23 on the commission). Never blocks a chair.
@@ -11515,6 +11563,8 @@ function _clinPeptideLines(){
 // What the whole booking comes to: the treatment in the builder (with any Recovery promo) + every queued one.
 // updateClinicalTotals stores the figure it actually displays in window._clinOrderDue; this is the fallback.
 function clinOrderTotal(){
+  var _cmb=(typeof _comboInfo==='function')?_comboInfo():null;
+  if(_cmb) return _cmb.price;   // two eligible 45-min treatments together → the fixed combination price
   var cur=0, s=clinSvc();
   if(s){
     if(clinType==='clinical') cur=clinBasePrice();
@@ -11885,7 +11935,7 @@ function clinSendReminder(id){
 // Resend guard — the button becomes "Reminder sent ✓"; re-sending asks first so no accidental double message.
 function clinResendReminder(id){ if(confirm('A reminder was already sent to this client via WhatsApp.\n\nSend another one?')) clinSendReminder(id); }
 window.clinSendReminder=clinSendReminder; window.clinResendReminder=clinResendReminder;
-function initRecovery(){ if(typeof loadClinical==='function') loadClinical(); clinSel=null;clinType=null;clinIntake=false;clinWindow=null;clinRoom=null;clinPay='card';clinDone=false;clinDoneHold=false;clinEditingId=null;clinEditingDate=null;clinOnline=false;clinPressure='';clinRecommendedBy='';clinPayType='full';clinPatient='';clinEmail='';clinWhatsapp='';clinTime=''; clinAddons=[]; clinComp=false; clinCart=[]; clinPeptideCart={}; window._clinDoneCount=0; window._clinDepositRef=null; clinDate=(typeof baliNow==='function'?baliNow():new Date()); clinViewYear=null;clinViewMonth=null; clinGroupOpen={specialty:true,recovery:true,iv:false,blood:false,peptide:false}; try{window.clinPromo=null; ['recovery-disc-pct','recovery-disc-code'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';}); var _m=document.getElementById('recovery-disc-msg');if(_m)_m.textContent='';}catch(e){} clinSyncDateUI(); renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); startBookingListener(); }
+function initRecovery(){ if(typeof loadClinical==='function') loadClinical(); clinSel=null;clinType=null;clinIntake=false;clinWindow=null;clinRoom=null;clinPay='card';clinDone=false;clinDoneHold=false;clinEditingId=null;clinEditingDate=null;clinOnline=false;clinPressure='';clinRecommendedBy='';clinPayType='full';clinPatient='';clinEmail='';clinWhatsapp='';clinTime=''; clinAddons=[]; clinComp=false; clinCart=[]; clinPeptideCart={}; window._clinDoneCount=0; window._clinDepositRef=null; clinDate=(typeof baliNow==='function'?baliNow():new Date()); clinViewYear=null;clinViewMonth=null; clinGroupOpen={core:true,specialty:true,dedicated:true,addon:false,recovery:false,iv:false,blood:false,peptide:false}; try{window.clinPromo=null; ['recovery-disc-pct','recovery-disc-code'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';}); var _m=document.getElementById('recovery-disc-msg');if(_m)_m.textContent='';}catch(e){} clinSyncDateUI(); renderClinicalServices(); renderClinicalBooking(); renderClinicalOrder(); startBookingListener(); }
 window.initRecovery=initRecovery;
 
 // ── Online Booking Requests (public_bookings Firestore collection) ──────
@@ -12272,32 +12322,35 @@ function recGroupCard(g){
   }).join('');
   return '<div class="clin-grp-card"><div class="clin-grp-name">'+g.name+'</div><div class="clin-dur-row">'+opts+'</div></div>';
 }
+// One collapsible category accordion: title + grouped-by-name cards (each with its duration/price chips).
+function _svcAccordion(key,title,list,open){
+  if(!list||!list.length) return '';
+  var groups=_svcGroupByName(list);
+  return '<div class="clin-acc-hdr" onclick="toggleClinGroup(\''+key+'\')">'
+    +'<span class="clin-acc-title">'+title+'</span>'
+    +'<span><span class="clin-acc-count">'+groups.length+'</span><span class="clin-acc-arrow'+(open?' open':'')+'">›</span></span>'
+    +'</div><div class="clin-acc-body'+(open?' open':'')+'">'+groups.map(recGroupCard).join('')+'</div>';
+}
 function renderClinicalServices(){
   var el=document.getElementById('clin-services'); if(!el) return;
   var rOpen=clinGroupOpen.recovery, ivOpen=clinGroupOpen.iv, blOpen=clinGroupOpen.blood, pepOpen=clinGroupOpen.peptide, spOpen=clinGroupOpen.specialty;
-  var _allR=(typeof SERVICES!=='undefined'?SERVICES:[]);
-  var spSvcs=_allR.filter(function(s){return s&&s.cat==='specialty';});       // Specialty Therapy group (own accordion, shown first)
-  var rSvcs=_allR.filter(function(s){return !(s&&s.cat==='specialty');});      // everything else → Recovery Options
+  // retired services are hidden from the NEW-booking menu (kept in SERVICES for existing-booking display/edit/id-match)
+  var _allR=(typeof SERVICES!=='undefined'?SERVICES:[]).filter(function(s){return s && !s.retired;});
+  var coreS =_allR.filter(function(s){return s.cat==='core';});
+  var specS =_allR.filter(function(s){return s.cat==='specialty';});
+  var dedS  =_allR.filter(function(s){return s.cat==='dedicated';});
+  var addS  =_allR.filter(function(s){return s.cat==='addon';});
+  var otherS=_allR.filter(function(s){return ['core','specialty','dedicated','addon'].indexOf(s.cat)<0;}); // e.g. CONSULTATION
   var cSvcs=CLINICAL_SERVICES||[];
   var ivSvcs=cSvcs.filter(function(s){return _clinCat(s)==='iv';});
   var blSvcs=cSvcs.filter(function(s){return _clinCat(s)==='blood';});
   var pepSvcs=cSvcs.filter(function(s){return _clinCat(s)==='peptide';});
-  var rGroups=_svcGroupByName(rSvcs);
   el.innerHTML=
-    // ── Specialty Therapy — shown FIRST, as open cards (one per service, like the IV Therapy list) ──
-    (spSvcs.length?(
-      '<div class="clin-acc-hdr" onclick="toggleClinGroup(\'specialty\')">'
-        +'<span class="clin-acc-title">Specialty Therapy</span>'
-        +'<span><span class="clin-acc-count">'+spSvcs.length+'</span><span class="clin-acc-arrow'+(spOpen?' open':'')+'">›</span></span>'
-      +'</div>'
-      +'<div class="clin-acc-body'+(spOpen?' open':'')+'">'+spSvcs.map(function(s){return svcCard(s,'recovery');}).join('')+'</div>'
-    ):'')
-    // ── Recovery — grouped by pathway name, each with its duration/price options ──
-    +'<div class="clin-acc-hdr" onclick="toggleClinGroup(\'recovery\')">'
-      +'<span class="clin-acc-title">Recovery Options</span>'
-      +'<span><span class="clin-acc-count">'+rGroups.length+'</span><span class="clin-acc-arrow'+(rOpen?' open':'')+'">›</span></span>'
-    +'</div>'
-    +'<div class="clin-acc-body'+(rOpen?' open':'')+'">'+rGroups.map(recGroupCard).join('')+'</div>'
+      _svcAccordion('core','Core Treatments',coreS,clinGroupOpen.core)
+    + _svcAccordion('specialty','Therapist Specialities',specS,clinGroupOpen.specialty)
+    + _svcAccordion('dedicated','Dedicated Treatments',dedS,clinGroupOpen.dedicated)
+    + _svcAccordion('addon','Recovery Boots',addS,clinGroupOpen.addon)
+    + _svcAccordion('recovery','Other',otherS,clinGroupOpen.recovery)
     // ── HUMAN+ IV Therapy (+ enhancements shown once an IV is picked) ──
     +'<div class="clin-acc-hdr" onclick="toggleClinGroup(\'iv\')">'
       +'<span class="clin-acc-title">IV Therapy · Human+</span>'
@@ -12775,6 +12828,9 @@ function renderClinicalOrder(){
       +(clinPressure?'<div class="clin-oline sub"><span>Pressure</span><span style="text-transform:capitalize;">'+clinPressure+'</span></div>':'')
       +'<div class="clin-oline sub"><span>Payment</span><span>'+_payLine+'</span></div>';
   }
+  var _cmbL=(!clinEditingId&&typeof _comboInfo==='function')?_comboInfo():null;
+  if(_cmbL){ lines+='<div class="clin-oline" style="color:#0A7E3D;"><span>'+_cmbL.label+'</span><span>'+clinFmt(_cmbL.price)+'</span></div>'
+    +'<div class="clin-oline sub"><span>Combined rate applied</span><span>was '+clinFmt(_cmbL.sticker)+'</span></div>'; }
   el.innerHTML=lines;
   var ob=document.getElementById('clin-online'); if(ob) ob.checked=clinOnline;
   updateClinicalTotals(clinType==='clinical'?clinBasePrice():s.price);
@@ -12808,11 +12864,12 @@ function updateClinicalTotals(base){
   }
   if(_dp) base=Math.round(base*(1-_dp/100));
   var _pepTax=Math.round(clinPeptideTotal()*0.11);   // peptide/pen items carry 11% PPN — added at checkout for tax
-  base=base+clinCartTotal()+clinPeptideTotal();   // parked treatments (own discount) + peptide items (retail, no discount)
+  var _cmbT=(!clinEditingId&&typeof _comboInfo==='function')?_comboInfo():null;   // two eligible 45-min treatments → fixed combo price
+  base=(_cmbT?_cmbT.price:(base+clinCartTotal()))+clinPeptideTotal();   // combination price, OR parked treatments (own discount) + peptide items (retail, no discount)
   var tax=_pepTax, total=base+tax; // Recovery/spa & clinical are NON-PKP; only peptide items add the 11% tax line
   try{ var _txl=document.getElementById('clin-tax-lbl'); if(_txl) _txl.textContent=_pepTax>0?'Tax · 11% (items)':'Tax (non-PKP)'; }catch(e){}
   window._clinOrderDue=total;  // what the deposit link must quote — always the figure on screen
-  clinSetText('clin-subtotal', _dp?(clinFmt(total)+'  ('+_dp+'% off)'):clinFmt(base)); clinSetText('clin-tax',clinFmt(tax)); clinSetText('clin-total',clinFmt(total));
+  clinSetText('clin-subtotal', _cmbT?(clinFmt(base)+'  (combo)'):(_dp?(clinFmt(total)+'  ('+_dp+'% off)'):clinFmt(base))); clinSetText('clin-tax',clinFmt(tax)); clinSetText('clin-total',clinFmt(total));
   var dep=Math.round(total*0.5), bal=total-dep;
   // When EDITING an existing booking we're only moving the slot — never re-charging — so suppress the deposit UI.
   var isDeposit=!clinEditingId && ((clinPayType==='deposit')||clinOnline);
@@ -13116,6 +13173,13 @@ function _clinSaveOne(orderId, sendEmail){
   // Base = sticker for recovery/blood; sticker + selected enhancements for an IV. Discount applies to recovery only.
   var _base=(clinType==='clinical')?clinBasePrice():(s?s.price:0);
   var _price=(_rvPct)?Math.round(_base*(1-_rvPct/100)):_base;
+  // Two-treatment combination: this line's share of the fixed combo price (set by confirmClinical). The combo
+  // overrides any promo; gross stays the true sticker, the saving is recorded as a COMBO discount for the day.
+  if(_clinComboShare!=null && clinType!=='clinical'){
+    _price=Math.round(_clinComboShare);
+    _rvPct=(_base>0?Math.max(0,Math.round((1-_price/_base)*100)):0);
+    _rvDsc={reason:'Two-treatment combination', code:'COMBO', pct:_rvPct};
+  }
   var patient=clinPatient||'Walk-in';
   var dateKey=clinKey();
   // resolve room id from the chosen room name
@@ -13321,11 +13385,15 @@ function confirmClinical(){
   if(!items.length && !pepLineCount) return;
   var orderId=((items.length+pepLineCount)>1)?(typeof genId==='function'?genId():'ord_'+Date.now()):null;
   var snap=_clinSnapItem(), anyHold=false, saved=0;
+  var _combo=(!wasEdit && typeof _clinComboShares==='function')?_clinComboShares(items):null;   // two 45-min treatments together → fixed combo price, split across the two lines
   items.forEach(function(it,i){
     _clinRestoreItem(it);
+    _clinComboShare=(_combo?_combo[i]:null);
     var rec=_clinSaveOne(orderId, i===items.length-1);   // one confirmation email for the order, on the last line
+    _clinComboShare=null;
     if(rec){ saved++; if(rec.status==='hold') anyHold=true; }
   });
+  _clinComboShare=null;
   _clinRestoreItem(snap);
   clinCart=[];
   var _pepTot=0, _pepN=0;
