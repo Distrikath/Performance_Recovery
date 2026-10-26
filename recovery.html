@@ -573,6 +573,14 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
 .bk-card-name{font-family:var(--display);font-size:18px;font-weight:800;letter-spacing:-.02em;text-transform:uppercase}
 .bk-card-sub{font-family:var(--mono);font-size:9px;color:var(--ink-d);letter-spacing:.04em;line-height:1.55}
 .bk-card-from{font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--r);text-transform:uppercase;margin-top:2px}
+/* clean LIST rows for step 1 (treatment picker) */
+.bk-li-group{border-top:1px solid var(--line)}
+.bk-li{display:flex;justify-content:space-between;align-items:baseline;gap:14px;width:100%;text-align:left;background:transparent;border:none;border-bottom:1px solid var(--line);border-left:2px solid transparent;padding:14px 10px 14px 12px;cursor:pointer;color:var(--ink);transition:background .2s,border-color .2s;text-decoration:none}
+.bk-li:hover{background:rgba(242,242,240,.04)}
+.bk-li.sel{border-left-color:var(--r);background:rgba(255,45,45,.06)}
+.bk-li-name{font-family:var(--display);font-size:15px;font-weight:800;letter-spacing:-.01em;text-transform:uppercase;display:block;line-height:1.2}
+.bk-li-sub{font-family:var(--mono);font-size:9px;color:var(--ink-d);letter-spacing:.03em;display:block;margin-top:5px;line-height:1.5}
+.bk-li-price{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--r);text-transform:uppercase;white-space:nowrap}
 .bk-dur-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 .bk-dur{border:1px solid rgba(242,242,240,.1);padding:20px 12px;cursor:pointer;transition:border-color .2s,background .2s;background:transparent;text-align:center;color:var(--ink);display:flex;flex-direction:column;gap:3px;align-items:center;width:100%}
 .bk-dur:hover{border-color:rgba(242,242,240,.3)}
@@ -776,17 +784,15 @@ a.service-card, a.service-card *, a.signature-card, a.signature-card *, a.addon-
       <!-- Step 1: Focus -->
       <div class="bk-step on" id="bks1">
         <div id="bk-step1-cards"></div>
-        <div class="bk-sect-label" style="margin-top:20px;">By request</div>
-        <div class="bk-grid">
-          <a class="bk-card" href="iv-therapy.html" style="text-decoration:none;">
-            <span class="bk-card-name">IV THERAPY</span>
-            <span class="bk-card-sub">Provided through HUMAN+ by their licensed medical team · advance arrangement</span>
-            <span class="bk-card-from">enquire &#8594;</span>
+        <div class="bk-sect-label" style="margin-top:22px;">By request</div>
+        <div class="bk-li-group">
+          <a class="bk-li" href="iv-therapy.html">
+            <span><span class="bk-li-name">IV Therapy</span><span class="bk-li-sub">Provided through HUMAN+ by their licensed medical team · advance arrangement</span></span>
+            <span class="bk-li-price">enquire &#8594;</span>
           </a>
-          <a class="bk-card" href="blood-work.html" style="text-decoration:none;">
-            <span class="bk-card-name">BLOOD TESTING</span>
-            <span class="bk-card-sub">Provided through HUMAN+ by their licensed medical team · advance arrangement</span>
-            <span class="bk-card-from">enquire &#8594;</span>
+          <a class="bk-li" href="blood-work.html">
+            <span><span class="bk-li-name">Blood Testing</span><span class="bk-li-sub">Provided through HUMAN+ by their licensed medical team · advance arrangement</span></span>
+            <span class="bk-li-price">enquire &#8594;</span>
           </a>
         </div>
         <div style="margin-top:14px;padding:14px 16px;border:1px solid rgba(242,242,240,.1);font-family:var(--mono);font-size:10px;color:var(--ink-d);letter-spacing:.03em;line-height:1.7;">
@@ -1005,16 +1011,15 @@ function renderBkCards(){
   var host=document.getElementById('bk-step1-cards'); if(!host) return;
   var html='';
   RC_GROUPS.forEach(function(g){
-    var cards=g.keys.map(function(k){ var d=FD[k]; if(!d) return '';
+    var rows=g.keys.map(function(k){ var d=FD[k]; if(!d) return '';
       var sub=d.tagline+(d.incl?' · incl. 20-min recovery boots':'');
       var fromP=_rcFrom(k);
-      return '<button class="bk-card" id="bkc-'+k+'" onclick="pickPathway(this,\''+k+'\')">'
-        +'<span class="bk-card-name">'+d.name+'</span>'
-        +'<span class="bk-card-sub">'+sub+'</span>'
-        +(fromP?'<span class="bk-card-from">'+fromP+'</span>':'')
+      return '<button class="bk-li" id="bkc-'+k+'" onclick="pickPathway(this,\''+k+'\')">'
+        +'<span><span class="bk-li-name">'+d.name+'</span><span class="bk-li-sub">'+sub+'</span></span>'
+        +(fromP?'<span class="bk-li-price">'+fromP+'</span>':'')
         +'</button>';
     }).join('');
-    html+='<div class="bk-sect-label" style="margin-top:18px;">'+g.label+'</div><div class="bk-grid">'+cards+'</div>';
+    html+='<div class="bk-sect-label" style="margin-top:22px;">'+g.label+'</div><div class="bk-li-group">'+rows+'</div>';
   });
   host.innerHTML=html;
 }
@@ -1058,7 +1063,7 @@ function openBk(){
   var ti=document.getElementById('bk-therapist');if(ti){ti.innerHTML='<option value="" disabled selected>choose your therapist</option>';ti.value='';}
   var ts=document.getElementById('bk-therapist-sect');if(ts)ts.style.display='none';
   var dd=document.getElementById('bk-date-display');if(dd){dd.textContent='select a date';dd.classList.add('empty');}
-  document.querySelectorAll('.bk-card,.bk-dur').forEach(function(e){e.classList.remove('sel');});
+  document.querySelectorAll('.bk-card,.bk-li,.bk-dur').forEach(function(e){e.classList.remove('sel');});
   document.getElementById('bk-overlay').classList.add('open');
   document.body.style.overflow='hidden';
   bkGoStep(1);
@@ -1111,7 +1116,7 @@ function bkBack(){
 
 function pickPathway(el,p){
   bkState.pathway=p;bkState.duration=null;bkState.price=null;
-  document.querySelectorAll('#bks1 .bk-card').forEach(function(e){e.classList.remove('sel');});
+  document.querySelectorAll('#bks1 .bk-card,#bks1 .bk-li').forEach(function(e){e.classList.remove('sel');});
   el.classList.add('sel');
   updateBkNext();updateBkSum();
 }
@@ -1623,7 +1628,7 @@ function bkAddAnother(){
   if(!_bkCurrentComplete()) return;
   bkCart.push(_bkSessionFromState());
   bkState.pathway=null;bkState.duration=null;bkState.price=null;bkState.pressure=null;bkState.date=null;bkState.time=null;bkState.therapist='';bkState.forName='';
-  document.querySelectorAll('.bk-card,.bk-dur').forEach(function(e){e.classList.remove('sel');});
+  document.querySelectorAll('.bk-card,.bk-li,.bk-dur').forEach(function(e){e.classList.remove('sel');});
   var dd=document.getElementById('bk-date-display'); if(dd){dd.textContent='select a date';dd.classList.add('empty');}
   var ts=document.getElementById('bk-therapist-sect'); if(ts)ts.style.display='none';
   var incl=document.getElementById('bk-incl-note'); if(incl)incl.style.display='none';

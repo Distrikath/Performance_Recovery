@@ -136,6 +136,13 @@ section{padding:clamp(70px,10vh,120px) 0}
 .price{font:700 17px var(--display);letter-spacing:-.02em;text-transform:uppercase}
 .tbook{font:700 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;background:var(--r);color:#fff;padding:12px 20px}
 .tmethods{margin-top:26px;max-width:72ch;color:var(--ink-d);font-size:14px;line-height:1.7}
+/* clean LIST style for the treatment menu (overrides the boxy grid) */
+#cards,#spec-cards{display:block!important;grid-template-columns:none!important;background:none;border:none;border-top:1px solid var(--line);margin-top:0}
+.tli{display:flex;justify-content:space-between;align-items:baseline;gap:18px;padding:18px 6px 18px 14px;border-bottom:1px solid var(--line);border-left:2px solid transparent;cursor:pointer;text-decoration:none;color:inherit;transition:background .2s,border-color .2s}
+.tli:hover{background:rgba(242,242,240,.035);border-left-color:var(--r)}
+.tli-name{font-family:var(--display);font-size:18px;font-weight:800;letter-spacing:-.02em;line-height:1.2;display:block}
+.tli-sub{font:400 11px var(--mono);letter-spacing:.03em;color:var(--ink-d);display:block;margin-top:6px;line-height:1.5}
+.tli-price{font:400 11px var(--mono);letter-spacing:.12em;color:var(--r);text-transform:uppercase;white-space:nowrap}
 .addon-line{margin-top:16px;color:var(--ink-d);font:400 13px var(--mono);letter-spacing:.03em;line-height:2}
 .addon-line b{color:var(--ink);font-weight:700}
 
@@ -437,8 +444,8 @@ var TREATMENTS=[
 function _lowest(prices){ var v=Object.keys(prices).map(function(d){return parseInt(String(prices[d]).replace(/[^0-9]/g,''),10)||0;}).filter(function(x){return x>0;}); return 'Rp '+Math.min.apply(null,v)+'k'; }
 var cards=document.getElementById("cards");
 TREATMENTS.forEach(function(t){
-  var el=document.createElement("a");el.className="tcard";el.href="recovery.html?pathway="+t.id+"#book";
-  el.innerHTML='<h3>'+t.name+'</h3><div class="tag">'+t.tag+'</div><div class="tprice">from '+_lowest(t.prices)+'</div>';
+  var el=document.createElement("a");el.className="tli";el.href="recovery.html?pathway="+t.id+"#book";
+  el.innerHTML='<span><span class="tli-name">'+t.name+'</span><span class="tli-sub">'+t.tag+'</span></span><span class="tli-price">from '+_lowest(t.prices)+'</span>';
   cards.appendChild(el);
 });
 // Therapist specialities (from Rp 550k) + targeted therapies (45 min, Rp 450k) — second row
@@ -451,8 +458,8 @@ var SPECIALTY=[
 ];
 var spec=document.getElementById("spec-cards");
 if(spec) SPECIALTY.forEach(function(t){
-  var el=document.createElement("a");el.className="tcard";el.href="recovery.html?pathway="+t.id+"#book";
-  el.innerHTML='<h3>'+t.name+'</h3><div class="tag">'+t.ther+'</div><div class="tprice">from '+t.from+'</div>';
+  var el=document.createElement("a");el.className="tli";el.href="recovery.html?pathway="+t.id+"#book";
+  el.innerHTML='<span><span class="tli-name">'+t.name+'</span><span class="tli-sub">'+t.ther+'</span></span><span class="tli-price">from '+t.from+'</span>';
   spec.appendChild(el);
 });
 // Crossfade the background photos as you scroll
