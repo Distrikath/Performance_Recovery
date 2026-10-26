@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMEEwQTBBIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYsNzgpIHNjYWxlKDEuMzApIiBmaWxsPSIjRjJGMkYwIj48cGF0aCBkPSJNIDAuMDYyNSAwIEwgNi42MjUgLTQxLjM5MDYyNSBMIDMzLjU5Mzc1IC00MS4zOTA2MjUgQyAzOS4wMDc4MTIgLTQxLjM5MDYyNSA0My41MDM5MDYgLTQwLjkwNjI1IDQ3LjA3ODEyNSAtMzkuOTM3NSBDIDUwLjY2MDE1NiAtMzguOTc2NTYyIDUzLjUgLTM3LjY2MDE1NiA1NS41OTM3NSAtMzUuOTg0Mzc1IEMgNTcuNjg3NSAtMzQuMzE2NDA2IDU5LjE3NTc4MSAtMzIuNDE0MDYyIDYwLjA2MjUgLTMwLjI4MTI1IEMgNjAuOTU3MDMxIC0yOC4xNTYyNSA2MS40MDYyNSAtMjUuOTIxODc1IDYxLjQwNjI1IC0yMy41NzgxMjUgQyA2MS40MDYyNSAtMjEuOTEwMTU2IDYxLjI5Njg3NSAtMjAuMzE2NDA2IDYxLjA3ODEyNSAtMTguNzk2ODc1IEMgNjAuODE2NDA2IC0xNy4wOTc2NTYgNjAuMzMyMDMxIC0xNS4zNTkzNzUgNTkuNjI1IC0xMy41NzgxMjUgQyA1OC45MjU3ODEgLTExLjc5Njg3NSA1Ny44Nzg5MDYgLTEwLjA5NzY1NiA1Ni40ODQzNzUgLTguNDg0Mzc1IEMgNTUuMDk3NjU2IC02Ljg2NzE4OCA1My4yNjk1MzEgLTUuNDIxODc1IDUxIC00LjE0MDYyNSBDIDQ4LjczODI4MSAtMi44NTkzNzUgNDUuOTIxODc1IC0xLjg0NzY1NiA0Mi41NDY4NzUgLTEuMTA5Mzc1IEMgMzkuMTcxODc1IC0wLjM2NzE4OCAzNS4xNDg0MzggMCAzMC40ODQzNzUgMCBaIE0gMjAuMjUgLTMwLjUzMTI1IEwgMTcuMTI1IC0xMC45NTMxMjUgTCAyOC42NDA2MjUgLTEwLjk1MzEyNSBDIDMxLjgzNTkzOCAtMTAuOTUzMTI1IDM0LjQ3MjY1NiAtMTEuMjUgMzYuNTQ2ODc1IC0xMS44NDM3NSBDIDM4LjYxNzE4OCAtMTIuNDM3NSA0MC4yNSAtMTMuMjA3MDMxIDQxLjQzNzUgLTE0LjE1NjI1IEMgNDIuNjI1IC0xNS4xMDE1NjIgNDMuNDg0Mzc1IC0xNi4wOTM3NSA0NC4wMTU2MjUgLTE3LjEyNSBDIDQ0LjU1NDY4OCAtMTguMTY0MDYyIDQ0Ljg5ODQzOCAtMTkuMTQ4NDM4IDQ1LjA0Njg3NSAtMjAuMDc4MTI1IEMgNDUuMjAzMTI1IC0yMS4wMDM5MDYgNDUuMjgxMjUgLTIxLjc1IDQ1LjI4MTI1IC0yMi4zMTI1IEMgNDUuMjgxMjUgLTIzLjIzODI4MSA0NS4xMTMyODEgLTI0LjE3OTY4OCA0NC43ODEyNSAtMjUuMTQwNjI1IEMgNDQuNDQ1MzEyIC0yNi4xMDkzNzUgNDMuNzk2ODc1IC0yNyA0Mi44MjgxMjUgLTI3LjgxMjUgQyA0MS44NjcxODggLTI4LjYyNSA0MC41IC0yOS4yODEyNSAzOC43MTg3NSAtMjkuNzgxMjUgQyAzNi45Mzc1IC0zMC4yODEyNSAzNC41OTc2NTYgLTMwLjUzMTI1IDMxLjcwMzEyNSAtMzAuNTMxMjUgWiBNIDIwLjI1IC0zMC41MzEyNSAiLz48L2c+PC9zdmc+">
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20261026212;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20261026213;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -11710,6 +11710,7 @@ function renderTodayBookings(){
     var badge = b.clinical ? (isHold?'<span class="clin-bk-hold">Hold · pending</span>':'<span class="clin-bk-tag">Human+</span>') : '';
     var svcName = b.serviceName||b.service||'';
     if(b.compression) svcName += ' <span style="color:#1a9e54;">+ '+_escHtml(b.compression.name)+'</span>';   // same chair, no second booking
+    else if(b.inclBoots) svcName += ' <span style="color:#b45309;font-size:9px;letter-spacing:.04em;" title="This speciality includes a complimentary 20-min recovery boots session — add a boots chair after the treatment.">&#9873; add complimentary 20-min boots</span>';
     var id=(b.id||'').replace(/'/g,'');
     var pay=_clinPayLine(b);
     var _bDepLink=(!b.partner && b.online&&!b.depositPaid&&(b.balanceDue>0)&&getXenditLink())?'<button class="clin-bk-act go" onclick="resendDepositLink(\''+id+'\')">Send deposit link &#x2192;</button>':'';
@@ -12074,6 +12075,7 @@ function renderOnlineRequests(reqs){
         +'<div class="onreq-meta">'+_escHtml(r.date||'?')+' at '+_escHtml(r.time||'?')+'</div>'
         +'<div class="onreq-client">'+_escHtml(r.name||'Unknown')+(r.phone?' &nbsp;&middot;&nbsp; '+_escHtml(r.phone):'')+'</div>'
         +'<div class="onreq-ref">ref: '+id+'</div>'
+        +((r.note&&String(r.note).indexOf('Booked on')!==0)?'<div class="onreq-note" style="font-family:\'Space Mono\',monospace;font-size:10px;color:#92400E;background:#FEF3C7;border:1px solid #FDE68A;padding:5px 9px;border-radius:5px;margin-top:7px;line-height:1.5;">&#9873; '+_escHtml(r.note)+'</div>':'')
       +'</div>'
       +'<div class="onreq-actions">'
         +'<button class="onreq-btn accept" onclick="acceptOnlineBooking(\''+id+'\')">&#x2713; Confirm</button>'
@@ -12158,7 +12160,8 @@ function acceptOnlineBooking(id){
         price:_pn, pressure:r.pressure||null, payType:(_isLater?'later':'deposit'),
         source:'Online', fresha:(r.source==='fresha'), status:'confirmed', payMethod:(_isLater?'':'online'),
         online:(!_isLater), deposit:(_isLater?0:_dep), balanceDue:(_free?0:(_isLater?_pn:Math.max(0,_pn-_dep))), balancePaid:_free, depositPaid:(_free?true:(_isLater?false:_depPaid)), discPct:(_frDisc||r.discPct||0), discCode:(_frDisc?'FRESHA':(r.discCode||'')), discReason:(_frDisc?('Fresha '+_frDisc+'% (opening special)'):(r.discReason||'')),
-        onlineRef:r.ref||id, date:r.date, _ts:Date.now()
+        onlineRef:r.ref||id, date:r.date, _ts:Date.now(),
+        note:(r.note&&String(r.note).indexOf('Booked on')!==0)?r.note:'', inclBoots:!!r.inclBoots, groupRef:(r.groupRef||'')
       };
       if(!recoveryData[r.date]) recoveryData[r.date]={revenue:0,bookings:[]};
       if(!recoveryData[r.date].bookings) recoveryData[r.date].bookings=[];
