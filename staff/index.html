@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMEEwQTBBIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYsNzgpIHNjYWxlKDEuMzApIiBmaWxsPSIjRjJGMkYwIj48cGF0aCBkPSJNIDAuMDYyNSAwIEwgNi42MjUgLTQxLjM5MDYyNSBMIDMzLjU5Mzc1IC00MS4zOTA2MjUgQyAzOS4wMDc4MTIgLTQxLjM5MDYyNSA0My41MDM5MDYgLTQwLjkwNjI1IDQ3LjA3ODEyNSAtMzkuOTM3NSBDIDUwLjY2MDE1NiAtMzguOTc2NTYyIDUzLjUgLTM3LjY2MDE1NiA1NS41OTM3NSAtMzUuOTg0Mzc1IEMgNTcuNjg3NSAtMzQuMzE2NDA2IDU5LjE3NTc4MSAtMzIuNDE0MDYyIDYwLjA2MjUgLTMwLjI4MTI1IEMgNjAuOTU3MDMxIC0yOC4xNTYyNSA2MS40MDYyNSAtMjUuOTIxODc1IDYxLjQwNjI1IC0yMy41NzgxMjUgQyA2MS40MDYyNSAtMjEuOTEwMTU2IDYxLjI5Njg3NSAtMjAuMzE2NDA2IDYxLjA3ODEyNSAtMTguNzk2ODc1IEMgNjAuODE2NDA2IC0xNy4wOTc2NTYgNjAuMzMyMDMxIC0xNS4zNTkzNzUgNTkuNjI1IC0xMy41NzgxMjUgQyA1OC45MjU3ODEgLTExLjc5Njg3NSA1Ny44Nzg5MDYgLTEwLjA5NzY1NiA1Ni40ODQzNzUgLTguNDg0Mzc1IEMgNTUuMDk3NjU2IC02Ljg2NzE4OCA1My4yNjk1MzEgLTUuNDIxODc1IDUxIC00LjE0MDYyNSBDIDQ4LjczODI4MSAtMi44NTkzNzUgNDUuOTIxODc1IC0xLjg0NzY1NiA0Mi41NDY4NzUgLTEuMTA5Mzc1IEMgMzkuMTcxODc1IC0wLjM2NzE4OCAzNS4xNDg0MzggMCAzMC40ODQzNzUgMCBaIE0gMjAuMjUgLTMwLjUzMTI1IEwgMTcuMTI1IC0xMC45NTMxMjUgTCAyOC42NDA2MjUgLTEwLjk1MzEyNSBDIDMxLjgzNTkzOCAtMTAuOTUzMTI1IDM0LjQ3MjY1NiAtMTEuMjUgMzYuNTQ2ODc1IC0xMS44NDM3NSBDIDM4LjYxNzE4OCAtMTIuNDM3NSA0MC4yNSAtMTMuMjA3MDMxIDQxLjQzNzUgLTE0LjE1NjI1IEMgNDIuNjI1IC0xNS4xMDE1NjIgNDMuNDg0Mzc1IC0xNi4wOTM3NSA0NC4wMTU2MjUgLTE3LjEyNSBDIDQ0LjU1NDY4OCAtMTguMTY0MDYyIDQ0Ljg5ODQzOCAtMTkuMTQ4NDM4IDQ1LjA0Njg3NSAtMjAuMDc4MTI1IEMgNDUuMjAzMTI1IC0yMS4wMDM5MDYgNDUuMjgxMjUgLTIxLjc1IDQ1LjI4MTI1IC0yMi4zMTI1IEMgNDUuMjgxMjUgLTIzLjIzODI4MSA0NS4xMTMyODEgLTI0LjE3OTY4OCA0NC43ODEyNSAtMjUuMTQwNjI1IEMgNDQuNDQ1MzEyIC0yNi4xMDkzNzUgNDMuNzk2ODc1IC0yNyA0Mi44MjgxMjUgLTI3LjgxMjUgQyA0MS44NjcxODggLTI4LjYyNSA0MC41IC0yOS4yODEyNSAzOC43MTg3NSAtMjkuNzgxMjUgQyAzNi45Mzc1IC0zMC4yODEyNSAzNC41OTc2NTYgLTMwLjUzMTI1IDMxLjcwMzEyNSAtMzAuNTMxMjUgWiBNIDIwLjI1IC0zMC41MzEyNSAiLz48L2c+PC9zdmc+">
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20261028217;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20261028218;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -4571,9 +4571,11 @@ function renderPL(){
   // ── EXPENSES: Wages from Roster + manual entries ────────────────
   const wagesObj = calcWages(period, start, end);
   const manualExp = plEntries.filter(e=>e.type==='expense'&&e.date>=start&&e.date<=end);
-  // Staff-logged expenses from the ledger (kind='expense') for the period — so the on-screen net reflects them too
-  let ledgerExp = 0;
-  (window._lastLedgerDocs||[]).forEach(function(r){ if(!r||r.kind!=='expense')return; var d={};try{d=r.detail?JSON.parse(r.detail):{};}catch(e){} var dt=d.date||r.bizDate||''; if(dt>=start&&dt<=end&&(d.status||r.status||'').toLowerCase()!=='cancelled') ledgerExp+=(+r.amount||+d.cost||0); });
+  // Staff-logged / auto expenses from the ledger (kind='expense') for the period — so the on-screen net reflects them too.
+  // Collect the rows too so they also SHOW as line items + in the category breakdown for every period (day/week/month/year),
+  // not only in the totals. This is what makes Grab commission visible on the daily & weekly P&L, not just monthly.
+  let ledgerExp = 0; const ledgerExpRows = [];
+  (window._lastLedgerDocs||[]).forEach(function(r){ if(!r||r.kind!=='expense')return; var d={};try{d=r.detail?JSON.parse(r.detail):{};}catch(e){} var dt=d.date||r.bizDate||''; if(dt>=start&&dt<=end&&(d.status||r.status||'').toLowerCase()!=='cancelled'){ var amt=(+r.amount||+d.cost||0); ledgerExp+=amt; ledgerExpRows.push({id:r.id,date:dt,cat:(d.category||'Other'),area:(d.area||'general'),note:(d.note||''),amount:amt}); } });
   const totalExp  = wagesObj.total + manualExp.reduce((s,e)=>s+e.amount,0) + ledgerExp;
 
   // ── NET ─────────────────────────────────────────────────────────
@@ -4605,7 +4607,7 @@ function renderPL(){
   renderIncomeSection(recRev, fuelRev, supRev, manualIncome, period, start, end);
 
   // ── EXPENSE LEDGER ──────────────────────────────────────────────
-  renderExpenseSection(wagesObj, manualExp, period);
+  renderExpenseSection(wagesObj, manualExp, period, ledgerExpRows);
 
   // Ledger totals
   set('ledger-income-total',  plFmt(totalInAll));
@@ -4615,7 +4617,7 @@ function renderPL(){
   renderPLChart();
   try{ if(typeof renderSettlementRecon==='function') renderSettlementRecon(); }catch(e){}
   try{ if(typeof window.renderExpensePanel==='function') window.renderExpensePanel(); }catch(e){}
-  renderCatBreakdown(manualExp);
+  renderCatBreakdown(manualExp, ledgerExpRows);
 }
 
 // ── Wage calculation by period ────────────────────────────────────
@@ -4713,8 +4715,9 @@ function renderIncomeSection(recRev, fuelRev, supRev, manual, period, start, end
 }
 
 // ── Expense section renderer ──────────────────────────────────────
-function renderExpenseSection(wagesObj, manual, period){
+function renderExpenseSection(wagesObj, manual, period, ledgerRows){
   const el = document.getElementById('expense-rows'); if(!el) return;
+  ledgerRows = ledgerRows || [];
   const fmt = n => 'IDR '+Math.round(n).toLocaleString('id-ID');
   const dark = col => ['#f5c842','#84cc16','#f59e0b'].includes(col);
 
@@ -4745,7 +4748,7 @@ function renderExpenseSection(wagesObj, manual, period){
     </div>
     <div class="ledger-source-divider"></div>`;
 
-  // Manual expenses
+  // Manual expenses (plEntries)
   if(manual.length>0){
     html += manual.sort((a,b)=>b.date.localeCompare(a.date)).map(e=>`
       <div class="ledger-source-row">
@@ -4755,7 +4758,20 @@ function renderExpenseSection(wagesObj, manual, period){
         <div class="ledger-source-amt" style="color:#FF2D2D;">${fmt(e.amount)}</div>
         <button onclick="deletePLEntry('${e.id}')" style="background:transparent;border:none;color:#ddd;cursor:pointer;font-size:12px;margin-left:8px;" onmouseover="this.style.color='#FF2D2D'" onmouseout="this.style.color='#ddd'">✕</button>
       </div>`).join('');
-  } else {
+  }
+  // Ledger / auto-logged expenses for the period (staff-logged + Grab commission) — so they show on day/week/month views, not just in the totals.
+  const _areaLbl = {recovery:'Recovery',fuel:'Fuel / Café',supply:'Supply',general:'General'};
+  if(ledgerRows.length>0){
+    html += ledgerRows.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(e=>`
+      <div class="ledger-source-row">
+        <div class="ledger-source-dot" style="background:#FF8A3D"></div>
+        <div class="ledger-source-name">${(e.cat||'Expense')}</div>
+        <div class="ledger-source-sub">${e.date} · ${_areaLbl[e.area]||e.area||'General'}${e.note?(' · '+String(e.note).replace(/</g,'&lt;')):''}</div>
+        <div class="ledger-source-amt" style="color:#FF2D2D;">${fmt(e.amount)}</div>
+        <button onclick="expCancel('${e.id}')" style="background:transparent;border:none;color:#ddd;cursor:pointer;font-size:12px;margin-left:8px;" onmouseover="this.style.color='#FF2D2D'" onmouseout="this.style.color='#ddd'">✕</button>
+      </div>`).join('');
+  }
+  if(manual.length===0 && ledgerRows.length===0){
     html += `<div style="font-family:'Space Mono',monospace;font-size:9px;color:#BFC2C7;padding:8px 14px;">No additional expenses. <button onclick="openPLModal('expense')" style="background:none;border:none;color:#0A0A0A;font-family:'Space Mono',monospace;font-size:9px;cursor:pointer;text-decoration:underline;">+ Add expense</button></div>`;
   }
   el.innerHTML = html;
@@ -4787,21 +4803,23 @@ function renderLedger(elId, entries, type){
   }).join('');
 }
 
-function renderCatBreakdown(expenses){
+function renderCatBreakdown(expenses, ledgerRows){
   const el = document.getElementById('cat-breakdown');
   if(!el) return;
-  const bycat = {};
-  expenses.forEach(e => { bycat[e.cat] = (bycat[e.cat]||0) + e.amount; });
-  const total = Object.values(bycat).reduce((a,b)=>a+b,0);
-  if(total === 0){ el.innerHTML='<div style="color:#222;font-size:10px;">No expenses this period.</div>'; return; }
-  el.innerHTML = Object.entries(bycat)
-    .sort((a,b)=>b[1]-a[1])
-    .map(([cat,amt])=>{
-      const c = CATS[cat]||CATS.other;
-      const pct = Math.round(amt/total*100);
+  ledgerRows = ledgerRows || [];
+  // Key by display label so manual (CATS codes) and ledger (free-text categories like 'Grab commission') merge cleanly.
+  const bylabel = {};
+  expenses.forEach(e => { const c=CATS[e.cat]||CATS.other; const L=c.label; if(!bylabel[L])bylabel[L]={amt:0,cls:c.cls}; bylabel[L].amt+=e.amount; });
+  ledgerRows.forEach(e => { const L=e.cat||'Other'; if(!bylabel[L])bylabel[L]={amt:0,cls:'cat-other'}; bylabel[L].amt+=e.amount; });
+  const total = Object.values(bylabel).reduce((a,b)=>a+b.amt,0);
+  if(total === 0){ el.innerHTML='<div style="color:#222;font-size:10px;">No expenses this period.</div>'; document.getElementById('cat-total').textContent = plFmt(0); return; }
+  el.innerHTML = Object.entries(bylabel)
+    .sort((a,b)=>b[1].amt-a[1].amt)
+    .map(([label,o])=>{
+      const pct = Math.round(o.amt/total*100);
       return `<div style="display:flex;align-items:center;gap:6px;padding:4px 8px;background:var(--bg);border:1px solid var(--bd);border-radius:2px;">
-        <span class="lr-cat ${c.cls}" style="cursor:default">${c.label}</span>
-        <span style="font-family:'Space Mono',monospace;font-size:10.5px;color:#888;font-weight:600">${plFmt(amt)}</span>
+        <span class="lr-cat ${o.cls}" style="cursor:default">${label}</span>
+        <span style="font-family:'Space Mono',monospace;font-size:10.5px;color:#888;font-weight:600">${plFmt(o.amt)}</span>
         <span style="font-family:'Space Mono',monospace;font-size:9px;color:#333">${pct}%</span>
       </div>`;
     }).join('');
@@ -4862,7 +4880,10 @@ function renderPLChart(){
     const salesInc = _rev(recoveryData,date)+_rev(fuelData,date)+_rev(supplyData,date);
     const manInc = plEntries.filter(e=>e.type==='income'&&!e.auto&&e.date===date).reduce((s,e)=>s+e.amount,0);
     const manExp = plEntries.filter(e=>e.type==='expense'&&e.date===date).reduce((s,e)=>s+e.amount,0);
-    const exp = _plDayWage(date) + manExp;
+    // Ledger / auto expenses for this day (staff-logged + Grab commission) so the chart's expense bar matches the P&L total.
+    let ledExp = 0;
+    (window._lastLedgerDocs||[]).forEach(function(r){ if(!r||r.kind!=='expense')return; var dd={};try{dd=r.detail?JSON.parse(r.detail):{};}catch(e){} var dt=dd.date||r.bizDate||''; if(dt===date&&(dd.status||r.status||'').toLowerCase()!=='cancelled') ledExp+=(+r.amount||+dd.cost||0); });
+    const exp = _plDayWage(date) + manExp + ledExp;
     return {inc: salesInc+manInc, exp};
   });
 
