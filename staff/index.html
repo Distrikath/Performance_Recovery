@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMEEwQTBBIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYsNzgpIHNjYWxlKDEuMzApIiBmaWxsPSIjRjJGMkYwIj48cGF0aCBkPSJNIDAuMDYyNSAwIEwgNi42MjUgLTQxLjM5MDYyNSBMIDMzLjU5Mzc1IC00MS4zOTA2MjUgQyAzOS4wMDc4MTIgLTQxLjM5MDYyNSA0My41MDM5MDYgLTQwLjkwNjI1IDQ3LjA3ODEyNSAtMzkuOTM3NSBDIDUwLjY2MDE1NiAtMzguOTc2NTYyIDUzLjUgLTM3LjY2MDE1NiA1NS41OTM3NSAtMzUuOTg0Mzc1IEMgNTcuNjg3NSAtMzQuMzE2NDA2IDU5LjE3NTc4MSAtMzIuNDE0MDYyIDYwLjA2MjUgLTMwLjI4MTI1IEMgNjAuOTU3MDMxIC0yOC4xNTYyNSA2MS40MDYyNSAtMjUuOTIxODc1IDYxLjQwNjI1IC0yMy41NzgxMjUgQyA2MS40MDYyNSAtMjEuOTEwMTU2IDYxLjI5Njg3NSAtMjAuMzE2NDA2IDYxLjA3ODEyNSAtMTguNzk2ODc1IEMgNjAuODE2NDA2IC0xNy4wOTc2NTYgNjAuMzMyMDMxIC0xNS4zNTkzNzUgNTkuNjI1IC0xMy41NzgxMjUgQyA1OC45MjU3ODEgLTExLjc5Njg3NSA1Ny44Nzg5MDYgLTEwLjA5NzY1NiA1Ni40ODQzNzUgLTguNDg0Mzc1IEMgNTUuMDk3NjU2IC02Ljg2NzE4OCA1My4yNjk1MzEgLTUuNDIxODc1IDUxIC00LjE0MDYyNSBDIDQ4LjczODI4MSAtMi44NTkzNzUgNDUuOTIxODc1IC0xLjg0NzY1NiA0Mi41NDY4NzUgLTEuMTA5Mzc1IEMgMzkuMTcxODc1IC0wLjM2NzE4OCAzNS4xNDg0MzggMCAzMC40ODQzNzUgMCBaIE0gMjAuMjUgLTMwLjUzMTI1IEwgMTcuMTI1IC0xMC45NTMxMjUgTCAyOC42NDA2MjUgLTEwLjk1MzEyNSBDIDMxLjgzNTkzOCAtMTAuOTUzMTI1IDM0LjQ3MjY1NiAtMTEuMjUgMzYuNTQ2ODc1IC0xMS44NDM3NSBDIDM4LjYxNzE4OCAtMTIuNDM3NSA0MC4yNSAtMTMuMjA3MDMxIDQxLjQzNzUgLTE0LjE1NjI1IEMgNDIuNjI1IC0xNS4xMDE1NjIgNDMuNDg0Mzc1IC0xNi4wOTM3NSA0NC4wMTU2MjUgLTE3LjEyNSBDIDQ0LjU1NDY4OCAtMTguMTY0MDYyIDQ0Ljg5ODQzOCAtMTkuMTQ4NDM4IDQ1LjA0Njg3NSAtMjAuMDc4MTI1IEMgNDUuMjAzMTI1IC0yMS4wMDM5MDYgNDUuMjgxMjUgLTIxLjc1IDQ1LjI4MTI1IC0yMi4zMTI1IEMgNDUuMjgxMjUgLTIzLjIzODI4MSA0NS4xMTMyODEgLTI0LjE3OTY4OCA0NC43ODEyNSAtMjUuMTQwNjI1IEMgNDQuNDQ1MzEyIC0yNi4xMDkzNzUgNDMuNzk2ODc1IC0yNyA0Mi44MjgxMjUgLTI3LjgxMjUgQyA0MS44NjcxODggLTI4LjYyNSA0MC41IC0yOS4yODEyNSAzOC43MTg3NSAtMjkuNzgxMjUgQyAzNi45Mzc1IC0zMC4yODEyNSAzNC41OTc2NTYgLTMwLjUzMTI1IDMxLjcwMzEyNSAtMzAuNTMxMjUgWiBNIDIwLjI1IC0zMC41MzEyNSAiLz48L2c+PC9zdmc+">
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20261028214;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20261028215;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -2172,6 +2172,7 @@ h1,
     <div class="dk-strip" style="margin-bottom:18px;">
       <div class="dk-cell"><div class="dk-clbl">Card</div><div class="dk-v" id="pay-card">IDR 0</div><div class="dk-cs" id="pay-card-sub">0 payments</div></div>
       <div class="dk-cell"><div class="dk-clbl">QRIS</div><div class="dk-v" id="pay-qris">IDR 0</div><div class="dk-cs" id="pay-qris-sub">0 payments</div></div>
+      <div class="dk-cell" id="pay-grab-cell" style="display:none;"><div class="dk-clbl">Grab</div><div class="dk-v" id="pay-grab-amt">IDR 0</div><div class="dk-cs" id="pay-grab-sub">settles separately · reconcile vs Grab payout</div></div>
       <div class="dk-cell"><div class="dk-clbl">Online (Xendit)</div><div class="dk-v" id="pay-online">IDR 0</div><div class="dk-cs" id="pay-online-sub">0 payments</div></div>
       <div class="dk-cell" id="pay-other-cell" style="display:none;"><div class="dk-clbl">Other</div><div class="dk-v" id="pay-other">IDR 0</div><div class="dk-cs" id="pay-other-sub">0 payments</div></div>
       <div class="dk-cell" id="pay-recon-cell" style="border-left:2px solid var(--bd);"><div class="dk-clbl">Total takings</div><div class="dk-v" id="pay-recon-total">IDR 0</div><div class="dk-cs" id="pay-recon-msg"></div></div>
@@ -2490,6 +2491,7 @@ h1,
         <div class="pay-methods">
           <button class="pay-btn active" id="pay-card"   onclick="setPayMethod('card')">Card</button>
           <button class="pay-btn"        id="pay-qr"     onclick="setPayMethod('qr')">QR</button>
+          <button class="pay-btn"        id="pay-grab"   onclick="setPayMethod('grab')">Grab</button>
         </div>
       </div>
       <div style="display:flex;gap:5px;margin-bottom:4px;">
@@ -4092,9 +4094,10 @@ function renderSales(){
   set('s-staff',       staffCount||'—');
 
   // ── Payment-method breakdown (Card / QRIS / Online) for the end-of-day cash-up ──
-  const payAmt={card:0,qr:0,online:0,other:0}, payCnt={card:0,qr:0,online:0,other:0};
+  const payAmt={card:0,qr:0,grab:0,online:0,other:0}, payCnt={card:0,qr:0,grab:0,online:0,other:0};
   const _payBucket=(m)=>{ m=(m||'').toString().toLowerCase();
     if(m==='card') return 'card';
+    if(m==='grab') return 'grab';   // GRAB settles separately (Grab pays out to bank minus fees) — tracked on its own line
     if(m==='qr'||m==='qris'||m==='gopay'||m==='ovo') return 'qr';
     if(m==='online'||m==='xendit') return 'online';
     return 'other'; };
@@ -4104,13 +4107,15 @@ function renderSales(){
   // revenue exactly, so the cash-up reconciles even when an online deposit is paid on a different day than the session.
   ['card','qr','online','other'].forEach(k=>{ if(recPay[k]>0){ payAmt[k]+=recPay[k]; payCnt[k]+=(recPayCnt[k]||0); } });
   const _payLine=(id,amt,cnt)=>{ set(id, amt>0?fmtFull(amt):'IDR 0'); set(id+'-sub', cnt+' payment'+(cnt!==1?'s':'')); };
-  _payLine('pay-card',   payAmt.card,   payCnt.card);
-  _payLine('pay-qris',   payAmt.qr,     payCnt.qr);
-  _payLine('pay-online', payAmt.online, payCnt.online);
-  _payLine('pay-other',  payAmt.other,  payCnt.other);
+  _payLine('pay-card',     payAmt.card,   payCnt.card);
+  _payLine('pay-qris',     payAmt.qr,     payCnt.qr);
+  _payLine('pay-grab-amt', payAmt.grab,   payCnt.grab);
+  _payLine('pay-online',   payAmt.online, payCnt.online);
+  _payLine('pay-other',    payAmt.other,  payCnt.other);
+  const _gc=document.getElementById('pay-grab-cell'); if(_gc) _gc.style.display=(payAmt.grab>0)?'':'none';
   const _oc=document.getElementById('pay-other-cell'); if(_oc) _oc.style.display=(payAmt.other>0)?'':'none';
-  // Reconciliation: the buckets should add up to total takings
-  const payGrand=payAmt.card+payAmt.qr+payAmt.online+payAmt.other;
+  // Reconciliation: the buckets should add up to total takings (Grab counts as revenue; it just settles later via Grab)
+  const payGrand=payAmt.card+payAmt.qr+payAmt.grab+payAmt.online+payAmt.other;
   set('pay-recon-total', fmtFull(payGrand));
   const _rc=document.getElementById('pay-recon-cell'), _rm=document.getElementById('pay-recon-msg');
   // TAKINGS = all cash collected (includes the HUMAN+ 80% DISTRIK holds as a payable). REVENUE (total) excludes that
@@ -10779,9 +10784,9 @@ window._dailyCSV=function(ref,ym){
  try{
   var MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
   var label=MN[ref.m]+' '+ref.y, dim=new Date(ref.y,ref.m+1,0).getDate();
-  function pm(m){m=(m||'').toLowerCase();if(m==='card')return 'card';if(m==='qr'||m==='qris'||m==='gopay'||m==='ovo'||m==='dana')return 'qris';if(m==='online'||m==='xendit')return 'xen';if(m==='cash')return 'cash';return 'card';}
+  function pm(m){m=(m||'').toLowerCase();if(m==='card')return 'card';if(m==='grab')return 'grab';if(m==='qr'||m==='qris'||m==='gopay'||m==='ovo'||m==='dana')return 'qris';if(m==='online'||m==='xendit')return 'xen';if(m==='cash')return 'cash';return 'card';}
   var docs=window._lastLedgerDocs||[],S={},recg={};
-  function R(d){if(!S[d])S[d]={rec:0,ivb:0,pep:0,fuel:0,sup:0,tax:0,comm:0,pay:0,card:0,qris:0,xen:0,cash:0,bcard:0,bqris:0,bxen:0,eRec:0,eFuel:0,eSup:0,eGen:0};return S[d];}
+  function R(d){if(!S[d])S[d]={rec:0,ivb:0,pep:0,fuel:0,sup:0,tax:0,comm:0,pay:0,card:0,qris:0,grab:0,xen:0,cash:0,bcard:0,bqris:0,bxen:0,eRec:0,eFuel:0,eSup:0,eGen:0};return S[d];}
   function bfam(m){m=(m||'').toString().toLowerCase();if(m==='xendit'||m==='online')return 'xen';return (m==='qris'||m==='qr'||m==='gopay'||m==='ovo'||m==='dana')?'qris':'card';}
   docs.forEach(function(r){
     if(!r)return; var det={};try{det=r.detail?JSON.parse(r.detail):{};}catch(e){}
@@ -10819,14 +10824,14 @@ window._dailyCSV=function(ref,ym){
   });
   // ── ACTUAL bank deposits — pulled live from the Bank Settlement Reconciliation screen (window.SETTLEMENTS) ──
   try{ var SET=window.SETTLEMENTS||{}; Object.keys(SET).forEach(function(k){ var s=SET[k]; if(!s)return; var td=String(s.tradeDate||''); if(td.slice(0,7)!==ym)return; var fam=bfam(s.method); var amt=Math.round(+s.amount||0); R(td)['b'+fam]+=amt; }); }catch(e){}
-  var hdr=['Date','Sales-Recovery','Sales-IV/Bloods','Sales-Peptides','Sales-Fuel','Sales-Supply','Total Sales','Tax collected (PB1+PPh23)','HUMAN+ commission','Payable to HUMAN+','Card','QRIS','Xendit','Cash','Total Payments','Variance (sales-payments)','Bank Card (actual)','Bank QRIS (actual)','Bank Xendit (actual)','Bank Total (actual)','Bank − Sales'];
-  var NCOL=20;
+  var hdr=['Date','Sales-Recovery','Sales-IV/Bloods','Sales-Peptides','Sales-Fuel','Sales-Supply','Total Sales','Tax collected (PB1+PPh23)','HUMAN+ commission','Payable to HUMAN+','Card','QRIS','Grab','Xendit','Cash','Total Payments','Variance (sales-payments)','Bank Card (actual)','Bank QRIS (actual)','Bank Xendit (actual)','Bank Total (actual)','Bank − Sales'];
+  var NCOL=21;
   var NL='\n',csv=label+' — DAILY SALES, PAYMENTS & BANK DEPOSITS'+NL+hdr.join(',')+NL,tot=[];for(var i=0;i<NCOL;i++)tot[i]=0;
   for(var dn=1;dn<=dim;dn++){var d=ym+'-'+('0'+dn).slice(-2),v=S[d]||{};
     var rec=Math.round(v.rec||0),ivb=Math.round(v.ivb||0),pep=Math.round(v.pep||0),fuel=Math.round(v.fuel||0),sup=Math.round(v.sup||0),ts=rec+ivb+pep+fuel+sup;
-    var card=Math.round(v.card||0),qris=Math.round(v.qris||0),xen=Math.round(v.xen||0),cash=Math.round(v.cash||0),tp=card+qris+xen+cash;
+    var card=Math.round(v.card||0),qris=Math.round(v.qris||0),grab=Math.round(v.grab||0),xen=Math.round(v.xen||0),cash=Math.round(v.cash||0),tp=card+qris+grab+xen+cash;
     var bcard=Math.round(v.bcard||0),bqris=Math.round(v.bqris||0),bxen=Math.round(v.bxen||0),btot=bcard+bqris+bxen;
-    var a=[d,rec,ivb,pep,fuel,sup,ts,Math.round(v.tax||0),Math.round(v.comm||0),Math.round(v.pay||0),card,qris,xen,cash,tp,ts-tp,bcard,bqris,bxen,btot,btot-ts];
+    var a=[d,rec,ivb,pep,fuel,sup,ts,Math.round(v.tax||0),Math.round(v.comm||0),Math.round(v.pay||0),card,qris,grab,xen,cash,tp,ts-tp,bcard,bqris,bxen,btot,btot-ts];
     csv+=a.join(',')+NL;for(var j=1;j<=NCOL;j++)tot[j-1]+=a[j];
   }
   csv+=(['TOTAL'].concat(tot)).join(',')+NL;
@@ -15455,7 +15460,7 @@ function _methodFamily(m){ m=(m||'').toString().toLowerCase(); if(m==='xendit'||
 // Xendit payout, so they're tracked separately (not lumped into Card). 'partner' (HUMAN+) never settles to us.
 function _dashCardQrForDate(k){
   var card=0, qr=0, online=0;
-  function add(m,amt){ if(!amt||amt<=0)return; m=(m||'').toString().toLowerCase(); if(m==='partner')return; if(m==='online'||m==='xendit'){online+=amt;return;} if(m==='qr'||m==='qris'||m==='gopay'||m==='ovo')qr+=amt; else card+=amt; }
+  function add(m,amt){ if(!amt||amt<=0)return; m=(m||'').toString().toLowerCase(); if(m==='partner'||m==='grab')return; if(m==='online'||m==='xendit'){online+=amt;return;} if(m==='qr'||m==='qris'||m==='gopay'||m==='ovo')qr+=amt; else card+=amt; }   // Grab excluded — it settles via Grab's own payout, not the card/QRIS bank deposit
   try{ var f=(typeof fuelData!=='undefined')?fuelData[k]:null; if(f)(f.transactions||[]).forEach(function(t){ add(t.method,t.total||0); }); }catch(e){}
   try{ var s=(typeof supplyData!=='undefined')?supplyData[k]:null; if(s)(s.orders||[]).forEach(function(o){ add(o.method,o.total||0); }); }catch(e){}
   try{ var r=(typeof recoveryData!=='undefined')?recoveryData[k]:null; if(r)(r.bookings||[]).forEach(function(b){ if(!b||b.status==='cancelled')return; var amt=(typeof clinCollected==='function')?clinCollected(b):(b.price||0); add(b.payMethod||b.method||(b.online?'online':'card'), amt); }); }catch(e){}
