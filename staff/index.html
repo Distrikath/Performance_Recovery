@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMEEwQTBBIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYsNzgpIHNjYWxlKDEuMzApIiBmaWxsPSIjRjJGMkYwIj48cGF0aCBkPSJNIDAuMDYyNSAwIEwgNi42MjUgLTQxLjM5MDYyNSBMIDMzLjU5Mzc1IC00MS4zOTA2MjUgQyAzOS4wMDc4MTIgLTQxLjM5MDYyNSA0My41MDM5MDYgLTQwLjkwNjI1IDQ3LjA3ODEyNSAtMzkuOTM3NSBDIDUwLjY2MDE1NiAtMzguOTc2NTYyIDUzLjUgLTM3LjY2MDE1NiA1NS41OTM3NSAtMzUuOTg0Mzc1IEMgNTcuNjg3NSAtMzQuMzE2NDA2IDU5LjE3NTc4MSAtMzIuNDE0MDYyIDYwLjA2MjUgLTMwLjI4MTI1IEMgNjAuOTU3MDMxIC0yOC4xNTYyNSA2MS40MDYyNSAtMjUuOTIxODc1IDYxLjQwNjI1IC0yMy41NzgxMjUgQyA2MS40MDYyNSAtMjEuOTEwMTU2IDYxLjI5Njg3NSAtMjAuMzE2NDA2IDYxLjA3ODEyNSAtMTguNzk2ODc1IEMgNjAuODE2NDA2IC0xNy4wOTc2NTYgNjAuMzMyMDMxIC0xNS4zNTkzNzUgNTkuNjI1IC0xMy41NzgxMjUgQyA1OC45MjU3ODEgLTExLjc5Njg3NSA1Ny44Nzg5MDYgLTEwLjA5NzY1NiA1Ni40ODQzNzUgLTguNDg0Mzc1IEMgNTUuMDk3NjU2IC02Ljg2NzE4OCA1My4yNjk1MzEgLTUuNDIxODc1IDUxIC00LjE0MDYyNSBDIDQ4LjczODI4MSAtMi44NTkzNzUgNDUuOTIxODc1IC0xLjg0NzY1NiA0Mi41NDY4NzUgLTEuMTA5Mzc1IEMgMzkuMTcxODc1IC0wLjM2NzE4OCAzNS4xNDg0MzggMCAzMC40ODQzNzUgMCBaIE0gMjAuMjUgLTMwLjUzMTI1IEwgMTcuMTI1IC0xMC45NTMxMjUgTCAyOC42NDA2MjUgLTEwLjk1MzEyNSBDIDMxLjgzNTkzOCAtMTAuOTUzMTI1IDM0LjQ3MjY1NiAtMTEuMjUgMzYuNTQ2ODc1IC0xMS44NDM3NSBDIDM4LjYxNzE4OCAtMTIuNDM3NSA0MC4yNSAtMTMuMjA3MDMxIDQxLjQzNzUgLTE0LjE1NjI1IEMgNDIuNjI1IC0xNS4xMDE1NjIgNDMuNDg0Mzc1IC0xNi4wOTM3NSA0NC4wMTU2MjUgLTE3LjEyNSBDIDQ0LjU1NDY4OCAtMTguMTY0MDYyIDQ0Ljg5ODQzOCAtMTkuMTQ4NDM4IDQ1LjA0Njg3NSAtMjAuMDc4MTI1IEMgNDUuMjAzMTI1IC0yMS4wMDM5MDYgNDUuMjgxMjUgLTIxLjc1IDQ1LjI4MTI1IC0yMi4zMTI1IEMgNDUuMjgxMjUgLTIzLjIzODI4MSA0NS4xMTMyODEgLTI0LjE3OTY4OCA0NC43ODEyNSAtMjUuMTQwNjI1IEMgNDQuNDQ1MzEyIC0yNi4xMDkzNzUgNDMuNzk2ODc1IC0yNyA0Mi44MjgxMjUgLTI3LjgxMjUgQyA0MS44NjcxODggLTI4LjYyNSA0MC41IC0yOS4yODEyNSAzOC43MTg3NSAtMjkuNzgxMjUgQyAzNi45Mzc1IC0zMC4yODEyNSAzNC41OTc2NTYgLTMwLjUzMTI1IDMxLjcwMzEyNSAtMzAuNTMxMjUgWiBNIDIwLjI1IC0zMC41MzEyNSAiLz48L2c+PC9zdmc+">
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20261028216;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20261028217;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -7857,6 +7857,17 @@ function processSale(){
   fuelData[key].revenue=(fuelData[key].transactions.reduce((s,t)=>s+t.total,0));
   if(typeof ledgerWrite==='function') ledgerWrite('fuel', _ftx.id, key, total, (serviceTax+tax), posPayMethod, _ftx, 'completed');
 
+  // GRAB COMMISSION: Grab price = our price (incl tax+service); Grab keeps 20% of the whole sale.
+  // Auto-book that 20% as a Fuel expense so the day's net reflects it. id tied to the sale → idempotent, no double-post on sync/re-run.
+  if(posPayMethod==='grab'){
+    var _grabPct=(TAX_CFG&&typeof TAX_CFG.grabComm==='number')?TAX_CFG.grabComm:0.20;
+    var _grabComm=Math.round(total*_grabPct);
+    if(_grabComm>0 && typeof ledgerWrite==='function'){
+      var _gcId='exp_grab_'+_ftx.id;
+      ledgerWrite('expense', _gcId, key, _grabComm, 0, '', {kind:'expense',date:key,area:'fuel',category:'Grab commission',note:Math.round(_grabPct*100)+'% Grab commission · sale '+_ftx.id+' (IDR '+total.toLocaleString('id-ID')+')',cost:_grabComm,_auto:'grab'}, 'completed');
+    }
+  }
+
   // Show confirmation
   const confirm=document.getElementById('receipt-confirm');
   const posReceipt=document.querySelector('.pos-receipt');
@@ -8311,6 +8322,8 @@ var TAX_CFG = {
   entity:'PT PMA', npwp:'', pkp:false,
   cafeService:0.07,        // café service charge (gratuity — revenue, not a tax)
   cafePBJT:0.10,           // café regional F&B tax (PBJT/PB1)
+  grabComm:0.20,           // Grab commission — 20% of the whole Grab sale (incl tax+service); auto-booked as an expense
+
   clinicCommission:0.20,   // DISTRIK commission on HUMAN+ (agent) — the ONLY part that is DISTRIK revenue
   pph23:0.02,              // PPh 23 withholding rate — applied to DISTRIK's commission (withheld by HUMAN+)
   cit:0.22                 // normal corporate income tax (PPh Badan)
@@ -16829,6 +16842,7 @@ window.injectWaCapture = function(confirmId, sale){
    {g:'Equipment',area:'general',items:['Small equipment / tools','Equipment repair','Equipment purchase']},
    {g:'Staff & admin',area:'general',items:['Training','Uniforms','Software / subscriptions','Bank / Xendit fees','Accounting / legal','Licenses / permits','Insurance','Spotify']},
    {g:'Marketing',area:'general',items:['Google / Meta ads','Photo / video','Printing & signage','Influencer / promo','Events']},
+   {g:'Platform & delivery',area:'fuel',items:['Grab commission']},
    {g:'Other',area:'general',items:['Miscellaneous','Petty cash']}
   ];
   var EXPENSE_GROUPS=window.EXPENSE_GROUPS;
