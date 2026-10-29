@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMEEwQTBBIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYsNzgpIHNjYWxlKDEuMzApIiBmaWxsPSIjRjJGMkYwIj48cGF0aCBkPSJNIDAuMDYyNSAwIEwgNi42MjUgLTQxLjM5MDYyNSBMIDMzLjU5Mzc1IC00MS4zOTA2MjUgQyAzOS4wMDc4MTIgLTQxLjM5MDYyNSA0My41MDM5MDYgLTQwLjkwNjI1IDQ3LjA3ODEyNSAtMzkuOTM3NSBDIDUwLjY2MDE1NiAtMzguOTc2NTYyIDUzLjUgLTM3LjY2MDE1NiA1NS41OTM3NSAtMzUuOTg0Mzc1IEMgNTcuNjg3NSAtMzQuMzE2NDA2IDU5LjE3NTc4MSAtMzIuNDE0MDYyIDYwLjA2MjUgLTMwLjI4MTI1IEMgNjAuOTU3MDMxIC0yOC4xNTYyNSA2MS40MDYyNSAtMjUuOTIxODc1IDYxLjQwNjI1IC0yMy41NzgxMjUgQyA2MS40MDYyNSAtMjEuOTEwMTU2IDYxLjI5Njg3NSAtMjAuMzE2NDA2IDYxLjA3ODEyNSAtMTguNzk2ODc1IEMgNjAuODE2NDA2IC0xNy4wOTc2NTYgNjAuMzMyMDMxIC0xNS4zNTkzNzUgNTkuNjI1IC0xMy41NzgxMjUgQyA1OC45MjU3ODEgLTExLjc5Njg3NSA1Ny44Nzg5MDYgLTEwLjA5NzY1NiA1Ni40ODQzNzUgLTguNDg0Mzc1IEMgNTUuMDk3NjU2IC02Ljg2NzE4OCA1My4yNjk1MzEgLTUuNDIxODc1IDUxIC00LjE0MDYyNSBDIDQ4LjczODI4MSAtMi44NTkzNzUgNDUuOTIxODc1IC0xLjg0NzY1NiA0Mi41NDY4NzUgLTEuMTA5Mzc1IEMgMzkuMTcxODc1IC0wLjM2NzE4OCAzNS4xNDg0MzggMCAzMC40ODQzNzUgMCBaIE0gMjAuMjUgLTMwLjUzMTI1IEwgMTcuMTI1IC0xMC45NTMxMjUgTCAyOC42NDA2MjUgLTEwLjk1MzEyNSBDIDMxLjgzNTkzOCAtMTAuOTUzMTI1IDM0LjQ3MjY1NiAtMTEuMjUgMzYuNTQ2ODc1IC0xMS44NDM3NSBDIDM4LjYxNzE4OCAtMTIuNDM3NSA0MC4yNSAtMTMuMjA3MDMxIDQxLjQzNzUgLTE0LjE1NjI1IEMgNDIuNjI1IC0xNS4xMDE1NjIgNDMuNDg0Mzc1IC0xNi4wOTM3NSA0NC4wMTU2MjUgLTE3LjEyNSBDIDQ0LjU1NDY4OCAtMTguMTY0MDYyIDQ0Ljg5ODQzOCAtMTkuMTQ4NDM4IDQ1LjA0Njg3NSAtMjAuMDc4MTI1IEMgNDUuMjAzMTI1IC0yMS4wMDM5MDYgNDUuMjgxMjUgLTIxLjc1IDQ1LjI4MTI1IC0yMi4zMTI1IEMgNDUuMjgxMjUgLTIzLjIzODI4MSA0NS4xMTMyODEgLTI0LjE3OTY4OCA0NC43ODEyNSAtMjUuMTQwNjI1IEMgNDQuNDQ1MzEyIC0yNi4xMDkzNzUgNDMuNzk2ODc1IC0yNyA0Mi44MjgxMjUgLTI3LjgxMjUgQyA0MS44NjcxODggLTI4LjYyNSA0MC41IC0yOS4yODEyNSAzOC43MTg3NSAtMjkuNzgxMjUgQyAzNi45Mzc1IC0zMC4yODEyNSAzNC41OTc2NTYgLTMwLjUzMTI1IDMxLjcwMzEyNSAtMzAuNTMxMjUgWiBNIDIwLjI1IC0zMC41MzEyNSAiLz48L2c+PC9zdmc+">
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20261028218;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20261029220;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -2170,10 +2170,10 @@ h1,
 
     <!-- Payment breakdown — end-of-day cash-up (Card / QRIS / Online) -->
     <div class="dk-clbl" style="margin:2px 2px 6px;letter-spacing:.08em;opacity:.8;">PAYMENT BREAKDOWN · end-of-day cash-up</div>
-    <div class="dk-strip" style="margin-bottom:18px;">
+    <div class="dk-strip" style="margin-bottom:18px;grid-template-columns:repeat(5,1fr);">
       <div class="dk-cell"><div class="dk-clbl">Card</div><div class="dk-v" id="pay-card-amt">IDR 0</div><div class="dk-cs" id="pay-card-amt-sub">0 payments</div></div>
       <div class="dk-cell"><div class="dk-clbl">QRIS</div><div class="dk-v" id="pay-qris">IDR 0</div><div class="dk-cs" id="pay-qris-sub">0 payments</div></div>
-      <div class="dk-cell" id="pay-grab-cell" style="display:none;"><div class="dk-clbl">Grab</div><div class="dk-v" id="pay-grab-amt">IDR 0</div><div class="dk-cs" id="pay-grab-sub">settles separately · reconcile vs Grab payout</div></div>
+      <div class="dk-cell" id="pay-grab-cell"><div class="dk-clbl">Grab</div><div class="dk-v" id="pay-grab-amt">IDR 0</div><div class="dk-cs" id="pay-grab-sub">settles separately · reconcile vs Grab payout</div></div>
       <div class="dk-cell"><div class="dk-clbl">Online (Xendit)</div><div class="dk-v" id="pay-online">IDR 0</div><div class="dk-cs" id="pay-online-sub">0 payments</div></div>
       <div class="dk-cell" id="pay-other-cell" style="display:none;"><div class="dk-clbl">Other</div><div class="dk-v" id="pay-other">IDR 0</div><div class="dk-cs" id="pay-other-sub">0 payments</div></div>
       <div class="dk-cell" id="pay-recon-cell" style="border-left:2px solid var(--bd);"><div class="dk-clbl">Total takings</div><div class="dk-v" id="pay-recon-total">IDR 0</div><div class="dk-cs" id="pay-recon-msg"></div></div>
@@ -2994,7 +2994,7 @@ const ZONES=[
 const ROSTER_V2_FROM='2026-11-02';
 const ZONES_V2=[
   {id:'FOH', rows:5, start:6, end:22, col:'#3b82f6', label:'Front of House', min:'5 staff',
-     rowLabels:['Manager / Reception','Reception','Fuel / Reception','Fuel / Reception','Supply / Reception']},
+     rowLabels:['Manager / Reception','Reception','Fuel / Reception','Fuel / Reception','Social / Marketing']},
   ZONES.find(function(z){return z.id==='Therapy';}),
   ZONES.find(function(z){return z.id==='Event';}),
 ];
@@ -4113,7 +4113,7 @@ function renderSales(){
   _payLine('pay-grab-amt', payAmt.grab,   payCnt.grab);
   _payLine('pay-online',   payAmt.online, payCnt.online);
   _payLine('pay-other',    payAmt.other,  payCnt.other);
-  const _gc=document.getElementById('pay-grab-cell'); if(_gc) _gc.style.display=(payAmt.grab>0)?'':'none';
+  // Grab cell is always shown (a standing payment method, like Card/QRIS/Xendit) — no hide-at-zero.
   const _oc=document.getElementById('pay-other-cell'); if(_oc) _oc.style.display=(payAmt.other>0)?'':'none';
   // Reconciliation: the buckets should add up to total takings (Grab counts as revenue; it just settles later via Grab)
   const payGrand=payAmt.card+payAmt.qr+payAmt.grab+payAmt.online+payAmt.other;
@@ -15489,17 +15489,18 @@ window.saveCustomerDetails=function(){
 <script>
 // Match each trading day's dashboard card/QRIS takings against the actual bank settlements you type in.
 // Expected net = gross − processor fee (card ~3%, QRIS ~0.7%). Anything off is usually batch-timing, not a lost sale.
-var SETTLE_FEE={card:0.03, qr:0.007, xendit:0.03};   // Xendit online-card payout fee ≈ 3% (adjust to your Xendit rate)
-function _methodFamily(m){ m=(m||'').toString().toLowerCase(); if(m==='xendit'||m==='online')return 'xendit'; return (m==='qris'||m==='qr'||m==='gopay'||m==='ovo')?'qr':'card'; }
+var SETTLE_FEE={card:0.03, qr:0.007, xendit:0.03, grab:0.20};   // Xendit payout fee ≈3%; Grab keeps 20% (service fee) and pays out the net
+function _methodFamily(m){ m=(m||'').toString().toLowerCase(); if(m==='grab')return 'grab'; if(m==='xendit'||m==='online')return 'xendit'; return (m==='qris'||m==='qr'||m==='gopay'||m==='ovo')?'qr':'card'; }
 // dashboard card + QRIS + online(Xendit) GROSS taken on a trading day. Online/Xendit deposits settle as their own
 // Xendit payout, so they're tracked separately (not lumped into Card). 'partner' (HUMAN+) never settles to us.
 function _dashCardQrForDate(k){
-  var card=0, qr=0, online=0;
-  function add(m,amt){ if(!amt||amt<=0)return; m=(m||'').toString().toLowerCase(); if(m==='partner'||m==='grab')return; if(m==='online'||m==='xendit'){online+=amt;return;} if(m==='qr'||m==='qris'||m==='gopay'||m==='ovo')qr+=amt; else card+=amt; }   // Grab excluded — it settles via Grab's own payout, not the card/QRIS bank deposit
+  var card=0, qr=0, online=0, grab=0;
+  // Grab is tracked separately: it settles via Grab's own payout (net of the 20% service fee), NOT the card/QRIS bank deposit. 'partner' (HUMAN+) never settles to us.
+  function add(m,amt){ if(!amt||amt<=0)return; m=(m||'').toString().toLowerCase(); if(m==='partner')return; if(m==='grab'){grab+=amt;return;} if(m==='online'||m==='xendit'){online+=amt;return;} if(m==='qr'||m==='qris'||m==='gopay'||m==='ovo')qr+=amt; else card+=amt; }
   try{ var f=(typeof fuelData!=='undefined')?fuelData[k]:null; if(f)(f.transactions||[]).forEach(function(t){ add(t.method,t.total||0); }); }catch(e){}
   try{ var s=(typeof supplyData!=='undefined')?supplyData[k]:null; if(s)(s.orders||[]).forEach(function(o){ add(o.method,o.total||0); }); }catch(e){}
   try{ var r=(typeof recoveryData!=='undefined')?recoveryData[k]:null; if(r)(r.bookings||[]).forEach(function(b){ if(!b||b.status==='cancelled')return; var amt=(typeof clinCollected==='function')?clinCollected(b):(b.price||0); add(b.payMethod||b.method||(b.online?'online':'card'), amt); }); }catch(e){}
-  return {card:card, qr:qr, online:online};
+  return {card:card, qr:qr, online:online, grab:grab};
 }
 // settlements collection (mirrors the clients collection pattern)
 window.SETTLEMENTS={};
@@ -15542,18 +15543,18 @@ window.renderSettlementRecon=function(){
   var mLbl=['January','February','March','April','May','June','July','August','September','October','November','December'][+mp[1]-1]+' '+mp[0];
   var f=function(n){ return 'IDR '+Math.round(n||0).toLocaleString('id-ID'); };
   // expected net across the whole month's trading days
-  var cardGross=0, qrGross=0, onlineGross=0;
-  _reconMonthKeys(ym).forEach(function(k){ var g=_dashCardQrForDate(k); cardGross+=g.card; qrGross+=g.qr; onlineGross+=(g.online||0); });
-  var expCardNet=Math.round(cardGross*(1-SETTLE_FEE.card)), expQrNet=Math.round(qrGross*(1-SETTLE_FEE.qr)), expXenNet=Math.round(onlineGross*(1-SETTLE_FEE.xendit)), expTotal=expCardNet+expQrNet+expXenNet;
+  var cardGross=0, qrGross=0, onlineGross=0, grabGross=0;
+  _reconMonthKeys(ym).forEach(function(k){ var g=_dashCardQrForDate(k); cardGross+=g.card; qrGross+=g.qr; onlineGross+=(g.online||0); grabGross+=(g.grab||0); });
+  var expCardNet=Math.round(cardGross*(1-SETTLE_FEE.card)), expQrNet=Math.round(qrGross*(1-SETTLE_FEE.qr)), expXenNet=Math.round(onlineGross*(1-SETTLE_FEE.xendit)), expGrabNet=Math.round(grabGross*(1-SETTLE_FEE.grab)), expTotal=expCardNet+expQrNet+expXenNet+expGrabNet;
   // settlements logged for this month (by the date they landed)
   var entries=Object.keys(window.SETTLEMENTS||{}).map(function(k){return window.SETTLEMENTS[k];}).filter(function(s){return s&&String(s.tradeDate||'').slice(0,7)===ym;});
-  var entCard=0, entQr=0, entXen=0; entries.forEach(function(s){ var fam=_methodFamily(s.method); if(fam==='qr') entQr+=s.amount||0; else if(fam==='xendit') entXen+=s.amount||0; else entCard+=s.amount||0; });
-  var entTotal=entCard+entQr+entXen;
+  var entCard=0, entQr=0, entXen=0, entGrab=0; entries.forEach(function(s){ var fam=_methodFamily(s.method); if(fam==='qr') entQr+=s.amount||0; else if(fam==='xendit') entXen+=s.amount||0; else if(fam==='grab') entGrab+=s.amount||0; else entCard+=s.amount||0; });
+  var entTotal=entCard+entQr+entXen+entGrab;
   var diff=entTotal-expTotal, absd=Math.abs(diff), tol=Math.max(10000, Math.round(expTotal*0.005));
   var C='#232327', MUT='#6b6b72', TX='#f4f4f5';
   var today=(typeof baliNow==='function'?baliNow():new Date()); var todayStr=today.getFullYear()+'-'+('0'+(today.getMonth()+1)).slice(-2)+'-'+('0'+today.getDate()).slice(-2);
-  var methodOpts=['Card','QRIS','Xendit'].map(function(m){return '<option value="'+m+'">'+m+(m==='QRIS'?' (PAY QR)':(m==='Xendit'?' (online)':''))+'</option>';}).join('');
-  var famLbl=function(fm){ return fm==='qr'?'QRIS':(fm==='xendit'?'Xendit':'Card'); };
+  var methodOpts=['Card','QRIS','Xendit','Grab'].map(function(m){return '<option value="'+m+'">'+m+(m==='QRIS'?' (PAY QR)':(m==='Xendit'?' (online)':(m==='Grab'?' (payout)':'')))+'</option>';}).join('');
+  var famLbl=function(fm){ return fm==='qr'?'QRIS':(fm==='xendit'?'Xendit':(fm==='grab'?'Grab':'Card')); };
   var rowsHtml = entries.length ? entries.sort(function(a,b){return String(b.tradeDate||'').localeCompare(String(a.tradeDate||''));}).map(function(s){
     var dd=String(s.tradeDate||'').slice(8); var mm=['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+String(s.tradeDate||'0-0').slice(5,7)]||'';
     return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid #1b1b1e;font-family:\'Space Mono\',monospace;font-size:11px;">'
@@ -15579,10 +15580,11 @@ window.renderSettlementRecon=function(){
         +'<button class="dk-ghost" onclick="reconThisMonth()">This month</button>'
       +'</div>'
     +'</div>'
-    +'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:'+C+';">'
+    +'<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:'+C+';">'
       +_reconCell('Expected Card (−'+_pctS(SETTLE_FEE.card)+'%)', f(expCardNet), 'gross '+f(cardGross))
       +_reconCell('Expected QRIS (−'+_pctS(SETTLE_FEE.qr)+'%)', f(expQrNet), 'gross '+f(qrGross))
       +_reconCell('Expected Xendit (−'+_pctS(SETTLE_FEE.xendit)+'%)', f(expXenNet), 'online gross '+f(onlineGross))
+      +_reconCell('Expected Grab (−'+_pctS(SETTLE_FEE.grab)+'%)', f(expGrabNet), 'sales gross '+f(grabGross))
       +_reconCell('Expected total (net)', f(expTotal), 'what the bank should send this month')
     +'</div>'
     +'<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:12px 14px;border-bottom:1px solid '+C+';">'
@@ -15595,10 +15597,10 @@ window.renderSettlementRecon=function(){
     +'</div>'
     +rowsHtml
     +'<div style="display:flex;justify-content:space-between;align-items:center;padding:11px 14px;background:#111114;font-family:\'Space Mono\',monospace;font-size:12px;">'
-      +'<span style="color:'+MUT+';">Settled: <b style="color:'+TX+';">'+f(entTotal)+'</b> <span style="font-size:10px;">(Card '+f(entCard)+' · QRIS '+f(entQr)+' · Xendit '+f(entXen)+')</span></span>'
+      +'<span style="color:'+MUT+';">Settled: <b style="color:'+TX+';">'+f(entTotal)+'</b> <span style="font-size:10px;">(Card '+f(entCard)+' · QRIS '+f(entQr)+' · Xendit '+f(entXen)+' · Grab '+f(entGrab)+')</span></span>'
       +'<span style="font-size:11px;">'+matchHtml+'</span>'
     +'</div>'
-    +'<div style="padding:8px 14px;color:'+MUT+';font-family:\'Space Mono\',monospace;font-size:9px;">Reconciles by MONTH so day-to-day settlement lag evens out. Log each Card / PAY QR settlement as it lands. Fees assumed: Card '+_pctS(SETTLE_FEE.card)+'%, QRIS '+_pctS(SETTLE_FEE.qr)+'%.</div>'
+    +'<div style="padding:8px 14px;color:'+MUT+';font-family:\'Space Mono\',monospace;font-size:9px;">Reconciles by MONTH so day-to-day settlement lag evens out. Log each Card / PAY QR / Xendit / Grab payout as it lands. Fees assumed: Card '+_pctS(SETTLE_FEE.card)+'%, QRIS '+_pctS(SETTLE_FEE.qr)+'%, Xendit '+_pctS(SETTLE_FEE.xendit)+'%, Grab '+_pctS(SETTLE_FEE.grab)+'%. Grab pays out net of its 20% service fee on its own schedule.</div>'
     +'</div>';
 };
 function _reconCell(label,val,sub){ return '<div style="background:#0f0f11;padding:11px 14px;"><div style="font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:#6b6b72;">'+label+'</div><div style="font-family:\'Archivo\',sans-serif;font-weight:800;font-size:18px;color:#f4f4f5;margin-top:3px;">'+val+'</div><div style="font-family:\'Space Mono\',monospace;font-size:9px;color:#6b6b72;">'+sub+'</div></div>'; }
