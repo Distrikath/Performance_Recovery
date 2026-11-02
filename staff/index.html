@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMEEwQTBBIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYsNzgpIHNjYWxlKDEuMzApIiBmaWxsPSIjRjJGMkYwIj48cGF0aCBkPSJNIDAuMDYyNSAwIEwgNi42MjUgLTQxLjM5MDYyNSBMIDMzLjU5Mzc1IC00MS4zOTA2MjUgQyAzOS4wMDc4MTIgLTQxLjM5MDYyNSA0My41MDM5MDYgLTQwLjkwNjI1IDQ3LjA3ODEyNSAtMzkuOTM3NSBDIDUwLjY2MDE1NiAtMzguOTc2NTYyIDUzLjUgLTM3LjY2MDE1NiA1NS41OTM3NSAtMzUuOTg0Mzc1IEMgNTcuNjg3NSAtMzQuMzE2NDA2IDU5LjE3NTc4MSAtMzIuNDE0MDYyIDYwLjA2MjUgLTMwLjI4MTI1IEMgNjAuOTU3MDMxIC0yOC4xNTYyNSA2MS40MDYyNSAtMjUuOTIxODc1IDYxLjQwNjI1IC0yMy41NzgxMjUgQyA2MS40MDYyNSAtMjEuOTEwMTU2IDYxLjI5Njg3NSAtMjAuMzE2NDA2IDYxLjA3ODEyNSAtMTguNzk2ODc1IEMgNjAuODE2NDA2IC0xNy4wOTc2NTYgNjAuMzMyMDMxIC0xNS4zNTkzNzUgNTkuNjI1IC0xMy41NzgxMjUgQyA1OC45MjU3ODEgLTExLjc5Njg3NSA1Ny44Nzg5MDYgLTEwLjA5NzY1NiA1Ni40ODQzNzUgLTguNDg0Mzc1IEMgNTUuMDk3NjU2IC02Ljg2NzE4OCA1My4yNjk1MzEgLTUuNDIxODc1IDUxIC00LjE0MDYyNSBDIDQ4LjczODI4MSAtMi44NTkzNzUgNDUuOTIxODc1IC0xLjg0NzY1NiA0Mi41NDY4NzUgLTEuMTA5Mzc1IEMgMzkuMTcxODc1IC0wLjM2NzE4OCAzNS4xNDg0MzggMCAzMC40ODQzNzUgMCBaIE0gMjAuMjUgLTMwLjUzMTI1IEwgMTcuMTI1IC0xMC45NTMxMjUgTCAyOC42NDA2MjUgLTEwLjk1MzEyNSBDIDMxLjgzNTkzOCAtMTAuOTUzMTI1IDM0LjQ3MjY1NiAtMTEuMjUgMzYuNTQ2ODc1IC0xMS44NDM3NSBDIDM4LjYxNzE4OCAtMTIuNDM3NSA0MC4yNSAtMTMuMjA3MDMxIDQxLjQzNzUgLTE0LjE1NjI1IEMgNDIuNjI1IC0xNS4xMDE1NjIgNDMuNDg0Mzc1IC0xNi4wOTM3NSA0NC4wMTU2MjUgLTE3LjEyNSBDIDQ0LjU1NDY4OCAtMTguMTY0MDYyIDQ0Ljg5ODQzOCAtMTkuMTQ4NDM4IDQ1LjA0Njg3NSAtMjAuMDc4MTI1IEMgNDUuMjAzMTI1IC0yMS4wMDM5MDYgNDUuMjgxMjUgLTIxLjc1IDQ1LjI4MTI1IC0yMi4zMTI1IEMgNDUuMjgxMjUgLTIzLjIzODI4MSA0NS4xMTMyODEgLTI0LjE3OTY4OCA0NC43ODEyNSAtMjUuMTQwNjI1IEMgNDQuNDQ1MzEyIC0yNi4xMDkzNzUgNDMuNzk2ODc1IC0yNyA0Mi44MjgxMjUgLTI3LjgxMjUgQyA0MS44NjcxODggLTI4LjYyNSA0MC41IC0yOS4yODEyNSAzOC43MTg3NSAtMjkuNzgxMjUgQyAzNi45Mzc1IC0zMC4yODEyNSAzNC41OTc2NTYgLTMwLjUzMTI1IDMxLjcwMzEyNSAtMzAuNTMxMjUgWiBNIDIwLjI1IC0zMC41MzEyNSAiLz48L2c+PC9zdmc+">
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20261102231;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20261102232;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -1394,37 +1394,59 @@ h1,
 .nav-action-btn:hover{border-color:#FF2D2D !important;color:#FF2D2D !important;}
 
 /* ════════ RE-SKIN · Sales (dark) ════════ */
-#panel-sales{background:#0a0a0b !important;color:#f4f4f5;font-family:'Archivo',sans-serif;}
-#panel-sales .sales-wrap{padding:30px 32px 60px !important;max-width:1180px;margin:0 auto;background:#0a0a0b !important;}
-#panel-sales .sales-hdr{background:transparent !important;border-bottom:none !important;}
-#panel-sales button[onclick*="injectTestSale"]{background:#141417 !important;border:1px solid #2c2c31 !important;color:#a6a6ad !important;border-radius:0 !important;}
-#panel-sales .back-btn{font-family:'Space Mono',monospace !important;font-size:10px !important;letter-spacing:.12em;text-transform:uppercase;color:#a6a6ad !important;background:transparent !important;border:1px solid #2c2c31 !important;border-radius:0 !important;padding:7px 12px !important;}
-#panel-sales .page-title{font-family:'Archivo',sans-serif !important;font-weight:700 !important;font-size:52px !important;letter-spacing:-.02em !important;color:#f4f4f5 !important;}
-#panel-sales .page-sub{font-family:'Space Mono',monospace !important;font-size:11px !important;letter-spacing:.14em !important;text-transform:uppercase !important;color:#6b6b72 !important;}
-#panel-sales .period-sel{background:#141417 !important;color:#f4f4f5 !important;border:1px solid #2c2c31 !important;border-radius:0 !important;font-family:'Space Mono',monospace !important;}
-#panel-sales .period-sel option{background:#141417;color:#f4f4f5;}
-#panel-sales .kpi-tile{background:#0f0f11 !important;border:1px solid #232327 !important;border-radius:0 !important;box-shadow:none !important;}
-#panel-sales .kpi-tile.kpi-total{border-left:3px solid #FF2D2D !important;}
-#panel-sales .kpi-label{font-family:'Space Mono',monospace !important;color:#6b6b72 !important;text-transform:uppercase !important;letter-spacing:.12em !important;}
-#panel-sales .kpi-value{font-family:'Archivo',sans-serif !important;font-weight:700 !important;color:#f4f4f5 !important;letter-spacing:-.01em;}
-#panel-sales .kpi-sub{font-family:'Space Mono',monospace !important;color:#6b6b72 !important;}
-#panel-sales .sales-section{background:#0f0f11 !important;border:1px solid #232327 !important;border-radius:0 !important;}
-#panel-sales .section-hdr{background:#141417 !important;border-bottom:1px solid #232327 !important;}
-#panel-sales .section-title{font-family:'Archivo',sans-serif !important;font-weight:700 !important;color:#f4f4f5 !important;}
-#panel-sales .section-total{font-family:'Archivo',sans-serif !important;color:#a6a6ad !important;}
-#panel-sales .stat-row{font-family:'Space Mono',monospace !important;color:#c9c9cc !important;border-top:1px solid #19191c !important;border-bottom:none !important;}
-#panel-sales .stat-row span:first-child{color:#6b6b72 !important;}
-#panel-sales .section-link{font-family:'Space Mono',monospace !important;text-transform:uppercase;letter-spacing:.12em;color:#bdbdc0 !important;background:#141417 !important;border:none !important;border-top:1px solid #232327 !important;}
-#panel-sales .chart-card{background:#0f0f11 !important;border:1px solid #232327 !important;border-radius:0 !important;}
-#panel-sales .chart-card-hdr{border-bottom:1px solid #232327 !important;}
-#panel-sales .chart-card-title{font-family:'Space Mono',monospace !important;text-transform:uppercase;letter-spacing:.12em;color:#6b6b72 !important;}
-#panel-sales .legend-i{font-family:'Space Mono',monospace !important;color:#6b6b72 !important;}
-#panel-sales .hbtn{font-family:'Space Mono',monospace !important;background:#141417 !important;border:1px solid #2c2c31 !important;color:#a6a6ad !important;border-radius:0 !important;}
+#panel-sales{background:#ffffff !important;color:#0A0A0A;font-family:'Archivo',sans-serif;}
+#panel-sales .sales-wrap{padding:28px 32px 60px !important;max-width:none !important;margin:0 !important;background:#ffffff !important;}
+#panel-sales .sales-hdr{background:transparent !important;border-bottom:2px solid #0A0A0A !important;}
+#panel-sales button[onclick*="injectTestSale"]{background:#fff !important;border:1px solid #d6d6d6 !important;color:#555 !important;border-radius:2px !important;}
+#panel-sales .back-btn{font-family:'Space Mono',monospace !important;font-size:10px !important;letter-spacing:.12em;text-transform:uppercase;color:#555 !important;background:#fff !important;border:1px solid #d6d6d6 !important;border-radius:2px !important;padding:7px 12px !important;}
+#panel-sales .page-title{font-family:'Archivo',sans-serif !important;font-weight:700 !important;font-size:40px !important;letter-spacing:-.02em !important;color:#0A0A0A !important;}
+#panel-sales .page-sub{font-family:'Space Mono',monospace !important;font-size:10.5px !important;letter-spacing:.14em !important;text-transform:uppercase !important;color:#777 !important;}
+#panel-sales .period-sel{background:#fff !important;color:#0A0A0A !important;border:1px solid #cfd3d7 !important;border-radius:2px !important;font-family:'Space Mono',monospace !important;}
+#panel-sales .period-sel option{background:#fff;color:#0A0A0A;}
+#panel-sales .kpi-tile{background:#fff !important;border:1px solid #dde1e4 !important;border-radius:3px !important;box-shadow:none !important;}
+#panel-sales .kpi-tile.kpi-total{border-left:3px solid #c0392b !important;}
+#panel-sales .kpi-label{font-family:'Space Mono',monospace !important;color:#777 !important;text-transform:uppercase !important;letter-spacing:.12em !important;}
+#panel-sales .kpi-value{font-family:'Archivo',sans-serif !important;font-weight:700 !important;color:#0A0A0A !important;letter-spacing:-.01em;}
+#panel-sales .kpi-sub{font-family:'Space Mono',monospace !important;color:#999 !important;}
+#panel-sales .sales-section{background:#fff !important;border:1px solid #dde1e4 !important;border-radius:3px !important;}
+#panel-sales .section-hdr{background:#f3f4f5 !important;border-bottom:1px solid #d6dadd !important;}
+#panel-sales .section-title{font-family:'Archivo',sans-serif !important;font-weight:700 !important;color:#0A0A0A !important;}
+#panel-sales .section-total{font-family:'Archivo',sans-serif !important;color:#333 !important;}
+#panel-sales .stat-row{font-family:'Space Mono',monospace !important;color:#333 !important;border-top:1px solid #edeff1 !important;border-bottom:none !important;}
+#panel-sales .stat-row span:first-child{color:#777 !important;}
+#panel-sales .section-link{font-family:'Space Mono',monospace !important;text-transform:uppercase;letter-spacing:.12em;color:#555 !important;background:#f3f4f5 !important;border:none !important;border-top:1px solid #dde1e4 !important;}
+#panel-sales .chart-card{background:#fff !important;border:1px solid #dde1e4 !important;border-radius:3px !important;}
+#panel-sales .chart-card-hdr{border-bottom:1px solid #dde1e4 !important;}
+#panel-sales .chart-card-title{font-family:'Space Mono',monospace !important;text-transform:uppercase;letter-spacing:.12em;color:#777 !important;}
+#panel-sales .legend-i{font-family:'Space Mono',monospace !important;color:#777 !important;}
+#panel-sales .hbtn{font-family:'Space Mono',monospace !important;background:#fff !important;border:1px solid #d6d6d6 !important;color:#555 !important;border-radius:2px !important;}
+/* Sales cash-up uses dk-* components — light theme to match */
+#panel-sales .dk-hero{border-bottom:2px solid #0A0A0A !important;}
+#panel-sales .dk-lbl,#panel-sales .dk-clbl,#panel-sales .dk-cs,#panel-sales .dk-delta{color:#777 !important;}
+#panel-sales .dk-big,#panel-sales .dk-v{color:#0A0A0A !important;}
+#panel-sales .dk-strip{border:1px solid #dde1e4 !important;background:#fff !important;}
+#panel-sales .dk-cell{border-right:1px solid #dde1e4 !important;border-bottom:none !important;}
+#panel-sales .dk-strip > .dk-cell:last-child{border-right:none !important;}
+/* ════════ PAYROLL — WHITE (black text, keep green accents) ════════ */
+#panel-payroll{background:#ffffff !important;color:#0A0A0A !important;}
+#panel-payroll .pl-wrap,#panel-payroll .sales-wrap{background:#ffffff !important;max-width:none !important;margin:0 !important;}
+#panel-payroll [style*="background:#0f0f11"],#panel-payroll [style*="background:#111114"],#panel-payroll [style*="background:#0a0a0b"],#panel-payroll [style*="background:#151517"],#panel-payroll [style*="background:#1b1b1e"]{background:#f7f8f9 !important;}
+#panel-payroll [style*="color:#f4f4f5"],#panel-payroll [style*="color:#a6a6ad"],#panel-payroll [style*="color:#c9c9cc"]{color:#0A0A0A !important;}
+#panel-payroll input,#panel-payroll select,#panel-payroll textarea{background:#fff !important;color:#0A0A0A !important;border:1px solid #cfd3d7 !important;}
+#panel-payroll .hbtn,#panel-payroll .back-btn{background:#fff !important;color:#555 !important;border:1px solid #d6d6d6 !important;border-radius:2px !important;}
+/* ════════ My Account / Clients / HUMAN+ — white (black text, keep accents) ════════ */
+#panel-myaccount,#panel-clients,#panel-hplus{background:#ffffff !important;color:#0A0A0A !important;}
+#panel-myaccount [style*="background:#0a0a0b"],#panel-myaccount [style*="background:#0f0f11"],#panel-myaccount [style*="background:#111114"],#panel-myaccount [style*="background:#141417"],#panel-myaccount [style*="background:#1b1b1e"],#panel-myaccount [style*="background:#151517"],
+#panel-clients [style*="background:#0a0a0b"],#panel-clients [style*="background:#0f0f11"],#panel-clients [style*="background:#111114"],#panel-clients [style*="background:#141417"],#panel-clients [style*="background:#1b1b1e"],#panel-clients [style*="background:#151517"],
+#panel-hplus [style*="background:#0a0a0b"],#panel-hplus [style*="background:#0f0f11"],#panel-hplus [style*="background:#111114"],#panel-hplus [style*="background:#141417"],#panel-hplus [style*="background:#1b1b1e"],#panel-hplus [style*="background:#151517"]{background:#f7f8f9 !important;}
+#panel-myaccount [style*="color:#f4f4f5"],#panel-myaccount [style*="color:#a6a6ad"],#panel-myaccount [style*="color:#c9c9cc"],#panel-clients [style*="color:#f4f4f5"],#panel-clients [style*="color:#a6a6ad"],#panel-clients [style*="color:#c9c9cc"],#panel-hplus [style*="color:#f4f4f5"],#panel-hplus [style*="color:#a6a6ad"],#panel-hplus [style*="color:#c9c9cc"]{color:#0A0A0A !important;}
+#panel-myaccount [style*="#232327"],#panel-clients [style*="#232327"],#panel-hplus [style*="#232327"],#panel-myaccount [style*="#1b1b1e"],#panel-clients [style*="#1b1b1e"],#panel-hplus [style*="#1b1b1e"]{border-color:#dde1e4 !important;}
+#panel-myaccount input,#panel-myaccount select,#panel-clients input,#panel-clients select,#panel-hplus input,#panel-hplus select{background:#fff !important;color:#0A0A0A !important;border:1px solid #cfd3d7 !important;}
 
 /* ════════ RE-SKIN · P&L (dark) ════════ */
 /* ════════ P&L — WHITE DOCUMENT THEME ════════ */
-#panel-pl{background:#eef0f2 !important;color:#0A0A0A;font-family:'Archivo',sans-serif;}
-#panel-pl .pl-wrap{background:#ffffff !important;padding:34px 38px 56px !important;max-width:1080px;margin:20px auto;border:1px solid #d9dde1;border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+#panel-pl{background:#ffffff !important;color:#0A0A0A;font-family:'Archivo',sans-serif;}
+#panel-pl .pl-wrap{background:#ffffff !important;padding:28px 32px 60px !important;max-width:none !important;margin:0 !important;border:none !important;border-radius:0 !important;box-shadow:none !important;}
 #panel-pl .pl-wrap > button:first-child{font-family:'Space Mono',monospace !important;color:#555 !important;background:#fff !important;border:1px solid #d6d6d6 !important;border-radius:2px !important;}
 #panel-pl .pl-hdr{background:transparent !important;border-bottom:2px solid #0A0A0A !important;padding-bottom:12px !important;margin-bottom:4px;}
 #panel-pl .pl-hdr h1{font-family:'Archivo',sans-serif !important;font-weight:700 !important;font-size:38px !important;letter-spacing:-.02em !important;color:#0A0A0A !important;}
