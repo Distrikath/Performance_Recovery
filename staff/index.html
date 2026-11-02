@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMEEwQTBBIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYsNzgpIHNjYWxlKDEuMzApIiBmaWxsPSIjRjJGMkYwIj48cGF0aCBkPSJNIDAuMDYyNSAwIEwgNi42MjUgLTQxLjM5MDYyNSBMIDMzLjU5Mzc1IC00MS4zOTA2MjUgQyAzOS4wMDc4MTIgLTQxLjM5MDYyNSA0My41MDM5MDYgLTQwLjkwNjI1IDQ3LjA3ODEyNSAtMzkuOTM3NSBDIDUwLjY2MDE1NiAtMzguOTc2NTYyIDUzLjUgLTM3LjY2MDE1NiA1NS41OTM3NSAtMzUuOTg0Mzc1IEMgNTcuNjg3NSAtMzQuMzE2NDA2IDU5LjE3NTc4MSAtMzIuNDE0MDYyIDYwLjA2MjUgLTMwLjI4MTI1IEMgNjAuOTU3MDMxIC0yOC4xNTYyNSA2MS40MDYyNSAtMjUuOTIxODc1IDYxLjQwNjI1IC0yMy41NzgxMjUgQyA2MS40MDYyNSAtMjEuOTEwMTU2IDYxLjI5Njg3NSAtMjAuMzE2NDA2IDYxLjA3ODEyNSAtMTguNzk2ODc1IEMgNjAuODE2NDA2IC0xNy4wOTc2NTYgNjAuMzMyMDMxIC0xNS4zNTkzNzUgNTkuNjI1IC0xMy41NzgxMjUgQyA1OC45MjU3ODEgLTExLjc5Njg3NSA1Ny44Nzg5MDYgLTEwLjA5NzY1NiA1Ni40ODQzNzUgLTguNDg0Mzc1IEMgNTUuMDk3NjU2IC02Ljg2NzE4OCA1My4yNjk1MzEgLTUuNDIxODc1IDUxIC00LjE0MDYyNSBDIDQ4LjczODI4MSAtMi44NTkzNzUgNDUuOTIxODc1IC0xLjg0NzY1NiA0Mi41NDY4NzUgLTEuMTA5Mzc1IEMgMzkuMTcxODc1IC0wLjM2NzE4OCAzNS4xNDg0MzggMCAzMC40ODQzNzUgMCBaIE0gMjAuMjUgLTMwLjUzMTI1IEwgMTcuMTI1IC0xMC45NTMxMjUgTCAyOC42NDA2MjUgLTEwLjk1MzEyNSBDIDMxLjgzNTkzOCAtMTAuOTUzMTI1IDM0LjQ3MjY1NiAtMTEuMjUgMzYuNTQ2ODc1IC0xMS44NDM3NSBDIDM4LjYxNzE4OCAtMTIuNDM3NSA0MC4yNSAtMTMuMjA3MDMxIDQxLjQzNzUgLTE0LjE1NjI1IEMgNDIuNjI1IC0xNS4xMDE1NjIgNDMuNDg0Mzc1IC0xNi4wOTM3NSA0NC4wMTU2MjUgLTE3LjEyNSBDIDQ0LjU1NDY4OCAtMTguMTY0MDYyIDQ0Ljg5ODQzOCAtMTkuMTQ4NDM4IDQ1LjA0Njg3NSAtMjAuMDc4MTI1IEMgNDUuMjAzMTI1IC0yMS4wMDM5MDYgNDUuMjgxMjUgLTIxLjc1IDQ1LjI4MTI1IC0yMi4zMTI1IEMgNDUuMjgxMjUgLTIzLjIzODI4MSA0NS4xMTMyODEgLTI0LjE3OTY4OCA0NC43ODEyNSAtMjUuMTQwNjI1IEMgNDQuNDQ1MzEyIC0yNi4xMDkzNzUgNDMuNzk2ODc1IC0yNyA0Mi44MjgxMjUgLTI3LjgxMjUgQyA0MS44NjcxODggLTI4LjYyNSA0MC41IC0yOS4yODEyNSAzOC43MTg3NSAtMjkuNzgxMjUgQyAzNi45Mzc1IC0zMC4yODEyNSAzNC41OTc2NTYgLTMwLjUzMTI1IDMxLjcwMzEyNSAtMzAuNTMxMjUgWiBNIDIwLjI1IC0zMC41MzEyNSAiLz48L2c+PC9zdmc+">
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20261031223;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20261102225;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -4534,6 +4534,86 @@ function getFilteredEntries(){
   });
 }
 
+// Calendar months overlapping [start,end] (YYYY-MM-DD), each with the fraction of its days covered.
+// Full month → frac 1 (so wages = full monthly salary, matching the monthly PL; fixes the old ÷26×calendar-days over-count).
+function _plMonthsIn(start, end){
+  var out=[]; if(!start||!end) return out;
+  var s=new Date(start+'T12:00:00'), e=new Date(end+'T12:00:00');
+  if(isNaN(s)||isNaN(e)||e<s) return out;
+  var y=s.getFullYear(), m=s.getMonth();
+  while(new Date(y,m,1)<=e){
+    var mStart=new Date(y,m,1), mEnd=new Date(y,m+1,0), dim=mEnd.getDate();
+    var cs=(s>mStart)?s:mStart, ce=(e<mEnd)?e:mEnd;
+    var days=Math.round((new Date(ce.getFullYear(),ce.getMonth(),ce.getDate())-new Date(cs.getFullYear(),cs.getMonth(),cs.getDate()))/86400000)+1;
+    out.push({ym:y+'-'+('0'+(m+1)).slice(-2), frac:Math.max(0,days)/dim});
+    m++; if(m>11){m=0;y++;}
+  }
+  return out;
+}
+
+// SINGLE SOURCE OF TRUTH for the P&L — same tax basis as the monthly CSV export:
+// fuel NET of PB1 & service, HUMAN+ IV/peptides counted as COMMISSION only (pass-through is a liability),
+// tips pool is NOT an expense. Range-based so the on-screen tiles and the export can never disagree.
+function _plFigures(start, end){
+  var docs=window._lastLedgerDocs||[];
+  var seen={},recNon=0,ivbGross=0,pepGross=0,ivbComm=0,pepComm=0,hpPay=0,hpPph=0,pepTax=0,cafeNet=0,cafePB1=0,cafeSvc=0,supply=0,therapyRev=0;
+  docs.forEach(function(r){
+    if(!r)return; var det={}; try{det=r.detail?JSON.parse(r.detail):{};}catch(e){}
+    var sess=(det.date||r.bizDate||''); if(!(sess>=start&&sess<=end))return;
+    if((det.status||'').toLowerCase()==='cancelled'||r.status==='cancelled')return;
+    var id=String(r.id||''),base=id.replace(/_bal$/,''),key=r.kind+':'+base;
+    if(seen[key])return; seen[key]=1;
+    if(r.kind==='recovery'){
+      var price=parseFloat(det.price||0)||0;
+      var isPep=(det.peptide===true||det.cat==='peptide'), isClin=(det.clinical||det.partner);
+      if(isPep){ pepGross+=price; pepComm+=Math.round(price*0.10); hpPay+=Math.round(price*0.90); hpPph+=Math.round(price*0.10*0.02); pepTax+=Math.round(+det.tax||0); }
+      else if(isClin){ ivbGross+=price; ivbComm+=Math.round(price*0.20); hpPay+=Math.round(price*0.80); hpPph+=Math.round(price*0.20*0.02); }
+      else{ recNon+=price; var ther=det.therapist||'',svc=String(det.service||det.pathway||''); if(ther&&svc.toLowerCase().indexOf('compress')<0)therapyRev+=price; }
+    }else if(r.kind==='fuel'){ cafeNet+=parseFloat(det.subtotal||0)||0; cafePB1+=parseFloat(det.tax||0)||0; cafeSvc+=parseFloat(det.serviceTax||0)||0; }
+    else if(r.kind==='supply'){ var o=det.order||det; supply+=parseFloat((o&&o.total)||0)||0; }
+  });
+  var comm=Math.round(therapyRev*0.10);
+  var totalIncome=Math.round(recNon+supply+cafeNet+ivbComm+pepComm);
+  // Payroll — per calendar month overlapping the range, pro-rated by days covered.
+  var wages=0,bonus=0,allow=0,bpjsKesCo=0,bpjsTkCo=0,pph21=0;
+  var STF=(typeof STAFF!=='undefined'?STAFF:[]), nst=STF.length;
+  var wd={};  // per-staff base wage accrued (for the detail list)
+  _plMonthsIn(start,end).forEach(function(mo){
+    STF.forEach(function(s){
+      var adj=(window.PAYROLL&&window.PAYROLL[String(s.id)+'__'+mo.ym])||{};
+      var flat=(typeof _isFlat==='function')?_isFlat(s.id,mo.ym):false;
+      var w=(+s.salary||0)*mo.frac; wages+=w; wd[s.id]=(wd[s.id]||0)+w;
+      bonus+=(+adj.bonus||0)*mo.frac; allow+=(+adj.allowance||0)*mo.frac;
+      if(!flat){ bpjsKesCo+=(+adj.bpjsKesCo||0)*mo.frac; bpjsTkCo+=(+adj.bpjsTkCo||0)*mo.frac; pph21+=(+adj.pph21||0)*mo.frac; }
+    });
+  });
+  wages=Math.round(wages);bonus=Math.round(bonus);allow=Math.round(allow);bpjsKesCo=Math.round(bpjsKesCo);bpjsTkCo=Math.round(bpjsTkCo);pph21=Math.round(pph21);
+  var empBpjs=bpjsKesCo+bpjsTkCo;
+  var wageDetails=STF.map(function(s){return {name:s.name,col:s.col,role:s.role,amount:Math.round(wd[s.id]||0),note:'salary'};}).filter(function(d){return d.amount>0;});
+  // Operating expenses — ledger (kind=expense) + manual plEntries (excluding payroll/bpjs cats), by area
+  var exRec=0,exFuel=0,exSup=0,exGen=0;
+  docs.forEach(function(r){
+    if(!r||r.kind!=='expense')return; var d={};try{d=r.detail?JSON.parse(r.detail):{};}catch(e){}
+    var dt=(d.date||r.bizDate||''); if(!(dt>=start&&dt<=end))return;
+    if((d.status||r.status||'').toLowerCase()==='cancelled')return;
+    var amt=+r.amount||+d.cost||+d.amount||0, a=(d.area||'general');
+    if(a==='recovery')exRec+=amt;else if(a==='fuel')exFuel+=amt;else if(a==='supply')exSup+=amt;else exGen+=amt;
+  });
+  (typeof plEntries!=='undefined'?plEntries:[]).forEach(function(e){
+    if(!e||e.type!=='expense'||!(String(e.date||'')>=start&&String(e.date||'')<=end))return;
+    var c=(e.cat||'');if(c==='payroll'||c==='bpjs')return;
+    var a=(e.source||e.area||'general'),amt=+e.amount||0;
+    if(a==='recovery')exRec+=amt;else if(a==='fuel')exFuel+=amt;else if(a==='supply')exSup+=amt;else exGen+=amt;
+  });
+  var opEx=exRec+exFuel+exSup+exGen;
+  var payroll=wages+bonus+allow+comm+empBpjs;
+  var totalExp=payroll+opEx;
+  return {recNon:recNon,supply:supply,cafeNet:cafeNet,ivbGross:ivbGross,ivbComm:ivbComm,pepGross:pepGross,pepComm:pepComm,
+    totalIncome:totalIncome,wages:wages,bonus:bonus,allow:allow,comm:comm,bpjsKesCo:bpjsKesCo,bpjsTkCo:bpjsTkCo,empBpjs:empBpjs,pph21:pph21,
+    opEx:opEx,exRec:exRec,exFuel:exFuel,exSup:exSup,exGen:exGen,payroll:payroll,totalExp:totalExp,net:totalIncome-totalExp,nst:nst,
+    wageDetails:wageDetails,hpPay:hpPay,hpPph:hpPph,pepTax:pepTax,cafePB1:cafePB1,cafeSvc:cafeSvc,therapyRev:therapyRev};
+}
+
 function renderPL(){
   plWeekOffset = plWeekOffset || 0;
   updateWeekLabel('pl', plWeekOffset);
@@ -4547,40 +4627,24 @@ function renderPL(){
   // ── Date range ─────────────────────────────────────────────────
   const {start, end} = getPLDateRange(period);
 
-  // ── INCOME: pull live from Recovery + Fuel + Supply ────────────
-  function sumRevenue(data){
-    return Object.entries(data||{})
-      .filter(([date])=>date>=start&&date<=end)
-      .reduce((s,[,d])=>s+(d.revenue||0),0);
-  }
-  function countEntries(data, key){
-    return Object.entries(data||{})
-      .filter(([date])=>date>=start&&date<=end)
-      .reduce((s,[,d])=>s+(d[key]||[]).filter(b=>b.status!=='cancelled').length,0);
-  }
+  // ── FORMAL P&L (single source of truth — identical to the monthly CSV export) ────
+  // fuel NET of PB1 & service · HUMAN+ IV/peptides as COMMISSION only · tips = liability (not expense) · wages per month (no ÷26 over-count).
+  const F = _plFigures(start, end);
+  const totalInAll = F.totalIncome;
+  const totalExp   = F.totalExp;
+  const net        = F.net;
+  const margin     = totalInAll > 0 ? Math.round(net/totalInAll*100) : 0;
 
-  const recRev   = sumRevenue(recoveryData);
-  const fuelRev  = sumRevenue(fuelData);
-  const supRev   = sumRevenue(supplyData);
-  const totalIn  = recRev + fuelRev + supRev;
-
-  // Add any manual income entries
-  const manualIncome = plEntries.filter(e=>e.type==='income'&&!e.auto&&e.date>=start&&e.date<=end);
-  const totalInAll   = totalIn + manualIncome.reduce((s,e)=>s+e.amount,0);
-
-  // ── EXPENSES: Wages from Roster + manual entries ────────────────
-  const wagesObj = calcWages(period, start, end);
-  const manualExp = plEntries.filter(e=>e.type==='expense'&&e.date>=start&&e.date<=end);
-  // Staff-logged / auto expenses from the ledger (kind='expense') for the period — so the on-screen net reflects them too.
-  // Collect the rows too so they also SHOW as line items + in the category breakdown for every period (day/week/month/year),
-  // not only in the totals. This is what makes Grab commission visible on the daily & weekly P&L, not just monthly.
-  let ledgerExp = 0; const ledgerExpRows = [];
-  (window._lastLedgerDocs||[]).forEach(function(r){ if(!r||r.kind!=='expense')return; var d={};try{d=r.detail?JSON.parse(r.detail):{};}catch(e){} var dt=d.date||r.bizDate||''; if(dt>=start&&dt<=end&&(d.status||r.status||'').toLowerCase()!=='cancelled'){ var amt=(+r.amount||+d.cost||0); ledgerExp+=amt; ledgerExpRows.push({id:r.id,date:dt,cat:(d.category||'Other'),area:(d.area||'general'),note:(d.note||''),amount:amt}); } });
-  const totalExp  = wagesObj.total + manualExp.reduce((s,e)=>s+e.amount,0) + ledgerExp;
-
-  // ── NET ─────────────────────────────────────────────────────────
-  const net    = totalInAll - totalExp;
-  const margin = totalInAll > 0 ? Math.round(net/totalInAll*100) : 0;
+  // Build the wages block (payroll breakdown) + itemised expense rows for the detail lists.
+  const wagesObj = { total: F.payroll, details: F.wageDetails.slice() };
+  if(F.comm>0)      wagesObj.details.push({name:'Therapist commission (10% own therapy)', col:'#f59e0b', role:'', amount:F.comm, note:'commission'});
+  if(F.bpjsKesCo>0) wagesObj.details.push({name:'BPJS Kesehatan (employer)', col:'#f59e0b', role:'', amount:F.bpjsKesCo, note:'employer'});
+  if(F.bpjsTkCo>0)  wagesObj.details.push({name:'BPJS Ketenagakerjaan (employer)', col:'#f59e0b', role:'', amount:F.bpjsTkCo, note:'employer'});
+  if(F.bonus>0)     wagesObj.details.push({name:'Bonuses', col:'#f59e0b', role:'', amount:F.bonus, note:''});
+  if(F.allow>0)     wagesObj.details.push({name:'Allowances', col:'#f59e0b', role:'', amount:F.allow, note:''});
+  const manualExp = plEntries.filter(e=>e.type==='expense'&&e.date>=start&&e.date<=end&&e.cat!=='payroll'&&e.cat!=='bpjs');
+  const ledgerExpRows = [];
+  (window._lastLedgerDocs||[]).forEach(function(r){ if(!r||r.kind!=='expense')return; var d={};try{d=r.detail?JSON.parse(r.detail):{};}catch(e){} var dt=d.date||r.bizDate||''; if(dt>=start&&dt<=end&&(d.status||r.status||'').toLowerCase()!=='cancelled'){ ledgerExpRows.push({id:r.id,date:dt,cat:(d.category||'Other'),area:(d.area||'general'),note:(d.note||''),amount:(+r.amount||+d.cost||0)}); } });
 
   // ── KPIs ────────────────────────────────────────────────────────
   const set = (id,v)=>{ const e=document.getElementById(id); if(e) e.textContent=v; };
@@ -4589,7 +4653,7 @@ function renderPL(){
   set('pl-net',      (net>=0?'+':'')+plFmt(net));
   set('pl-margin',   margin+'% margin');
   document.getElementById('pl-net').style.color = net>=0?'#f4f4f5':'#FF2D2D';
-  set('pl-salary',   plFmt(wagesObj.total));   // salary cost for the SELECTED period (was always the full monthly payroll — misleading on week/day views)
+  set('pl-salary',   plFmt(F.payroll));   // full employment cost (wages + commission + employer BPJS) — matches the PL export
   set('pl-salary-sub', ({today:'today',week:'this week',month:'this month',year:'this year',custom:'selected range'})[period]||'this period');
 
   // Period label
@@ -4604,7 +4668,7 @@ function renderPL(){
   set('pl-period-lbl', labels[period]||'');
 
   // ── INCOME LEDGER ───────────────────────────────────────────────
-  renderIncomeSection(recRev, fuelRev, supRev, manualIncome, period, start, end);
+  renderIncomeSection(F, period, start, end);
 
   // ── EXPENSE LEDGER ──────────────────────────────────────────────
   renderExpenseSection(wagesObj, manualExp, period, ledgerExpRows);
@@ -4670,7 +4734,7 @@ function calcWages(period, start, end){
 }
 
 // ── Income section renderer ───────────────────────────────────────
-function renderIncomeSection(recRev, fuelRev, supRev, manual, period, start, end){
+function renderIncomeSection(F, period, start, end){
   const el = document.getElementById('income-rows'); if(!el) return;
   const fmt = n => 'IDR '+Math.round(n).toLocaleString('id-ID');
 
@@ -4682,11 +4746,14 @@ function renderIncomeSection(recRev, fuelRev, supRev, manual, period, start, end
   const fuelCnt = countTx(fuelData,'transactions');
   const supCnt  = countTx(supplyData,'orders');
 
+  // Formal income lines — same basis as the PL export (fuel net of tax, HUMAN+ as commission only).
   const sources = [
-    {id:'recovery', label:'Recovery — Bookings',    col:'#8b5cf6', rev:recRev,  sub:recCnt+' booking'+(recCnt!==1?'s':'')},
-    {id:'fuel',     label:'Fuel / Café — POS',      col:'#06b6d4', rev:fuelRev, sub:fuelCnt+' transaction'+(fuelCnt!==1?'s':'')},
-    {id:'supply',   label:'Supply — Retail Sales',  col:'#10b981', rev:supRev,  sub:supCnt+' order'+(supCnt!==1?'s':'')},
+    {label:'Recovery — Bookings',           col:'#8b5cf6', rev:F.recNon,  sub:recCnt+' booking'+(recCnt!==1?'s':'')},
+    {label:'Fuel / Café — POS (net of tax)',col:'#06b6d4', rev:F.cafeNet, sub:fuelCnt+' transaction'+(fuelCnt!==1?'s':'')},
+    {label:'Supply — Retail Sales',         col:'#10b981', rev:F.supply,  sub:supCnt+' order'+(supCnt!==1?'s':'')},
   ];
+  if(F.ivbComm>0) sources.push({label:'HUMAN+ IV / Bloods — commission (20%)', col:'#a855f7', rev:F.ivbComm, sub:'of '+fmt(F.ivbGross)+' collected'});
+  if(F.pepComm>0) sources.push({label:'HUMAN+ Peptides — commission (10%)',   col:'#a855f7', rev:F.pepComm, sub:'of '+fmt(F.pepGross)+' collected'});
 
   let html = sources.map(s=>`
     <div class="ledger-source-row">
@@ -4695,22 +4762,8 @@ function renderIncomeSection(recRev, fuelRev, supRev, manual, period, start, end
       <div class="ledger-source-sub">${s.sub}</div>
       <div class="ledger-source-amt">${fmt(s.rev)}</div>
     </div>`).join('');
-
-  // Manual income entries
-  if(manual.length>0){
-    html += `<div class="ledger-source-divider"></div>`;
-    html += manual.sort((a,b)=>b.date.localeCompare(a.date)).map(e=>`
-      <div class="ledger-source-row">
-        <div class="ledger-source-dot" style="background:#BFC2C7"></div>
-        <div class="ledger-source-name">${e.desc}</div>
-        <div class="ledger-source-sub">${e.date} · ${e.cat||'Other'}</div>
-        <div class="ledger-source-amt">${fmt(e.amount)}</div>
-        <button onclick="deletePLEntry('${e.id}')" style="background:transparent;border:none;color:#ddd;cursor:pointer;font-size:12px;margin-left:8px;" onmouseover="this.style.color='#FF2D2D'" onmouseout="this.style.color='#ddd'">✕</button>
-      </div>`).join('');
-  } else {
-    html += `<div class="ledger-source-divider"></div>
-      <div style="font-family:'Space Mono',monospace;font-size:9px;color:#BFC2C7;padding:8px 14px;">No additional manual income</div>`;
-  }
+  html += `<div class="ledger-source-divider"></div>
+      <div style="font-family:'Space Mono',monospace;font-size:9px;color:#BFC2C7;padding:8px 14px;">HUMAN+ pass-through (payable, not income): ${fmt(F.hpPay)}</div>`;
   el.innerHTML = html;
 }
 
