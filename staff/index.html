@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMEEwQTBBIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYsNzgpIHNjYWxlKDEuMzApIiBmaWxsPSIjRjJGMkYwIj48cGF0aCBkPSJNIDAuMDYyNSAwIEwgNi42MjUgLTQxLjM5MDYyNSBMIDMzLjU5Mzc1IC00MS4zOTA2MjUgQyAzOS4wMDc4MTIgLTQxLjM5MDYyNSA0My41MDM5MDYgLTQwLjkwNjI1IDQ3LjA3ODEyNSAtMzkuOTM3NSBDIDUwLjY2MDE1NiAtMzguOTc2NTYyIDUzLjUgLTM3LjY2MDE1NiA1NS41OTM3NSAtMzUuOTg0Mzc1IEMgNTcuNjg3NSAtMzQuMzE2NDA2IDU5LjE3NTc4MSAtMzIuNDE0MDYyIDYwLjA2MjUgLTMwLjI4MTI1IEMgNjAuOTU3MDMxIC0yOC4xNTYyNSA2MS40MDYyNSAtMjUuOTIxODc1IDYxLjQwNjI1IC0yMy41NzgxMjUgQyA2MS40MDYyNSAtMjEuOTEwMTU2IDYxLjI5Njg3NSAtMjAuMzE2NDA2IDYxLjA3ODEyNSAtMTguNzk2ODc1IEMgNjAuODE2NDA2IC0xNy4wOTc2NTYgNjAuMzMyMDMxIC0xNS4zNTkzNzUgNTkuNjI1IC0xMy41NzgxMjUgQyA1OC45MjU3ODEgLTExLjc5Njg3NSA1Ny44Nzg5MDYgLTEwLjA5NzY1NiA1Ni40ODQzNzUgLTguNDg0Mzc1IEMgNTUuMDk3NjU2IC02Ljg2NzE4OCA1My4yNjk1MzEgLTUuNDIxODc1IDUxIC00LjE0MDYyNSBDIDQ4LjczODI4MSAtMi44NTkzNzUgNDUuOTIxODc1IC0xLjg0NzY1NiA0Mi41NDY4NzUgLTEuMTA5Mzc1IEMgMzkuMTcxODc1IC0wLjM2NzE4OCAzNS4xNDg0MzggMCAzMC40ODQzNzUgMCBaIE0gMjAuMjUgLTMwLjUzMTI1IEwgMTcuMTI1IC0xMC45NTMxMjUgTCAyOC42NDA2MjUgLTEwLjk1MzEyNSBDIDMxLjgzNTkzOCAtMTAuOTUzMTI1IDM0LjQ3MjY1NiAtMTEuMjUgMzYuNTQ2ODc1IC0xMS44NDM3NSBDIDM4LjYxNzE4OCAtMTIuNDM3NSA0MC4yNSAtMTMuMjA3MDMxIDQxLjQzNzUgLTE0LjE1NjI1IEMgNDIuNjI1IC0xNS4xMDE1NjIgNDMuNDg0Mzc1IC0xNi4wOTM3NSA0NC4wMTU2MjUgLTE3LjEyNSBDIDQ0LjU1NDY4OCAtMTguMTY0MDYyIDQ0Ljg5ODQzOCAtMTkuMTQ4NDM4IDQ1LjA0Njg3NSAtMjAuMDc4MTI1IEMgNDUuMjAzMTI1IC0yMS4wMDM5MDYgNDUuMjgxMjUgLTIxLjc1IDQ1LjI4MTI1IC0yMi4zMTI1IEMgNDUuMjgxMjUgLTIzLjIzODI4MSA0NS4xMTMyODEgLTI0LjE3OTY4OCA0NC43ODEyNSAtMjUuMTQwNjI1IEMgNDQuNDQ1MzEyIC0yNi4xMDkzNzUgNDMuNzk2ODc1IC0yNyA0Mi44MjgxMjUgLTI3LjgxMjUgQyA0MS44NjcxODggLTI4LjYyNSA0MC41IC0yOS4yODEyNSAzOC43MTg3NSAtMjkuNzgxMjUgQyAzNi45Mzc1IC0zMC4yODEyNSAzNC41OTc2NTYgLTMwLjUzMTI1IDMxLjcwMzEyNSAtMzAuNTMxMjUgWiBNIDIwLjI1IC0zMC41MzEyNSAiLz48L2c+PC9zdmc+">
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20261102225;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20261102227;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -1422,44 +1422,55 @@ h1,
 #panel-sales .hbtn{font-family:'Space Mono',monospace !important;background:#141417 !important;border:1px solid #2c2c31 !important;color:#a6a6ad !important;border-radius:0 !important;}
 
 /* ════════ RE-SKIN · P&L (dark) ════════ */
-#panel-pl{background:#0a0a0b !important;color:#f4f4f5;font-family:'Archivo',sans-serif;}
-#panel-pl .pl-wrap{background:#0a0a0b !important;padding:30px 32px 60px !important;max-width:1180px;margin:0 auto;}
-#panel-pl .pl-wrap > button:first-child{font-family:'Space Mono',monospace !important;color:#a6a6ad !important;background:transparent !important;border:1px solid #2c2c31 !important;border-radius:0 !important;}
-#panel-pl .pl-hdr{background:transparent !important;border-bottom:none !important;}
-#panel-pl .pl-hdr h1{font-family:'Archivo',sans-serif !important;font-weight:700 !important;font-size:52px !important;letter-spacing:-.02em !important;color:#f4f4f5 !important;}
-#panel-pl .pl-hdr p,#panel-pl #pl-period-lbl{font-family:'Space Mono',monospace !important;font-size:11px !important;letter-spacing:.14em !important;text-transform:uppercase !important;color:#6b6b72 !important;}
-#panel-pl .ledger-add{font-family:'Space Mono',monospace !important;background:#141417 !important;border:1px solid #2c2c31 !important;color:#a6a6ad !important;border-radius:0 !important;}
-#panel-pl .pl-period{background:transparent !important;}
-#panel-pl .pl-period label{font-family:'Space Mono',monospace !important;color:#6b6b72 !important;text-transform:uppercase;letter-spacing:.1em;}
-#panel-pl .pl-period select,#panel-pl input[type=date],#panel-pl input[type=number],#panel-pl input[type=text]{background:#141417 !important;color:#f4f4f5 !important;border:1px solid #2c2c31 !important;border-radius:0 !important;font-family:'Space Mono',monospace !important;}
-#panel-pl .pl-kpi{background:#0f0f11 !important;border:1px solid #232327 !important;border-radius:0 !important;}
-#panel-pl .pl-kpi-lbl{font-family:'Space Mono',monospace !important;color:#6b6b72 !important;text-transform:uppercase;letter-spacing:.12em;}
-#panel-pl .pl-kpi-num{font-family:'Archivo',sans-serif !important;font-weight:700 !important;letter-spacing:-.01em;}
-#panel-pl .pl-kpi-sub{font-family:'Space Mono',monospace !important;color:#6b6b72 !important;}
-#panel-pl .pl-chart-box{background:#0f0f11 !important;border:1px solid #232327 !important;border-radius:0 !important;}
-#panel-pl .pl-chart-lbl{font-family:'Space Mono',monospace !important;text-transform:uppercase;letter-spacing:.12em;color:#6b6b72 !important;}
-#panel-pl .ledger{background:#0f0f11 !important;border:1px solid #232327 !important;border-radius:0 !important;}
-#panel-pl .ledger-head{background:#141417 !important;border-bottom:1px solid #232327 !important;}
-#panel-pl .ledger-head h3{font-family:'Archivo',sans-serif !important;font-weight:700 !important;color:#f4f4f5 !important;}
-#panel-pl .ledger-total{font-family:'Archivo',sans-serif !important;}
-#panel-pl .ledger-source-row{border-bottom:1px solid #19191c !important;}
-#panel-pl .ledger-source-name{font-family:'Space Mono',monospace !important;color:#c9c9cc !important;}
-#panel-pl .ledger-source-sub{font-family:'Space Mono',monospace !important;color:#6b6b72 !important;}
-#panel-pl .ledger-source-amt{font-family:'Space Mono',monospace !important;color:#f4f4f5 !important;}
-#panel-pl .ledger-source-divider{background:#232327 !important;}
-#panel-pl .ledger-empty{font-family:'Space Mono',monospace !important;color:#6b6b72 !important;}
-#panel-pl .hbtn{font-family:'Space Mono',monospace !important;background:#141417 !important;border:1px solid #2c2c31 !important;color:#a6a6ad !important;border-radius:0 !important;}
-#plModal .pl-modal-inner{background:#0f0f11 !important;border:1px solid #232327 !important;color:#f4f4f5 !important;}
-#plModal h2{font-family:'Archivo',sans-serif !important;color:#f4f4f5 !important;}
-#plModal .pl-field label{font-family:'Space Mono',monospace !important;color:#6b6b72 !important;text-transform:uppercase;letter-spacing:.08em;}
-#plModal input,#plModal select,#plModal textarea{background:#141417 !important;color:#f4f4f5 !important;border:1px solid #2c2c31 !important;border-radius:0 !important;font-family:'Space Mono',monospace !important;}
-#panel-pl .ledger-rows,#panel-pl .ledger-source-row,#panel-pl #income-rows,#panel-pl #expense-rows,#panel-pl #income-manual-rows{background:transparent !important;}
-#panel-pl #pl-salary,#panel-pl #pl-per-staff{color:#f4f4f5 !important;}
-#panel-pl #pl-income{color:#f4f4f5 !important;}
-#panel-pl #pl-expenses{color:#FF2D2D !important;}
-#panel-pl #ledger-income-total{color:#f4f4f5 !important;}
-#panel-pl #ledger-expense-total{color:#FF2D2D !important;}
-#panel-pl .ledger-source-dot{background:#6b6b72 !important;}
+/* ════════ P&L — WHITE DOCUMENT THEME ════════ */
+#panel-pl{background:#eef0f2 !important;color:#0A0A0A;font-family:'Archivo',sans-serif;}
+#panel-pl .pl-wrap{background:#ffffff !important;padding:34px 38px 56px !important;max-width:1080px;margin:20px auto;border:1px solid #d9dde1;border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+#panel-pl .pl-wrap > button:first-child{font-family:'Space Mono',monospace !important;color:#555 !important;background:#fff !important;border:1px solid #d6d6d6 !important;border-radius:2px !important;}
+#panel-pl .pl-hdr{background:transparent !important;border-bottom:2px solid #0A0A0A !important;padding-bottom:12px !important;margin-bottom:4px;}
+#panel-pl .pl-hdr h1{font-family:'Archivo',sans-serif !important;font-weight:700 !important;font-size:38px !important;letter-spacing:-.02em !important;color:#0A0A0A !important;}
+#panel-pl .pl-hdr p,#panel-pl #pl-period-lbl{font-family:'Space Mono',monospace !important;font-size:10.5px !important;letter-spacing:.14em !important;text-transform:uppercase !important;color:#777 !important;}
+#panel-pl .ledger-add{font-family:'Space Mono',monospace !important;background:#0A0A0A !important;border:1px solid #0A0A0A !important;color:#fff !important;border-radius:2px !important;}
+#panel-pl .pl-period{background:#f7f8f9 !important;border:1px solid #e4e7ea;border-radius:3px;padding:9px 12px;}
+#panel-pl .pl-period label{font-family:'Space Mono',monospace !important;color:#555 !important;text-transform:uppercase;letter-spacing:.1em;}
+#panel-pl .pl-period select,#panel-pl input[type=date],#panel-pl input[type=number],#panel-pl input[type=text]{background:#fff !important;color:#0A0A0A !important;border:1px solid #cfd3d7 !important;border-radius:2px !important;font-family:'Space Mono',monospace !important;}
+/* Hero — net profit */
+#panel-pl .dk-hero{border-bottom:2px solid #0A0A0A !important;padding:22px 0 20px !important;}
+#panel-pl .dk-lbl{color:#777 !important;margin-bottom:12px !important;}
+#panel-pl .dk-big{color:#0A0A0A !important;font-size:62px !important;}
+#panel-pl .dk-delta{color:#888 !important;}
+/* KPI strip — bordered grid */
+#panel-pl .dk-strip{border:1px solid #dde1e4 !important;margin:18px 0 20px !important;background:#fff !important;}
+#panel-pl .dk-cell{padding:18px 20px !important;border-right:1px solid #dde1e4 !important;border-bottom:none !important;}
+#panel-pl .dk-strip > .dk-cell:last-child{border-right:none !important;}
+#panel-pl .dk-clbl{color:#777 !important;margin-bottom:10px !important;}
+#panel-pl .dk-v{color:#0A0A0A !important;font-size:25px !important;}
+#panel-pl .dk-cs{color:#999 !important;}
+/* Chart */
+#panel-pl .pl-chart-box{background:#fff !important;border:1px solid #dde1e4 !important;border-radius:3px !important;}
+#panel-pl .pl-chart-lbl{font-family:'Space Mono',monospace !important;text-transform:uppercase;letter-spacing:.12em;color:#777 !important;}
+/* Ledger tables — document grid */
+#panel-pl .ledger{background:#fff !important;border:1px solid #dde1e4 !important;border-radius:3px !important;}
+#panel-pl .ledger-head{background:#f3f4f5 !important;border-bottom:1px solid #d6dadd !important;}
+#panel-pl .ledger-head h3{font-family:'Space Mono',monospace !important;font-weight:700 !important;color:#333 !important;letter-spacing:.14em;}
+#panel-pl .ledger-total{font-family:'Archivo',sans-serif !important;font-weight:700;}
+#panel-pl .ledger-source-row{border-bottom:1px solid #edeff1 !important;background:#fff !important;}
+#panel-pl .ledger-source-row:nth-of-type(even){background:#fafbfc !important;}
+#panel-pl .ledger-source-name{font-family:'Space Mono',monospace !important;color:#0A0A0A !important;}
+#panel-pl .ledger-source-sub{font-family:'Space Mono',monospace !important;color:#9aa0a6 !important;}
+#panel-pl .ledger-source-amt{font-family:'Space Mono',monospace !important;color:#0A0A0A !important;font-weight:600;}
+#panel-pl .ledger-source-divider{background:#d6dadd !important;}
+#panel-pl .ledger-empty{font-family:'Space Mono',monospace !important;color:#999 !important;}
+#panel-pl .hbtn{font-family:'Space Mono',monospace !important;background:#fff !important;border:1px solid #d6d6d6 !important;color:#555 !important;border-radius:2px !important;}
+#plModal .pl-modal-inner{background:#fff !important;border:1px solid #d6d6d6 !important;color:#0A0A0A !important;}
+#plModal h2{font-family:'Archivo',sans-serif !important;color:#0A0A0A !important;}
+#plModal .pl-field label{font-family:'Space Mono',monospace !important;color:#777 !important;text-transform:uppercase;letter-spacing:.08em;}
+#plModal input,#plModal select,#plModal textarea{background:#fff !important;color:#0A0A0A !important;border:1px solid #cfd3d7 !important;border-radius:2px !important;font-family:'Space Mono',monospace !important;}
+#panel-pl .ledger-rows,#panel-pl #income-rows,#panel-pl #expense-rows,#panel-pl #income-manual-rows{background:transparent !important;}
+#panel-pl #pl-salary,#panel-pl #pl-per-staff{color:#0A0A0A !important;}
+#panel-pl #pl-income{color:#0A0A0A !important;}
+#panel-pl #pl-expenses{color:#c0392b !important;}
+#panel-pl #ledger-income-total{color:#0a7d3c !important;}
+#panel-pl #ledger-expense-total{color:#c0392b !important;}
 
 /* ════════ ROSTER — LIGHT MASTHEAD (rk-) ════════ */
 .rk-wrap{padding:28px 28px 0;background:#fff;}
@@ -2665,8 +2676,8 @@ h1,
       <div class="pl-chart-lbl">Income vs Expenses — Weekly</div>
       <div class="pl-bars" id="plChartBars"></div>
       <div style="display:flex;gap:14px;margin-top:8px;">
-        <div style="display:flex;align-items:center;gap:5px;font-family:'Space Mono',monospace;font-size:9.5px;color:#6b6b72"><div style="width:7px;height:7px;border-radius:50%;background:#f4f4f5"></div>Income</div>
-        <div style="display:flex;align-items:center;gap:5px;font-family:'Space Mono',monospace;font-size:9.5px;color:#6b6b72"><div style="width:7px;height:7px;border-radius:50%;background:#FF2D2D"></div>Expenses</div>
+        <div style="display:flex;align-items:center;gap:5px;font-family:'Space Mono',monospace;font-size:9.5px;color:#777"><div style="width:7px;height:7px;border-radius:50%;background:#0a7d3c"></div>Income</div>
+        <div style="display:flex;align-items:center;gap:5px;font-family:'Space Mono',monospace;font-size:9.5px;color:#777"><div style="width:7px;height:7px;border-radius:50%;background:#c0392b"></div>Expenses</div>
       </div>
     </div>
 
@@ -4652,7 +4663,7 @@ function renderPL(){
   set('pl-expenses', plFmt(totalExp));
   set('pl-net',      (net>=0?'+':'')+plFmt(net));
   set('pl-margin',   margin+'% margin');
-  document.getElementById('pl-net').style.color = net>=0?'#f4f4f5':'#FF2D2D';
+  document.getElementById('pl-net').style.color = net>=0?'#0a7d3c':'#c0392b';
   set('pl-salary',   plFmt(F.payroll));   // full employment cost (wages + commission + employer BPJS) — matches the PL export
   set('pl-salary-sub', ({today:'today',week:'this week',month:'this month',year:'this year',custom:'selected range'})[period]||'this period');
 
@@ -4681,7 +4692,13 @@ function renderPL(){
   renderPLChart();
   try{ if(typeof renderSettlementRecon==='function') renderSettlementRecon(); }catch(e){}
   try{ if(typeof window.renderExpensePanel==='function') window.renderExpensePanel(); }catch(e){}
-  renderCatBreakdown(manualExp, ledgerExpRows);
+  renderCatBreakdown(manualExp, ledgerExpRows, [
+    {label:'Staff Wages', amt:F.wages, cls:'cat-other'},
+    {label:'Therapist commission', amt:F.comm, cls:'cat-other'},
+    {label:'Employer BPJS', amt:F.empBpjs, cls:'cat-other'},
+    {label:'Bonuses', amt:F.bonus, cls:'cat-other'},
+    {label:'Allowances', amt:F.allow, cls:'cat-other'},
+  ]);
 }
 
 // ── Wage calculation by period ────────────────────────────────────
@@ -4856,12 +4873,14 @@ function renderLedger(elId, entries, type){
   }).join('');
 }
 
-function renderCatBreakdown(expenses, ledgerRows){
+function renderCatBreakdown(expenses, ledgerRows, extraCats){
   const el = document.getElementById('cat-breakdown');
   if(!el) return;
   ledgerRows = ledgerRows || [];
   // Key by display label so manual (CATS codes) and ledger (free-text categories like 'Grab commission') merge cleanly.
   const bylabel = {};
+  // Payroll components (Wages / commission / BPJS) so the breakdown total = Total Expenses tile.
+  (extraCats||[]).forEach(c => { if(c.amt>0){ if(!bylabel[c.label])bylabel[c.label]={amt:0,cls:c.cls||'cat-other'}; bylabel[c.label].amt+=c.amt; } });
   expenses.forEach(e => { const c=CATS[e.cat]||CATS.other; const L=c.label; if(!bylabel[L])bylabel[L]={amt:0,cls:c.cls}; bylabel[L].amt+=e.amount; });
   ledgerRows.forEach(e => { const L=e.cat||'Other'; if(!bylabel[L])bylabel[L]={amt:0,cls:'cat-other'}; bylabel[L].amt+=e.amount; });
   const total = Object.values(bylabel).reduce((a,b)=>a+b.amt,0);
@@ -4902,10 +4921,8 @@ function _plChartRef(){
     var isoBali=function(dt){ return (typeof BALI_TZ!=='undefined')?dt.toLocaleDateString('en-CA',{timeZone:BALI_TZ}):dt.toISOString().slice(0,10); };
     for(var i=0;i<28;i++){
       var d=new Date(end); d.setDate(end.getDate()-i); var dk=isoBali(d);
-      var inc=((recoveryData[dk]||{}).revenue||0)+((fuelData[dk]||{}).revenue||0)+((supplyData[dk]||{}).revenue||0);
-      var manI=plEntries.filter(function(e){return e.type==='income'&&!e.auto&&e.date===dk;}).reduce(function(s,e){return s+e.amount;},0);
-      var manE=plEntries.filter(function(e){return e.type==='expense'&&e.date===dk;}).reduce(function(s,e){return s+e.amount;},0);
-      ref=Math.max(ref, inc+manI, _plDayWage(dk)+manE);
+      var F=_plFigures(dk,dk);
+      ref=Math.max(ref, F.totalIncome, F.totalExp);
     }
     return ref;
   }catch(e){ return 2000000; }
@@ -4926,18 +4943,11 @@ function renderPLChart(){
   });
   const todayDate = isoBali(typeof baliNow==='function'?baliNow():new Date());
 
-  const _rev = (data,dk)=>{ try{ return (data&&data[dk]&&data[dk].revenue)||0; }catch(e){ return 0; } };
   const byDay = days.map(date => {
     // Future days (in the current week) have no data yet — keep them empty so they don't draw phantom wage bars.
     if(date>todayDate) return {inc:0, exp:0};
-    const salesInc = _rev(recoveryData,date)+_rev(fuelData,date)+_rev(supplyData,date);
-    const manInc = plEntries.filter(e=>e.type==='income'&&!e.auto&&e.date===date).reduce((s,e)=>s+e.amount,0);
-    const manExp = plEntries.filter(e=>e.type==='expense'&&e.date===date).reduce((s,e)=>s+e.amount,0);
-    // Ledger / auto expenses for this day (staff-logged + Grab commission) so the chart's expense bar matches the P&L total.
-    let ledExp = 0;
-    (window._lastLedgerDocs||[]).forEach(function(r){ if(!r||r.kind!=='expense')return; var dd={};try{dd=r.detail?JSON.parse(r.detail):{};}catch(e){} var dt=dd.date||r.bizDate||''; if(dt===date&&(dd.status||r.status||'').toLowerCase()!=='cancelled') ledExp+=(+r.amount||+dd.cost||0); });
-    const exp = _plDayWage(date) + manExp + ledExp;
-    return {inc: salesInc+manInc, exp};
+    const F = _plFigures(date, date);   // formal basis — identical to the P&L tiles
+    return {inc: F.totalIncome, exp: F.totalExp};
   });
 
   const maxV = _plChartRef();   // stable scale across weeks — equal expenses render at equal height
@@ -4949,15 +4959,15 @@ function renderPLChart(){
     const isT = days[i]===todayDate;
     const _pf2 = n => n>=1e6 ? (n/1e6).toFixed(1).replace(/\.0$/,'')+'M' : n>=1e3 ? Math.round(n/1e3)+'K' : (n||'');
     return `<div class="pl-bar-col">
-      <div style="font-family:'Space Mono',monospace;font-size:7.5px;color:${isT?'#f4f4f5':'#8a8a8a'};margin-bottom:2px;text-align:center;">${d.inc>0?_pf2(d.inc):''}</div>
+      <div style="font-family:'Space Mono',monospace;font-size:7.5px;color:${isT?'#0A0A0A':'#8a8a8a'};margin-bottom:2px;text-align:center;">${d.inc>0?_pf2(d.inc):''}</div>
       <div class="pl-bar-wrap">
         <div style="display:flex;gap:2px;align-items:flex-end;height:100%;justify-content:center;">
-          ${incH>0?`<div class="pl-bar-inc" style="height:${incH}px;background:#f4f4f5;width:42%;opacity:${isT?1:0.7}"></div>`:''}
-          ${expH>0?`<div class="pl-bar-exp" style="height:${expH}px;background:#FF2D2D;width:42%;opacity:${isT?1:0.7}"></div>`:''}
-          ${incH===0&&expH===0?`<div style="height:3px;background:#333;width:80%;border-radius:1px"></div>`:''}
+          ${incH>0?`<div class="pl-bar-inc" style="height:${incH}px;background:#0a7d3c;width:42%;opacity:${isT?1:0.72}"></div>`:''}
+          ${expH>0?`<div class="pl-bar-exp" style="height:${expH}px;background:#c0392b;width:42%;opacity:${isT?1:0.72}"></div>`:''}
+          ${incH===0&&expH===0?`<div style="height:3px;background:#ccc;width:80%;border-radius:1px"></div>`:''}
         </div>
       </div>
-      <div class="pl-bar-day" style="color:${isT?'#f4f4f5':'#8a8a8a'}">${WEEK_DAYS[i]}</div>
+      <div class="pl-bar-day" style="color:${isT?'#0A0A0A':'#8a8a8a'}">${WEEK_DAYS[i]}</div>
     </div>`;
   }).join('');
 }
