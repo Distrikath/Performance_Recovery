@@ -2313,6 +2313,8 @@ h1,
         </div>
         <button onclick="rfChangeDate(1)" class="rf-date-btn">›</button>
         <button onclick="rfGoToday()" class="rf-today-btn">Today</button>
+        <button onclick="freshaImport()" class="rf-today-btn" title="Import Fresha CSV export for this date" style="margin-left:6px;opacity:.7;">↑ Fresha</button>
+        <input type="file" id="fresha-csv-input" accept=".csv,.CSV" style="display:none" onchange="freshaHandleFile(this)">
       </div>
 
       <!-- Staff available -->
@@ -4444,7 +4446,37 @@ function shortName(full){
   return parts[0] + ' ' + parts[parts.length-1][0] + '.';
 }
 
-// doImport removed - sales data comes from internal modules
+// ── Fresha CSV import UI ──────────────────────────────────────────────────
+function freshaImport(){
+  var el=document.getElementById('fresha-csv-input'); if(el) el.click();
+}
+function freshaHandleFile(input){
+  var file=input.files&&input.files[0]; if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var csv=e.target.result||'';
+    var imported=parseFreshaBookings(csv);
+    input.value='';
+    if(!imported.length){ alert('No bookings found in this CSV.\n\nMake sure you exported from Fresha with Date, Time, Client, Service, Staff and Room columns.'); return; }
+    var key=(typeof rfDateKey==='function'&&typeof rfDate!=='undefined')?rfDateKey(rfDate):new Date().toISOString().slice(0,10);
+    if(!bookings[key]) bookings[key]=[];
+    bookings[key]=bookings[key].filter(function(b){ return b.source!=='fresha'; });
+    var ts=Date.now();
+    imported.forEach(function(fb,i){
+      var h=Math.floor(fb.start), m=Math.round((fb.start-h)*60);
+      if(m>=60){ h+=1; m=0; }
+      var startStr=(h<10?'0':'')+h+':'+(m<10?'0':'')+m;
+      var dur=Math.max(15,Math.round((fb.end-fb.start)*60));
+      bookings[key].push({id:'fresha_'+ts+'_'+i,source:'fresha',client:fb.client,serviceName:fb.therapist||'Fresha',therapist:fb.therapist||'',room:fb.room,start:startStr,duration:dur,price:0,status:'confirmed',_freshaCol:fb.col||'#8b5cf6'});
+    });
+    try{ var rf=JSON.parse(localStorage.getItem('distrik_rf')||'{}'); rf.bookings=rf.bookings||{}; rf.bookings[key]=bookings[key]; localStorage.setItem('distrik_rf',JSON.stringify(rf)); }catch(ex){ console.warn('[freshaImport] save',ex); }
+    if(typeof buildRoomGrid==='function') buildRoomGrid();
+    var n=document.getElementById('notif');
+    if(n){ n.textContent=imported.length+' Fresha booking'+(imported.length>1?'s':'')+' imported for '+key+' ✓'; n.classList.add('on'); setTimeout(function(){ n.classList.remove('on'); },3000); }
+  };
+  reader.readAsText(file);
+}
+window.freshaImport=freshaImport; window.freshaHandleFile=freshaHandleFile;
 
 // Also allow manual booking entry if no CSV
 function addManualBooking(room, client, therapist, startH, endH){
@@ -5350,6 +5382,7 @@ function buildSettingsPanel(){
   buildSettingsStaff();
   buildSettingsManagers();
   buildSettingsTax();
+  buildSettingsNotif();
   buildSettingsApps();
   buildSettingsZones();
 }
@@ -5385,6 +5418,26 @@ async function testAppsConnection(){
   catch(e){ if(r){ r.textContent='✕ Failed: '+e.message+' — check URL, key & that the server is running (CORS allowed).'; r.style.color='#FF2D2D'; } }
 }
 window.buildSettingsApps=buildSettingsApps; window.saveSettingsApps=saveSettingsApps; window.testAppsConnection=testAppsConnection;
+function buildSettingsNotif(){
+  var el=document.getElementById('settings-notif'); if(!el) return;
+  var inp="font-family:'Space Mono',monospace;font-size:12px;padding:8px 10px;border:1px solid #e0e0e0;background:#fff;color:#0A0A0A;width:100%;box-sizing:border-box;";
+  var lbl="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:#9a9a9e;margin-bottom:4px;display:block;";
+  var cur=''; try{ cur=localStorage.getItem('distrik_notif_email')||''; }catch(ex){}
+  el.innerHTML=''
+    +'<div style="display:grid;grid-template-columns:1fr;gap:10px;">'
+    +'<div><label style="'+lbl+'">Notification Gmail Address</label><input id="notif-email" type="email" value="'+cur.replace(/"/g,'&quot;')+'" placeholder="your-studio@gmail.com" style="'+inp+'"></div>'
+    +'</div>'
+    +'<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">'
+    +'<button onclick="saveSettingsNotif()" style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:9px 16px;background:#0A0A0A;color:#fff;border:none;cursor:pointer;">Save</button>'
+    +'</div>'
+    +'<div style="font-family:\'Space Mono\',monospace;font-size:9px;color:#9a9a9e;margin-top:6px;line-height:1.55;">A Formspree notification fires to this address on every confirmed booking — walk-ins included. Gmail auto-creates a Google Calendar event, so every session appears in your calendar without needing a Fresha sync. Requires Formspree to be configured above.</div>';
+}
+function saveSettingsNotif(){
+  var v=(document.getElementById('notif-email')||{}).value||'';
+  try{ localStorage.setItem('distrik_notif_email',v); }catch(ex){}
+  var n=document.getElementById('notif'); if(n){n.textContent='Notification email saved ✓';n.classList.add('on');setTimeout(function(){n.classList.remove('on');},2000);}
+}
+window.buildSettingsNotif=buildSettingsNotif; window.saveSettingsNotif=saveSettingsNotif;
 function buildSettingsTax(){
   var el=document.getElementById('settings-tax'); if(!el) return;
   var inp="font-family:'Space Mono',monospace;font-size:12px;padding:8px 10px;border:1px solid #e0e0e0;background:#fff;color:#0A0A0A;width:100%;box-sizing:border-box;";
@@ -6656,11 +6709,11 @@ var EVENT_LANES = [
 
 // Services / treatments master list
 var SERVICES = [
-  {id:'s1', name:'Swedish Massage',   duration:60,  buffer:15, price:450000, commission:5, rooms:['room1','room2','room3'], therapists:[]},
-  {id:'s2', name:'Deep Tissue',       duration:60,  buffer:15, price:500000, commission:5, rooms:['room1','room2','room3'], therapists:[]},
-  {id:'s3', name:'Sports Recovery',   duration:45,  buffer:10, price:380000, commission:5, rooms:['room1','room2','room3'], therapists:[]},
-  {id:'s4', name:'Compression Boots', duration:30,  buffer:5,  price:200000, commission:0, rooms:['rec1','rec2'],           therapists:[]},
-  {id:'s5', name:'Ice Bath',          duration:20,  buffer:5,  price:150000, commission:0, rooms:['rec1','rec2']},
+  {id:'s1', name:'Swedish Massage',   cat:'core',      duration:60,  buffer:15, price:450000, commission:5, rooms:['room1','room2','room3'], therapists:[]},
+  {id:'s2', name:'Deep Tissue',       cat:'core',      duration:60,  buffer:15, price:500000, commission:5, rooms:['room1','room2','room3'], therapists:[]},
+  {id:'s3', name:'Sports Recovery',   cat:'core',      duration:45,  buffer:10, price:380000, commission:5, rooms:['room1','room2','room3'], therapists:[]},
+  {id:'s4', name:'Compression Boots', cat:'addon',     duration:30,  buffer:5,  price:200000, commission:0, rooms:['rec1','rec2'],           therapists:[]},
+  {id:'s5', name:'Ice Bath',          cat:'dedicated', duration:20,  buffer:5,  price:150000, commission:0, rooms:['rec1','rec2']},
 ];
 
 // Service Packages — bundles of multiple services
@@ -6719,7 +6772,17 @@ function loadRFFromStorage(){
     if(raw){
       const d=JSON.parse(raw);
       if(d.bookings)  Object.assign(bookings,  d.bookings);
-      if(d.SERVICES)  SERVICES.splice(0,SERVICES.length,...d.SERVICES);
+      if(d.SERVICES){
+        SERVICES.splice(0,SERVICES.length,...d.SERVICES);
+        // Migration: assign cat to saved services that predate the category system
+        SERVICES.forEach(function(s){
+          if(s.cat) return;
+          var n=(s.name||'').toLowerCase();
+          if(n.includes('compress')||n.includes('boot')) s.cat='addon';
+          else if(n.includes('ice')||n.includes('bath')||n.includes('infrared')||n.includes('sauna')||n.includes('float')) s.cat='dedicated';
+          else s.cat='core';
+        });
+      }
     if(d.PACKAGES)  PACKAGES.splice(0,PACKAGES.length,...d.PACKAGES);
       if(d.ROOMS)     ROOMS.forEach((r,i)=>{ if(d.ROOMS[i]) Object.assign(r,d.ROOMS[i]); });
       if(d.EVENT_LANES && Array.isArray(d.EVENT_LANES)) EVENT_LANES.forEach((e,i)=>{ if(d.EVENT_LANES[i]) Object.assign(e, d.EVENT_LANES[i]); });
@@ -6864,14 +6927,17 @@ function buildTimeline(room, roomBks){
     const tc=isDark?'#060606':'#fff';
     // a treatment queued on the booking being built isn't saved yet: dashed, and not clickable
     const pend=!!bk._pending;
-    const blockStyle=(pend?`left:${left}%;width:${width}%;background:${col}1f;color:#0A0A0A;border:1px dashed ${col};`
+    const isFr=bk.source==='fresha';
+    const freshaCol=bk._freshaCol||'#8b5cf6';
+    const blockStyle=(isFr?`left:${left}%;width:${width}%;background:${freshaCol}22;color:#4c1d95;border:1.5px dashed ${freshaCol};cursor:default;`
+                     :pend?`left:${left}%;width:${width}%;background:${col}1f;color:#0A0A0A;border:1px dashed ${col};`
                           :`left:${left}%;width:${width}%;background:${col};color:${tc};`)+_laneBox(bk);
-    const blockClick=pend?'':`onclick="openBookingDetail('${bk.id}')"`;
-    html+=`<div class="rf-booking-block" 
+    const blockClick=(pend||isFr)?'':`onclick="openBookingDetail('${bk.id}')"`;
+    html+=`<div class="rf-booking-block"
       style="${blockStyle}"
       ${blockClick}
-      title="${bk.client} · ${svc?.name||bk.serviceName||''} · ${bk.start}${pend?' · on this booking (not saved yet)':''}${bk.compression?' · + '+bk.compression.name+' (same chair)':''}">
-      <span class="rf-block-client">${bk.client}${bk.compression?' <span title="compression boots in this chair">+B</span>':''}</span>
+      title="${bk.client} · ${svc?.name||bk.serviceName||''} · ${bk.start}${isFr?' · Fresha import (read-only)':''}${pend?' · on this booking (not saved yet)':''}${bk.compression?' · + '+bk.compression.name+' (same chair)':''}">
+      <span class="rf-block-client">${bk.client}${isFr?' <span style="font-size:9px;opacity:.65;">[F]</span>':''}${bk.compression?' <span title="compression boots in this chair">+B</span>':''}</span>
       <span class="rf-block-time">${bk.start}</span>
     </div>`;
     // Buffer block — EVERY booking gets a 15-min buffer after (a service may override with a longer one).
@@ -7384,11 +7450,13 @@ function closeServicesModal(){ document.getElementById('servicesModal').classLis
 
 function buildServicesList(){
   const body=document.getElementById('svc-modal-body');
-  if(body) body.innerHTML=`<div class="svc-grid-hdr"><div>Service Name</div><div>Dur (min)</div><div>Buffer</div><div>Price (IDR)</div><div>Comm %</div><div>Rooms</div><div>Therapists</div><div></div></div><div id="svc-list"></div><div style="padding:12px 16px;"><button onclick="addService()" class="rf-add-row-btn">+ Add Service</button></div>`;
+  if(body) body.innerHTML=`<div class="svc-grid-hdr" style="grid-template-columns:1.4fr .6fr .6fr .8fr .6fr .6fr 1fr 1fr auto;"><div>Service Name</div><div>Category</div><div>Dur (min)</div><div>Buffer</div><div>Price (IDR)</div><div>Comm %</div><div>Rooms</div><div>Therapists</div><div></div></div><div id="svc-list"></div><div style="padding:12px 16px;"><button onclick="addService()" class="rf-add-row-btn">+ Add Service</button></div>`;
   const el=document.getElementById('svc-list'); if(!el) return;
+  const catOpts=['core','specialty','dedicated','addon'].map(c=>`<option value="${c}">`+{core:'Core',specialty:'Specialty',dedicated:'Dedicated',addon:'Add-on'}[c]+'</option>').join('');
   el.innerHTML=SERVICES.map((svc,i)=>`
-    <div class="svc-row">
+    <div class="svc-row" style="grid-template-columns:1.4fr .6fr .6fr .6fr .8fr .6fr 1fr 1fr auto;">
       <input class="svc-input" id="sv_name_${i}" value="${svc.name}" placeholder="Service name">
+      <select class="svc-input" id="sv_cat_${i}"><option value="">Other</option>${catOpts.replace(`value="${svc.cat||''}"`,`value="${svc.cat||''}" selected`)}</select>
       <input class="svc-input" id="sv_dur_${i}"  value="${svc.duration}" type="number" min="15" step="15" placeholder="mins">
       <input class="svc-input" id="sv_buf_${i}"  value="${svc.buffer}"   type="number" min="0"  step="5"  placeholder="mins">
       <input class="svc-input" id="sv_price_${i}" value="${svc.price}"   type="number" min="0" placeholder="IDR">
@@ -7407,6 +7475,7 @@ function _servicesFlushAll(){
   SERVICES.forEach((svc,i)=>{
     const v=id=>{const e=document.getElementById(id);return e?e.value:null;};
     if(v('sv_name_'+i)!=null) svc.name=v('sv_name_'+i)||svc.name;
+    const catV=v('sv_cat_'+i); if(catV!=null) svc.cat=catV||undefined;
     svc.duration   = parseInt(v('sv_dur_'+i))||svc.duration;
     svc.buffer     = parseInt(v('sv_buf_'+i))||0;
     svc.price      = parseInt(v('sv_price_'+i))||0;
@@ -13270,27 +13339,47 @@ function clinFormspreeEndpoint(){ try{ return localStorage.getItem('distrik_form
 function sendBookingEmail(rec, dateLabel, kind){
   try{
     var ep=clinFormspreeEndpoint();
-    if(!rec || !rec.email || !ep || ep.indexOf('YOUR_FORM_ID')>=0) return; // skip if no email / not configured
-    var when=(dateLabel||'')+' · '+(rec.window||rec.start||'');
-    var held=(kind==='hold');
-    var payload={
-      email: rec.email,
-      name: rec.client||'',
-      _subject: held ? 'Distrik — your space is held' : 'Distrik — booking confirmed',
-      status: held ? 'HELD (intake pending)' : 'CONFIRMED',
-      service: (rec.serviceName||'')+(rec.compression?(' + '+rec.compression.name):''),
-      date: dateLabel||'',
-      time: rec.window||rec.start||'',
-      location: rec.roomName||'',
-      with: rec.therapistName||(rec.clinical?'Nurse · Human+':''),
-      price: 'IDR '+Math.round(rec.price||0).toLocaleString('id-ID'),
-      message: (held
-        ? 'Hi '+(rec.client||'')+', we’ve held your space for '+(rec.serviceName||'')+' on '+when+'. Please complete your intake form to confirm.'
-        : 'Hi '+(rec.client||'')+', your booking for '+(rec.serviceName||'')+' on '+when+' is confirmed. See you then!')
-    };
-    fetch(ep,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(payload)})
-      .then(function(r){ if(r&&r.ok) clinNotify(held?'Hold notice emailed to '+rec.email:'Confirmation emailed to '+rec.email); })
-      .catch(function(){});
+    if(!rec || !ep || ep.indexOf(‘YOUR_FORM_ID’)>=0) return; // skip only if Formspree not configured
+    var notifEmail=’’; try{ notifEmail=localStorage.getItem(‘distrik_notif_email’)||’’; }catch(ex){}
+    if(!rec.email && !notifEmail) return; // nothing to send to
+    var when=(dateLabel||’’)+’ · ‘+(rec.window||rec.start||’’);
+    var held=(kind===’hold’);
+    var svcLine=(rec.serviceName||’’)+(rec.compression?(‘ + ‘+rec.compression.name):’’);
+    var msg=held
+      ? ‘Hi ‘+(rec.client||’’)+’, we\’ve held your space for ‘+svcLine+’ on ‘+when+’. Please complete your intake form to confirm.’
+      : ‘Hi ‘+(rec.client||’’)+’, your booking for ‘+svcLine+’ on ‘+when+’ is confirmed. See you then!’;
+    // Client confirmation email (when client has an email)
+    if(rec.email){
+      var payload={
+        email: rec.email,
+        _replyto: notifEmail||rec.email,
+        name: rec.client||’’,
+        _subject: held ? ‘Distrik — your space is held’ : ‘Distrik — booking confirmed’,
+        status: held ? ‘HELD (intake pending)’ : ‘CONFIRMED’,
+        service: svcLine, date: dateLabel||’’, time: rec.window||rec.start||’’,
+        location: rec.roomName||’’, with: rec.therapistName||(rec.clinical?’Nurse · Human+’:’’),
+        price: ‘IDR ‘+Math.round(rec.price||0).toLocaleString(‘id-ID’),
+        message: msg
+      };
+      fetch(ep,{method:’POST’,headers:{‘Content-Type’:’application/json’,’Accept’:’application/json’},body:JSON.stringify(payload)})
+        .then(function(r){ if(r&&r.ok) clinNotify(held?’Hold notice emailed to ‘+rec.email:’Confirmation emailed to ‘+rec.email); })
+        .catch(function(){});
+    }
+    // Business notification email — always fires for every booking (including walk-ins with no client email)
+    if(notifEmail){
+      var bPayload={
+        email: notifEmail,
+        name: rec.client||’Walk-in’,
+        _subject: ‘[Distrik] ‘+(held?’Hold’:’Booking’)+’: ‘+(rec.client||’Walk-in’)+’ · ‘+svcLine+’ · ‘+(dateLabel||’’),
+        status: held ? ‘HELD’ : ‘CONFIRMED’,
+        service: svcLine, date: dateLabel||’’, time: rec.window||rec.start||’’,
+        location: rec.roomName||’’, with: rec.therapistName||(rec.clinical?’Nurse · Human+’:’’),
+        price: ‘IDR ‘+Math.round(rec.price||0).toLocaleString(‘id-ID’),
+        client_email: rec.email||’(walk-in — no email)’,
+        message: msg
+      };
+      fetch(ep,{method:’POST’,headers:{‘Content-Type’:’application/json’,’Accept’:’application/json’},body:JSON.stringify(bPayload)}).catch(function(){});
+    }
   }catch(e){}
 }
 
@@ -13926,6 +14015,15 @@ window.showRoomCalendar=showRoomCalendar;
         <div style="font-family:'Space Mono',monospace;font-size:9.5px;color:#333;margin-top:3px;">Drives POS receipts &amp; finance reports — confirm rates with your konsultan pajak</div>
       </div>
       <div style="padding:12px 14px;" id="settings-tax"></div>
+    </div>
+
+    <!-- BOOKING NOTIFICATIONS -->
+    <div style="background:#fff;border:1px solid #e8e8e8;border-radius:3px;overflow:hidden;margin-bottom:14px;">
+      <div style="background:#fafafa;border-bottom:1px solid #e8e8e8;padding:10px 14px;">
+        <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#888;">Booking Notifications</div>
+        <div style="font-family:'Space Mono',monospace;font-size:9.5px;color:#333;margin-top:3px;">Email sent on every booking — walk-ins included — so it lands in Gmail &amp; Google Calendar</div>
+      </div>
+      <div style="padding:12px 14px;" id="settings-notif"></div>
     </div>
 
     <!-- RECRUITMENT · APPLICATIONS API -->
