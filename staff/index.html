@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMEEwQTBBIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYsNzgpIHNjYWxlKDEuMzApIiBmaWxsPSIjRjJGMkYwIj48cGF0aCBkPSJNIDAuMDYyNSAwIEwgNi42MjUgLTQxLjM5MDYyNSBMIDMzLjU5Mzc1IC00MS4zOTA2MjUgQyAzOS4wMDc4MTIgLTQxLjM5MDYyNSA0My41MDM5MDYgLTQwLjkwNjI1IDQ3LjA3ODEyNSAtMzkuOTM3NSBDIDUwLjY2MDE1NiAtMzguOTc2NTYyIDUzLjUgLTM3LjY2MDE1NiA1NS41OTM3NSAtMzUuOTg0Mzc1IEMgNTcuNjg3NSAtMzQuMzE2NDA2IDU5LjE3NTc4MSAtMzIuNDE0MDYyIDYwLjA2MjUgLTMwLjI4MTI1IEMgNjAuOTU3MDMxIC0yOC4xNTYyNSA2MS40MDYyNSAtMjUuOTIxODc1IDYxLjQwNjI1IC0yMy41NzgxMjUgQyA2MS40MDYyNSAtMjEuOTEwMTU2IDYxLjI5Njg3NSAtMjAuMzE2NDA2IDYxLjA3ODEyNSAtMTguNzk2ODc1IEMgNjAuODE2NDA2IC0xNy4wOTc2NTYgNjAuMzMyMDMxIC0xNS4zNTkzNzUgNTkuNjI1IC0xMy41NzgxMjUgQyA1OC45MjU3ODEgLTExLjc5Njg3NSA1Ny44Nzg5MDYgLTEwLjA5NzY1NiA1Ni40ODQzNzUgLTguNDg0Mzc1IEMgNTUuMDk3NjU2IC02Ljg2NzE4OCA1My4yNjk1MzEgLTUuNDIxODc1IDUxIC00LjE0MDYyNSBDIDQ4LjczODI4MSAtMi44NTkzNzUgNDUuOTIxODc1IC0xLjg0NzY1NiA0Mi41NDY4NzUgLTEuMTA5Mzc1IEMgMzkuMTcxODc1IC0wLjM2NzE4OCAzNS4xNDg0MzggMCAzMC40ODQzNzUgMCBaIE0gMjAuMjUgLTMwLjUzMTI1IEwgMTcuMTI1IC0xMC45NTMxMjUgTCAyOC42NDA2MjUgLTEwLjk1MzEyNSBDIDMxLjgzNTkzOCAtMTAuOTUzMTI1IDM0LjQ3MjY1NiAtMTEuMjUgMzYuNTQ2ODc1IC0xMS44NDM3NSBDIDM4LjYxNzE4OCAtMTIuNDM3NSA0MC4yNSAtMTMuMjA3MDMxIDQxLjQzNzUgLTE0LjE1NjI1IEMgNDIuNjI1IC0xNS4xMDE1NjIgNDMuNDg0Mzc1IC0xNi4wOTM3NSA0NC4wMTU2MjUgLTE3LjEyNSBDIDQ0LjU1NDY4OCAtMTguMTY0MDYyIDQ0Ljg5ODQzOCAtMTkuMTQ4NDM4IDQ1LjA0Njg3NSAtMjAuMDc4MTI1IEMgNDUuMjAzMTI1IC0yMS4wMDM5MDYgNDUuMjgxMjUgLTIxLjc1IDQ1LjI4MTI1IC0yMi4zMTI1IEMgNDUuMjgxMjUgLTIzLjIzODI4MSA0NS4xMTMyODEgLTI0LjE3OTY4OCA0NC43ODEyNSAtMjUuMTQwNjI1IEMgNDQuNDQ1MzEyIC0yNi4xMDkzNzUgNDMuNzk2ODc1IC0yNyA0Mi44MjgxMjUgLTI3LjgxMjUgQyA0MS44NjcxODggLTI4LjYyNSA0MC41IC0yOS4yODEyNSAzOC43MTg3NSAtMjkuNzgxMjUgQyAzNi45Mzc1IC0zMC4yODEyNSAzNC41OTc2NTYgLTMwLjUzMTI1IDMxLjcwMzEyNSAtMzAuNTMxMjUgWiBNIDIwLjI1IC0zMC41MzEyNSAiLz48L2c+PC9zdmc+">
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20261102227;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20261102228;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -1471,6 +1471,13 @@ h1,
 #panel-pl #pl-expenses{color:#c0392b !important;}
 #panel-pl #ledger-income-total{color:#0a7d3c !important;}
 #panel-pl #ledger-expense-total{color:#c0392b !important;}
+/* Lower panels (Settlement recon + admin Expenses) — neutralise leftover dark inline styles */
+#panel-pl #pl-recon [style*="background:#0f0f11"],#panel-pl #pl-expense-panel [style*="background:#0f0f11"]{background:#f7f8f9 !important;}
+#panel-pl #pl-recon [style*="background:#111114"],#panel-pl #pl-expense-panel [style*="background:#111114"]{background:#f3f4f5 !important;}
+#panel-pl #pl-recon [style*="#1b1b1e"],#panel-pl #pl-expense-panel [style*="#1b1b1e"]{border-color:#edeff1 !important;}
+#panel-pl #pl-recon [style*="background:#141417"],#panel-pl #pl-expense-panel [style*="background:#141417"]{background:#f3f4f5 !important;}
+#panel-pl #pl-recon input,#panel-pl #pl-recon select,#panel-pl #pl-expense-panel input,#panel-pl #pl-expense-panel select{background:#fff !important;color:#0A0A0A !important;border-color:#cfd3d7 !important;}
+#panel-pl #pl-recon .dk-ghost,#panel-pl #pl-expense-panel .dk-ghost{background:#fff !important;color:#555 !important;border:1px solid #d6d6d6 !important;}
 
 /* ════════ ROSTER — LIGHT MASTHEAD (rk-) ════════ */
 .rk-wrap{padding:28px 28px 0;background:#fff;}
@@ -15614,7 +15621,7 @@ window.renderSettlementRecon=function(){
   var entCard=0, entQr=0, entXen=0, entGrab=0; entries.forEach(function(s){ var fam=_methodFamily(s.method); if(fam==='qr') entQr+=s.amount||0; else if(fam==='xendit') entXen+=s.amount||0; else if(fam==='grab') entGrab+=s.amount||0; else entCard+=s.amount||0; });
   var entTotal=entCard+entQr+entXen+entGrab;
   var diff=entTotal-expTotal, absd=Math.abs(diff), tol=Math.max(10000, Math.round(expTotal*0.005));
-  var C='#232327', MUT='#6b6b72', TX='#f4f4f5';
+  var C='#dde1e4', MUT='#777', TX='#0A0A0A';
   var today=(typeof baliNow==='function'?baliNow():new Date()); var todayStr=today.getFullYear()+'-'+('0'+(today.getMonth()+1)).slice(-2)+'-'+('0'+today.getDate()).slice(-2);
   var methodOpts=['Card','QRIS','Xendit','Grab'].map(function(m){return '<option value="'+m+'">'+m+(m==='QRIS'?' (PAY QR)':(m==='Xendit'?' (online)':(m==='Grab'?' (payout)':'')))+'</option>';}).join('');
   var famLbl=function(fm){ return fm==='qr'?'QRIS':(fm==='xendit'?'Xendit':(fm==='grab'?'Grab':'Card')); };
@@ -15875,7 +15882,7 @@ window.renderPayroll=function(preserve){
   var mLbl=['January','February','March','April','May','June','July','August','September','October','November','December'][+mp[1]-1]+' '+mp[0];
   var cyc=_cycleKeysForMonth(ym); var cycLbl=cyc.length?(cyc[0]+' → '+cyc[cyc.length-1]):'';
   var staff=(typeof STAFF!=='undefined')?STAFF:[];
-  var C='#232327', MUT='#6b6b72', TX='#f4f4f5';
+  var C='#dde1e4', MUT='#777', TX='#0A0A0A';
   var inp='font-family:\'Space Mono\',monospace;font-size:11px;background:#0f0f11;color:'+TX+';border:1px solid '+C+';padding:6px;width:110px;box-sizing:border-box;';
   var hint=function(v){return '<div style="color:'+MUT+';font-size:8px;margin-top:2px;">≈ '+_pf(v)+' (of salary)</div>';};
   var cid=(typeof _cycleIdForMonth==='function')?_cycleIdForMonth(ym):null;  // the 15th-payout cycle for this month (its 14th)
@@ -17009,7 +17016,7 @@ window.injectWaCapture = function(confirmId, sale){
     var ym=_expMonthNow(), mp=ym.split('-');
     var mLbl=['January','February','March','April','May','June','July','August','September','October','November','December'][+mp[1]-1]+' '+mp[0];
     var f=function(n){ return 'IDR '+Math.round(n||0).toLocaleString('id-ID'); };
-    var C='#232327', MUT='#6b6b72', TX='#f4f4f5';
+    var C='#dde1e4', MUT='#777', TX='#0A0A0A';
     var docs=window._lastLedgerDocs||[], rows=[], sub={recovery:0,fuel:0,supply:0,general:0};
     docs.forEach(function(r){ if(!r||r.kind!=='expense')return; var d={};try{d=r.detail?JSON.parse(r.detail):{};}catch(e){} if(String(d.date||r.bizDate||'').slice(0,7)!==ym)return; if((d.status||r.status||'').toLowerCase()==='cancelled')return; var amt=+r.amount||+d.cost||0, a=(d.area||'general'); if(sub[a]==null)a='general'; sub[a]+=amt; rows.push({id:r.id,date:d.date||r.bizDate,area:a,cat:d.category,note:d.note,cost:amt}); });
     rows.sort(function(a,b){return String(b.date||'').localeCompare(String(a.date||''));});
