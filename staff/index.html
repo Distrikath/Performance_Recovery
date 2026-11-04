@@ -7382,7 +7382,8 @@ function saveBooking(){
 }
 
 function checkConflict(date,room,startTime,duration,excludeId){
-  const dayBks=(bookings[date]||[]).filter(b=>b.room===room&&b.id!==excludeId&&b.status!=='cancelled');
+  // Fresha imports are display-only markers — they don't own the room and must not block edits
+  const dayBks=(bookings[date]||[]).filter(b=>b.room===room&&b.id!==excludeId&&b.status!=='cancelled'&&b.source!=='fresha');
   const startH=parseTime(startTime);
   const endH=startH+duration/60;
   for(const bk of dayBks){
