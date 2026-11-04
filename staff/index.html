@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMEEwQTBBIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYsNzgpIHNjYWxlKDEuMzApIiBmaWxsPSIjRjJGMkYwIj48cGF0aCBkPSJNIDAuMDYyNSAwIEwgNi42MjUgLTQxLjM5MDYyNSBMIDMzLjU5Mzc1IC00MS4zOTA2MjUgQyAzOS4wMDc4MTIgLTQxLjM5MDYyNSA0My41MDM5MDYgLTQwLjkwNjI1IDQ3LjA3ODEyNSAtMzkuOTM3NSBDIDUwLjY2MDE1NiAtMzguOTc2NTYyIDUzLjUgLTM3LjY2MDE1NiA1NS41OTM3NSAtMzUuOTg0Mzc1IEMgNTcuNjg3NSAtMzQuMzE2NDA2IDU5LjE3NTc4MSAtMzIuNDE0MDYyIDYwLjA2MjUgLTMwLjI4MTI1IEMgNjAuOTU3MDMxIC0yOC4xNTYyNSA2MS40MDYyNSAtMjUuOTIxODc1IDYxLjQwNjI1IC0yMy41NzgxMjUgQyA2MS40MDYyNSAtMjEuOTEwMTU2IDYxLjI5Njg3NSAtMjAuMzE2NDA2IDYxLjA3ODEyNSAtMTguNzk2ODc1IEMgNjAuODE2NDA2IC0xNy4wOTc2NTYgNjAuMzMyMDMxIC0xNS4zNTkzNzUgNTkuNjI1IC0xMy41NzgxMjUgQyA1OC45MjU3ODEgLTExLjc5Njg3NSA1Ny44Nzg5MDYgLTEwLjA5NzY1NiA1Ni40ODQzNzUgLTguNDg0Mzc1IEMgNTUuMDk3NjU2IC02Ljg2NzE4OCA1My4yNjk1MzEgLTUuNDIxODc1IDUxIC00LjE0MDYyNSBDIDQ4LjczODI4MSAtMi44NTkzNzUgNDUuOTIxODc1IC0xLjg0NzY1NiA0Mi41NDY4NzUgLTEuMTA5Mzc1IEMgMzkuMTcxODc1IC0wLjM2NzE4OCAzNS4xNDg0MzggMCAzMC40ODQzNzUgMCBaIE0gMjAuMjUgLTMwLjUzMTI1IEwgMTcuMTI1IC0xMC45NTMxMjUgTCAyOC42NDA2MjUgLTEwLjk1MzEyNSBDIDMxLjgzNTkzOCAtMTAuOTUzMTI1IDM0LjQ3MjY1NiAtMTEuMjUgMzYuNTQ2ODc1IC0xMS44NDM3NSBDIDM4LjYxNzE4OCAtMTIuNDM3NSA0MC4yNSAtMTMuMjA3MDMxIDQxLjQzNzUgLTE0LjE1NjI1IEMgNDIuNjI1IC0xNS4xMDE1NjIgNDMuNDg0Mzc1IC0xNi4wOTM3NSA0NC4wMTU2MjUgLTE3LjEyNSBDIDQ0LjU1NDY4OCAtMTguMTY0MDYyIDQ0Ljg5ODQzOCAtMTkuMTQ4NDM4IDQ1LjA0Njg3NSAtMjAuMDc4MTI1IEMgNDUuMjAzMTI1IC0yMS4wMDM5MDYgNDUuMjgxMjUgLTIxLjc1IDQ1LjI4MTI1IC0yMi4zMTI1IEMgNDUuMjgxMjUgLTIzLjIzODI4MSA0NS4xMTMyODEgLTI0LjE3OTY4OCA0NC43ODEyNSAtMjUuMTQwNjI1IEMgNDQuNDQ1MzEyIC0yNi4xMDkzNzUgNDMuNzk2ODc1IC0yNyA0Mi44MjgxMjUgLTI3LjgxMjUgQyA0MS44NjcxODggLTI4LjYyNSA0MC41IC0yOS4yODEyNSAzOC43MTg3NSAtMjkuNzgxMjUgQyAzNi45Mzc1IC0zMC4yODEyNSAzNC41OTc2NTYgLTMwLjUzMTI1IDMxLjcwMzEyNSAtMzAuNTMxMjUgWiBNIDIwLjI1IC0zMC41MzEyNSAiLz48L2c+PC9zdmc+">
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20261102235;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20261104237;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -614,6 +614,10 @@ body.light-panel .home-screen,
 .bar-wrap{width:100%;display:flex;gap:2px;align-items:flex-end;justify-content:center;flex:1;}
 .bar-seg{border-radius:1px 1px 0 0;flex:1;}
 .chart-day-lbl{font-family:'Space Mono',monospace;font-size:6.5px;color:#777;margin-top:4px;}
+/* Sales weekly-revenue chart: force explicit pixel-height bars (the .bar-wrap/.bar-seg flex:1 above sets flex-basis:0 and collapses the inline heights to 0) */
+#salesChartBars .bar-wrap{flex:0 0 auto !important;height:100px !important;flex-direction:column !important;justify-content:flex-end !important;align-items:stretch !important;gap:0 !important;}
+#salesChartBars .bar-seg{flex:0 0 auto !important;width:100% !important;}
+#salesChartBars .chart-col{justify-content:flex-end !important;}
 
 /* Today roster in sales */
 .sales-roster-zone{padding:4px 0;border-bottom:1px solid #f5f5f5;}
@@ -4157,11 +4161,11 @@ function renderSales(){
   else { const k=salesDayKey(salesDayOffset).split('-'); const dd=new Date(+k[0],+k[1]-1,+k[2]);
     totalSub = salesDayOffset===0?'Today':salesDayOffset===-1?'Yesterday':salesDayOffset===1?'Tomorrow':dd.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}); }
   set('s-total-sub',   totalSub);
-  set('s-recovery',    recRev>0?fmtIDR(recRev):'IDR 0');
+  set('s-recovery',    recRev>0?fmtFull(recRev):'IDR 0');   // fmtFull (not fmtIDR): reformatSalesNums re-reads digits — abbreviated "2.0M" → "20"
   set('s-recovery-sub',recBk>0?recBk+' booking'+(recBk!==1?'s':''):'0 bookings');
-  set('s-fuel',        fuelRev>0?fmtIDR(fuelRev):'IDR 0');
+  set('s-fuel',        fuelRev>0?fmtFull(fuelRev):'IDR 0');
   set('s-fuel-sub',    fuelTxn>0?fuelTxn+' transaction'+(fuelTxn!==1?'s':''):'0 transactions');
-  set('s-supply',      supRev>0?fmtIDR(supRev):'IDR 0');
+  set('s-supply',      supRev>0?fmtFull(supRev):'IDR 0');
   set('s-supply-sub',  supOrders>0?supOrders+' order'+(supOrders!==1?'s':''):'0 orders');
   set('s-staff',       staffCount||'—');
 
@@ -6181,11 +6185,7 @@ function buildMyAccount(el){
 
     ${(typeof _buildPayslipBlock==='function')?_buildPayslipBlock(s):''}
 
-    ${(currentUser?.type==='admin'||currentUser?.role==='2IC')?`
-    <div style="margin-top:28px;border:1px solid #232327;">
-      <div style="padding:13px 16px;border-bottom:1px solid #232327;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6b6b72;">Monthly payslips</div>
-      <div style="padding:18px 16px;font-family:'Space Mono',monospace;font-size:11px;color:#6b6b72;text-align:center;">Payslips will appear here once generated by admin.</div>
-    </div>`:''}
+    ${(typeof _buildPayslipHistory==='function')?_buildPayslipHistory(s):''}
    </div>
   </div>`;
 }
@@ -6237,6 +6237,12 @@ function _rosteredHoursBetween(sid, startISO, endISO){
 }
 // Sick leave ACCRUES with hours worked: rate = 10 FT days ÷ full-time annual hours, applied to hours worked
 // since the later of (cycle start, hire date), capped at the person's annual entitlement (10 FT / pro-rata part-time).
+// Whole calendar months COMPLETED between start and today (credits at each month-end, not the current in-progress month).
+// e.g. started 1 Sep, today in Nov → Sep + Oct done = 2 (Nov credits at end of Nov). Basis for holiday accrual.
+function _monthsCompleted(startISO,endISO){
+  try{ var s=String(startISO).split('-'),t=String(endISO).split('-');
+    var m=((+t[0])*12+(+t[1]))-((+s[0])*12+(+s[1])); return m>0?m:0; }catch(e){ return 0; }
+}
 function _absBal(st){
   var cyc=_absCycleKeys(0);
   var mine=_absTally(st.id, cyc.startISO, cyc.endISO);
@@ -6249,9 +6255,17 @@ function _absBal(st){
   var rate=ABSENCE_POLICY.sick_leave.ftDays/FT_ANNUAL_HOURS;   // days earned per hour worked
   var accrued=Math.min(cap, Math.round(hrs*rate*10)/10);      // 1-decimal days, capped at entitlement
   var sickUsed=(mine.sick_leave||0);
+  // Annual (holiday) leave ACCRUES 1 day per COMPLETED month worked (probation incl.), from the later of cycle start /
+  // hire date, capped at the yearly entitlement (12). The full 12 only vests once the first year is complete; taking
+  // more than accrued shows as "in advance" (negative) rather than a fictitious balance against the full 12.
+  var annCap=ABSENCE_POLICY.annual_leave.ftDays;              // 12 days / year, everyone (no part-time pro-rata)
+  var annMonths=_monthsCompleted(start, endISO);
+  var annAccrued=Math.min(annCap, annMonths);                // 1 day per completed month
+  var annUsed=(mine.annual_leave||0);
   return {mine:mine, cap:cap, hrsWorked:hrs, accrualStart:start,
     sickAccrued:accrued, sickUsed:sickUsed, sickLeft:Math.round((accrued-sickUsed)*10)/10,
-    annualUsed:(mine.annual_leave||0),
+    annualUsed:annUsed, annualAccrued:annAccrued, annualCap:annCap, annualMonths:annMonths,
+    annualLeft:Math.round((annAccrued-annUsed)*10)/10,
     total:Object.keys(mine).reduce(function(a,r){return a+mine[r];},0)};
 }
 function _buildAbsenceBlock(s){
@@ -6273,7 +6287,12 @@ function _buildAbsenceBlock(s){
       +'<span style="color:#f4f4f5;">Sick Leave</span>'
       +'<span style="color:'+(_sickWarn?'#f87171':'#a6a6ad')+';text-align:right;">'+b.sickUsed+' used · '+b.sickAccrued.toFixed(1)+' accrued · '+Math.max(0,b.sickLeft).toFixed(1)+' left</span></div>';
     rows+='<div style="font-family:\'Space Mono\',monospace;font-size:9px;color:#6b6b72;margin:-6px 0 6px;line-height:1.6;">accrues with hours worked — '+Math.round(b.hrsWorked)+'h logged since '+b.accrualStart+' · full year = '+b.cap+' day'+(b.cap!==1?'s':'')+((s.employment||'full')==='part'?' (part-time)':'')+(_sickWarn?' · used exceeds accrued — refer to management':'')+'</div>';
-    rows+=rowHtml('Annual Leave', b.annualUsed, ABSENCE_POLICY.annual_leave.ftDays, null);
+    var _annWarn=(b.annualUsed>b.annualAccrued);
+    var _annRight=b.annualUsed+' used · '+b.annualAccrued.toFixed(0)+' accrued · '+(_annWarn?(Math.abs(b.annualLeft).toFixed(0)+' in advance'):(b.annualLeft.toFixed(0)+' left'));
+    rows+='<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #232327;font-family:\'Space Mono\',monospace;font-size:12px;">'
+      +'<span style="color:#f4f4f5;">Annual Leave</span>'
+      +'<span style="color:'+(_annWarn?'#f87171':'#a6a6ad')+';text-align:right;">'+_annRight+'</span></div>';
+    rows+='<div style="font-family:\'Space Mono\',monospace;font-size:9px;color:#6b6b72;margin:-6px 0 6px;line-height:1.6;">accrues 1 day per completed month worked — '+b.annualMonths+' month'+(b.annualMonths!==1?'s':'')+' since '+b.accrualStart+' · full year = '+b.annualCap+' days'+(_annWarn?' · taken in advance — refer to management':'')+'</div>';
     ABSENCE_REASONS.forEach(function(r){
       if(r.id==='sick_leave'||r.id==='annual_leave') return;
       var u=b.mine[r.id]||0; if(!u) return;
@@ -6289,7 +6308,7 @@ function _buildAbsenceBlock(s){
         var bb=_absBal(st);
         return '<tr style="border-bottom:1px solid #232327;"><td style="padding:8px 6px;color:#f4f4f5;">'+esc(st.name)+'</td>'
           +'<td style="padding:8px 6px;text-align:right;color:'+(bb.sickUsed>bb.sickAccrued?'#f87171':'#a6a6ad')+';">'+bb.sickUsed+' / '+bb.sickAccrued.toFixed(1)+'</td>'
-          +'<td style="padding:8px 6px;text-align:right;color:'+(bb.annualUsed>ABSENCE_POLICY.annual_leave.ftDays?'#f87171':'#a6a6ad')+';">'+bb.annualUsed+' / '+ABSENCE_POLICY.annual_leave.ftDays+'</td>'
+          +'<td style="padding:8px 6px;text-align:right;color:'+(bb.annualUsed>bb.annualAccrued?'#f87171':'#a6a6ad')+';" title="used / accrued · full year 12">'+bb.annualUsed+' / '+bb.annualAccrued.toFixed(0)+'</td>'
           +'<td style="padding:8px 6px;text-align:right;color:#a6a6ad;">'+bb.total+'</td></tr>';
       }).join('');
       adm='<div style="margin-top:16px;border:1px solid #232327;">'
@@ -16161,6 +16180,32 @@ window.downloadPayslip=function(empId,ym){
     var w=window.open('','_blank'); if(w){ w.document.write(html); w.document.close(); setTimeout(function(){ try{w.print();}catch(e){} },300); }
   }catch(e){ console.warn('payslip',e); }
 };
+// Previous payslips (My Account) — every month from the staffer's start up to last month, each downloadable.
+// The current month's payslip is shown by _buildPayslipBlock above; this lists the completed months before it.
+function _buildPayslipHistory(s){
+  try{
+    if(!s||!s.id) return '';
+    var d=(typeof baliNow==='function'?baliNow():new Date());
+    var curY=d.getFullYear(), curM=d.getMonth()+1;              // 1-12, current (in-progress) month
+    var bs=String(BUSINESS_START).split('-');
+    var sd=String(s.startDate||BUSINESS_START).split('-');
+    var y=+sd[0], m=+sd[1];                                     // start from hire month…
+    if(y<+bs[0]||(y===+bs[0]&&m<+bs[1])){ y=+bs[0]; m=+bs[1]; } // …but never before the business opened
+    var months=[];
+    while(y<curY||(y===curY&&m<curM)){ months.push(y+'-'+('0'+m).slice(-2)); m++; if(m>12){m=1;y++;} }
+    if(!months.length) return '';
+    months.reverse();                                           // newest first
+    var MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
+    var rows=months.map(function(ym){ var p=ym.split('-'); var lbl=MN[+p[1]-1]+' '+p[0];
+      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid #1b1b1e;font-family:\'Space Mono\',monospace;font-size:12px;">'
+        +'<span style="color:#f4f4f5;">'+lbl+'</span>'
+        +'<button class="dk-ghost" onclick="downloadPayslip(\''+s.id+'\',\''+ym+'\')" style="background:#0A0A0A;color:#fff;font-size:10px;padding:5px 12px;">↓ Download</button></div>';
+    }).join('');
+    return '<div style="margin-top:28px;border:1px solid #232327;">'
+      +'<div style="padding:13px 16px;border-bottom:1px solid #232327;font-family:\'Space Mono\',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6b6b72;">Previous payslips</div>'
+      +rows+'</div>';
+  }catch(e){ console.warn('payslip history',e); return ''; }
+}
 </script>
 
 <!-- ===== HUMAN+ SETTLEMENTS (Finance · agent/collection model, accountant Version B, admin-only) ===== -->
