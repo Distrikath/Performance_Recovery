@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMEEwQTBBIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYsNzgpIHNjYWxlKDEuMzApIiBmaWxsPSIjRjJGMkYwIj48cGF0aCBkPSJNIDAuMDYyNSAwIEwgNi42MjUgLTQxLjM5MDYyNSBMIDMzLjU5Mzc1IC00MS4zOTA2MjUgQyAzOS4wMDc4MTIgLTQxLjM5MDYyNSA0My41MDM5MDYgLTQwLjkwNjI1IDQ3LjA3ODEyNSAtMzkuOTM3NSBDIDUwLjY2MDE1NiAtMzguOTc2NTYyIDUzLjUgLTM3LjY2MDE1NiA1NS41OTM3NSAtMzUuOTg0Mzc1IEMgNTcuNjg3NSAtMzQuMzE2NDA2IDU5LjE3NTc4MSAtMzIuNDE0MDYyIDYwLjA2MjUgLTMwLjI4MTI1IEMgNjAuOTU3MDMxIC0yOC4xNTYyNSA2MS40MDYyNSAtMjUuOTIxODc1IDYxLjQwNjI1IC0yMy41NzgxMjUgQyA2MS40MDYyNSAtMjEuOTEwMTU2IDYxLjI5Njg3NSAtMjAuMzE2NDA2IDYxLjA3ODEyNSAtMTguNzk2ODc1IEMgNjAuODE2NDA2IC0xNy4wOTc2NTYgNjAuMzMyMDMxIC0xNS4zNTkzNzUgNTkuNjI1IC0xMy41NzgxMjUgQyA1OC45MjU3ODEgLTExLjc5Njg3NSA1Ny44Nzg5MDYgLTEwLjA5NzY1NiA1Ni40ODQzNzUgLTguNDg0Mzc1IEMgNTUuMDk3NjU2IC02Ljg2NzE4OCA1My4yNjk1MzEgLTUuNDIxODc1IDUxIC00LjE0MDYyNSBDIDQ4LjczODI4MSAtMi44NTkzNzUgNDUuOTIxODc1IC0xLjg0NzY1NiA0Mi41NDY4NzUgLTEuMTA5Mzc1IEMgMzkuMTcxODc1IC0wLjM2NzE4OCAzNS4xNDg0MzggMCAzMC40ODQzNzUgMCBaIE0gMjAuMjUgLTMwLjUzMTI1IEwgMTcuMTI1IC0xMC45NTMxMjUgTCAyOC42NDA2MjUgLTEwLjk1MzEyNSBDIDMxLjgzNTkzOCAtMTAuOTUzMTI1IDM0LjQ3MjY1NiAtMTEuMjUgMzYuNTQ2ODc1IC0xMS44NDM3NSBDIDM4LjYxNzE4OCAtMTIuNDM3NSA0MC4yNSAtMTMuMjA3MDMxIDQxLjQzNzUgLTE0LjE1NjI1IEMgNDIuNjI1IC0xNS4xMDE1NjIgNDMuNDg0Mzc1IC0xNi4wOTM3NSA0NC4wMTU2MjUgLTE3LjEyNSBDIDQ0LjU1NDY4OCAtMTguMTY0MDYyIDQ0Ljg5ODQzOCAtMTkuMTQ4NDM4IDQ1LjA0Njg3NSAtMjAuMDc4MTI1IEMgNDUuMjAzMTI1IC0yMS4wMDM5MDYgNDUuMjgxMjUgLTIxLjc1IDQ1LjI4MTI1IC0yMi4zMTI1IEMgNDUuMjgxMjUgLTIzLjIzODI4MSA0NS4xMTMyODEgLTI0LjE3OTY4OCA0NC43ODEyNSAtMjUuMTQwNjI1IEMgNDQuNDQ1MzEyIC0yNi4xMDkzNzUgNDMuNzk2ODc1IC0yNyA0Mi44MjgxMjUgLTI3LjgxMjUgQyA0MS44NjcxODggLTI4LjYyNSA0MC41IC0yOS4yODEyNSAzOC43MTg3NSAtMjkuNzgxMjUgQyAzNi45Mzc1IC0zMC4yODEyNSAzNC41OTc2NTYgLTMwLjUzMTI1IDMxLjcwMzEyNSAtMzAuNTMxMjUgWiBNIDIwLjI1IC0zMC41MzEyNSAiLz48L2c+PC9zdmc+">
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20261104243;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20261104246;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -17452,15 +17452,43 @@ window.injectWaCapture = function(confirmId, sale){
   window.expPanelChangeMonth=function(n){ var p=_expMonthNow().split('-'); var d=new Date(+p[0],+p[1]-1+n,1); _expMonth=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2); window.renderExpensePanel(); };
   window.expPanelThisMonth=function(){ _expMonth=null; window.renderExpensePanel(); };
   window.expPanelCatChange=function(){ var ni=document.getElementById('pexp-cat-new'),sel=document.getElementById('pexp-cat'); if(!sel)return; if(ni){ni.style.display=(sel.value==='__new')?'block':'none'; if(sel.value==='__new')ni.focus();} if(sel.value!=='__new')_autoArea(sel.value,'pexp-area'); };
-  window.expPanelAdd=function(){
-    var sel=(document.getElementById('pexp-cat')||{}).value||'';
-    var cat=sel; if(sel==='__new')cat=((document.getElementById('pexp-cat-new')||{}).value||'').trim();
-    var raw=(((document.getElementById('pexp-amount')||{}).value||'').replace(/[^0-9.,]/g,'')).replace(/[.,]\d{2}$/,'');
-    var cost=parseInt(raw.replace(/[^0-9]/g,''),10)||0;
-    var st=document.getElementById('pexp-status');
-    var ok=_writeExpense({date:(document.getElementById('pexp-date')||{}).value||'',area:(document.getElementById('pexp-area')||{}).value||'general',cat:cat,cost:cost,note:((document.getElementById('pexp-note')||{}).value||'').trim(),isNew:(sel==='__new')},st);
-    if(ok){ if(st){st.style.color='#22c55e';st.textContent='✓ added';} ['pexp-amount','pexp-note'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';}); var ni=document.getElementById('pexp-cat-new'); if(ni){ni.value='';ni.style.display='none';} setTimeout(window.renderExpensePanel,500); }
+  // Category <option> list as a string (same groups as buildExpCatOptions), for the repeatable item rows.
+  window._expCatOptionsHTML=function(){ var h='<option value="" disabled selected>Pick a category…</option>';
+    (typeof EXPENSE_GROUPS!=='undefined'?EXPENSE_GROUPS:[]).forEach(function(G){ h+='<optgroup label="'+esc(G.g)+'">'; G.items.forEach(function(it){ h+='<option value="'+esc(it)+'">'+esc(it)+'</option>'; }); h+='</optgroup>'; });
+    if(window._expCustom&&window._expCustom.length){ h+='<optgroup label="Custom">'; window._expCustom.forEach(function(it){ h+='<option value="'+esc(it)+'">'+esc(it)+'</option>'; }); h+='</optgroup>'; }
+    return h+'<option value="__new">+ Add new category…</option>'; };
+  // One repeatable Category + Amount row under the shared Date / Supplier / Business-unit header.
+  window.expPanelAddItemRow=function(){
+    var wrap=document.getElementById('pexp-items'); if(!wrap) return;
+    var row=document.createElement('div'); row.className='pexp-item'; row.style.cssText='display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap;';
+    row.innerHTML='<select class="pexp-cat" onchange="expPanelItemCatChange(this)" style="font-family:\'Space Mono\',monospace;font-size:11px;background:#fff;color:#0A0A0A;border:1px solid #dde1e4;padding:7px;min-width:170px;">'+window._expCatOptionsHTML()+'</select>'
+      +'<input class="pexp-cat-new" placeholder="New category name" style="display:none;font-family:\'Space Mono\',monospace;font-size:11px;background:#fff;color:#0A0A0A;border:1px solid #FF2D2D;padding:7px;">'
+      +'<input class="pexp-amt" type="text" inputmode="numeric" placeholder="Amount (IDR)" style="font-family:\'Space Mono\',monospace;font-size:11px;background:#fff;color:#0A0A0A;border:1px solid #dde1e4;padding:7px;width:130px;">'
+      +'<button type="button" onclick="expPanelRemoveItemRow(this)" title="Remove item" style="background:#fff;border:1px solid #dde1e4;border-radius:2px;color:#999;cursor:pointer;width:28px;height:28px;flex-shrink:0;">✕</button>';
+    wrap.appendChild(row);
   };
+  window.expPanelRemoveItemRow=function(btn){ var r=btn&&btn.closest?btn.closest('.pexp-item'):null; var wrap=document.getElementById('pexp-items'); if(r&&wrap&&wrap.querySelectorAll('.pexp-item').length>1) r.remove(); };
+  window.expPanelItemCatChange=function(sel){ var r=sel&&sel.closest?sel.closest('.pexp-item'):null; if(!r)return; var ni=r.querySelector('.pexp-cat-new'); if(ni){ ni.style.display=(sel.value==='__new')?'block':'none'; if(sel.value==='__new')ni.focus(); } };
+  window.expPanelAdd=function(){
+    var date=(document.getElementById('pexp-date')||{}).value||'';
+    var supplier=((document.getElementById('pexp-supplier')||{}).value||'').trim();
+    var area=(document.getElementById('pexp-area')||{}).value||'general';
+    var st=document.getElementById('pexp-status');
+    if(!date){ if(st){st.style.color='#FF2D2D';st.textContent='Pick a date.';} return; }
+    var items=[];
+    document.querySelectorAll('#pexp-items .pexp-item').forEach(function(r){
+      var sel=(r.querySelector('.pexp-cat')||{}).value||'';
+      var cat=sel; if(sel==='__new') cat=((r.querySelector('.pexp-cat-new')||{}).value||'').trim();
+      var raw=(((r.querySelector('.pexp-amt')||{}).value||'').replace(/[^0-9.,]/g,'')).replace(/[.,]\d{2}$/,'');
+      var cost=parseInt(raw.replace(/[^0-9]/g,''),10)||0;
+      if(cat && cost>0) items.push({cat:cat,cost:cost,isNew:(sel==='__new')});
+    });
+    if(!items.length){ if(st){st.style.color='#FF2D2D';st.textContent='Add at least one category + amount.';} return; }
+    var okCount=0;
+    items.forEach(function(it){ if(_writeExpense({date:date,area:area,cat:it.cat,cost:it.cost,note:supplier,isNew:it.isNew},st)) okCount++; });
+    if(okCount){ if(st){st.style.color='#22c55e';st.textContent='✓ added '+okCount+' item'+(okCount!==1?'s':'')+(supplier?(' · '+supplier):'');} setTimeout(window.renderExpensePanel,500); }
+  };
+  window.expSetBank=function(key,val){ var n=parseInt(String(val||'').replace(/[^0-9]/g,''),10)||0; try{ if(n>0) localStorage.setItem('dk_xbank_'+key, String(n)); else localStorage.removeItem('dk_xbank_'+key); }catch(e){} if(typeof window.renderExpensePanel==='function') window.renderExpensePanel(); };
   window.renderExpensePanel=function(){
     var el=document.getElementById('pl-expense-panel'); if(!el) return;
     var isAdmin=(typeof currentUser==='undefined')||!currentUser||currentUser.type==='admin'||currentUser.role==='2IC';
@@ -17475,10 +17503,13 @@ window.injectWaCapture = function(confirmId, sale){
     var tot=sub.recovery+sub.fuel+sub.supply+sub.general;
     var today=(typeof baliNow==='function'?baliNow():new Date()); var todayStr=today.getFullYear()+'-'+('0'+(today.getMonth()+1)).slice(-2)+'-'+('0'+today.getDate()).slice(-2);
     var areaOpts=['general','recovery','fuel','supply'].map(function(a){return '<option value="'+a+'">'+esc(AREA_LBL[a])+'</option>';}).join('');
+    // Past suppliers (from every expense note) for the Supplier autocomplete.
+    var _supSeen={}, supplierOpts=''; (docs||[]).forEach(function(r){ if(!r||r.kind!=='expense')return; var dd={};try{dd=r.detail?JSON.parse(r.detail):{};}catch(e){} var nt=String(dd.note||'').split('(')[0].trim(); if(nt&&!_supSeen[nt.toUpperCase()]){ _supSeen[nt.toUpperCase()]=1; supplierOpts+='<option value="'+esc(nt)+'">'; } });
     function cell(lbl,v){ return '<div style="background:#0f0f11;padding:10px 12px;"><div style="font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:'+MUT+';">'+lbl+'</div><div style="font-family:\'Space Mono\',monospace;font-size:14px;color:'+TX+';margin-top:3px;">'+f(v)+'</div></div>'; }
     // Group rows by DATE + SUPPLIER (vendor parsed from the note) → vendor header + items + subtotal that should match
     // the one Permata debit for that supplier/day. Suppliers with a single item render as one plain row.
     var _mm=function(dk){ return ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+String(dk||'0-0').slice(5,7)]||''; };
+    var f0=function(n){ return Math.round(n||0).toLocaleString('id-ID'); };   // number only (no IDR) for the inline "a + b = total" breakdown
     var _vendorOf=function(note){ var n=String(note||'').trim(); if(!n) return ''; return n.split('(')[0].trim().toUpperCase(); };
     var _detailOf=function(note,vendor){ var n=String(note||'').trim(); if(vendor && n.toUpperCase().indexOf(vendor)===0) n=n.slice(vendor.length); return n.replace(/^[\s\-]+/,'').replace(/^\(|\)$/g,'').replace(/[\(\)]/g,' ').trim(); };
     var _singleRow=function(x){ return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid #1b1b1e;font-family:\'Space Mono\',monospace;font-size:11px;">'
@@ -17487,18 +17518,40 @@ window.injectWaCapture = function(confirmId, sale){
         +'<span style="color:'+TX+';flex:1;">'+esc(x.cat||'')+(x.note?(' <span style="color:'+MUT+';font-size:10px;">· '+esc(x.note)+'</span>'):'')+'</span>'
         +'<span style="color:'+TX+';font-weight:700;">'+f(x.cost)+'</span>'
         +'<span onclick="expCancel(\''+esc(x.id)+'\')" style="cursor:pointer;color:#5a5a5f;padding:0 2px;" title="Delete">✕</span></div>'; };
+    // Bank-match control for a supplier/day: type the Permata debit → green ✓ when the group subtotal matches, red ✗ if
+    // off (per-device reconciliation note, kept in localStorage — no sync, so it never risks the shared config).
+    var _bankCtrl=function(dateK,vendor,sub){
+      var bkey=(dateK+'|'+vendor).replace(/['"\\]/g,'');
+      var bv=''; try{ bv=localStorage.getItem('dk_xbank_'+bkey)||''; }catch(e){}
+      var tick='<span style="color:#cfcfcf;">–</span>';
+      if(bv){ var bn=parseInt(bv,10)||0; tick=(Math.round(sub)===bn)?'<span style="color:#0a7d3c;font-weight:700;" title="matches bank">✓</span>':'<span style="color:#c0392b;font-weight:700;" title="off by '+f(sub-bn)+'">✗</span>'; }
+      return '<input type="text" inputmode="numeric" value="'+esc(bv)+'" placeholder="Permata" onchange="expSetBank(\''+esc(bkey)+'\',this.value)" title="Type the Permata debit for this supplier/day" style="width:84px;font-family:\'Space Mono\',monospace;font-size:10px;background:#fff;color:'+TX+';border:1px solid '+C+';padding:4px 6px;text-align:right;">'
+        +'<span style="min-width:13px;text-align:center;">'+tick+'</span>';
+    };
     var rowsHtml='';
     if(!rows.length){ rowsHtml='<div style="padding:12px 14px;color:'+MUT+';font-family:\'Space Mono\',monospace;font-size:11px;">No expenses logged for '+mLbl+' yet.</div>'; }
     else {
       var _order=[], _grp={};
       rows.forEach(function(x){ var v=_vendorOf(x.note); var key=v?(x.date+'|'+v):('solo|'+x.id); if(!_grp[key]){ _grp[key]={date:x.date,vendor:v,area:x.area,items:[]}; _order.push(key); } _grp[key].items.push(x); });
       _order.forEach(function(key){ var g=_grp[key];
-        if(g.items.length<2){ rowsHtml+=_singleRow(g.items[0]); return; }
+        if(g.items.length<2){
+          var x0=g.items[0];
+          if(!g.vendor){ rowsHtml+=_singleRow(x0); return; }
+          rowsHtml+='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid #1b1b1e;font-family:\'Space Mono\',monospace;font-size:11px;">'
+            +'<span style="color:'+MUT+';min-width:52px;">'+String(x0.date||'').slice(8)+' '+_mm(x0.date)+'</span>'
+            +'<span style="color:'+TX+';flex:1;">'+esc(g.vendor)+' <span style="color:'+MUT+';font-size:10px;">· '+esc(x0.cat||'')+'</span></span>'
+            +'<span style="color:'+TX+';font-weight:700;">'+f(x0.cost)+'</span>'
+            +_bankCtrl(x0.date,g.vendor,x0.cost)
+            +'<span onclick="expCancel(\''+esc(x0.id)+'\')" style="cursor:pointer;color:#5a5a5f;padding:0 2px;" title="Delete">✕</span></div>';
+          return;
+        }
         var sub=g.items.reduce(function(a,i){return a+(i.cost||0);},0);
+        var _parts=g.items.map(function(i){return f0(i.cost);}).join(' + ');
         rowsHtml+='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid #1b1b1e;background:#f3f4f5;font-family:\'Space Mono\',monospace;font-size:11px;">'
           +'<span style="color:'+MUT+';min-width:52px;">'+String(g.date||'').slice(8)+' '+_mm(g.date)+'</span>'
-          +'<span style="color:'+TX+';font-weight:700;flex:1;">'+esc(g.vendor)+' <span style="color:'+MUT+';font-weight:400;font-size:9px;">· '+g.items.length+' items · '+esc(AREA_LBL[g.area]||g.area)+'</span></span>'
+          +'<span style="color:'+TX+';font-weight:700;flex:1;">'+esc(g.vendor)+' <span style="color:'+MUT+';font-weight:400;">: '+_parts+' =</span></span>'
           +'<span style="color:'+TX+';font-weight:700;">'+f(sub)+'</span>'
+          +_bankCtrl(g.date,g.vendor,sub)
           +'<span style="width:12px;"></span></div>';
         g.items.forEach(function(x){ var det=_detailOf(x.note,g.vendor);
           rowsHtml+='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 14px 5px 30px;border-bottom:1px solid #1b1b1e;font-family:\'Space Mono\',monospace;font-size:10px;">'
@@ -17522,15 +17575,19 @@ window.injectWaCapture = function(confirmId, sale){
       +'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:'+C+';">'
         +cell('Recovery',sub.recovery)+cell('Fuel / Café',sub.fuel)+cell('Supply',sub.supply)+cell('General / running',sub.general)
       +'</div>'
-      +'<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:12px 14px;border-bottom:1px solid '+C+';">'
-        +'<input id="pexp-date" type="date" value="'+todayStr+'" style="font-family:\'Space Mono\',monospace;font-size:11px;background:#0f0f11;color:'+TX+';border:1px solid '+C+';padding:7px;">'
-        +'<select id="pexp-area" style="font-family:\'Space Mono\',monospace;font-size:11px;background:#0f0f11;color:'+TX+';border:1px solid '+C+';padding:7px;">'+areaOpts+'</select>'
-        +'<select id="pexp-cat" onchange="expPanelCatChange()" style="font-family:\'Space Mono\',monospace;font-size:11px;background:#0f0f11;color:'+TX+';border:1px solid '+C+';padding:7px;min-width:150px;"></select>'
-        +'<input id="pexp-cat-new" placeholder="New category name" style="display:none;font-family:\'Space Mono\',monospace;font-size:11px;background:#0f0f11;color:'+TX+';border:1px solid #FF2D2D;padding:7px;">'
-        +'<input id="pexp-amount" type="text" inputmode="numeric" placeholder="Amount (IDR)" style="font-family:\'Space Mono\',monospace;font-size:11px;background:#0f0f11;color:'+TX+';border:1px solid '+C+';padding:7px;width:120px;">'
-        +'<input id="pexp-note" type="text" placeholder="Supplier / note (optional)" style="font-family:\'Space Mono\',monospace;font-size:11px;background:#0f0f11;color:'+TX+';border:1px solid '+C+';padding:7px;flex:1;min-width:100px;">'
-        +'<button class="dk-ghost" onclick="expPanelAdd()" style="background:#0A0A0A;color:#fff;">+ Add expense</button>'
-        +'<span id="pexp-status" style="font-family:\'Space Mono\',monospace;font-size:10px;color:'+MUT+';min-width:60px;"></span>'
+      +'<div style="padding:12px 14px;border-bottom:1px solid '+C+';">'
+        +'<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:7px;">'
+          +'<input id="pexp-date" type="date" value="'+todayStr+'" style="font-family:\'Space Mono\',monospace;font-size:11px;background:#fff;color:'+TX+';border:1px solid '+C+';padding:7px;">'
+          +'<input id="pexp-supplier" type="text" list="pexp-suppliers" placeholder="Supplier (e.g. Pepito)" style="font-family:\'Space Mono\',monospace;font-size:11px;background:#fff;color:'+TX+';border:1px solid '+C+';padding:7px;flex:1;min-width:140px;">'
+          +'<datalist id="pexp-suppliers">'+supplierOpts+'</datalist>'
+          +'<select id="pexp-area" style="font-family:\'Space Mono\',monospace;font-size:11px;background:#fff;color:'+TX+';border:1px solid '+C+';padding:7px;">'+areaOpts+'</select>'
+        +'</div>'
+        +'<div id="pexp-items"></div>'
+        +'<div style="display:flex;gap:8px;align-items:center;margin-top:2px;flex-wrap:wrap;">'
+          +'<button class="dk-ghost" onclick="expPanelAddItemRow()" style="font-size:10px;">+ add another</button>'
+          +'<button class="dk-ghost" onclick="expPanelAdd()" style="background:#0A0A0A;color:#fff;">+ Add expense</button>'
+          +'<span id="pexp-status" style="font-family:\'Space Mono\',monospace;font-size:10px;color:'+MUT+';min-width:60px;"></span>'
+        +'</div>'
       +'</div>'
       +rowsHtml
       +'<div style="display:flex;justify-content:space-between;align-items:center;padding:11px 14px;background:#111114;font-family:\'Space Mono\',monospace;font-size:12px;">'
@@ -17539,7 +17596,7 @@ window.injectWaCapture = function(confirmId, sale){
       +'</div>'
       +'<div style="padding:8px 14px;color:'+MUT+';font-family:\'Space Mono\',monospace;font-size:9px;">Staff add from the Fuel &amp; Supply pages too. Each entry flows into the Daily sales sheet and the P&amp;L under its area. Categories are grouped the same way the P&amp;L groups expenses.</div>'
       +'</div>';
-    window.buildExpCatOptions(document.getElementById('pexp-cat'));
+    window.expPanelAddItemRow();   // start with one Category + Amount row
   };
 })();
 </script>
