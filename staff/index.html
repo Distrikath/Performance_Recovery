@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMEEwQTBBIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYsNzgpIHNjYWxlKDEuMzApIiBmaWxsPSIjRjJGMkYwIj48cGF0aCBkPSJNIDAuMDYyNSAwIEwgNi42MjUgLTQxLjM5MDYyNSBMIDMzLjU5Mzc1IC00MS4zOTA2MjUgQyAzOS4wMDc4MTIgLTQxLjM5MDYyNSA0My41MDM5MDYgLTQwLjkwNjI1IDQ3LjA3ODEyNSAtMzkuOTM3NSBDIDUwLjY2MDE1NiAtMzguOTc2NTYyIDUzLjUgLTM3LjY2MDE1NiA1NS41OTM3NSAtMzUuOTg0Mzc1IEMgNTcuNjg3NSAtMzQuMzE2NDA2IDU5LjE3NTc4MSAtMzIuNDE0MDYyIDYwLjA2MjUgLTMwLjI4MTI1IEMgNjAuOTU3MDMxIC0yOC4xNTYyNSA2MS40MDYyNSAtMjUuOTIxODc1IDYxLjQwNjI1IC0yMy41NzgxMjUgQyA2MS40MDYyNSAtMjEuOTEwMTU2IDYxLjI5Njg3NSAtMjAuMzE2NDA2IDYxLjA3ODEyNSAtMTguNzk2ODc1IEMgNjAuODE2NDA2IC0xNy4wOTc2NTYgNjAuMzMyMDMxIC0xNS4zNTkzNzUgNTkuNjI1IC0xMy41NzgxMjUgQyA1OC45MjU3ODEgLTExLjc5Njg3NSA1Ny44Nzg5MDYgLTEwLjA5NzY1NiA1Ni40ODQzNzUgLTguNDg0Mzc1IEMgNTUuMDk3NjU2IC02Ljg2NzE4OCA1My4yNjk1MzEgLTUuNDIxODc1IDUxIC00LjE0MDYyNSBDIDQ4LjczODI4MSAtMi44NTkzNzUgNDUuOTIxODc1IC0xLjg0NzY1NiA0Mi41NDY4NzUgLTEuMTA5Mzc1IEMgMzkuMTcxODc1IC0wLjM2NzE4OCAzNS4xNDg0MzggMCAzMC40ODQzNzUgMCBaIE0gMjAuMjUgLTMwLjUzMTI1IEwgMTcuMTI1IC0xMC45NTMxMjUgTCAyOC42NDA2MjUgLTEwLjk1MzEyNSBDIDMxLjgzNTkzOCAtMTAuOTUzMTI1IDM0LjQ3MjY1NiAtMTEuMjUgMzYuNTQ2ODc1IC0xMS44NDM3NSBDIDM4LjYxNzE4OCAtMTIuNDM3NSA0MC4yNSAtMTMuMjA3MDMxIDQxLjQzNzUgLTE0LjE1NjI1IEMgNDIuNjI1IC0xNS4xMDE1NjIgNDMuNDg0Mzc1IC0xNi4wOTM3NSA0NC4wMTU2MjUgLTE3LjEyNSBDIDQ0LjU1NDY4OCAtMTguMTY0MDYyIDQ0Ljg5ODQzOCAtMTkuMTQ4NDM4IDQ1LjA0Njg3NSAtMjAuMDc4MTI1IEMgNDUuMjAzMTI1IC0yMS4wMDM5MDYgNDUuMjgxMjUgLTIxLjc1IDQ1LjI4MTI1IC0yMi4zMTI1IEMgNDUuMjgxMjUgLTIzLjIzODI4MSA0NS4xMTMyODEgLTI0LjE3OTY4OCA0NC43ODEyNSAtMjUuMTQwNjI1IEMgNDQuNDQ1MzEyIC0yNi4xMDkzNzUgNDMuNzk2ODc1IC0yNyA0Mi44MjgxMjUgLTI3LjgxMjUgQyA0MS44NjcxODggLTI4LjYyNSA0MC41IC0yOS4yODEyNSAzOC43MTg3NSAtMjkuNzgxMjUgQyAzNi45Mzc1IC0zMC4yODEyNSAzNC41OTc2NTYgLTMwLjUzMTI1IDMxLjcwMzEyNSAtMzAuNTMxMjUgWiBNIDIwLjI1IC0zMC41MzEyNSAiLz48L2c+PC9zdmc+">
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20261104250;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20261104251;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -9747,13 +9747,14 @@ function downloadBrandReport(brandId, reportType, period){
     csv='DISTRIK - SALES REPORT\nBrand: '+brand.name+'\nPeriod: '+periodLabel+'\n\n';
     csv+='Item,SKU,Colour,Category,Size,Qty Sold,Sale Value (IDR)\n';
     const agg={};
-    sales.forEach(s=>{ const k=s.itemId+'__'+s.size; (agg[k]=agg[k]||{qty:0,val:0}); agg[k].qty++; agg[k].val+=(s.price||0); });
+    sales.forEach(s=>{ const k=(s.itemId||s.itemName||'?')+'__'+(s.size||''); if(!agg[k])agg[k]={qty:0,val:0,s:s}; agg[k].qty++; agg[k].val+=(s.price||0); });
     let tQ=0,tV=0;
-    Object.entries(agg).sort((a,b)=>a[0].localeCompare(b[0])).forEach(([k,o])=>{
-      const [itemId,size]=k.split('__'); const item=SUPPLY_ITEMS.find(i=>i.id===itemId); if(!item) return;
-      const sl=size.replace('sz','').replace('_','/'); tQ+=o.qty; tV+=o.val;
-      csv+='"'+item.name+'","'+(item.sku||'')+'","'+(item.colour||'')+'","'+(item.category||'')+'","'+sl.toUpperCase()+'",'+o.qty+','+Math.round(o.val)+'\n';
-    });
+    // Build from the SALE record (itemName/size/price are baked into it) and only enrich SKU/Colour/Category from the
+    // catalog when the item still exists — so items later removed/renamed in the catalog are never dropped.
+    Object.keys(agg).map(k=>{ const o=agg[k],s=o.s,item=SUPPLY_ITEMS.find(i=>i.id===s.itemId)||{};
+      return {name:s.itemName||item.name||'',sku:item.sku||'',colour:item.colour||'',cat:item.category||'',size:s.size||'',o:o,sort:(s.itemName||'')+'|'+(s.size||'')}; })
+      .sort((a,b)=>a.sort.localeCompare(b.sort)).forEach(r=>{ const sl=String(r.size).replace('sz','').replace('_','/'); tQ+=r.o.qty; tV+=r.o.val;
+        csv+='"'+r.name+'","'+r.sku+'","'+r.colour+'","'+r.cat+'","'+sl.toUpperCase()+'",'+r.o.qty+','+Math.round(r.o.val)+'\n'; });
     csv+='\nItems Sold,'+tQ+'\nTotal Sales,'+Math.round(tV)+'\n';
     filename='Distrik_'+brand.name.replace(/\s+/g,'_')+'_Sales_'+periodLabel.replace(/\s+/g,'_')+'.csv';
   }
@@ -9821,13 +9822,15 @@ function downloadCombinedReport(reportType, period){
     csv='DISTRIK - SALES REPORT (ALL BRANDS)\nPeriod: '+periodLabel+'\n\n';
     csv+='Brand,Item,SKU,Colour,Category,Size,Qty Sold,Sale Value (IDR)\n';
     const agg={};
-    sales.forEach(s=>{ const k=s.itemId+'__'+s.size; (agg[k]=agg[k]||{qty:0,val:0}); agg[k].qty++; agg[k].val+=(s.price||0); });
+    sales.forEach(s=>{ const k=(s.itemId||s.itemName||'?')+'__'+(s.size||''); if(!agg[k])agg[k]={qty:0,val:0,s:s}; agg[k].qty++; agg[k].val+=(s.price||0); });
     let tQ=0,tV=0;
-    Object.entries(agg).map(([k,o])=>{ const [itemId,size]=k.split('__'); const item=SUPPLY_ITEMS.find(i=>i.id===itemId); return item?{item:item,size:size,o:o,sort:bname(item.brandId)+'|'+(item.name||'')+'|'+size}:null; })
-      .filter(Boolean).sort((a,b)=>a.sort.localeCompare(b.sort)).forEach(row=>{
-        const sl=row.size.replace('sz','').replace('_','/'); tQ+=row.o.qty; tV+=row.o.val;
-        csv+='"'+bname(row.item.brandId)+'","'+row.item.name+'","'+(row.item.sku||'')+'","'+(row.item.colour||'')+'","'+(row.item.category||'')+'","'+sl.toUpperCase()+'",'+row.o.qty+','+Math.round(row.o.val)+'\n';
-      });
+    // Build from the SALE record; enrich SKU/Colour/Category from the catalog only when the item still exists — so a
+    // sold item later removed/renamed in the catalog is never dropped from the report.
+    Object.keys(agg).map(k=>{ const o=agg[k],s=o.s,item=SUPPLY_ITEMS.find(i=>i.id===s.itemId)||{};
+      const brand=bname(s.brandId)||bname(item.brandId)||'';
+      return {brand:brand,name:s.itemName||item.name||'',sku:item.sku||'',colour:item.colour||'',cat:item.category||'',size:s.size||'',o:o,sort:brand+'|'+(s.itemName||'')+'|'+(s.size||'')}; })
+      .sort((a,b)=>a.sort.localeCompare(b.sort)).forEach(r=>{ const sl=String(r.size).replace('sz','').replace('_','/'); tQ+=r.o.qty; tV+=r.o.val;
+        csv+='"'+r.brand+'","'+r.name+'","'+r.sku+'","'+r.colour+'","'+r.cat+'","'+sl.toUpperCase()+'",'+r.o.qty+','+Math.round(r.o.val)+'\n'; });
     csv+='\nItems Sold,'+tQ+'\nTotal Sales,'+Math.round(tV)+'\n';
     filename='Distrik_AllBrands_Sales_'+periodLabel.replace(/\s+/g,'_')+'.csv';
   }
