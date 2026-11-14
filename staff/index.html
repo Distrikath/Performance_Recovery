@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMEEwQTBBIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYsNzgpIHNjYWxlKDEuMzApIiBmaWxsPSIjRjJGMkYwIj48cGF0aCBkPSJNIDAuMDYyNSAwIEwgNi42MjUgLTQxLjM5MDYyNSBMIDMzLjU5Mzc1IC00MS4zOTA2MjUgQyAzOS4wMDc4MTIgLTQxLjM5MDYyNSA0My41MDM5MDYgLTQwLjkwNjI1IDQ3LjA3ODEyNSAtMzkuOTM3NSBDIDUwLjY2MDE1NiAtMzguOTc2NTYyIDUzLjUgLTM3LjY2MDE1NiA1NS41OTM3NSAtMzUuOTg0Mzc1IEMgNTcuNjg3NSAtMzQuMzE2NDA2IDU5LjE3NTc4MSAtMzIuNDE0MDYyIDYwLjA2MjUgLTMwLjI4MTI1IEMgNjAuOTU3MDMxIC0yOC4xNTYyNSA2MS40MDYyNSAtMjUuOTIxODc1IDYxLjQwNjI1IC0yMy41NzgxMjUgQyA2MS40MDYyNSAtMjEuOTEwMTU2IDYxLjI5Njg3NSAtMjAuMzE2NDA2IDYxLjA3ODEyNSAtMTguNzk2ODc1IEMgNjAuODE2NDA2IC0xNy4wOTc2NTYgNjAuMzMyMDMxIC0xNS4zNTkzNzUgNTkuNjI1IC0xMy41NzgxMjUgQyA1OC45MjU3ODEgLTExLjc5Njg3NSA1Ny44Nzg5MDYgLTEwLjA5NzY1NiA1Ni40ODQzNzUgLTguNDg0Mzc1IEMgNTUuMDk3NjU2IC02Ljg2NzE4OCA1My4yNjk1MzEgLTUuNDIxODc1IDUxIC00LjE0MDYyNSBDIDQ4LjczODI4MSAtMi44NTkzNzUgNDUuOTIxODc1IC0xLjg0NzY1NiA0Mi41NDY4NzUgLTEuMTA5Mzc1IEMgMzkuMTcxODc1IC0wLjM2NzE4OCAzNS4xNDg0MzggMCAzMC40ODQzNzUgMCBaIE0gMjAuMjUgLTMwLjUzMTI1IEwgMTcuMTI1IC0xMC45NTMxMjUgTCAyOC42NDA2MjUgLTEwLjk1MzEyNSBDIDMxLjgzNTkzOCAtMTAuOTUzMTI1IDM0LjQ3MjY1NiAtMTEuMjUgMzYuNTQ2ODc1IC0xMS44NDM3NSBDIDM4LjYxNzE4OCAtMTIuNDM3NSA0MC4yNSAtMTMuMjA3MDMxIDQxLjQzNzUgLTE0LjE1NjI1IEMgNDIuNjI1IC0xNS4xMDE1NjIgNDMuNDg0Mzc1IC0xNi4wOTM3NSA0NC4wMTU2MjUgLTE3LjEyNSBDIDQ0LjU1NDY4OCAtMTguMTY0MDYyIDQ0Ljg5ODQzOCAtMTkuMTQ4NDM4IDQ1LjA0Njg3NSAtMjAuMDc4MTI1IEMgNDUuMjAzMTI1IC0yMS4wMDM5MDYgNDUuMjgxMjUgLTIxLjc1IDQ1LjI4MTI1IC0yMi4zMTI1IEMgNDUuMjgxMjUgLTIzLjIzODI4MSA0NS4xMTMyODEgLTI0LjE3OTY4OCA0NC43ODEyNSAtMjUuMTQwNjI1IEMgNDQuNDQ1MzEyIC0yNi4xMDkzNzUgNDMuNzk2ODc1IC0yNyA0Mi44MjgxMjUgLTI3LjgxMjUgQyA0MS44NjcxODggLTI4LjYyNSA0MC41IC0yOS4yODEyNSAzOC43MTg3NSAtMjkuNzgxMjUgQyAzNi45Mzc1IC0zMC4yODEyNSAzNC41OTc2NTYgLTMwLjUzMTI1IDMxLjcwMzEyNSAtMzAuNTMxMjUgWiBNIDIwLjI1IC0zMC41MzEyNSAiLz48L2c+PC9zdmc+">
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20261114254;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20261114255;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -12241,11 +12241,6 @@ function renderTodayBookings(){
       +((b.checkedIn && b.status!=='cancelled')?'<button class="clin-bk-act" onclick="clinUndoCheckIn(\''+id+'\')" title="Undo an accidental check-in">Undo check-in</button>':'')
       +(_needsPay?'<button class="clin-bk-act go" onclick="clinCheckOut(\''+id+'\')">Check out · IDR '+Math.round(_pinf.due).toLocaleString('id-ID')+'</button>':'')
       +(_wronglyPaid?'<button class="clin-bk-act" onclick="clinMarkUnpaid(\''+id+'\')" title="The money never actually arrived (expired link, declined card, booked as Full by mistake) — put it back to pay-on-arrival and take it out of the books">↩ Mark as unpaid</button>':'')
-      +((b.status!=='cancelled' && !isHold && !b.partner)
-        ? ((b.discPct||0)>0
-            ? '<span class="clin-bk-act" style="color:#7c3aed;border-color:#ddd6fe;background:#f5f3ff;cursor:default;" title="'+_escHtml(b.discReason||'')+'">− '+(b.discPct)+'% off</span><button class="clin-bk-act" onclick="bkClearPromo(\''+id+'\')" title="Remove the discount and restore full price">clear</button>'
-            : '<span style="font-family:\'Space Mono\',monospace;font-size:9px;color:#9a9a9e;align-self:center;letter-spacing:.06em;">Promo:</span><button class="clin-bk-act" onclick="bkApplyPromo(\''+id+'\',\'free\')" title="Athlete 100% off (DISTRIKATHLETE)">FREE</button><button class="clin-bk-act" onclick="bkApplyPromo(\''+id+'\',\'staff\')" title="Staff / family 25% off">25%</button><button class="clin-bk-act" onclick="bkApplyPromo(\''+id+'\',\'partner\')" title="Partner code 15% off — Ezequiel / The Ring / Obsidian">15%</button>')
-        : '')
       +'<button class="clin-bk-act" onclick="clinEditBooking(\''+id+'\')">Edit / move</button>'
       +'<button class="clin-bk-act" onclick="clinRebookFromId(\''+id+'\')" title="Start a new booking pre-filled with this client\'s name, WhatsApp, treatment &amp; pressure">↻ Rebook</button>'
       +'<button class="clin-bk-act danger" onclick="clinCancelBooking(\''+id+'\')">Cancel</button>'
@@ -12377,66 +12372,6 @@ function clinMarkUnpaid(id){
   }catch(e){ console.warn('clinMarkUnpaid',e); }
 }
 window.clinMarkUnpaid=clinMarkUnpaid;
-// ── ONE-TAP PROMO DISCOUNTS on a scheduled booking (Fresha walk-ins etc.) ───────────────────────
-// Fresha never sends us the promo price, so staff apply it here at check-in. Uses the SAME gross/price/discPct
-// model the rest of the system uses (gross = sticker, price = net = gross×(1−pct/100)), so edit/move and Sales
-// stay consistent and never double-discount.
-var BK_PROMOS={
-  free:   {pct:100, code:'DISTRIKATHLETE', reason:'Athlete 100% (DISTRIKATHLETE)', label:'FREE'},
-  staff:  {pct:25,  code:'STAFFFAM',       reason:'Staff / family 25%',           label:'STAFF/FAMILY 25%'},
-  partner:{pct:15,  code:'PARTNER15',      reason:'Partner 15% (Ezequiel / The Ring / Obsidian)', label:'PARTNER 15%'}
-};
-function _bkFindToday(id){ try{ var dk=(typeof clinKey==='function')?clinKey():null; var day=dk&&recoveryData&&recoveryData[dk]; if(!day||!day.bookings) return null; var b=day.bookings.find(function(x){return x.id===id;}); return b?{dk:dk,day:day,b:b}:null; }catch(e){ return null; } }
-function _bkListPrice(b){ if(b.gross!=null && b.gross>0) return Math.round(b.gross); if((b.discPct||0)>0 && b.price!=null) return Math.round(b.price/(1-(b.discPct/100))); return Math.round(b.price||0); }
-function _bkRepriceMoney(b, net){
-  // Keep the ACTUAL money state; only the new price changes what's due (mirrors clinEditBooking reprice).
-  var collected=(typeof clinCollected==='function')?Math.round(clinCollected(b)||0):0;
-  b.online=false;
-  if(collected<=0){ b.payType=(b.payType==='deposit'?'later':(b.payType||'later')); b.deposit=0; b.depositPaid=false; b.balanceDue=Math.max(0,net); b.balancePaid=(net<=0); }
-  else if(collected<net){ b.payType='deposit'; b.deposit=collected; b.depositPaid=true; b.balanceDue=Math.max(0,net-collected); b.balancePaid=false; }
-  else { b.payType='full'; b.deposit=0; b.balanceDue=0; b.balancePaid=true; }
-}
-function _bkPersistPromo(ctx, before){
-  var b=ctx.b, day=ctx.day;
-  var after=(typeof clinRevenue==='function')?clinRevenue(b):0;
-  day.revenue=Math.max(0,(day.revenue||0)-before+after);
-  var bd=b.ledgerDate||(typeof todayKey==='function'?todayKey():ctx.dk);
-  if(typeof ledgerWrite==='function'){
-    ledgerWrite('recovery', b.id, bd, (typeof clinCollected==='function'?clinCollected(b):0), 0, b.payMethod||'', b, b.status||'confirmed');
-    ledgerWrite('recovery', b.id+'_bal', bd, 0, 0, b.payMethod||'', b, b.status||'confirmed');  // clear any stale balance leg
-  }
-  if(typeof saveAll==='function') saveAll();
-  if(typeof syncSalesIncome==='function') syncSalesIncome();
-  if(typeof renderClinicalBooking==='function') renderClinicalBooking();
-  if(typeof renderClinicalOrder==='function') renderClinicalOrder();
-  if(typeof buildClinRoomGrid==='function') buildClinRoomGrid();
-}
-function bkApplyPromo(id, key){
-  var P=BK_PROMOS[key]; if(!P) return;
-  var ctx=_bkFindToday(id); if(!ctx){ return; }
-  var b=ctx.b;
-  if(b.partner){ if(typeof clinNotify==='function') clinNotify('HUMAN+ partner booking — discount is handled by the partner, not here.'); return; }
-  var listP=_bkListPrice(b), net=Math.round(listP*(1-P.pct/100));
-  var f=function(n){ return 'IDR '+Math.round(n).toLocaleString('id-ID'); };
-  if(!confirm('Apply '+P.label+' to '+(b.client||'this booking')+'?\n\n'+f(listP)+' → '+(net<=0?'FREE':f(net))+(net<=0?' — nothing to pay':' — due at Check out')+'.')) return;
-  var before=(typeof clinRevenue==='function')?clinRevenue(b):0;
-  b.gross=listP; b.price=net; b.discPct=P.pct; b.discCode=P.code; b.discReason=P.reason;
-  _bkRepriceMoney(b, net);
-  _bkPersistPromo(ctx, before);
-  if(typeof clinNotify==='function') clinNotify(P.label+' applied — '+(net<=0?'free, nothing due.':f(net)+' now due at Check out.'));
-}
-function bkClearPromo(id){
-  var ctx=_bkFindToday(id); if(!ctx) return; var b=ctx.b;
-  if(!((b.discPct||0)>0)){ return; }
-  if(!confirm('Remove the discount and restore full price for '+(b.client||'this booking')+'?')) return;
-  var before=(typeof clinRevenue==='function')?clinRevenue(b):0;
-  var listP=_bkListPrice(b);
-  b.gross=listP; b.price=listP; b.discPct=0; b.discCode=''; b.discReason='';
-  _bkRepriceMoney(b, listP);
-  _bkPersistPromo(ctx, before);
-  if(typeof clinNotify==='function') clinNotify('Discount removed — full price restored.');
-}
-window.bkApplyPromo=bkApplyPromo; window.bkClearPromo=bkClearPromo;
 function clinCheckIn(id){
   // IV / Blood check-in: mark the client as arrived. No money changes hands (HUMAN+ collects it);
   // the 20% commission stays on hold until the monthly payout.
