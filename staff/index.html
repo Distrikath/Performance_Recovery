@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMEEwQTBBIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYsNzgpIHNjYWxlKDEuMzApIiBmaWxsPSIjRjJGMkYwIj48cGF0aCBkPSJNIDAuMDYyNSAwIEwgNi42MjUgLTQxLjM5MDYyNSBMIDMzLjU5Mzc1IC00MS4zOTA2MjUgQyAzOS4wMDc4MTIgLTQxLjM5MDYyNSA0My41MDM5MDYgLTQwLjkwNjI1IDQ3LjA3ODEyNSAtMzkuOTM3NSBDIDUwLjY2MDE1NiAtMzguOTc2NTYyIDUzLjUgLTM3LjY2MDE1NiA1NS41OTM3NSAtMzUuOTg0Mzc1IEMgNTcuNjg3NSAtMzQuMzE2NDA2IDU5LjE3NTc4MSAtMzIuNDE0MDYyIDYwLjA2MjUgLTMwLjI4MTI1IEMgNjAuOTU3MDMxIC0yOC4xNTYyNSA2MS40MDYyNSAtMjUuOTIxODc1IDYxLjQwNjI1IC0yMy41NzgxMjUgQyA2MS40MDYyNSAtMjEuOTEwMTU2IDYxLjI5Njg3NSAtMjAuMzE2NDA2IDYxLjA3ODEyNSAtMTguNzk2ODc1IEMgNjAuODE2NDA2IC0xNy4wOTc2NTYgNjAuMzMyMDMxIC0xNS4zNTkzNzUgNTkuNjI1IC0xMy41NzgxMjUgQyA1OC45MjU3ODEgLTExLjc5Njg3NSA1Ny44Nzg5MDYgLTEwLjA5NzY1NiA1Ni40ODQzNzUgLTguNDg0Mzc1IEMgNTUuMDk3NjU2IC02Ljg2NzE4OCA1My4yNjk1MzEgLTUuNDIxODc1IDUxIC00LjE0MDYyNSBDIDQ4LjczODI4MSAtMi44NTkzNzUgNDUuOTIxODc1IC0xLjg0NzY1NiA0Mi41NDY4NzUgLTEuMTA5Mzc1IEMgMzkuMTcxODc1IC0wLjM2NzE4OCAzNS4xNDg0MzggMCAzMC40ODQzNzUgMCBaIE0gMjAuMjUgLTMwLjUzMTI1IEwgMTcuMTI1IC0xMC45NTMxMjUgTCAyOC42NDA2MjUgLTEwLjk1MzEyNSBDIDMxLjgzNTkzOCAtMTAuOTUzMTI1IDM0LjQ3MjY1NiAtMTEuMjUgMzYuNTQ2ODc1IC0xMS44NDM3NSBDIDM4LjYxNzE4OCAtMTIuNDM3NSA0MC4yNSAtMTMuMjA3MDMxIDQxLjQzNzUgLTE0LjE1NjI1IEMgNDIuNjI1IC0xNS4xMDE1NjIgNDMuNDg0Mzc1IC0xNi4wOTM3NSA0NC4wMTU2MjUgLTE3LjEyNSBDIDQ0LjU1NDY4OCAtMTguMTY0MDYyIDQ0Ljg5ODQzOCAtMTkuMTQ4NDM4IDQ1LjA0Njg3NSAtMjAuMDc4MTI1IEMgNDUuMjAzMTI1IC0yMS4wMDM5MDYgNDUuMjgxMjUgLTIxLjc1IDQ1LjI4MTI1IC0yMi4zMTI1IEMgNDUuMjgxMjUgLTIzLjIzODI4MSA0NS4xMTMyODEgLTI0LjE3OTY4OCA0NC43ODEyNSAtMjUuMTQwNjI1IEMgNDQuNDQ1MzEyIC0yNi4xMDkzNzUgNDMuNzk2ODc1IC0yNyA0Mi44MjgxMjUgLTI3LjgxMjUgQyA0MS44NjcxODggLTI4LjYyNSA0MC41IC0yOS4yODEyNSAzOC43MTg3NSAtMjkuNzgxMjUgQyAzNi45Mzc1IC0zMC4yODEyNSAzNC41OTc2NTYgLTMwLjUzMTI1IDMxLjcwMzEyNSAtMzAuNTMxMjUgWiBNIDIwLjI1IC0zMC41MzEyNSAiLz48L2c+PC9zdmc+">
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20261104251;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20261114254;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -4002,7 +4002,7 @@ function saveAll(){
       fuelData,
       supplyData,
       DISCOUNTS,
-      STAFF: STAFF.map(s=>({id:s.id,name:s.name,abbr:s.abbr,role:s.role,col:s.col,salary:s.salary,group:s.group||'Operations',pin:s.pin||'1234',weeklyHours:(s.weeklyHours!=null?s.weeklyHours:48),employment:(s.employment||'full'),startDate:(s.startDate||'2026-09-01')})),
+      STAFF: STAFF.map(s=>({id:s.id,name:s.name,abbr:s.abbr,role:s.role,col:s.col,salary:s.salary,group:s.group||'Operations',pin:s.pin||'1234',weeklyHours:(s.weeklyHours!=null?s.weeklyHours:48),employment:(s.employment||'full'),startDate:(s.startDate||'2026-09-01'),leftDate:(s.leftDate||'')})),
       _cfgTs: _prevCfgTs,
       _salesEpoch: (window._salesEpoch||0),   // "cleared watermark" — devices won't resurrect sales created before this
       _deletedIds: (window._deletedIds||{}),  // tombstones — ids permanently deleted; no device ever resurrects them
@@ -4072,7 +4072,8 @@ function loadAll(){
         pin:   saved.pin   || '1234',
         weeklyHours: (saved.weeklyHours!=null?saved.weeklyHours:48),   // was dropped on restore → part-timers reverted to full-time/48
         employment:  (saved.employment||'full'),
-        startDate:   (saved.startDate||'2026-09-01')
+        startDate:   (saved.startDate||'2026-09-01'),
+        leftDate:    (saved.leftDate||'')   // '' = still employed; a date = last working day (dropped from roster + payroll AFTER this day)
       })));
       Object.keys(STAFF_MAP).forEach(k=>delete STAFF_MAP[k]);
       STAFF.forEach(s=>STAFF_MAP[s.id]=s);
@@ -5761,7 +5762,7 @@ function buildSettingsStaff(){
       ondragover="staffDragOver(event)"
       ondrop="staffDrop(event,${i})"
       ondragend="staffDragEnd()"
-      style="display:grid;grid-template-columns:20px 26px 1.2fr 1.2fr 96px 104px 62px 78px 62px 74px;gap:6px;align-items:center;margin-bottom:6px;padding:6px 4px;border-bottom:1px solid #f0f0f0;border-radius:2px;transition:background .1s;">
+      style="display:grid;grid-template-columns:20px 26px 1.2fr 1.2fr 96px 104px 62px 78px 62px 104px 74px;gap:6px;align-items:center;margin-bottom:6px;padding:6px 4px;border-bottom:1px solid #f0f0f0;border-radius:2px;transition:background .1s;">
       <div style="cursor:grab;color:#ccc;font-size:14px;text-align:center;user-select:none;" title="Drag to reorder">⠿</div>
       <input type="color" value="${s.col}" id="stf_col_${i}"
         style="width:26px;height:26px;border-radius:50%;border:2px solid #e8e8e8;cursor:pointer;padding:0;background:${s.col}"
@@ -5780,6 +5781,7 @@ function buildSettingsStaff(){
         <option value="part" ${s.employment==='part'?'selected':''}>Part-t</option>
       </select>
       <input class="svc-input" id="stf_pin_${i}" value="${s.pin||'1234'}" type="text" maxlength="4" placeholder="PIN" style="font-family:'Space Mono',monospace;font-size:10px;">
+      <input class="svc-input" id="stf_left_${i}" value="${s.leftDate||''}" type="date" title="Left / last working day — leave blank if still employed. After this date they drop off the roster and out of payroll (their final month still pays normally)." style="font-family:'Space Mono',monospace;font-size:9px;">
       <button onclick="settingsRemoveStaff(${i})" style="background:transparent;border:1px solid #e0e0e0;border-radius:2px;color:#999;font-family:'Space Mono',monospace;font-size:9px;padding:5px 4px;cursor:pointer;letter-spacing:.5px;">Remove</button>
     </div>`;
   }).join('');
@@ -5882,6 +5884,8 @@ function saveSettings(){
     if(emp==='full'||emp==='part') s.employment=emp;
     const pin = document.getElementById('stf_pin_'+i)?.value.trim();
     if(pin&&pin.length===4&&/^\d{4}$/.test(pin)) s.pin=pin;
+    const left = document.getElementById('stf_left_'+i)?.value;
+    if(left!==undefined) s.leftDate = (left||'');   // blank clears it (re-employ); a date sets last working day
     if(col)   s.col=col;
   });
   // Save zones
@@ -6602,7 +6606,7 @@ window.downloadSalaryReport=function(){
   var csv='DISTRIK — SALARY + TAX BASIS ('+ym+')\nSalary + commission,paid MONTHLY (end of month)\nService fee + commission cycle,'+((cyc[0]||'')+' to '+(cyc[cyc.length-1]||''))+' (service-fee tips handed out 15th; all folded into this month for PPh21/BPJS)\n\n';
   csv+='Staff,Base salary (IDR),Service fee (IDR),Commission (IDR),Gross taxable (IDR)\n';
   var TS=0,TSv=0,TC=0,TG=0;
-  (typeof STAFF!=='undefined'?STAFF:[]).forEach(function(s){ if(!s) return; var inc=_payrollIncome(s,ym); TS+=inc.salary; TSv+=inc.service; TC+=inc.commission; TG+=inc.gross; csv+='"'+(s.name||s.id)+'",'+_rf(inc.salary)+','+_rf(inc.service)+','+_rf(inc.commission)+','+_rf(inc.gross)+'\n'; });
+  (typeof STAFF!=='undefined'?STAFF:[]).filter(function(s){ return typeof _staffActiveInMonth!=='function'||_staffActiveInMonth(s,ym); }).forEach(function(s){ if(!s) return; var inc=_payrollIncome(s,ym); TS+=inc.salary; TSv+=inc.service; TC+=inc.commission; TG+=inc.gross; csv+='"'+(s.name||s.id)+'",'+_rf(inc.salary)+','+_rf(inc.service)+','+_rf(inc.commission)+','+_rf(inc.gross)+'\n'; });
   csv+='TOTAL,'+_rf(TS)+','+_rf(TSv)+','+_rf(TC)+','+_rf(TG)+'\n';
   _dlCSV('Distrik_Salary_Tax_'+ym+'.csv', csv);
 };
@@ -9677,15 +9681,35 @@ function renderSupInvSplit(){
 
 
 // ── BRAND SALES REPORT (CSV + XLSX-style download) ───────────────
+// Flat supply-sale rows derived STRAIGHT from the authoritative ledger (kind:'supply' → detail.rows,
+// falling back to detail.order.items for older docs saved without a rows array). The in-memory
+// SUPPLY_SALES array is transiently emptied by a config sync before the ledger rebuild repopulates it,
+// which made reports export 0 / near-0 depending on timing — the ledger docs are always complete.
+function _supplySalesFromLedger(){
+  var out=[], docs=(typeof window!=='undefined'&&window._lastLedgerDocs)||[];
+  docs.forEach(function(r){ if(!r||r.kind!=='supply') return;
+    if(String(r.status||'').toLowerCase()==='cancelled') return;
+    var det={}; try{ det=r.detail?JSON.parse(r.detail):{}; }catch(e){}
+    if(det.rows&&det.rows.length){
+      det.rows.forEach(function(x){ if(!x) return; var row=Object.assign({},x); if(!row.date) row.date=r.bizDate||''; out.push(row); });
+    } else if(det.order&&det.order.items&&det.order.items.length){
+      det.order.items.forEach(function(it){ if(!it) return; var q=Math.max(1,parseInt(it.qty,10)||1);
+        for(var n=0;n<q;n++) out.push({itemName:it.name||'',size:it.size||'',qty:1,price:it.price||0,itemId:it.itemId||it.id||'',brandId:it.brandId||'',date:r.bizDate||'',method:(det.order.method||r.method||'')}); });
+    }
+  });
+  // Only fall back to the in-memory array if the ledger cache hasn't loaded yet.
+  if(!out.length && typeof SUPPLY_SALES!=='undefined' && SUPPLY_SALES.length) return SUPPLY_SALES.slice();
+  return out;
+}
 function downloadBrandReport(brandId, reportType, period){
   const brand = BRANDS.find(b=>b.id===brandId);
   if(!brand){ alert('Brand not found.'); return; }
   const baliNowD = baliNow();
   const monthKey = baliNowD.toLocaleDateString('en-CA',{timeZone:BALI_TZ}).slice(0,7);
   const weekStart = (()=>{ const d=baliNow(); const day=d.getDay(); d.setDate(d.getDate()-(day===0?6:day-1)); return d.toLocaleDateString('en-CA',{timeZone:BALI_TZ}); })();
-  let sales = SUPPLY_SALES.filter(s=>s.brandId===brandId);
-  if(period==='month') sales = sales.filter(s=>s.date.startsWith(monthKey));
-  if(period==='week')  sales = sales.filter(s=>s.date>=weekStart);
+  let sales = _supplySalesFromLedger().filter(s=>s.brandId===brandId);
+  if(period==='month') sales = sales.filter(s=>s.date&&s.date.startsWith(monthKey));
+  if(period==='week')  sales = sales.filter(s=>s.date&&s.date>=weekStart);
   const fmt = n => Math.round(n).toLocaleString('id-ID');
   const periodLabel = period==='month' ? baliNowD.toLocaleDateString('en-GB',{timeZone:BALI_TZ,month:'long',year:'numeric'}) : period==='week' ? 'Week of '+weekStart : 'All Time';
   let csv='', filename='';
@@ -9773,7 +9797,7 @@ function downloadCombinedReport(reportType, period){
   const baliNowD=baliNow();
   const monthKey=baliNowD.toLocaleDateString('en-CA',{timeZone:BALI_TZ}).slice(0,7);
   const weekStart=(()=>{const d=baliNow();const day=d.getDay();d.setDate(d.getDate()-(day===0?6:day-1));return d.toLocaleDateString('en-CA',{timeZone:BALI_TZ});})();
-  let sales=(typeof SUPPLY_SALES!=='undefined'?SUPPLY_SALES:[]).slice();
+  let sales=_supplySalesFromLedger();
   if(period==='month') sales=sales.filter(s=>s.date&&s.date.startsWith(monthKey));
   if(period==='week')  sales=sales.filter(s=>s.date&&s.date>=weekStart);
   const periodLabel=period==='month'?baliNowD.toLocaleDateString('en-GB',{timeZone:BALI_TZ,month:'long',year:'numeric'}):period==='week'?'Week of '+weekStart:'All Time';
@@ -12217,6 +12241,11 @@ function renderTodayBookings(){
       +((b.checkedIn && b.status!=='cancelled')?'<button class="clin-bk-act" onclick="clinUndoCheckIn(\''+id+'\')" title="Undo an accidental check-in">Undo check-in</button>':'')
       +(_needsPay?'<button class="clin-bk-act go" onclick="clinCheckOut(\''+id+'\')">Check out · IDR '+Math.round(_pinf.due).toLocaleString('id-ID')+'</button>':'')
       +(_wronglyPaid?'<button class="clin-bk-act" onclick="clinMarkUnpaid(\''+id+'\')" title="The money never actually arrived (expired link, declined card, booked as Full by mistake) — put it back to pay-on-arrival and take it out of the books">↩ Mark as unpaid</button>':'')
+      +((b.status!=='cancelled' && !isHold && !b.partner)
+        ? ((b.discPct||0)>0
+            ? '<span class="clin-bk-act" style="color:#7c3aed;border-color:#ddd6fe;background:#f5f3ff;cursor:default;" title="'+_escHtml(b.discReason||'')+'">− '+(b.discPct)+'% off</span><button class="clin-bk-act" onclick="bkClearPromo(\''+id+'\')" title="Remove the discount and restore full price">clear</button>'
+            : '<span style="font-family:\'Space Mono\',monospace;font-size:9px;color:#9a9a9e;align-self:center;letter-spacing:.06em;">Promo:</span><button class="clin-bk-act" onclick="bkApplyPromo(\''+id+'\',\'free\')" title="Athlete 100% off (DISTRIKATHLETE)">FREE</button><button class="clin-bk-act" onclick="bkApplyPromo(\''+id+'\',\'staff\')" title="Staff / family 25% off">25%</button><button class="clin-bk-act" onclick="bkApplyPromo(\''+id+'\',\'partner\')" title="Partner code 15% off — Ezequiel / The Ring / Obsidian">15%</button>')
+        : '')
       +'<button class="clin-bk-act" onclick="clinEditBooking(\''+id+'\')">Edit / move</button>'
       +'<button class="clin-bk-act" onclick="clinRebookFromId(\''+id+'\')" title="Start a new booking pre-filled with this client\'s name, WhatsApp, treatment &amp; pressure">↻ Rebook</button>'
       +'<button class="clin-bk-act danger" onclick="clinCancelBooking(\''+id+'\')">Cancel</button>'
@@ -12348,6 +12377,66 @@ function clinMarkUnpaid(id){
   }catch(e){ console.warn('clinMarkUnpaid',e); }
 }
 window.clinMarkUnpaid=clinMarkUnpaid;
+// ── ONE-TAP PROMO DISCOUNTS on a scheduled booking (Fresha walk-ins etc.) ───────────────────────
+// Fresha never sends us the promo price, so staff apply it here at check-in. Uses the SAME gross/price/discPct
+// model the rest of the system uses (gross = sticker, price = net = gross×(1−pct/100)), so edit/move and Sales
+// stay consistent and never double-discount.
+var BK_PROMOS={
+  free:   {pct:100, code:'DISTRIKATHLETE', reason:'Athlete 100% (DISTRIKATHLETE)', label:'FREE'},
+  staff:  {pct:25,  code:'STAFFFAM',       reason:'Staff / family 25%',           label:'STAFF/FAMILY 25%'},
+  partner:{pct:15,  code:'PARTNER15',      reason:'Partner 15% (Ezequiel / The Ring / Obsidian)', label:'PARTNER 15%'}
+};
+function _bkFindToday(id){ try{ var dk=(typeof clinKey==='function')?clinKey():null; var day=dk&&recoveryData&&recoveryData[dk]; if(!day||!day.bookings) return null; var b=day.bookings.find(function(x){return x.id===id;}); return b?{dk:dk,day:day,b:b}:null; }catch(e){ return null; } }
+function _bkListPrice(b){ if(b.gross!=null && b.gross>0) return Math.round(b.gross); if((b.discPct||0)>0 && b.price!=null) return Math.round(b.price/(1-(b.discPct/100))); return Math.round(b.price||0); }
+function _bkRepriceMoney(b, net){
+  // Keep the ACTUAL money state; only the new price changes what's due (mirrors clinEditBooking reprice).
+  var collected=(typeof clinCollected==='function')?Math.round(clinCollected(b)||0):0;
+  b.online=false;
+  if(collected<=0){ b.payType=(b.payType==='deposit'?'later':(b.payType||'later')); b.deposit=0; b.depositPaid=false; b.balanceDue=Math.max(0,net); b.balancePaid=(net<=0); }
+  else if(collected<net){ b.payType='deposit'; b.deposit=collected; b.depositPaid=true; b.balanceDue=Math.max(0,net-collected); b.balancePaid=false; }
+  else { b.payType='full'; b.deposit=0; b.balanceDue=0; b.balancePaid=true; }
+}
+function _bkPersistPromo(ctx, before){
+  var b=ctx.b, day=ctx.day;
+  var after=(typeof clinRevenue==='function')?clinRevenue(b):0;
+  day.revenue=Math.max(0,(day.revenue||0)-before+after);
+  var bd=b.ledgerDate||(typeof todayKey==='function'?todayKey():ctx.dk);
+  if(typeof ledgerWrite==='function'){
+    ledgerWrite('recovery', b.id, bd, (typeof clinCollected==='function'?clinCollected(b):0), 0, b.payMethod||'', b, b.status||'confirmed');
+    ledgerWrite('recovery', b.id+'_bal', bd, 0, 0, b.payMethod||'', b, b.status||'confirmed');  // clear any stale balance leg
+  }
+  if(typeof saveAll==='function') saveAll();
+  if(typeof syncSalesIncome==='function') syncSalesIncome();
+  if(typeof renderClinicalBooking==='function') renderClinicalBooking();
+  if(typeof renderClinicalOrder==='function') renderClinicalOrder();
+  if(typeof buildClinRoomGrid==='function') buildClinRoomGrid();
+}
+function bkApplyPromo(id, key){
+  var P=BK_PROMOS[key]; if(!P) return;
+  var ctx=_bkFindToday(id); if(!ctx){ return; }
+  var b=ctx.b;
+  if(b.partner){ if(typeof clinNotify==='function') clinNotify('HUMAN+ partner booking — discount is handled by the partner, not here.'); return; }
+  var listP=_bkListPrice(b), net=Math.round(listP*(1-P.pct/100));
+  var f=function(n){ return 'IDR '+Math.round(n).toLocaleString('id-ID'); };
+  if(!confirm('Apply '+P.label+' to '+(b.client||'this booking')+'?\n\n'+f(listP)+' → '+(net<=0?'FREE':f(net))+(net<=0?' — nothing to pay':' — due at Check out')+'.')) return;
+  var before=(typeof clinRevenue==='function')?clinRevenue(b):0;
+  b.gross=listP; b.price=net; b.discPct=P.pct; b.discCode=P.code; b.discReason=P.reason;
+  _bkRepriceMoney(b, net);
+  _bkPersistPromo(ctx, before);
+  if(typeof clinNotify==='function') clinNotify(P.label+' applied — '+(net<=0?'free, nothing due.':f(net)+' now due at Check out.'));
+}
+function bkClearPromo(id){
+  var ctx=_bkFindToday(id); if(!ctx) return; var b=ctx.b;
+  if(!((b.discPct||0)>0)){ return; }
+  if(!confirm('Remove the discount and restore full price for '+(b.client||'this booking')+'?')) return;
+  var before=(typeof clinRevenue==='function')?clinRevenue(b):0;
+  var listP=_bkListPrice(b);
+  b.gross=listP; b.price=listP; b.discPct=0; b.discCode=''; b.discReason='';
+  _bkRepriceMoney(b, listP);
+  _bkPersistPromo(ctx, before);
+  if(typeof clinNotify==='function') clinNotify('Discount removed — full price restored.');
+}
+window.bkApplyPromo=bkApplyPromo; window.bkClearPromo=bkClearPromo;
 function clinCheckIn(id){
   // IV / Blood check-in: mark the client as arrived. No money changes hands (HUMAN+ collects it);
   // the 20% commission stays on hold until the monthly payout.
@@ -14253,7 +14342,7 @@ window.showRoomCalendar=showRoomCalendar;
       </div>
       <div style="padding:12px 14px;">
         <!-- Column headers -->
-        <div style="display:grid;grid-template-columns:20px 26px 1.2fr 1.2fr 96px 104px 62px 78px 62px 74px;gap:6px;margin-bottom:8px;padding:0 4px 6px;border-bottom:1px solid #e8e8e8;font-family:'Space Mono',monospace;font-size:9px;color:#999;letter-spacing:1px;text-transform:uppercase;">
+        <div style="display:grid;grid-template-columns:20px 26px 1.2fr 1.2fr 96px 104px 62px 78px 62px 104px 74px;gap:6px;margin-bottom:8px;padding:0 4px 6px;border-bottom:1px solid #e8e8e8;font-family:'Space Mono',monospace;font-size:9px;color:#999;letter-spacing:1px;text-transform:uppercase;">
           <div></div>
           <div></div>
           <div>Name</div>
@@ -14263,6 +14352,7 @@ window.showRoomCalendar=showRoomCalendar;
           <div>Hrs/wk</div>
           <div>Full/Part</div>
           <div>PIN</div>
+          <div>Left date</div>
           <div></div>
         </div>
         <div id="settings-staff-list"></div>
@@ -16132,14 +16222,20 @@ function _therapistCommForKeys(therId,keys){ var th=0,iv=0; (keys||[]).forEach(f
 var UNPAID_LEAVE_REASONS={ unpaid_leave:1, unapproved_absence:1 };
 // Distinct days in a calendar month that this person is actually rostered (from that date's saved roster or the
 // weekday template) — the denominator for the daily rate, so a part-timer's day costs more than a full-timer's.
+// A leaver's last working day: blank = still employed. Used to drop them from roster + payroll AFTER this date.
+function _staffLeftDate(sid){ try{ var s=(typeof getStaff==='function')?getStaff(sid):null; return (s&&s.leftDate)||''; }catch(e){ return ''; } }
+// Is this person on payroll for a given YYYY-MM? Yes unless they left before that month started (their final month still pays).
+function _staffActiveInMonth(s, ym){ try{ var ld=(s&&s.leftDate)||''; if(!ld) return true; var mStart=String(ym).slice(0,7)+'-01'; return ld>=mStart; }catch(e){ return true; } }
 function _scheduledDaysInMonth(sid,y,m){
   try{
     var zones=(typeof getLeafZones==='function')?getLeafZones():[];
     var dayNames=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
     var lastDay=new Date(y,m,0).getDate(), count=0;
+    var _ld=_staffLeftDate(sid);  // stop counting rostered days after the person's last working day
     for(var dd=1;dd<=lastDay;dd++){
       var dt=new Date(y,m-1,dd);
       var dk=y+'-'+('0'+m).slice(-2)+'-'+('0'+dd).slice(-2);
+      if(_ld&&dk>_ld) continue;
       var dn=dayNames[dt.getDay()];
       var roster=(typeof dailyOverrides!=='undefined'&&dailyOverrides&&dailyOverrides[dk])?dailyOverrides[dk]:((typeof _baseGrid!=='undefined'&&_baseGrid&&_baseGrid[dn])?_baseGrid[dn]:((typeof grid!=='undefined'&&grid[dn])||null));
       if(!roster) continue;
@@ -16311,7 +16407,7 @@ window.renderPayroll=function(preserve){
   var ym=_payMonthNow(); var mp=ym.split('-');
   var mLbl=['January','February','March','April','May','June','July','August','September','October','November','December'][+mp[1]-1]+' '+mp[0];
   var cyc=_cycleKeysForMonth(ym); var cycLbl=cyc.length?(cyc[0]+' → '+cyc[cyc.length-1]):'';
-  var staff=(typeof STAFF!=='undefined')?STAFF:[];
+  var staff=((typeof STAFF!=='undefined')?STAFF:[]).filter(function(s){ return _staffActiveInMonth(s,ym); });  // leavers drop off from the month AFTER their left date
   var C='#dde1e4', MUT='#777', TX='#0A0A0A';
   var inp='font-family:\'Space Mono\',monospace;font-size:11px;background:#0f0f11;color:'+TX+';border:1px solid '+C+';padding:6px;width:110px;box-sizing:border-box;';
   var hint=function(v){return '<div style="color:'+MUT+';font-size:8px;margin-top:2px;">≈ '+_pf(v)+' (of salary)</div>';};
