@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMEEwQTBBIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYsNzgpIHNjYWxlKDEuMzApIiBmaWxsPSIjRjJGMkYwIj48cGF0aCBkPSJNIDAuMDYyNSAwIEwgNi42MjUgLTQxLjM5MDYyNSBMIDMzLjU5Mzc1IC00MS4zOTA2MjUgQyAzOS4wMDc4MTIgLTQxLjM5MDYyNSA0My41MDM5MDYgLTQwLjkwNjI1IDQ3LjA3ODEyNSAtMzkuOTM3NSBDIDUwLjY2MDE1NiAtMzguOTc2NTYyIDUzLjUgLTM3LjY2MDE1NiA1NS41OTM3NSAtMzUuOTg0Mzc1IEMgNTcuNjg3NSAtMzQuMzE2NDA2IDU5LjE3NTc4MSAtMzIuNDE0MDYyIDYwLjA2MjUgLTMwLjI4MTI1IEMgNjAuOTU3MDMxIC0yOC4xNTYyNSA2MS40MDYyNSAtMjUuOTIxODc1IDYxLjQwNjI1IC0yMy41NzgxMjUgQyA2MS40MDYyNSAtMjEuOTEwMTU2IDYxLjI5Njg3NSAtMjAuMzE2NDA2IDYxLjA3ODEyNSAtMTguNzk2ODc1IEMgNjAuODE2NDA2IC0xNy4wOTc2NTYgNjAuMzMyMDMxIC0xNS4zNTkzNzUgNTkuNjI1IC0xMy41NzgxMjUgQyA1OC45MjU3ODEgLTExLjc5Njg3NSA1Ny44Nzg5MDYgLTEwLjA5NzY1NiA1Ni40ODQzNzUgLTguNDg0Mzc1IEMgNTUuMDk3NjU2IC02Ljg2NzE4OCA1My4yNjk1MzEgLTUuNDIxODc1IDUxIC00LjE0MDYyNSBDIDQ4LjczODI4MSAtMi44NTkzNzUgNDUuOTIxODc1IC0xLjg0NzY1NiA0Mi41NDY4NzUgLTEuMTA5Mzc1IEMgMzkuMTcxODc1IC0wLjM2NzE4OCAzNS4xNDg0MzggMCAzMC40ODQzNzUgMCBaIE0gMjAuMjUgLTMwLjUzMTI1IEwgMTcuMTI1IC0xMC45NTMxMjUgTCAyOC42NDA2MjUgLTEwLjk1MzEyNSBDIDMxLjgzNTkzOCAtMTAuOTUzMTI1IDM0LjQ3MjY1NiAtMTEuMjUgMzYuNTQ2ODc1IC0xMS44NDM3NSBDIDM4LjYxNzE4OCAtMTIuNDM3NSA0MC4yNSAtMTMuMjA3MDMxIDQxLjQzNzUgLTE0LjE1NjI1IEMgNDIuNjI1IC0xNS4xMDE1NjIgNDMuNDg0Mzc1IC0xNi4wOTM3NSA0NC4wMTU2MjUgLTE3LjEyNSBDIDQ0LjU1NDY4OCAtMTguMTY0MDYyIDQ0Ljg5ODQzOCAtMTkuMTQ4NDM4IDQ1LjA0Njg3NSAtMjAuMDc4MTI1IEMgNDUuMjAzMTI1IC0yMS4wMDM5MDYgNDUuMjgxMjUgLTIxLjc1IDQ1LjI4MTI1IC0yMi4zMTI1IEMgNDUuMjgxMjUgLTIzLjIzODI4MSA0NS4xMTMyODEgLTI0LjE3OTY4OCA0NC43ODEyNSAtMjUuMTQwNjI1IEMgNDQuNDQ1MzEyIC0yNi4xMDkzNzUgNDMuNzk2ODc1IC0yNyA0Mi44MjgxMjUgLTI3LjgxMjUgQyA0MS44NjcxODggLTI4LjYyNSA0MC41IC0yOS4yODEyNSAzOC43MTg3NSAtMjkuNzgxMjUgQyAzNi45Mzc1IC0zMC4yODEyNSAzNC41OTc2NTYgLTMwLjUzMTI1IDMxLjcwMzEyNSAtMzAuNTMxMjUgWiBNIDIwLjI1IC0zMC41MzEyNSAiLz48L2c+PC9zdmc+">
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20261114258;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20261115259;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -6079,6 +6079,7 @@ const HOME_TILES = [
   {id:'roster',  icon:'', name:'Weekly Roster',  desc:'Drag & drop\nShift management',          col:'#3b82f6', access:['admin','pos_fr','pos_sup','staff']},
   {id:'schedule',icon:'', name:'Booking Schedule',desc:'Read-only\nWho’s booked · scroll dates', col:'#14b8a6', access:['admin','pos_fr','pos_sup','staff']},
   {id:'payroll', icon:'', name:'Payroll',         desc:'Monthly pay picture\nSalary · tips · commission', col:'#f5c842', access:['admin']},
+  {id:'reports', icon:'', name:'Reports',         desc:'All reports in one place\nSales by hour · dept P&L · exports', col:'#0ea5e9', access:['admin']},
 ];
 
 // Staff also get a personal tile
@@ -6221,7 +6222,167 @@ function goToModule(id){
   else if(id==='myaccount'){ showMyAccount(); }
   else if(id==='schedule'){ showSchedule(); }
   else if(id==='payroll'){ showPayroll(); }
+  else if(id==='reports'){ showReports(); }
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  REPORTS HUB  — every report in one place + two new ones (sales-by-hour, dept P&L)
+// ══════════════════════════════════════════════════════════════════════════════
+// Department → staff for WAGES. Fuel = Jason, Supply = Markus, Recovery = everyone else
+// (all therapists + the rest of front-of-house). Derived so new hires fall into Recovery by default.
+function _rptDeptStaff(){
+  var fuel=['SA'], supply=['SD'];
+  var all=(typeof STAFF!=='undefined'?STAFF:[]).map(function(s){return s.id;});
+  var recovery=all.filter(function(id){ return fuel.indexOf(id)<0 && supply.indexOf(id)<0; });
+  return {recovery:recovery, fuel:fuel, supply:supply};
+}
+var _RPT_F=function(n){ return 'IDR '+Math.round(+n||0).toLocaleString('id-ID'); };
+function _rptBaliYMD(d){ return d.toLocaleDateString('en-CA',{timeZone:BALI_TZ}); }
+// period → {start,end,label} (YYYY-MM-DD inclusive)
+function _rptRange(period){
+  var now=(typeof baliNow==='function'?baliNow():new Date());
+  if(period==='week'){ var d=new Date(now); var day=d.getDay(); d.setDate(d.getDate()-(day===0?6:day-1)); var s=_rptBaliYMD(d); var e=new Date(d); e.setDate(e.getDate()+6); return {start:s,end:_rptBaliYMD(e),label:'Week of '+s}; }
+  if(period==='month'){ var y=now.getFullYear(),m=now.getMonth(); var s=y+'-'+('0'+(m+1)).slice(-2)+'-01'; var last=new Date(y,m+1,0).getDate(); return {start:s,end:y+'-'+('0'+(m+1)).slice(-2)+'-'+('0'+last).slice(-2),label:now.toLocaleDateString('en-GB',{timeZone:BALI_TZ,month:'long',year:'numeric'})}; }
+  if(period==='quarter'){ var y=now.getFullYear(),q=Math.floor(now.getMonth()/3); var sm=q*3, em=sm+2; var s=y+'-'+('0'+(sm+1)).slice(-2)+'-01'; var last=new Date(y,em+1,0).getDate(); return {start:s,end:y+'-'+('0'+(em+1)).slice(-2)+'-'+('0'+last).slice(-2),label:'Q'+(q+1)+' '+y}; }
+  if(period==='custom'){ var a=(document.getElementById('rpt-from')||{}).value||'', b=(document.getElementById('rpt-to')||{}).value||''; if(!a||!b) return null; return {start:(a<b?a:b),end:(a<b?b:a),label:a+' → '+b}; }
+  return null;
+}
+function _rptDays(r){ var out=[]; var d=new Date(r.start+'T12:00:00'), e=new Date(r.end+'T12:00:00'); while(d<=e){ out.push(_rptBaliYMD(d)); d.setDate(d.getDate()+1); } return out; }
+function _rptHour(t){ var m=String(t||'').match(/(\d{1,2}):(\d{2})/); if(!m){ var a=String(t||'').match(/(\d{1,2})\s*(am|pm)/i); if(a){ var h=parseInt(a[1]); if(/pm/i.test(a[2])&&h!==12)h+=12; if(/am/i.test(a[2])&&h===12)h=0; return h; } return null; } return parseInt(m[1]); }
+
+window.showReports=function(){
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('on');});
+  var tb=document.getElementById('topNav'); if(tb) tb.style.display='flex';
+  var el=document.getElementById('panel-reports');
+  if(!el){ el=document.createElement('div'); el.id='panel-reports'; el.className='panel'; document.body.appendChild(el); }
+  el.classList.add('on');
+  var bc=document.getElementById('nav-breadcrumb'); if(bc) bc.textContent='Reports';
+  if(!window._rptHourPeriod) window._rptHourPeriod='week';
+  if(!window._rptDeptPeriod) window._rptDeptPeriod='week';
+  renderReports();
+};
+function _rptPeriodBtns(which,active){
+  return ['week','month','quarter','custom'].map(function(p){
+    var lbl={week:'This week',month:'This month',quarter:'This quarter',custom:'Custom'}[p];
+    var on=(active===p);
+    return '<button onclick="rptSetPeriod(\''+which+'\',\''+p+'\')" style="font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:.05em;padding:6px 11px;border:1px solid '+(on?'#0A0A0A':'#d3d3ce')+';background:'+(on?'#0A0A0A':'#fff')+';color:'+(on?'#fff':'#0A0A0A')+';cursor:pointer;border-radius:3px;">'+lbl+'</button>';
+  }).join('');
+}
+window.rptSetPeriod=function(which,p){ if(which==='hour') window._rptHourPeriod=p; else window._rptDeptPeriod=p; renderReports(); if(p!=='custom'){ if(which==='hour') rptSalesByHour(); else rptDeptDaily(); } };
+function renderReports(){
+  var el=document.getElementById('panel-reports'); if(!el) return;
+  var C='#e0e0e0', MUT='#777', TX='#0A0A0A';
+  var card=function(title,body){ return '<div style="border:1px solid '+C+';border-radius:8px;margin-bottom:18px;background:#fff;"><div style="padding:12px 16px;border-bottom:1px solid '+C+';font-family:\'Space Mono\',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:'+TX+';font-weight:700;">'+title+'</div><div style="padding:16px;">'+body+'</div></div>'; };
+  var customRow='<span style="display:inline-flex;gap:6px;align-items:center;margin-left:8px;"><input type="date" id="rpt-from" value="'+((document.getElementById('rpt-from')||{}).value||'')+'" style="font-family:\'Space Mono\',monospace;font-size:10px;padding:5px;border:1px solid #d3d3ce;border-radius:3px;"><span style="color:'+MUT+';">→</span><input type="date" id="rpt-to" value="'+((document.getElementById('rpt-to')||{}).value||'')+'" style="font-family:\'Space Mono\',monospace;font-size:10px;padding:5px;border:1px solid #d3d3ce;border-radius:3px;"></span>';
+  // SALES BY HOUR
+  var hourBody='<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:12px;">'+_rptPeriodBtns('hour',window._rptHourPeriod)+(window._rptHourPeriod==='custom'?customRow:'')+'<button onclick="rptSalesByHour()" style="font-family:\'Space Mono\',monospace;font-size:10px;padding:6px 14px;background:#0ea5e9;color:#fff;border:none;border-radius:3px;cursor:pointer;margin-left:6px;">Run →</button><button onclick="rptSalesByHour(true)" class="dk-ghost" style="margin-left:4px;">↓ CSV</button></div><div id="rpt-hour-out" style="font-family:\'Space Mono\',monospace;font-size:11px;color:'+MUT+';">Pick a period and press Run. Shows takings &amp; number of sales per hour (Recovery / Fuel / Supply) — the busy windows to staff to.</div>';
+  // DEPARTMENT DAILY
+  var deptBody='<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:12px;">'+_rptPeriodBtns('dept',window._rptDeptPeriod)+(window._rptDeptPeriod==='custom'?customRow:'')+'<button onclick="rptDeptDaily()" style="font-family:\'Space Mono\',monospace;font-size:10px;padding:6px 14px;background:#0ea5e9;color:#fff;border:none;border-radius:3px;cursor:pointer;margin-left:6px;">Run →</button><button onclick="rptDeptDaily(true)" class="dk-ghost" style="margin-left:4px;">↓ CSV</button></div><div id="rpt-dept-out" style="font-family:\'Space Mono\',monospace;font-size:11px;color:'+MUT+';">Sales vs wages vs expenses per department, by day. Recovery = therapists + front of house · Fuel = Jason · Supply = Markus.</div>';
+  // EXISTING REPORTS (links to the functions already in the app)
+  var ex=function(label,fn){ return '<button onclick="'+fn+'" class="dk-ghost" style="margin:3px;">'+label+'</button>'; };
+  var existingBody=''
+    +'<div style="font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:'+MUT+';margin:2px 0 6px;">Financial — P&amp;L</div>'
+    +ex('P&amp;L · This month',"downloadPLReport('monthly','current')")+ex('Last month',"downloadPLReport('monthly','prev')")+ex('This quarter',"downloadPLReport('quarterly','current')")+ex('This year',"downloadPLReport('annual','current')")
+    +'<div style="font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:'+MUT+';margin:14px 0 6px;">Sales &amp; Supply (by brand)</div>'
+    +ex('Open brand reports — Restock · Payout · Margin · Sales',"openBrandReportMenu('all')")
+    +'<div style="font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:'+MUT+';margin:14px 0 6px;">Payroll</div>'
+    +ex('Service fee / tips (15th)',"downloadServiceReport()")+ex('Commission (15th)',"downloadCommissionReport()")+ex('Salary + tax basis',"downloadSalaryReport()")
+    +'<div style="font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:'+MUT+';margin:14px 0 6px;">Data</div>'
+    +ex('Export all data',"exportAllData()");
+
+  el.innerHTML='<div style="background:#f6f7f8;min-height:100vh;color:'+TX+';font-family:\'Archivo\',sans-serif;">'
+    +'<div style="max-width:1180px;margin:0 auto;padding:30px 32px 60px;">'
+    +'<button onclick="showHome()" class="dk-back">&larr; Index</button>'
+    +'<div class="dk-mast"><div><div class="dk-idx">[ REPORTS / ALL ]</div><div class="dk-h1">Reports</div><div class="dk-kicker">Every report in one place · new: sales by hour &amp; department P&amp;L.</div></div></div>'
+    +'<div style="margin-top:18px;">'
+    +card('Sales by hour — for rosters',hourBody)
+    +card('Department · sales vs wages vs expenses',deptBody)
+    +card('All other reports',existingBody)
+    +'</div></div></div>';
+}
+// ── NEW REPORT 1: Sales by hour ───────────────────────────────────────────────
+window.rptSalesByHour=function(csv){
+  var r=_rptRange(window._rptHourPeriod); var out=document.getElementById('rpt-hour-out');
+  if(!r){ if(out) out.innerHTML='<span style="color:#FF2D2D;">Pick both custom dates first.</span>'; return; }
+  var docs=(window._lastLedgerDocs||[]);
+  var H={}; for(var h=6;h<=22;h++) H[h]={rec:0,recN:0,fuel:0,fuelN:0,sup:0,supN:0};
+  docs.forEach(function(d){
+    if(!d) return; var bd=d.bizDate||''; if(bd<r.start||bd>r.end) return;
+    var det={}; try{ det=d.detail?JSON.parse(d.detail):{}; }catch(e){}
+    if((det.status||d.status)==='cancelled') return;
+    var hr,amt;
+    if(d.kind==='recovery'){ if(/_bal$/.test(String(d.id||''))) return; hr=_rptHour(det.start||det.time); amt=(+det.price||+d.amount||0); if(hr!=null&&H[hr]){ H[hr].rec+=amt; H[hr].recN++; } }
+    else if(d.kind==='fuel'){ hr=_rptHour(det.time); amt=(+det.total||+d.amount||0); if(hr!=null&&H[hr]){ H[hr].fuel+=amt; H[hr].fuelN++; } }
+    else if(d.kind==='supply'){ var o=det.order||{}; hr=_rptHour(o.time||det.time); amt=(+o.total||+d.amount||0); if(hr!=null&&H[hr]){ H[hr].sup+=amt; H[hr].supN++; } }
+  });
+  var rows=[],tot={rec:0,recN:0,fuel:0,fuelN:0,sup:0,supN:0}; var maxN=0;
+  for(var h=6;h<=22;h++){ var x=H[h]; tot.rec+=x.rec;tot.recN+=x.recN;tot.fuel+=x.fuel;tot.fuelN+=x.fuelN;tot.sup+=x.sup;tot.supN+=x.supN; maxN=Math.max(maxN,x.recN+x.fuelN+x.supN); rows.push([h,x]); }
+  if(csv){
+    var c='DISTRIK — SALES BY HOUR\nPeriod: '+r.label+'\n\nHour,Recovery sales,Recovery #,Fuel sales,Fuel #,Supply sales,Supply #,Total sales,Total #\n';
+    rows.forEach(function(p){ var h=p[0],x=p[1]; c+=(h+':00-'+(h+1)+':00')+','+Math.round(x.rec)+','+x.recN+','+Math.round(x.fuel)+','+x.fuelN+','+Math.round(x.sup)+','+x.supN+','+Math.round(x.rec+x.fuel+x.sup)+','+(x.recN+x.fuelN+x.supN)+'\n'; });
+    c+='TOTAL,'+Math.round(tot.rec)+','+tot.recN+','+Math.round(tot.fuel)+','+tot.fuelN+','+Math.round(tot.sup)+','+tot.supN+','+Math.round(tot.rec+tot.fuel+tot.sup)+','+(tot.recN+tot.fuelN+tot.supN)+'\n';
+    _rptDownload(c,'Distrik_SalesByHour_'+r.label.replace(/[^0-9A-Za-z]+/g,'_')+'.csv'); return;
+  }
+  var th='<th style="text-align:left;padding:5px 8px;">Hour</th><th style="padding:5px 8px;">Recovery</th><th style="padding:5px 8px;">Fuel</th><th style="padding:5px 8px;">Supply</th><th style="padding:5px 8px;">Total sales</th><th style="padding:5px 8px;">Sales #</th>';
+  var body=rows.map(function(p){ var h=p[0],x=p[1]; var n=x.recN+x.fuelN+x.supN; var sh=maxN?Math.round(14+ (n/maxN)*60):0; var bg='rgba(14,165,233,'+(maxN?(0.06+(n/maxN)*0.5).toFixed(2):0)+')';
+    var cellN=function(v,nn){ return '<td style="padding:5px 8px;text-align:right;white-space:nowrap;">'+(nn>0?('<b>'+nn+'</b> <span style="color:#9aa0a6;">· '+_RPT_F(v)+'</span>'):'<span style="color:#cfcfcf;">—</span>')+'</td>'; };
+    return '<tr style="border-top:1px solid #eee;background:'+bg+';"><td style="padding:5px 8px;font-weight:700;">'+h+':00–'+(h+1)+':00</td>'+cellN(x.rec,x.recN)+cellN(x.fuel,x.fuelN)+cellN(x.sup,x.supN)+'<td style="padding:5px 8px;text-align:right;font-weight:700;">'+_RPT_F(x.rec+x.fuel+x.sup)+'</td><td style="padding:5px 8px;text-align:right;font-weight:700;">'+n+'</td></tr>'; }).join('');
+  var totRow='<tr style="border-top:2px solid #0A0A0A;background:#fafafa;"><td style="padding:6px 8px;font-weight:700;">TOTAL</td><td style="padding:6px 8px;text-align:right;">'+tot.recN+' · '+_RPT_F(tot.rec)+'</td><td style="padding:6px 8px;text-align:right;">'+tot.fuelN+' · '+_RPT_F(tot.fuel)+'</td><td style="padding:6px 8px;text-align:right;">'+tot.supN+' · '+_RPT_F(tot.sup)+'</td><td style="padding:6px 8px;text-align:right;font-weight:700;">'+_RPT_F(tot.rec+tot.fuel+tot.sup)+'</td><td style="padding:6px 8px;text-align:right;font-weight:700;">'+(tot.recN+tot.fuelN+tot.supN)+'</td></tr>';
+  out.innerHTML='<div style="color:#777;margin-bottom:8px;">'+r.label+' · each cell: <b>#sales</b> · takings. Darker = busier.</div><div style="overflow:auto;"><table style="border-collapse:collapse;width:100%;font-family:\'Space Mono\',monospace;font-size:11px;color:#0A0A0A;"><thead><tr style="color:#777;text-transform:uppercase;font-size:9px;letter-spacing:.08em;">'+th+'</tr></thead><tbody>'+body+totRow+'</tbody></table></div>';
+};
+// ── NEW REPORT 2: Department daily — sales vs wages vs expenses ────────────────
+function _rptStaffRosteredOn(dk){
+  var out={};
+  try{
+    var dayNames=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    var dt=new Date(dk+'T12:00:00'); var dn=dayNames[dt.getDay()];
+    var roster=(typeof dailyOverrides!=='undefined'&&dailyOverrides&&dailyOverrides[dk])?dailyOverrides[dk]:((typeof _baseGrid!=='undefined'&&_baseGrid&&_baseGrid[dn])?_baseGrid[dn]:((typeof grid!=='undefined'&&grid[dn])||null));
+    if(!roster) return out;
+    (typeof getLeafZones==='function'?getLeafZones(dk):[]).forEach(function(z){ (roster[z.id]||[]).forEach(function(row){ (row||[]).forEach(function(cell){ if(cell&&!(typeof isBreakCell==='function'&&isBreakCell(cell))){ var sid=(typeof staffId==='function')?staffId(cell):cell; if(sid) out[sid]=1; } }); }); });
+  }catch(e){}
+  return out;
+}
+function _rptUnpaidOn(dk){ var o={}; try{ var day=(typeof dailyAbsence!=='undefined'&&dailyAbsence)?dailyAbsence[dk]:null; if(day) Object.keys(day).forEach(function(k){ var a=day[k]; if(a&&a.staffId&&(typeof UNPAID_LEAVE_REASONS!=='undefined')&&UNPAID_LEAVE_REASONS[a.reason]) o[a.staffId]=1; }); }catch(e){} return o; }
+function _rptDailyRate(sid,dk){
+  try{ var s=(typeof getStaff==='function')?getStaff(sid):null; if(!s) return 0; var p=dk.split('-'); var y=+p[0],m=+p[1]; var wd=(typeof _scheduledDaysInMonth==='function')?_scheduledDaysInMonth(sid,y,m):0; return wd>0?((s.salary||0)/wd):0; }catch(e){ return 0; }
+}
+window.rptDeptDaily=function(csv){
+  var r=_rptRange(window._rptDeptPeriod); var out=document.getElementById('rpt-dept-out');
+  if(!r){ if(out) out.innerHTML='<span style="color:#FF2D2D;">Pick both custom dates first.</span>'; return; }
+  var dmap=_rptDeptStaff(); var days=_rptDays(r);
+  // expenses by day+area
+  var exp={}; (window._lastLedgerDocs||[]).forEach(function(d){ if(!d||d.kind!=='expense') return; var det={}; try{ det=d.detail?JSON.parse(d.detail):{}; }catch(e){} if((det.status||d.status||'').toLowerCase()==='cancelled') return; var dt=det.date||d.bizDate||''; var area=(det.area||'general'); exp[dt]=exp[dt]||{}; exp[dt][area]=(exp[dt][area]||0)+(+d.amount||+det.cost||0); });
+  var rd=(typeof recoveryData!=='undefined'?recoveryData:{}), fd=(typeof fuelData!=='undefined'?fuelData:{}), sd=(typeof supplyData!=='undefined'?supplyData:{});
+  var depts=[['recovery','Recovery'],['fuel','Fuel'],['supply','Supply']];
+  var rowsByDept={recovery:[],fuel:[],supply:[]}, totByDept={recovery:{s:0,w:0,e:0},fuel:{s:0,w:0,e:0},supply:{s:0,w:0,e:0}};
+  days.forEach(function(dk){
+    var unpaid=_rptUnpaidOn(dk); var ros=_rptStaffRosteredOn(dk);
+    var sales={recovery:(rd[dk]&&rd[dk].revenue)||0, fuel:(fd[dk]&&fd[dk].revenue)||0, supply:(sd[dk]&&sd[dk].revenue)||0};
+    depts.forEach(function(dp){ var key=dp[0];
+      var wage=0; dmap[key].forEach(function(sid){ if(ros[sid]&&!unpaid[sid]) wage+=_rptDailyRate(sid,dk); });
+      var expense=(exp[dk]&&exp[dk][key])||0;
+      var s=sales[key]; rowsByDept[key].push({d:dk,s:s,w:wage,e:expense,net:s-wage-expense});
+      totByDept[key].s+=s; totByDept[key].w+=wage; totByDept[key].e+=expense;
+    });
+  });
+  var genExp=0; days.forEach(function(dk){ genExp+=((exp[dk]&&exp[dk].general)||0); });
+  if(csv){
+    var c='DISTRIK — DEPARTMENT P&L (SALES vs WAGES vs EXPENSES)\nPeriod: '+r.label+'\nRecovery = therapists + front of house · Fuel = Jason · Supply = Markus\n\n';
+    depts.forEach(function(dp){ var key=dp[0]; c+=dp[1]+'\nDate,Sales,Wages,Expenses,Net\n'; rowsByDept[key].forEach(function(x){ c+=x.d+','+Math.round(x.s)+','+Math.round(x.w)+','+Math.round(x.e)+','+Math.round(x.net)+'\n'; }); var t=totByDept[key]; c+='TOTAL,'+Math.round(t.s)+','+Math.round(t.w)+','+Math.round(t.e)+','+Math.round(t.s-t.w-t.e)+'\n\n'; });
+    c+='Unallocated (general) expenses,'+Math.round(genExp)+'\n';
+    _rptDownload(c,'Distrik_DeptPL_'+r.label.replace(/[^0-9A-Za-z]+/g,'_')+'.csv'); return;
+  }
+  var html='<div style="color:#777;margin-bottom:10px;">'+r.label+' · wages = each dept\'s rostered staff × daily rate. Net = sales − wages − expenses.</div>';
+  depts.forEach(function(dp){ var key=dp[0]; var t=totByDept[key]; var net=t.s-t.w-t.e;
+    html+='<div style="margin:14px 0 6px;font-family:\'Space Mono\',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:#0A0A0A;">'+dp[1]+' <span style="color:'+(net>=0?'#16a34a':'#dc2626')+';">· net '+_RPT_F(net)+'</span></div>';
+    html+='<div style="overflow:auto;"><table style="border-collapse:collapse;width:100%;font-family:\'Space Mono\',monospace;font-size:11px;"><thead><tr style="color:#777;text-transform:uppercase;font-size:9px;letter-spacing:.08em;"><th style="text-align:left;padding:4px 8px;">Date</th><th style="padding:4px 8px;text-align:right;">Sales</th><th style="padding:4px 8px;text-align:right;">Wages</th><th style="padding:4px 8px;text-align:right;">Expenses</th><th style="padding:4px 8px;text-align:right;">Net</th></tr></thead><tbody>';
+    rowsByDept[key].forEach(function(x){ if(x.s===0&&x.w===0&&x.e===0) return; html+='<tr style="border-top:1px solid #eee;"><td style="padding:4px 8px;">'+x.d+'</td><td style="padding:4px 8px;text-align:right;">'+_RPT_F(x.s)+'</td><td style="padding:4px 8px;text-align:right;color:#b45309;">'+_RPT_F(x.w)+'</td><td style="padding:4px 8px;text-align:right;color:#b45309;">'+_RPT_F(x.e)+'</td><td style="padding:4px 8px;text-align:right;font-weight:700;color:'+(x.net>=0?'#16a34a':'#dc2626')+';">'+_RPT_F(x.net)+'</td></tr>'; });
+    html+='<tr style="border-top:2px solid #0A0A0A;background:#fafafa;"><td style="padding:5px 8px;font-weight:700;">TOTAL</td><td style="padding:5px 8px;text-align:right;font-weight:700;">'+_RPT_F(t.s)+'</td><td style="padding:5px 8px;text-align:right;font-weight:700;">'+_RPT_F(t.w)+'</td><td style="padding:5px 8px;text-align:right;font-weight:700;">'+_RPT_F(t.e)+'</td><td style="padding:5px 8px;text-align:right;font-weight:700;color:'+(net>=0?'#16a34a':'#dc2626')+';">'+_RPT_F(net)+'</td></tr></tbody></table></div>';
+  });
+  if(genExp>0) html+='<div style="margin-top:12px;font-family:\'Space Mono\',monospace;font-size:10px;color:#777;">+ Unallocated (general) expenses this period: '+_RPT_F(genExp)+' — not charged to a department.</div>';
+  out.innerHTML=html;
+};
+function _rptDownload(csv,fn){ var a=document.createElement('a'); a.href='data:text/csv;charset=utf-8,'+encodeURIComponent('﻿'+csv); a.download=fn; document.body.appendChild(a); a.click(); setTimeout(function(){document.body.removeChild(a);},100); }
 
 function showComingSoon(msg){
   document.querySelector('.tab-bar').style.display='flex';
