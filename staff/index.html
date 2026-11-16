@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMEEwQTBBIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYsNzgpIHNjYWxlKDEuMzApIiBmaWxsPSIjRjJGMkYwIj48cGF0aCBkPSJNIDAuMDYyNSAwIEwgNi42MjUgLTQxLjM5MDYyNSBMIDMzLjU5Mzc1IC00MS4zOTA2MjUgQyAzOS4wMDc4MTIgLTQxLjM5MDYyNSA0My41MDM5MDYgLTQwLjkwNjI1IDQ3LjA3ODEyNSAtMzkuOTM3NSBDIDUwLjY2MDE1NiAtMzguOTc2NTYyIDUzLjUgLTM3LjY2MDE1NiA1NS41OTM3NSAtMzUuOTg0Mzc1IEMgNTcuNjg3NSAtMzQuMzE2NDA2IDU5LjE3NTc4MSAtMzIuNDE0MDYyIDYwLjA2MjUgLTMwLjI4MTI1IEMgNjAuOTU3MDMxIC0yOC4xNTYyNSA2MS40MDYyNSAtMjUuOTIxODc1IDYxLjQwNjI1IC0yMy41NzgxMjUgQyA2MS40MDYyNSAtMjEuOTEwMTU2IDYxLjI5Njg3NSAtMjAuMzE2NDA2IDYxLjA3ODEyNSAtMTguNzk2ODc1IEMgNjAuODE2NDA2IC0xNy4wOTc2NTYgNjAuMzMyMDMxIC0xNS4zNTkzNzUgNTkuNjI1IC0xMy41NzgxMjUgQyA1OC45MjU3ODEgLTExLjc5Njg3NSA1Ny44Nzg5MDYgLTEwLjA5NzY1NiA1Ni40ODQzNzUgLTguNDg0Mzc1IEMgNTUuMDk3NjU2IC02Ljg2NzE4OCA1My4yNjk1MzEgLTUuNDIxODc1IDUxIC00LjE0MDYyNSBDIDQ4LjczODI4MSAtMi44NTkzNzUgNDUuOTIxODc1IC0xLjg0NzY1NiA0Mi41NDY4NzUgLTEuMTA5Mzc1IEMgMzkuMTcxODc1IC0wLjM2NzE4OCAzNS4xNDg0MzggMCAzMC40ODQzNzUgMCBaIE0gMjAuMjUgLTMwLjUzMTI1IEwgMTcuMTI1IC0xMC45NTMxMjUgTCAyOC42NDA2MjUgLTEwLjk1MzEyNSBDIDMxLjgzNTkzOCAtMTAuOTUzMTI1IDM0LjQ3MjY1NiAtMTEuMjUgMzYuNTQ2ODc1IC0xMS44NDM3NSBDIDM4LjYxNzE4OCAtMTIuNDM3NSA0MC4yNSAtMTMuMjA3MDMxIDQxLjQzNzUgLTE0LjE1NjI1IEMgNDIuNjI1IC0xNS4xMDE1NjIgNDMuNDg0Mzc1IC0xNi4wOTM3NSA0NC4wMTU2MjUgLTE3LjEyNSBDIDQ0LjU1NDY4OCAtMTguMTY0MDYyIDQ0Ljg5ODQzOCAtMTkuMTQ4NDM4IDQ1LjA0Njg3NSAtMjAuMDc4MTI1IEMgNDUuMjAzMTI1IC0yMS4wMDM5MDYgNDUuMjgxMjUgLTIxLjc1IDQ1LjI4MTI1IC0yMi4zMTI1IEMgNDUuMjgxMjUgLTIzLjIzODI4MSA0NS4xMTMyODEgLTI0LjE3OTY4OCA0NC43ODEyNSAtMjUuMTQwNjI1IEMgNDQuNDQ1MzEyIC0yNi4xMDkzNzUgNDMuNzk2ODc1IC0yNyA0Mi44MjgxMjUgLTI3LjgxMjUgQyA0MS44NjcxODggLTI4LjYyNSA0MC41IC0yOS4yODEyNSAzOC43MTg3NSAtMjkuNzgxMjUgQyAzNi45Mzc1IC0zMC4yODEyNSAzNC41OTc2NTYgLTMwLjUzMTI1IDMxLjcwMzEyNSAtMzAuNTMxMjUgWiBNIDIwLjI1IC0zMC41MzEyNSAiLz48L2c+PC9zdmc+">
 <!-- ═══ AUTO-UPDATE: always run the latest deployed code so old cached versions can never fight the sync ═══ -->
 <script>
-window.DK_BUILD = 20261115260;  // bump this AND version.json on every deploy
+window.DK_BUILD = 20261116262;  // bump this AND version.json on every deploy
 (function(){
   try{
     fetch('version.json?_='+Date.now(), {cache:'no-store'})
@@ -3262,6 +3262,12 @@ function loadGridFromData(){
     }
     // Backfill any zone missing from older saved rosters (e.g. a newly-added zone) so nothing crashes — using THIS date's era.
     getLeafZones(dateKey).forEach(function(z){ if(!grid[dayName][z.id]) grid[dayName][z.id]=Array.from({length:z.rows},function(){return Array(TOTAL_SLOTS).fill(null);}); });
+    // LEAVERS: a staff member with a Left date is removed from every date AFTER it — so they can't linger on the
+    // base template or an old override. Saving the day then writes them out for good. Dates up to the left date keep history.
+    try{
+      var g=grid[dayName];
+      Object.keys(g||{}).forEach(function(zid){ (g[zid]||[]).forEach(function(row){ if(!row) return; for(var si=0;si<row.length;si++){ var cell=row[si]; if(!cell) continue; var sid=(typeof staffId==='function')?staffId(cell):cell; if(!sid) continue; var st=(typeof getStaff==='function')?getStaff(sid):null; var ld=st&&st.leftDate; if(ld&&dateKey>ld){ row[si]=null; } } }); });
+    }catch(e){}
   });
 }
 
@@ -3679,7 +3685,9 @@ function buildGrid(){
       const rowSlots=grid[day][zoneId][row]||[];
       const rowLabel = (rowLabels&&rowLabels[row]) ? rowLabels[row] : `Row ${row+1}`;
       const _adk = (typeof getDateKey==='function') ? getDateKey(activeDay, rosterWeekOffset) : '';
-      const _abs = (dailyAbsence[_adk]||{})[zoneId+':'+row];
+      let _abs = (dailyAbsence[_adk]||{})[zoneId+':'+row];
+      // Hide an off/leave mark belonging to someone who has LEFT (dates after their last working day).
+      if(_abs && _abs.staffId){ try{ const _st=(typeof getStaff==='function')?getStaff(_abs.staffId):null; if(_st&&_st.leftDate&&_adk>_st.leftDate) _abs=null; }catch(e){} }
       const _absReason = _abs ? _abs.reason : '';
       const _absLbl = _abs ? (_abs.label || _absLabelOf(_abs.reason)) : '';
       const _offLabel = _absReason ? ('OFF · '+_absLbl+(_abs.note?(' — '+_abs.note):'')) : '';
@@ -6837,10 +6845,16 @@ function _therapistCommForDay(therId, dateKey){
   var day=(typeof recoveryData!=='undefined'&&recoveryData[dateKey])?recoveryData[dateKey]:null;
   var out={therapy:0, iv:0};
   if(!day||!day.bookings) return out;
+  // Commission is EARNED only once the session is DELIVERED — never on a future booking (even one marked paid). A
+  // future session date earns nothing until the day arrives and it's checked out; this keeps the accumulating cycle
+  // at 0 until sessions actually happen.
+  var _today=(typeof todayKey==='function')?todayKey():null;
+  if(_today && dateKey>_today) return out;
   day.bookings.forEach(function(b){
     if(!b||b.status==='cancelled') return;
-    if(b.clinical||b.partner){ if(b.recommendedBy===therId){ var _rg=(b.partnerTotal||b.price||0)-((b.compression&&b.compression.price)||0); out.iv += Math.round(Math.max(0,_rg)*0.025); } }   // 2.5% on the treatment, not on the boots
-    else { if(b.therapist===therId){ out.therapy += Math.round((b.price||0)*0.10); } }
+    // Therapy counts when the booking is checked out / paid in full; IV (partner-billed) counts once checked in.
+    if(b.clinical||b.partner){ if(b.recommendedBy===therId && b.checkedIn){ var _rg=(b.partnerTotal||b.price||0)-((b.compression&&b.compression.price)||0); out.iv += Math.round(Math.max(0,_rg)*0.025); } }   // 2.5% on the treatment, not on the boots
+    else { var _done=(typeof _clinPay==='function')?_clinPay(b).fullyPaid:!!b.balancePaid; if(b.therapist===therId && _done){ out.therapy += Math.round((b.price||0)*0.10); } }
   });
   return out;
 }
@@ -16411,11 +16425,12 @@ window.payrollCalcRow=function(empId){
     var kesE=_payNum('pay_kesE_'+empId), tkE=_payNum('pay_tkE_'+empId), pph=_payNum('pay_pph_'+empId);
     var kesC=_payNum('pay_kesC_'+empId), tkC=_payNum('pay_tkC_'+empId);
     var flat=_isFlat(empId, ym); if(flat){ kesE=tkE=pph=kesC=tkC=0; }
-    var gross=(inc.gross-inc.service-inc.commission)+bonus+allow, ded=flat?0:(kesE+tkE+pph), net=gross-ded; // tips excluded from take-home (paid separately 15th)
-    var _ov=_payNum('pay_override_'+empId); if(_ov>0) net=_ov;   // manual final-pay override wins
+    var _ov=_payNum('pay_override_'+empId);
+    var _base=(_ov>0?_ov:(inc.gross-inc.service-inc.commission));   // override is the take-home BASE; BPJS/PPh still deduct from it
+    var gross=_base+bonus+allow, ded=flat?0:(kesE+tkE+pph), net=gross-ded; // tips excluded from take-home (paid separately 15th)
     var setT=function(id,t){ var e=document.getElementById(id); if(e) e.textContent=t; };
     setT('pay_gross_'+empId,_pf(gross));
-    setT('pay_net_'+empId,'NET '+_pf(net)+(_ov>0?' · manual':''));
+    setT('pay_net_'+empId,'NET '+_pf(net)+(_ov>0?' · manual base':''));
     setT('pay_ded_'+empId,flat?'Flat salary — no BPJS / PPh':('Employee deductions '+_pf(ded)+' · Company contributions '+_pf(kesC+tkC)));
     var st=document.getElementById('pay_saved_'+empId); if(st){ st.textContent='calculated — check, then Save'; st.style.color='#f0b429'; }
   }catch(e){ console.warn('payrollCalcRow',e); }
@@ -16516,10 +16531,13 @@ window.renderPayroll=function(preserve){
   var rows=staff.map(function(s){
     var inc=_payrollIncome(s,ym); var adj=_payrollAdj(s.id,ym);
     var flat=_isFlat(s.id, ym); // part-time flat salary — no BPJS / no PPh21
-    var bonus=adj.bonus||0, allow=adj.allowance||0, gross=(inc.gross-inc.service-inc.commission)+bonus+allow; // tips (service fee) paid separately on 15th — excluded from take-home so NET matches the accountant sheet
+    var _ovN=(+(adj.overrideNet)||0);
+    // The override is the take-home BASE (e.g. a leaver paid only for days worked) — BPJS/PPh still come off it, so Calculate works.
+    var _baseTake=(_ovN>0?_ovN:(inc.gross-inc.service-inc.commission)); // tips (service fee) paid separately on 15th — excluded from take-home so NET matches the accountant sheet
+    var bonus=adj.bonus||0, allow=adj.allowance||0, gross=_baseTake+bonus+allow;
     var kesE=flat?0:(adj.bpjsKesEmp||0),tkE=flat?0:(adj.bpjsTkEmp||0),pph=flat?0:(adj.pph21||0),kesC=flat?0:(adj.bpjsKesCo||0),tkC=flat?0:(adj.bpjsTkCo||0);
     var ded=flat?0:(kesE+tkE+pph), net=gross-ded;
-    var _ovN=(+(adj.overrideNet)||0); var _netF=(_ovN>0?_ovN:net);   // manual final-pay override (e.g. a leaver paid only for days worked)
+    var _netF=net;
     var cell=function(l,v){return '<div>'+l+'<br><b style="color:'+TX+';font-size:12px;">'+v+'</b></div>';};
     var fld=function(l,id,val,ph,hintv){return '<div>'+l+'<br><input id="'+id+'" value="'+(val||'')+'" placeholder="'+(ph||'0')+'" style="'+inp+'">'+(hintv!=null?hint(hintv):'')+'</div>';};
     return '<div style="border:1px solid '+C+';border-radius:6px;margin-bottom:10px;">'
@@ -16528,7 +16546,7 @@ window.renderPayroll=function(preserve){
         +'<span id="pay_net_'+s.id+'" style="font-family:\'Space Mono\',monospace;font-size:11px;color:#22c55e;">NET '+_pf(_netF)+(_ovN>0?' <span style="color:#f0b429;font-size:8px;">· manual</span>':'')+'</span>'
       +'</div>'
       +'<div style="padding:10px 14px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px 14px;font-family:\'Space Mono\',monospace;font-size:10px;color:'+MUT+';">'
-        +cell('Salary',_pf(inc.salary)+(inc.unpaidDays>0?'<div style="color:#f87171;font-size:8px;margin-top:2px;font-weight:400;">− '+_pf(inc.unpaidDeduct)+' unpaid leave ('+inc.unpaidDays+'d @ '+_pf(inc.unpaidRate)+')</div>':''))+cell('Service fee (tips)',_pf(inc.service)+'<div style="font-size:8px;color:'+MUT+';margin-top:2px;font-weight:400;">paid separately (15th) — not in NET</div>')+cell('Commission',_pf(inc.commission)+'<div style="font-size:8px;color:'+MUT+';margin-top:2px;font-weight:400;">paid separately (monthly) — not in NET</div>')
+        +cell('Salary',_pf(inc.salary)+(_ovN>0?'<div style="color:#f0b429;font-size:8px;margin-top:2px;font-weight:400;">manual base '+_pf(_ovN)+' — BPJS/PPh come off this</div>':(inc.unpaidDays>0?'<div style="color:#f87171;font-size:8px;margin-top:2px;font-weight:400;">− '+_pf(inc.unpaidDeduct)+' unpaid leave ('+inc.unpaidDays+'d @ '+_pf(inc.unpaidRate)+')</div>':'')))+cell('Service fee (tips)',_pf(inc.service)+'<div style="font-size:8px;color:'+MUT+';margin-top:2px;font-weight:400;">paid separately (15th) — not in NET</div>')+cell('Commission',_pf(inc.commission)+'<div style="font-size:8px;color:'+MUT+';margin-top:2px;font-weight:400;">paid separately (monthly) — not in NET</div>')
         +fld('Bonus / THR','pay_bonus_'+s.id,bonus,'0',null)+fld('Allowances','pay_allow_'+s.id,allow,'0',null)+'<div>GROSS (take-home)<br><b id="pay_gross_'+s.id+'" style="color:'+TX+';font-size:12px;">'+_pf(gross)+'</b></div>'
         +(flat
           ? '<div style="grid-column:1/-1;padding:6px 8px;border:1px dashed '+C+';border-radius:4px;color:'+MUT+';font-size:9px;line-height:1.5;">⚑ <b style="color:#f0b429;">Flat salary — no BPJS / no PPh 21</b> (part-time). NET = salary'+((bonus||allow)?' + bonus/allowances':'')+'. BPJS/tax fields are hidden for this person.</div>'
@@ -16537,7 +16555,7 @@ window.renderPayroll=function(preserve){
              +fld('PPh 21 (accountant)','pay_pph_'+s.id,pph,'fill exact',null)
              +fld('BPJS Kesehatan · company','pay_kesC_'+s.id,kesC,'fill exact',Math.round(inc.salary*0.04))
              +fld('BPJS Ketenagakerjaan · company','pay_tkC_'+s.id,tkC,'fill exact',Math.round(inc.salary*0.0624))))
-        +'<div>Final pay override<br><input id="pay_override_'+s.id+'" value="'+(_ovN||'')+'" type="number" placeholder="auto" title="Leave blank for the auto figure. Enter an exact take-home to override — e.g. a leaver paid only for the days they worked." style="'+inp+'"><div style="color:'+MUT+';font-size:8px;margin-top:2px;">blank = auto</div></div>'
+        +'<div>Base pay override<br><input id="pay_override_'+s.id+'" value="'+(_ovN||'')+'" type="number" placeholder="auto" title="Leave blank for the auto figure. Enter an exact take-home BASE to override (e.g. a leaver paid only for days worked). BPJS / PPh still deduct from it." style="'+inp+'"><div style="color:'+MUT+';font-size:8px;margin-top:2px;">blank = auto · BPJS/PPh apply</div></div>'
         +'<div>Note<br><input id="pay_note_'+s.id+'" value="'+_escSettle(adj.note||'')+'" placeholder="optional" style="'+inp+'width:100%;"></div>'
       +'</div>'
       +'<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-top:1px solid '+C+';">'
